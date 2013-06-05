@@ -1,0 +1,2 @@
+[30-Jan-2013 05:36:22] PHP Fatal error:  Call to undefined function  add_action() in /home/gvlarpco/public_html/plugin.gvlarp.com/wp-content/themes/GVTheme/theme-options.php on line 5
+[30-Jan-2013 05:37:43] PHP Fatal error:  Call to undefined function  add_action() in /home/gvlarpco/public_html/plugin.gvlarp.com/wp-content/themes/GVTheme/theme-options.php on line 9
