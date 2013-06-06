@@ -35,9 +35,9 @@ get_header(); ?>
 					<footer class="entry-meta">
 						<?php edit_post_link('Edit', '<span class="edit-link">', '</span>' ); ?>
 						<span class="single-cat"><?php 
-							$categories_list =  get_the_category_list(',');
+							$categories_list =  get_the_category_list(', ');
 							echo 'Categories: ' . $categories_list;
-							$tag_list = get_the_tag_list(' | Tags: ', ',');
+							$tag_list = get_the_tag_list(' | Tags: ', ', ');
 							if ( '' != $tag_list ) {
 								echo $tag_list;
 							}
