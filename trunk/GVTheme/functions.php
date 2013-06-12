@@ -77,6 +77,18 @@ function my_login_redirect( $redirect_to, $request, $user ){
     }}
 add_filter("login_redirect", "my_login_redirect", 10, 3);
 
+/* USEFUL FUNCTIONS
+------------------------------------------------ */
+
+function get_user_role() {
+	global $current_user;
+
+	$user_roles = $current_user->roles;
+	$user_role = array_shift($user_roles);
+
+	return $user_role;
+}
+
 /* PLUGIN STUFF
 ------------------------------------------------ */
 function plugin_style()  
@@ -151,6 +163,16 @@ class GVTheme_Widget extends WP_Widget {
 			<?php } ?>
 			<?php if ( isset( $instance[ 'spendxp_link' ] ) ) { ?>
 			<li><a href="<?php echo $instance['spendxp_link']; ?>">Spend Experience</a></li>
+			<?php } ?>
+			
+			<?php 
+				$user_role = get_user_role();
+				$options = get_option('gv_options');
+				if ( isset( $options['rolelink_' . $user_role] ) ) { 
+					$linktext = $options['rolelink_' . $user_role];
+					$linkurl = $options['roleurl_' . $user_role]; 
+			?>
+			<li><a href="<?php echo $linkurl; ?>"><?php echo $linktext; ?></a></li>
 			<?php } ?>
 			
 		 	<?php
