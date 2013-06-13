@@ -45,6 +45,7 @@ body.login div#login form#loginform p.submit input#wp-submit {
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#BB0506)); /* Older webkit syntax */
 	background: -webkit-linear-gradient(#770506, #BB0506);
 	color: #FFFFFF;
+	line-height: 100%;
 
 }
 body.login div#login form#loginform p.submit input#wp-submit:hover {
@@ -68,3 +69,12 @@ body.login div#login p#backtoblog {
 body.login div#login p#backtoblog a {
 	color: #787878 !important;
 }
+
+div.error, .login #login_error {
+    background-color: #000000;
+    border-color: #CC0000;
+}
+div.error, .login #login_error a {
+    color: #787878;
+}
+
