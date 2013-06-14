@@ -2652,12 +2652,12 @@
                 // Show original buttons if we are editing character otherwise jump to page
                 if ($formUrl == $_SERVER['REQUEST_URI']) {
                     $output .= "<table class=\"gvplugin\" id=\"gvid_ucs\"><tr><td class=\"gvcol_1 gvcol_val\">";
-                    $output .= "<input type=\"submit\" name=\"cSubmit\" value=\"Update Character\" /></td><td>";
-                    $output .= "<input type=\"submit\" name=\"cSubmit\" value=\"Delete Character\" /></td><td>";
-                    $output .= "<input type=\"submit\" name=\"cSubmit\" value=\"Back to Category Selection\" /></td></tr></table>";
+                    $output .= "<tr><td><input type=\"submit\" name=\"cSubmit\" value=\"Update Character\" /></td><td>";
+                    $output .= "<tr><td><input type=\"submit\" name=\"cSubmit\" value=\"Delete Character\" /></td><td>";
+                    $output .= "<tr><td><input type=\"submit\" name=\"cSubmit\" value=\"Back to Category Selection\" /></td></tr></table>";
                 }
                 else {
-                    $output .= "<input type=\"submit\" name=\"cSubmit\" value=\"" . $buttonText . "\">";
+                    $output .= "<tr><td><input type=\"submit\" name=\"cSubmit\" value=\"" . $buttonText . "\">";
                 }
                 $output .= "</td></tr></table></form>";
             }
@@ -2717,7 +2717,7 @@
                 $stLinks = listSTLinks();
                 $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Action to perform</td>
                                     <td class=\"gvcol_2 gvcol_val\"><select name=\"actionToPerform\">";
-                $output .= "<option value=\"update\" SELECTED>Create/Update/Delete Character</option>";
+                $output .= "<option value=\"update\">Create/Update/Delete Character</option>";
                 foreach ($stLinks as $stLink) {
                     $output .= "<option value=\"" . $stLink->value . "\"";
                     if ($stLink->description == 'View Character Sheet') {
@@ -3436,7 +3436,7 @@
             $output .= "<input type=\"HIDDEN\" name=\"GVLARP_CHARACTER\" value=\"" . $_POST['GVLARP_CHARACTER'] . "\" />";
         }
 
-        $output .= "<input type=\"hidden\" name=\"character\" value=\"" . $character . "\"></p>";
+        $output .= "<input type=\"hidden\" name=\"character\" value=\"" . $character . "\">";
         $output .= "<input type=\"hidden\" name=\"GVLARP_FORM\" value=\"applyXPSpend\" />";
         $output .= "<tr><td colspan=7>Training Notes: <input type=\"text\" name=\"trainingNote\" value=\"" . $defaultTrainingString ."\" size=80 maxlength=160 /></td></tr>";
         $output .= "<tr><td colspan=7><input type=\"submit\" name=\"xSubmit\" value=\"Spend XP\"></td></tr></table></form>";
@@ -3900,7 +3900,7 @@
             $output .= $publicIcon;
         }
 
-        $output .= "\">" . $quote . "</p><p><table class=\"gvplugin\" id=\"gvid_prof_in\">";
+        $output .= "\">" . $quote . "<p><table class=\"gvplugin\" id=\"gvid_prof_in\">";
 
         $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Player:</td><td class=\"gvcol_2 gvcol_val\">" . $playerName . "</td></tr>";
         $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Clan:</td><td class=\"gvcol_2 gvcol_val\">";
