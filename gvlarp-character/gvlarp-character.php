@@ -1009,7 +1009,7 @@
         }
 
         if ($sqlOutput != "") {
-            $output = "<table class=\"gvplugin\" id=\"gvid_cstb". $grouping_sector . "\">" . $sqlOutput . "</table>";
+            $output = "<table class='gvplugin' id=\"gvid_cstb". $grouping_sector . "\">" . $sqlOutput . "</table>";
         }
         else {
             $output = "";
@@ -1062,7 +1062,7 @@
         }
 
         if ($sqlOutput != "") {
-            $output = "<table class=\"gvplugin\" id=\"gvid_cskb\">" . $sqlOutput . "</table>";
+            $output = "<table class='gvplugin' id=\"gvid_cskb\">" . $sqlOutput . "</table>";
         }
         else {
             $output = "";
@@ -1117,7 +1117,7 @@
         $character_details = $wpdb->get_row($wpdb->prepare($sql, $character));
 
         if ($group == "") {
-            $output  = "<table class=\"gvplugin\" id=\"gvid_cdb\"><tr><td class=\"gvcol_1 gvcol_key\">Character_name</td><td class=\"gvcol_2 gvcol_val\">" . $character_details->char_name       . "</td></tr>";
+            $output  = "<table class='gvplugin' id=\"gvid_cdb\"><tr><td class=\"gvcol_1 gvcol_key\">Character_name</td><td class=\"gvcol_2 gvcol_val\">" . $character_details->char_name       . "</td></tr>";
             $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Public Clan</td><td class=\"gvcol_2 gvcol_val\">"           . $character_details->pub_clan        . "</td></tr>";
             $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Private Clan</td><td class=\"gvcol_2 gvcol_val\">"          . $character_details->priv_clan       . "</td></tr>";
             $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Date of Birth</td><td class=\"gvcol_2 gvcol_val\">"         . $character_details->date_of_birth   . "</td></tr>";
@@ -1187,9 +1187,9 @@
         }
 
         if ($sqlOutput != "") {
-            $output = "<table class=\"gvplugin\" id=\"gvid_cdib\">" . $sqlOutput;
+            $output = "<table class='gvplugin' id=\"gvid_cdib\">" . $sqlOutput;
             if ($sqlComboOutput != "") {
-                $output .= "<tr><td colspan=3><table class=\"gvplugin\" id=\"gvid_ccd\">" . $sqlComboOutput . "</table></td></tr>";
+                $output .= "<tr><td colspan=3><table class='gvplugin' id=\"gvid_ccd\">" . $sqlComboOutput . "</table></td></tr>";
             }
             $output .= "</table>";
         }
@@ -1228,7 +1228,7 @@
         }
 
         if ($sqlOutput != "") {
-            $output = "<table class=\"gvplugin\" id=\"gvid_cpb\">" . $sqlOutput . "</table>";
+            $output = "<table class='gvplugin' id=\"gvid_cpb\">" . $sqlOutput . "</table>";
         }
         else {
             $output = "";
@@ -1271,7 +1271,7 @@
         }
 
         if ($sqlOutput != "") {
-            $output = "<table class=\"gvplugin\" id=\"gvid_crb\">" . $sqlOutput . "</table>";
+            $output = "<table class='gvplugin' id=\"gvid_crb\">" . $sqlOutput . "</table>";
         }
         else {
             $output = "";
@@ -1308,7 +1308,7 @@
         }
 
         if ($sqlOutput != "") {
-            $output = "<table class=\"gvplugin\" id=\"gvid_cmb\">" . $sqlOutput . "</table>";
+            $output = "<table class='gvplugin' id=\"gvid_cmb\">" . $sqlOutput . "</table>";
         }
         else {
             $output = "";
@@ -1347,7 +1347,7 @@
         }
 
         if ($sqlOutput != "") {
-            $output = "<table class=\"gvplugin\" id=\"gvid_cob\">" . $sqlOutput . "</table>";
+            $output = "<table class='gvplugin' id=\"gvid_cob\">" . $sqlOutput . "</table>";
         }
         else {
             $output = "";
@@ -1384,7 +1384,7 @@
         }
 
         if ($sqlOutput != "") {
-            $output = "<table class=\"gvplugin\" id=\"gvid_cbb\">" . $sqlOutput . "</table>";
+            $output = "<table class='gvplugin' id=\"gvid_cbb\">" . $sqlOutput . "</table>";
         }
         else {
             $output = "";
@@ -1485,7 +1485,7 @@
             }
 
             if ($sqlOutput != "") {
-                $output = "<table class=\"gvplugin\" id=\"gvid_cob\">" . $sqlOutput . "</table>";
+                $output = "<table class='gvplugin' id=\"gvid_cob\">" . $sqlOutput . "</table>";
             }
             else {
                 $output = "No office holders found for the court of " . $court;
@@ -1652,7 +1652,7 @@
                 . $current_character->Character_Name . "</a></td>
                                   <td class=\"gvcol_2 gvcol_val\">" . $current_character->Character_Clan . "</td>
                                   <td class=\"gvcol_3 gvcol_val\">" . $current_character->Court          . "</td>
-                                  <td class=\"gvcol_4 gvcol_val\">" . $current_character->Prestige       . "</td></tr>";
+                                  <td class='gvcol_4 gvcol_val'>" . $current_character->Prestige       . "</td></tr>";
         }
 
         if ($clan != "" && isST()) {
@@ -1720,7 +1720,7 @@
         }
 
         if ($sqlOutput != "") {
-            $output .= "<table class=\"gvplugin\" id=\"gvid_plb\">" . $sqlOutput . "</table>";
+            $output .= "<table class='gvplugin' id=\"gvid_plb\">" . $sqlOutput . "</table>";
         }
         else {
             if ($clan != "" && isST()) {
@@ -1814,7 +1814,7 @@
         }
 
         if ($sqlOutput != "") {
-            $output = "<table class=\"gvplugin\" id=\"gvid_slb\">" . $sqlOutput . "</table>";
+            $output = "<table class='gvplugin' id=\"gvid_slb\">" . $sqlOutput . "</table>";
         }
 
         return $output;
@@ -1825,8 +1825,8 @@
         $playerTypes  = listPlayerType();
         $playerStatus = listPlayerStatus();
 
-        $output  = "<form name=\"NP_Form\" method=\"post\" action=\"" . $_SERVER['REQUEST_URI'] . "\">";
-        $output .= "<table class=\"gvplugin\" id=\"gvid_npt\"><tr><th class=\"gvthleft\">Player Name</th><td class=\"gvcol_2 gvcol_val\"><input type=text name=\"player_name\" size=30 maxlength=55 /></td></tr>";
+        $output  = "<form name=\"NP_Form\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">";
+        $output .= "<table class='gvplugin' id=\"gvid_npt\"><tr><th class=\"gvthleft\">Player Name</th><td class=\"gvcol_2 gvcol_val\"><input type=text name=\"player_name\" size=30 maxlength=55 /></td></tr>";
 
         $output .= "<tr><th class=\"gvthleft\">Player Type</th><td class=\"gvcol_2 gvcol_val\"><select name=\"player_type\">";
         foreach ($playerTypes as $type) {
@@ -1840,8 +1840,8 @@
         }
         $output .= "</select></td></tr>";
 
-        $output .= "<input type=\"HIDDEN\" name=\"GVLARP_FORM\" value=\"new_player\" />";
-        $output .= "<tr><td colspan=2><input type=\"submit\" name=\"pSubmit\" value=\"Submit Player\" /></td></tr></table></form>";
+        $output .= "<tr style='display:none'><td colspan=2><input type='HIDDEN' name=\"GVLARP_FORM\" value=\"new_player\" /></td></tr>";
+        $output .= "<tr><td colspan=2><input type='submit' name=\"pSubmit\" value=\"Submit Player\" /></td></tr></table></form>";
         return $output;
     }
     add_shortcode('new_player_table', 'print_new_player_table');
@@ -1885,9 +1885,9 @@
 
         $xp_records = $wpdb->get_results($sql);
 
-        $output  = "<form name=\"Master_XP_Form\" method=\"post\" action=\"" . $_SERVER['REQUEST_URI'] . "\">";
-        $output .= "<input type=\"HIDDEN\" name=\"GVLARP_FORM\" value=\"master_xp_update\" />";
-        $output .= "<table class=\"gvplugin\" id=\"gvid_mxpt\"><tr><td colspan=6><input type=\"submit\" name=\"submit_new_xp\" value=\"Submit XP Changes\" /></tr>";
+        $output  = "<form name=\"Master_XP_Form\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">";
+        $output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"master_xp_update\" />";
+        $output .= "<table class='gvplugin' id=\"gvid_mxpt\"><tr><td colspan=6><input type='submit' name=\"submit_new_xp\" value=\"Submit XP Changes\" /></tr>";
         $output .= "<tr><th class=\"gvthead gvcol_1\">Player</th>
                             <th class=\"gvthead gvcol_2\">Current XP</th>
                             <th class=\"gvthead gvcol_3\">Character</th>
@@ -1906,32 +1906,32 @@
                 $counter++;
                 if ($last_player != "") {
                     $output .= "</select></td>
-                                        <td class=\"gvcol_4 gvcol_val\"><select name=\"" . $current_player_id . "_xp_reason\">" . $xpOptions . "</select>
-                                        </td><td class=\"gvcol_5 gvcol_val\">
-                                        <input type=\"text\" name=\"" . $current_player_id . "_xp_value\" size=5 maxlength=3 />
-                                        </td><td class=\"gvcol_6 gvcol_val\">
-                                        <input type=\"text\" name=\"" . $current_player_id . "_xp_comment\" size=30 maxlength=100 />
+                                        <td class='gvcol_4 gvcol_val'><select name=\"" . $current_player_id . "_xp_reason\">" . $xpOptions . "</select>
+                                        </td><td class='gvcol_5 gvcol_val'>
+                                        <input type='text' name=\"" . $current_player_id . "_xp_value\" size=5 maxlength=3 />
+                                        </td><td class='gvcol_6 gvcol_val'>
+                                        <input type='text' name=\"" . $current_player_id . "_xp_comment\" size=30 maxlength=100 />
                                         </td></tr>";
                 }
                 $last_player = $current_player;
                 $current_xp        = $current_record->total_xp;
                 $current_player_id = $current_record->player_id;
-                $output .= "<tr><input type=\"HIDDEN\" name=\"counter_" . $counter . "\" value=\"" . $current_player_id . "\">
-                                        <th class=\"gvthleft\">" . $current_player . "</th><td class=\"gvcol_2 gvcol_val\">" . $current_xp . "</td>
+                $output .= "<tr><td colspan=6><input type='HIDDEN' name=\"counter_" . $counter . "\" value=\"" . $current_player_id . "\"></td></tr><tr>
+                                        <th class=\"gvthleft\">" . $current_player . "</th><td class=\"gvcol_2 gvcol_val\">" . $current_xp . "</td>
                                         <td class=\"gvcol_3 gvcol_val\"><select name=\"" . $current_player_id . "_character\">";
             }
             $output .= "<option value=\"" . $current_record->character_id . "\">" . $current_record->character_name . "</option>";
         }
         if ($last_player != "") {
             $output .= "</select></td>
-                                <td class=\"gvcol_4 gvcol_val\"><select name=\"" . $current_player_id . "_xp_reason\">" . $xpOptions . "</select>
-                                </td><td class=\"gvcol_5 gvcol_val\">
-                                <input type=\"text\" name=\"" . $current_player_id . "_xp_value\" size=5 maxlength=3 />
-                                </td><td class=\"gvcol_6 gvcol_val\">
-                                <input type=\"text\" name=\"" . $current_player_id . "_xp_comment\" size=30 maxlength=100 />
+                                <td class='gvcol_4 gvcol_val'><select name=\"" . $current_player_id . "_xp_reason\">" . $xpOptions . "</select>
+                                </td><td class='gvcol_5 gvcol_val'>
+                                <input type='text' name=\"" . $current_player_id . "_xp_value\" size=5 maxlength=3 />
+                                </td><td class='gvcol_6 gvcol_val'>
+                                <input type='text' name=\"" . $current_player_id . "_xp_comment\" size=30 maxlength=100 />
                                 </td></tr>";
         }
-        $output .= "<tr><td colspan=6><input type=\"submit\" name=\"submit_new_xp\" value=\"Submit XP Changes\" /></td>
+        $output .= "<tr><td colspan=6><input type='submit' name=\"submit_new_xp\" value=\"Submit XP Changes\" /></td>
                             </table></form>";
 
         return $output;
@@ -2018,13 +2018,13 @@
 
         $sqlOutput = "";
         foreach ($deadCharacters as $deadCharacter) {
-            $sqlOutput .= "<td class=\"gvcol_1 gvcol_val\">" . $deadCharacter->status_value . "</td>
+            $sqlOutput .= "<tr><td class=\"gvcol_1 gvcol_val\">" . $deadCharacter->status_value . "</td>
                                <td class=\"gvcol_2 gvcol_key\"><a href=\"" . $config->PROFILE_LINK . "?CHARACTER=" . urlencode($deadCharacter->wordpress_id) . "\">" . $deadCharacter->character_name . "</a></td>
                                <td class=\"gvcol_3 gvcol_val\">" . $deadCharacter->clan_name . "</td></tr>";
         }
 
         if ($sqlOutput != "") {
-            $output = "<table class=\"gvplugin\" id=\"gvid_dct\"><tr><th class=\"gvthead gvcol_1\">Status</th>
+            $output = "<table class='gvplugin' id=\"gvid_dct\"><tr><th class=\"gvthead gvcol_1\">Status</th>
                                                                          <th class=\"gvthead gvcol_2\">Character</th>
                                                                          <th class=\"gvthead gvcol_3\">Clan</th></tr>" . $sqlOutput . "</table>";
         }
@@ -2142,9 +2142,9 @@
         }
 
 
-        $output .= "<form name=\"Master_Path_Form\" method=\"post\" action=\"" . $_SERVER['REQUEST_URI'] . "\">";
-        $output .= "<input type=\"HIDDEN\" name=\"GVLARP_FORM\" value=\"master_path_update\" />";
-        $output .= "<table class=\"gvplugin\" id=\"gvid_mpt\"><tr><td colspan=6><input type=\"submit\" name=\"submit_new_path\" value=\"Submit Path Changes\" /></tr>";
+        $output .= "<form name=\"Master_Path_Form\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">";
+        $output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"master_path_update\" />";
+        $output .= "<table class='gvplugin' id=\"gvid_mpt\"><tr><td colspan=6><input type='submit' name=\"submit_new_path\" value=\"Submit Path Changes\" /></tr>";
         $output .= "<tr><th class=\"gvthead gvcol_1\">Character</th>
                             <th class=\"gvthead gvcol_2\">Path Name</th>
                             <th class=\"gvthead gvcol_3\">Current Path</th>
@@ -2155,16 +2155,16 @@
         $counter = 0;
         foreach ($path_records as $current_record) {
             $characterID = $current_record->char_id;
-            $output .= "<tr><input type=\"HIDDEN\" name=\"counter_" . $counter . "\" value=\"" . $characterID . "\">
-                                    <th class=\"gvthleft\">" . $current_record->char_name . "</th>
+            $output .= "<tr>
+                                    <th class=\"gvthleft\"><input type='HIDDEN' name=\"counter_" . $counter . "\" value=\"" . $characterID . "\">" . $current_record->char_name . "</th>
                                     <td class=\"gvcol_2 gvcol_val\">" . $current_record->path_name . "</td>
                                     <td class=\"gvcol_3 gvcol_val\">" . $current_record->total_path . "</td>
-                                    <td class=\"gvcol_4 gvcol_val\"><select name=\"" . $characterID . "_path_reason\">" . $pathOptions . "</select></td>
-                                    <td class=\"gvcol_5 gvcol_val\"><input type=\"text\" name=\"" . $characterID . "_path_value\" size=5 maxlength=3 /></td>
-                                    <td class=\"gvcol_6 gvcol_val\"><input type=\"text\" name=\"" . $characterID . "_path_comment\" size=30 maxlength=100 /></td></tr>";
+                                    <td class='gvcol_4 gvcol_val'><select name=\"" . $characterID . "_path_reason\">" . $pathOptions . "</select></td>
+                                    <td class='gvcol_5 gvcol_val'><input type='text' name=\"" . $characterID . "_path_value\" size=5 maxlength=3 /></td>
+                                    <td class='gvcol_6 gvcol_val'><input type='text' name=\"" . $characterID . "_path_comment\" size=30 maxlength=100 /></td></tr>";
             $counter++;
         }
-        $output .= "<tr><td colspan=6><input type=\"submit\" name=\"submit_new_path\" value=\"Submit Path Changes\" /></td></tr>
+        $output .= "<tr><td colspan=6><input type='submit' name=\"submit_new_path\" value=\"Submit Path Changes\" /></td></tr>
                             </table></form>";
 
         return $output;
@@ -2330,9 +2330,9 @@
 
         $tempStats = $wpdb->get_results($sql);
 
-        $output .= "<form name=\"Master_Temp_Stat_Form\" method=\"post\" action=\"" . $_SERVER['REQUEST_URI'] . "\">";
-        $output .= "<input type=\"HIDDEN\" name=\"GVLARP_FORM\" value=\"master_temp_stat_update\" />";
-        $output .= "<table class=\"gvplugin\" id=\"gvid_mtst\"><tr><td colspan=6><input type=\"submit\" name=\"submit_new_temp_stat\" value=\"Submit Temporary " . $stat . " Changes\" /></tr>";
+        $output .= "<form name=\"Master_Temp_Stat_Form\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">";
+        $output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"master_temp_stat_update\" />";
+        $output .= "<table class='gvplugin' id=\"gvid_mtst\"><tr><td colspan=6><input type='submit' name=\"submit_new_temp_stat\" value=\"Submit Temporary " . $stat . " Changes\" /></tr>";
         $output .= "<tr><th class=\"gvthead gvcol_1\">Character</th>
                         <th class=\"gvthead gvcol_2\">Current " . $stat . "</th>
                         <th class=\"gvthead gvcol_3\">Max " . $stat . "</th>
@@ -2343,26 +2343,26 @@
         $counter = 0;
         foreach ($tempStats as $current_record) {
             $characterID = $current_record->char_id;
-            $output .=  "<tr><input type=\"HIDDEN\" name=\"counter_" . $counter . "\" value=\"" . $characterID . "\">
-                             <th class=\"gvthleft\">" . $current_record->char_name . "<input type=\"hidden\" name=\"" . $characterID . "_char_name\" value=\"" . $current_record->char_name . "\"></th>
+            $output .=  "<tr>
+                             <th class=\"gvthleft\"><input type='HIDDEN' name=\"counter_" . $counter . "\" value=\"" . $characterID . "\">" . $current_record->char_name . "<input type='HIDDEN' name=\"" . $characterID . "_char_name\" value=\"" . $current_record->char_name . "\"></th>
                              <td class=\"gvcol_2 gvcol_val\">" . $current_record->total_temp_stat . "</td>
-                             <input type=\"hidden\" name=\"" . $characterID . "_temp_stat_current\" value=\"" . $current_record->total_temp_stat . "\">
+                             <input type='HIDDEN' name=\"" . $characterID . "_temp_stat_current\" value=\"" . $current_record->total_temp_stat . "\">
                              <td class=\"gvcol_3 gvcol_val\">";
             if ($stat == "Willpower") {
                 $output .= $current_record->max_wp;
-                $output .= "<input type=\"hidden\" name=\"" . $characterID . "_temp_stat_max\" value=\"" . $current_record->max_wp . "\">";
+                $output .= "<input type='HIDDEN' name=\"" . $characterID . "_temp_stat_max\" value=\"" . $current_record->max_wp . "\">";
             }
             else if ($stat == "Blood") {
                 $output .= $current_record->max_blood;
-                $output .= "<input type=\"hidden\" name=\"" . $characterID . "_temp_stat_max\" value=\"" . $current_record->max_blood . "\">";
+                $output .= "<input type='HIDDEN' name=\"" . $characterID . "_temp_stat_max\" value=\"" . $current_record->max_blood . "\">";
             }
-            $output .= "</td><td class=\"gvcol_4 gvcol_val\"><select name=\"" . $characterID . "_temp_stat_reason\">" . $tempStatOptions . "</select></td>
-                                 <td class=\"gvcol_5 gvcol_val\"><input type=\"text\" name=\"" . $characterID . "_temp_stat_value\" ";
+            $output .= "</td><td class='gvcol_4 gvcol_val'><select name=\"" . $characterID . "_temp_stat_reason\">" . $tempStatOptions . "</select></td>
+                                 <td class='gvcol_5 gvcol_val'><input type='text' name=\"" . $characterID . "_temp_stat_value\" ";
             if ($monthlyWP) {
                 $output .= "value=\"1\" ";
             }
             $output .= "size=5 maxlength=3 /></td>
-                                 <td class=\"gvcol_6 gvcol_val\"><input type=\"text\" name=\"" . $characterID . "_temp_stat_comment\" ";
+                                 <td class='gvcol_6 gvcol_val'><input type='text' name=\"" . $characterID . "_temp_stat_comment\" ";
             if ($monthlyWP) {
                 $output .= " value=\"Monthly WP Gain\" ";
             }
@@ -2370,7 +2370,7 @@
             $counter++;
         }
 
-        $output .= "<tr><td colspan=6><input type=\"submit\" name=\"submit_new_temp_stat\" value=\"Submit Temporary " . $stat . " Changes\" /></td></tr>
+        $output .= "<tr><td colspan=6><input type='submit' name=\"submit_new_temp_stat\" value=\"Submit Temporary " . $stat . " Changes\" /></td></tr>
                             </table></form>";
 
         return $output;
@@ -2422,12 +2422,12 @@
         $character_xp = $wpdb->get_results($wpdb->prepare($sql, $character, $character));
 
         if ($group != "total" && $group != "TOTAL") {
-            $output = "<table class=\"gvplugin\" id=\"cxpt\">
+            $output = "<table class='gvplugin' id=\"cxpt\">
                                <tr><th class=\"gvthead gvcol_1\">Character</th>
                                    <th class=\"gvthead gvcol_2\">XP Reason</th>
                                    <th class=\"gvthead gvcol_3\">XP Amount</th>
                                    <th class=\"gvthead gvcol_4\">Comment</th>
-                                   <th class=\"gvthead gvcol_5\">Date of award</th></tr>";
+                                   <th class=\"gvthead gvcol_5\">Date of award</th></tr>\n";
 
             $arr = array();
             $i = 0;
@@ -2435,9 +2435,9 @@
             foreach ($character_xp as $current_xp) {
                 $arr[$i] = "<tr><td class=\"gvcol_1 gvcol_key\">" . $current_xp->char_name   . "</td><td class=\"gvcol_2 gvcol_val\">"
                     . $current_xp->reason_name . "</td><td class=\"gvcol_3 gvcol_val\">"
-                    . $current_xp->amount      . "</td><td class=\"gvcol_4 gvcol_val\">"
-                    . $current_xp->comment     . "</td><td class=\"gvcol_5 gvcol_val\">"
-                    . $current_xp->awarded     . "</td></tr>";
+                    . $current_xp->amount      . "</td><td class='gvcol_4 gvcol_val'>"
+                    . $current_xp->comment     . "</td><td class='gvcol_5 gvcol_val'>"
+                    . $current_xp->awarded     . "</td></tr>\n";
                 $xp_total = (int) $current_xp->total_xp;
                 $i++;
             }
@@ -2457,10 +2457,10 @@
             }
 
             $output .= "<tr><td colspan=3 class=\"gvsummary\">Total amount of XP to spend</td>
-                                <td colspan=2 class=\"gvsummary\">" . $xp_total . "</td></tr>";
+                                <td colspan=2 class=\"gvsummary\">" . $xp_total . "</td></tr>\n";
 
             if (isSt()) {
-                $output .= "<tr><td colspan=5 class=\"gvsummary\">" . print_xp_spend($character) . "</td></tr>";
+                $output .= "<tr><td colspan=5 class=\"gvsummary\">" . print_xp_spend($character) . "</td></tr>\n";
             }
             $output .= "</table>";
         }
@@ -2501,7 +2501,7 @@
         $character_path = $wpdb->get_results($wpdb->prepare($sql, $character));
 
         if ($group != "total" && $group != "TOTAL") {
-            $output .= "<table class=\"gvplugin\" id=\"gvid_crpt\">
+            $output .= "<table class='gvplugin' id=\"gvid_crpt\">
                                <tr><th class=\"gvthead gvcol_1\">Path Reason</th>
                                    <th class=\"gvthead gvcol_2\">Path Amount</th>
                                    <th class=\"gvthead gvcol_3\">Comment</th>
@@ -2513,7 +2513,7 @@
             foreach ($character_path as $current_path) {
                 $arr[$i] = "<tr><td class=\"gvcol_1 gvcol_val\">" . $current_path->reason_name . "</td><td class=\"gvcol_2 gvcol_val\">"
                     . $current_path->amount      . "</td><td class=\"gvcol_3 gvcol_val\">"
-                    . $current_path->comment     . "</td><td class=\"gvcol_4 gvcol_val\">"
+                    . $current_path->comment     . "</td><td class='gvcol_4 gvcol_val'>"
                     . $current_path->awarded     . "</td></tr>";
                 $path_total = (int) $current_path->total_path;
                 $i++;
@@ -2613,8 +2613,8 @@
                 }
 
                 // CFU characters for update
-                $output  = "<form name=\"CFU_Form\" method=\"post\" action=\"" . $formUrl . "\">";
-                $output .= "<table class=\"gvplugin\" id=\"gvid_uctcs\">
+                $output  = "<form name=\"CFU_Form\" method='post' action=\"" . $formUrl . "\">";
+                $output .= "<table class='gvplugin' id=\"gvid_uctcs\">
                                 <tr><th class=\"gvthead gvcol_1\">Character Name</th>
                                     <th class=\"gvthead gvcol_2\">Type</th>
                                     <th class=\"gvthead gvcol_3\">Character Status</th>
@@ -2627,43 +2627,43 @@
                     $output .= "<tr><td class=\"gvcol_1 gvcol_key\">"  . $character->cname       .
                         "</td><td class=\"gvcol_2 gvcol_val\">" . $character->typename    .
                         "</td><td class=\"gvcol_3 gvcol_val\">" . $character->cstatusname .
-                        "</td><td class=\"gvcol_4 gvcol_val\">" . $character->pname       .
-                        "</td><td class=\"gvcol_5 gvcol_val\">" . $character->pstatusname .
-                        "</td><td class=\"gvcol_6 gvcol_val\">" . $character->visible;
+                        "</td><td class='gvcol_4 gvcol_val'>" . $character->pname       .
+                        "</td><td class='gvcol_5 gvcol_val'>" . $character->pstatusname .
+                        "</td><td class='gvcol_6 gvcol_val'>" . $character->visible;
                     if ($formUrl == $_SERVER['REQUEST_URI']) {
-                        $output .= "</td><td class=\"gvcol_7 gvcol_val\"><input type=\"RADIO\" name=\"characterID\" value=\"" . $character->id . "\" /></td></tr>";
+                        $output .= "</td><td class=\"gvcol_7 gvcol_val\"><input type='RADIO' name=\"characterID\" value=\"" . $character->id . "\" /></td></tr>";
                     }
                     else {
-                        $output .= "</td><td class=\"gvcol_7 gvcol_val\"><input type=\"RADIO\" name=\"GVLARP_CHARACTER\" value=\"" . $character->wid . "\" /></td></tr>";
+                        $output .= "</td><td class=\"gvcol_7 gvcol_val\"><input type='RADIO' name=\"GVLARP_CHARACTER\" value=\"" . $character->wid . "\" /></td></tr>";
                     }
                 }
                 if ($formUrl == $_SERVER['REQUEST_URI']) {
                     $output .= "<tr><td class=\"gvcol_1 gvcol_key\">New Character</td>
                                         <td class=\"gvcol_2 gvcol_val\"></td>
                                         <td class=\"gvcol_3 gvcol_val\"></td>
-                                        <td class=\"gvcol_4 gvcol_val\"></td>
-                                        <td class=\"gvcol_5 gvcol_val\"></td>
-                                        <td class=\"gvcol_6 gvcol_val\"></td><td class=\"gvcol_7 gvcol_val\">" .
-                        "<input type=\"RADIO\" name=\"characterID\" value=\"0\" /></td></tr>";
+                                        <td class='gvcol_4 gvcol_val'></td>
+                                        <td class='gvcol_5 gvcol_val'></td>
+                                        <td class='gvcol_6 gvcol_val'></td><td class=\"gvcol_7 gvcol_val\">" .
+                        "<input type='RADIO' name=\"characterID\" value=\"0\" /></td></tr>";
                 }
-                $output .= "<input type=\"HIDDEN\" name=\"GVLARP_FORM\" value=\"displayUpdateCharacter\" />";
+                $output .= "<tr style='display:none'><td colspan=7><input type='HIDDEN' name=\"GVLARP_FORM\" value=\"displayUpdateCharacter\" /></td></tr>";
                 $output .= "<tr><td colspan=7>";
 
                 // Show original buttons if we are editing character otherwise jump to page
                 if ($formUrl == $_SERVER['REQUEST_URI']) {
-                    $output .= "<table class=\"gvplugin\" id=\"gvid_ucs\"><tr><td class=\"gvcol_1 gvcol_val\">";
-                    $output .= "<tr><td><input type=\"submit\" name=\"cSubmit\" value=\"Update Character\" /></td><td>";
-                    $output .= "<tr><td><input type=\"submit\" name=\"cSubmit\" value=\"Delete Character\" /></td><td>";
-                    $output .= "<tr><td><input type=\"submit\" name=\"cSubmit\" value=\"Back to Category Selection\" /></td></tr></table>";
+                    $output .= "<table class='gvplugin' id=\"gvid_ucs\"><tr><td class=\"gvcol_1 gvcol_val\">";
+                    $output .= "<tr><td><input type='submit' name=\"cSubmit\" value=\"Update Character\" /></td><td>";
+                    $output .= "<tr><td><input type='submit' name=\"cSubmit\" value=\"Delete Character\" /></td><td>";
+                    $output .= "<tr><td><input type='submit' name=\"cSubmit\" value=\"Back to Category Selection\" /></td></tr></table>";
                 }
                 else {
-                    $output .= "<tr><td><input type=\"submit\" name=\"cSubmit\" value=\"" . $buttonText . "\">";
+                    $output .= "<tr><td colspan=7><input type='submit' name=\"cSubmit\" value=\"" . $buttonText . "\">";
                 }
                 $output .= "</td></tr></table></form>";
             }
             else {
-                $output  = "<form name=\"CSF_Form\" method=\"post\" action=\"" . $_SERVER['REQUEST_URI'] . "\">";
-                $output .= "<table class=\"gvplugin\" id=\"gvid_ucts\"><tr><th class=\"gvthead gvcol_1\">Category</th>
+                $output  = "<form name=\"CSF_Form\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">";
+                $output .= "<table class='gvplugin' id=\"gvid_ucts\"><tr><th class=\"gvthead gvcol_1\">Category</th>
                                                                                <th class=\"gvthead gvcol_2\">Selection</th></tr>";
 
                 $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Character Group</td>
@@ -2717,7 +2717,7 @@
                 $stLinks = listSTLinks();
                 $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Action to perform</td>
                                     <td class=\"gvcol_2 gvcol_val\"><select name=\"actionToPerform\">";
-                $output .= "<option value=\"update\">Create/Update/Delete Character</option>";
+                $output .= "<option value='update'>Create/Update/Delete Character</option>";
                 foreach ($stLinks as $stLink) {
                     $output .= "<option value=\"" . $stLink->value . "\"";
                     if ($stLink->description == 'View Character Sheet') {
@@ -2727,8 +2727,8 @@
                 }
                 $output .= "</select></td></tr>";
 
-                $output .= "<input type=\"HIDDEN\" name=\"GVLARP_FORM\" value=\"displayUpdateCharacter\" />";
-                $output .= "<tr><td class=\"gvcol_1 gvcol_val\" colspan=2><input type=\"submit\" name=\"cSubmit\" value=\"Display Characters\"></td></tr></table></form>";
+                $output .= "<tr style='display:none'><td colspan=2><input type='HIDDEN' name=\"GVLARP_FORM\" value=\"displayUpdateCharacter\" /></td></tr>";
+                $output .= "<tr><td class=\"gvcol_1 gvcol_val\" colspan=2><input type='submit' name=\"cSubmit\" value=\"Display Characters\"></td></tr></table></form>";
             }
         }
         return $output;
@@ -2771,8 +2771,8 @@
                 $players  = listPlayers($playerstatus, $playertype);
 
                 // CFU characters for update
-                $output  = "<form name=\"PFU_Form\" method=\"post\" action=\"" . $_SERVER['REQUEST_URI'] . "\">";
-                $output .= "<table class=\"gvplugin\" id=\"gvid_ppa><tr><th class=\"gvthead gvcol_1\">Player Name</th>
+                $output  = "<form name=\"PFU_Form\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">";
+                $output .= "<table class='gvplugin' id='gvid_ppa'><tr><th class=\"gvthead gvcol_1\">Player Name</th>
                                                                             <th class=\"gvthead gvcol_2\">Player Type</th>
                                                                             <th class=\"gvthead gvcol_3\">Player Status</th>
                                                                             <th class=\"gvthead gvcol_4\">&nbsp;</th></tr>";
@@ -2781,24 +2781,24 @@
                     $output .= "<tr><td class=\"gvcol_1 gvcol_key\">"  . $player->name       .
                         "</td><td class=\"gvcol_2 gvcol_val\">"  . $player->typename   .
                         "</td><td class=\"gvcol_3 gvcol_val\">"  . $player->statusname .
-                        "</td><td class=\"gvcol_4 gvcol_val\"><input type=\"RADIO\" name=\"playerID\" value=\"" . $player->ID . "\" /></td></tr>";
+                        "</td><td class='gvcol_4 gvcol_val'><input type='RADIO' name=\"playerID\" value=\"" . $player->ID . "\" /></td></tr>";
                 }
                 $output .= "<tr><td class=\"gvcol_1 gvcol_key\">New Player</td>
                                     <td class=\"gvcol_2 gvcol_val\"></td>
                                     <td class=\"gvcol_3 gvcol_val\"></td>
-                                    <td class=\"gvcol_4 gvcol_val\">" .
-                    "<input type=\"RADIO\" name=\"playerID\" value=\"0\" /></td></tr>";
-                $output .= "<input type=\"HIDDEN\" name=\"GVLARP_FORM\" value=\"displayUpdatePlayer\" />";
+                                    <td class='gvcol_4 gvcol_val'>" .
+                    "<input type='RADIO' name=\"playerID\" value=\"0\" /></td></tr>";
+                $output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"GVLARP_FORM\" value=\"displayUpdatePlayer\" /></td></tr>";
                 $output .= "<tr><td class=\"gvcol_1 gvcol_val\" colspan=4>";
 
-                $output .= "<table class=\"gvplugin\" id=\"gvid_ppa_in1\"><tr><td class=\"gvcol_1 gvcol_val\">";
-                $output .= "<input type=\"submit\" name=\"cSubmit\" value=\"Update Player\" /></td><td class=\"gvcol_2 gvcol_val\">";
-                $output .= "<input type=\"submit\" name=\"cSubmit\" value=\"Back to Category Selection\" /></td></tr></table>";
+                $output .= "<table class='gvplugin' id=\"gvid_ppa_in1\"><tr><td class=\"gvcol_1 gvcol_val\">";
+                $output .= "<input type='submit' name=\"cSubmit\" value=\"Update Player\" /></td><td class=\"gvcol_2 gvcol_val\">";
+                $output .= "<input type='submit' name=\"cSubmit\" value=\"Back to Category Selection\" /></td></tr></table>";
                 $output .= "</td></tr></table></form>";
             }
             else {
-                $output  = "<form name=\"PSF_Form\" method=\"post\" action=\"" . $_SERVER['REQUEST_URI'] . "\">";
-                $output .= "<table class=\"gvplugin\" id=\"gvid_ppa_in2\"><tr><th class=\"gvthead gvcol_1\">Category</th>
+                $output  = "<form name=\"PSF_Form\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">";
+                $output .= "<table class='gvplugin' id=\"gvid_ppa_in2\"><tr><th class=\"gvthead gvcol_1\">Category</th>
                                                                                   <th class=\"gvthead gvcol_2\">Selection</th></tr>";
 
                 $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Player Type</td>
@@ -2825,8 +2825,8 @@
                 }
                 $output .= "</select></td></tr>";
 
-                $output .= "<input type=\"HIDDEN\" name=\"GVLARP_FORM\" value=\"displayUpdatePlayer\" />";
-                $output .= "<tr><td class=\"gvcol_1 gvcol_val\" colspan=2><input type=\"submit\" name=\"cSubmit\" value=\"Display Players\"></td></tr></table></form>";
+                $output .= "<tr style='display:none'><td colspan=2><input type='HIDDEN' name=\"GVLARP_FORM\" value=\"displayUpdatePlayer\" /></td></tr>";
+                $output .= "<tr><td class=\"gvcol_1 gvcol_val\" colspan=2><input type='submit' name=\"cSubmit\" value=\"Display Players\"></td></tr></table></form>";
             }
         }
         return $output;
@@ -2919,20 +2919,20 @@
             $sqlOutput .= "<tr><th class=\"gvthleft\">" . $stat_xp->name . "</th><td class=\"gvcol_2 gvcol_val\">";
             if ($stat_xp->next_value == $stat_xp->spec_at) {
                 $specialisationIndicator = "_spec";
-                $sqlOutput .= "<input type=\"text\" name=\"spec_stat_" . $stat_xp->id . $specialisationIndicator . "\" value=\"" . $defaultSpecialisation . "\" size=20 maxlength=60>";
+                $sqlOutput .= "<input type='text' name=\"spec_stat_" . $stat_xp->id . $specialisationIndicator . "\" value=\"" . $defaultSpecialisation . "\" size=20 maxlength=60>";
             }
             else {
                 $sqlOutput .= $stat_xp->comment;
             }
             $sqlOutput .= "</td><td class=\"gvcol_3 gvcol_val\">" . $stat_xp->level
-                . "</td><td class=\"gvcol_4 gvcol_val\">=></td>";
+                . "</td><td class='gvcol_4 gvcol_val'>=></td>";
             if (((int)$stat_xp->next_value) > ((int) $stat_xp->level)
                 && ((((int)$stat_xp->next_value) <= $maxRating) || $stat_xp->name == "Willpower")) {
-                $sqlOutput .= "<td class=\"gvcol_5 gvcol_val\">" . $stat_xp->next_value
-                    .  "</td><td class=\"gvcol_6 gvcol_val\">" . $stat_xp->xp_cost . "</td>";
+                $sqlOutput .= "<td class='gvcol_5 gvcol_val'>" . $stat_xp->next_value
+                    .  "</td><td class='gvcol_6 gvcol_val'>" . $stat_xp->xp_cost . "</td>";
                 if (((int) $xp_total) >= ((int)$stat_xp->xp_cost)) {
                     $sqlOutput .= "<td class=\"gvcol_7 gvcol_val\">
-                                      <input type=\"radio\" name=\"xp_spend\" value=\"stat_" . $stat_xp->id . $specialisationIndicator . "\" /></td>";
+                                      <input type='RADIO' name=\"xp_spend\" value=\"stat_" . $stat_xp->id . $specialisationIndicator . "\" /></td>";
                 }
                 else {
                     $sqlOutput .= "<td class=\"gvcol_7 gvcol_val\"></td>";
@@ -2940,12 +2940,12 @@
                 $sqlOutput .= "</tr>";
             }
             else {
-                $sqlOutput .= "<td colspan=3 class=\"gvcol_5 gvcol_val\">No xp spend available</td>";
+                $sqlOutput .= "<td colspan=3 class='gvcol_5 gvcol_val'>No xp spend available</td>";
             }
         }
 
-        $output .= "<form name=\"SPEND_XP_FORM\" method=\"post\" action=\"" . $_SERVER['REQUEST_URI'] . "\">";
-        $output .= "<table class=\"gvplugin\" id=\"gvid_xpst\">";
+        $output .= "<form name=\"SPEND_XP_FORM\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">";
+        $output .= "<table class='gvplugin' id=\"gvid_xpst\">";
 
         if ($sqlOutput != "") {
             $output .= "<tr><th class=\"gvthead gvcol_1\">Name</th>
@@ -3015,7 +3015,7 @@
                 && ((int)$xp_total) >= ((int)$skill_xp->xp_cost)
                 && ((int)$skill_xp->next_value) <= $maxRating) {
                 $specialisationIndicator = "_spec";
-                $sqlOutput .= "<input type=\"text\" name=\"spec_skill_";
+                $sqlOutput .= "<input type='text' name=\"spec_skill_";
                 if ((int)$skill_xp->level == 0) {
                     $sqlOutput .= "new_";
                 }
@@ -3027,14 +3027,14 @@
             }
 
             $sqlOutput .= "</td><td class=\"gvcol_3 gvcol_val\">" . $skill_xp->level
-                . "</td><td class=\"gvcol_4 gvcol_val\">=></td>";
+                . "</td><td class='gvcol_4 gvcol_val'>=></td>";
 
             if (((int)$skill_xp->next_value) > ((int) $skill_xp->level)
                 && ((int)$skill_xp->next_value) <= $maxRating) {
-                $sqlOutput .= "<td class=\"gvcol_5 gvcol_val\">" . $skill_xp->next_value
-                    .  "</td><td class=\"gvcol_6 gvcol_val\">" . $skill_xp->xp_cost . "</td>";
+                $sqlOutput .= "<td class='gvcol_5 gvcol_val'>" . $skill_xp->next_value
+                    .  "</td><td class='gvcol_6 gvcol_val'>" . $skill_xp->xp_cost . "</td>";
                 if (((int) $xp_total) >= ((int)$skill_xp->xp_cost)) {
-                    $sqlOutput .= "<td class=\"gvcol_7 gvcol_val\"><input type=\"radio\" name=\"xp_spend\" value=\"skill_";
+                    $sqlOutput .= "<td class=\"gvcol_7 gvcol_val\"><input type='RADIO' name=\"xp_spend\" value=\"skill_";
                     if ((int)$skill_xp->level == 0) {
                         $sqlOutput .= "new_";
                     }
@@ -3046,7 +3046,7 @@
                 $sqlOutput .= "</tr>";
             }
             else {
-                $sqlOutput .= "<td class=\"gvcol_5 gvcol_val\" colspan=3>No xp spend available</td>";
+                $sqlOutput .= "<td class='gvcol_5 gvcol_val' colspan=3>No xp spend available</td>";
             }
         }
 
@@ -3130,14 +3130,14 @@
             $sqlOutput .= "<tr><th class=\"gvthleft\">" . $dis_xp->dis_name
                 . "</th><td class=\"gvcol_2 gvcol_val\">" . $dis_xp->comment
                 . "</td><td class=\"gvcol_3 gvcol_val\">" . $dis_xp->level
-                . "</td><td class=\"gvcol_4 gvcol_val\">=></td>";
+                . "</td><td class='gvcol_4 gvcol_val'>=></td>";
 
             if (((int)$dis_xp->next_value) > ((int) $dis_xp->level)
                 && ((int)$dis_xp->next_value) <= $maxDiscipline) {
-                $sqlOutput .= "<td class=\"gvcol_5 gvcol_val\">" . $dis_xp->next_value
-                    .  "</td><td class=\"gvcol_6 gvcol_val\">" . $dis_xp->xp_cost . "</td>";
+                $sqlOutput .= "<td class='gvcol_5 gvcol_val'>" . $dis_xp->next_value
+                    .  "</td><td class='gvcol_6 gvcol_val'>" . $dis_xp->xp_cost . "</td>";
                 if (((int) $xp_total) >= ((int)$dis_xp->xp_cost)) {
-                    $sqlOutput .= "<td class=\"gvcol_7 gvcol_val\"><input type=\"radio\" name=\"xp_spend\" value=\"dis_";
+                    $sqlOutput .= "<td class=\"gvcol_7 gvcol_val\"><input type='RADIO' name=\"xp_spend\" value=\"dis_";
                     if ((int)$dis_xp->level == 0) {
                         $sqlOutput .= "new_";
                     }
@@ -3148,7 +3148,7 @@
                 }
             }
             else {
-                $sqlOutput .= "<td class=\"gvcol_5 gvcol_val\" colspan=3>No xp spend available</td>";
+                $sqlOutput .= "<td class='gvcol_5 gvcol_val' colspan=3>No xp spend available</td>";
             }
             $sqlOutput .= "</tr>";
         }
@@ -3217,15 +3217,15 @@
             $sqlOutput .= "<tr><th class=\"gvthleft\">" . $path_xp->path_name
                 . "</th><td class=\"gvcol_2 gvcol_val\">" . $path_xp->dis_name
                 . "</td><td class=\"gvcol_3 gvcol_val\">" . $path_xp->level
-                . "</td><td class=\"gvcol_4 gvcol_val\">=></td>";
+                . "</td><td class='gvcol_4 gvcol_val'>=></td>";
 
             if (((int)$path_xp->next_value) >  ((int) $path_xp->level)
                 && ((int)$path_xp->next_value) <= ((int) $path_xp->cha_dis_level)
                 && ((int)$path_xp->next_value) <= $maxDiscipline) {
-                $sqlOutput .= "<td class=\"gvcol_5 gvcol_val\">" . $path_xp->next_value
-                    .  "</td><td class=\"gvcol_6 gvcol_val\">" . $path_xp->xp_cost . "</td>";
+                $sqlOutput .= "<td class='gvcol_5 gvcol_val'>" . $path_xp->next_value
+                    .  "</td><td class='gvcol_6 gvcol_val'>" . $path_xp->xp_cost . "</td>";
                 if (((int) $xp_total) >= ((int)$path_xp->xp_cost)) {
-                    $sqlOutput .= "<td class=\"gvcol_7 gvcol_val\"><input type=\"radio\" name=\"xp_spend\" value=\"path_";
+                    $sqlOutput .= "<td class=\"gvcol_7 gvcol_val\"><input type='RADIO' name=\"xp_spend\" value=\"path_";
                     if ((int)$path_xp->level == 0) {
                         $sqlOutput .= "new_";
                     }
@@ -3237,7 +3237,7 @@
                 $sqlOutput .= "</tr>";
             }
             else {
-                $sqlOutput .= "<td class=\"gvcol_5 gvcol_val\" colspan=3>No xp spend available</td>";
+                $sqlOutput .= "<td class='gvcol_5 gvcol_val' colspan=3>No xp spend available</td>";
             }
         }
 
@@ -3300,9 +3300,9 @@
 
             if ($ritual_xp->ordering == 2
                 && ((int)$ritual_xp->level) <= $maxDiscipline) {
-                $sqlOutput .= "<td class=\"gvcol_4 gvcol_val\" colspan=2>&nbsp;</td><td class=\"gvcol_6 gvcol_val\">" . $ritual_xp->cost . "</td>";
+                $sqlOutput .= "<td class='gvcol_4 gvcol_val' colspan=2>&nbsp;</td><td class='gvcol_6 gvcol_val'>" . $ritual_xp->cost . "</td>";
                 if (((int) $xp_total) >= ((int)$ritual_xp->cost)) {
-                    $sqlOutput .= "<td class=\"gvcol_7 gvcol_val\"><input type=\"radio\" name=\"xp_spend\" value=\"ritual_new_";
+                    $sqlOutput .= "<td class=\"gvcol_7 gvcol_val\"><input type='RADIO' name=\"xp_spend\" value=\"ritual_new_";
                     $sqlOutput .= $ritual_xp->id . "\" /></td>";
                 }
                 else {
@@ -3311,7 +3311,7 @@
                 $sqlOutput .= "</tr>";
             }
             else {
-                $sqlOutput .= "<td class=\"gvcol_4 gvcol_val\" colspan=4>Ritual known</td>";
+                $sqlOutput .= "<td class='gvcol_4 gvcol_val' colspan=4>Ritual known</td>";
             }
         }
 
@@ -3390,9 +3390,9 @@
                 . "</td>";
 
             if ($merit_xp->ordering == 3) {
-                $sqlOutput .= "<td class=\"gvcol_4 gvcol_val\" colspan=2>&nbsp;</td><td class=\"gvcol_6 gvcol_val\">" . $merit_xp->xp_cost . "</td>";
+                $sqlOutput .= "<td class='gvcol_4 gvcol_val' colspan=2>&nbsp;</td><td class='gvcol_6 gvcol_val'>" . $merit_xp->xp_cost . "</td>";
                 if (((int) $xp_total) >= ((int) $merit_xp->xp_cost)) {
-                    $sqlOutput .= "<td class=\"gvcol_7 gvcol_val\"><input type=\"radio\" name=\"xp_spend\" value=\"merit_";
+                    $sqlOutput .= "<td class=\"gvcol_7 gvcol_val\"><input type='RADIO' name=\"xp_spend\" value=\"merit_";
                     $sqlOutput .= $merit_xp->cha_merit_id . "\" /></td>";
                 }
                 else {
@@ -3400,9 +3400,9 @@
                 }
             }
             else if ($merit_xp->ordering == 4) {
-                $sqlOutput .= "<td class=\"gvcol_4 gvcol_val\" colspan=2>&nbsp;</td><td class=\"gvcol_6 gvcol_val\">" . $merit_xp->xp_cost . "</td>";
+                $sqlOutput .= "<td class='gvcol_4 gvcol_val' colspan=2>&nbsp;</td><td class='gvcol_6 gvcol_val'>" . $merit_xp->xp_cost . "</td>";
                 if (((int) $xp_total) >= ((int) $merit_xp->xp_cost)) {
-                    $sqlOutput .= "<td class=\"gvcol_7 gvcol_val\"><input type=\"radio\" name=\"xp_spend\" value=\"merit_new_";
+                    $sqlOutput .= "<td class=\"gvcol_7 gvcol_val\"><input type='RADIO' name=\"xp_spend\" value=\"merit_new_";
                     $sqlOutput .= $merit_xp->id . "\" /></td>";
                 }
                 else {
@@ -3414,7 +3414,7 @@
                 if ($merit_xp->ordering == 2) {
                     $meritFlaw = "Flaw cannot be bought off";
                 }
-                $sqlOutput .= "<td class=\"gvcol_4 gvcol_val\" colspan=4>" . $meritFlaw . "</td>";
+                $sqlOutput .= "<td class='gvcol_4 gvcol_val' colspan=4>" . $meritFlaw . "</td>";
             }
             $sqlOutput .= "</tr>";
         }
@@ -3433,13 +3433,13 @@
 
 
         if ($_POST['GVLARP_CHARACTER'] != "") {
-            $output .= "<input type=\"HIDDEN\" name=\"GVLARP_CHARACTER\" value=\"" . $_POST['GVLARP_CHARACTER'] . "\" />";
+            $output .= "tr style='display:none'><td colspan=7><input type='HIDDEN' name=\"GVLARP_CHARACTER\" value=\"" . $_POST['GVLARP_CHARACTER'] . "\" /></td></tr>\n";
         }
 
-        $output .= "<input type=\"hidden\" name=\"character\" value=\"" . $character . "\">";
-        $output .= "<input type=\"hidden\" name=\"GVLARP_FORM\" value=\"applyXPSpend\" />";
-        $output .= "<tr><td colspan=7>Training Notes: <input type=\"text\" name=\"trainingNote\" value=\"" . $defaultTrainingString ."\" size=80 maxlength=160 /></td></tr>";
-        $output .= "<tr><td colspan=7><input type=\"submit\" name=\"xSubmit\" value=\"Spend XP\"></td></tr></table></form>";
+        $output .= "<tr style='display:none'><td colspan=7><input type='HIDDEN' name=\"character\" value=\"" . $character . "\"></td></tr>\n";
+        $output .= "<tr style='display:none'><td colspan=7><input type='HIDDEN' name=\"GVLARP_FORM\" value=\"applyXPSpend\" /></td></tr>\n";
+        $output .= "<tr><td colspan=7>Training Notes: <input type='text' name=\"trainingNote\" value=\"" . $defaultTrainingString ."\" size=80 maxlength=160 /></td></tr>\n";
+        $output .= "<tr><td colspan=7><input type='submit' name=\"xSubmit\" value=\"Spend XP\"></td></tr></table></form>\n";
 
         return $output;
     }
@@ -3563,9 +3563,9 @@
 
             $sqlOutput .= "</td><td class=\"gvcol_2 gvcol_val\">" . $xp_spend->comment
                 .  "</td><td class=\"gvcol_3 gvcol_val\">" . $xp_spend->specialisation
-                .  "</td><td class=\"gvcol_4 gvcol_val\">" . $xp_spend->training_note
-                .  "</td><td class=\"gvcol_5 gvcol_val\">" . $xp_spend->awarded
-                .  "</td><td class=\"gvcol_6 gvcol_val\">" . $xp_spend->amount
+                .  "</td><td class='gvcol_4 gvcol_val'>" . $xp_spend->training_note
+                .  "</td><td class='gvcol_5 gvcol_val'>" . $xp_spend->awarded
+                .  "</td><td class='gvcol_6 gvcol_val'>" . $xp_spend->amount
                 .  "</td><td class=\"gvcol_7 gvcol_val\"><input type=\"checkbox\" name=\"approved_xp_spends[]\" value=\"" . $xp_spend->id . "\">"
                 .  "</td><td class=\"gvcol_8 gvcol_val\"><input type=\"checkbox\" name=\"denied_xp_spends[]\" value=\"" . $xp_spend->id . "\">"
                 .  "</td></tr>";
@@ -3575,9 +3575,9 @@
             $output .= "There are no pending XP Spends<br />";
         }
         else {
-            $output .= "<form name=\"PXP_Form\" method=\"post\" action=\"" . $_SERVER['REQUEST_URI'] . "\">";
-            $output .= "<input type=\"HIDDEN\" name=\"GVLARP_FORM\" value=\"displayPendingXPSpends\" />";
-            $output .= "<table class=\"gvplugin\" id=\"gvid_xpa\"><tr><th class=\"gvthead gvcol_1\">Character Name</th>
+            $output .= "<form name=\"PXP_Form\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">";
+            $output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"displayPendingXPSpends\" />";
+            $output .= "<table class='gvplugin' id=\"gvid_xpa\"><tr><th class=\"gvthead gvcol_1\">Character Name</th>
                                                                           <th class=\"gvthead gvcol_2\">XP Spend</th>
                                                                           <th class=\"gvthead gvcol_3\">Specialisation</th>
                                                                           <th class=\"gvthead gvcol_4\">Training</th>
@@ -3586,7 +3586,7 @@
                                                                           <th class=\"gvthead gvcol_7\">Approve</th>
                                                                           <th class=\"gvthead gvcol_8\">Deny</th></tr>";
             $output .= $sqlOutput;
-            $output .= "<tr><td colspan=7><input type=\"submit\" name=\"pxSubmit\" value=\"Approve XP Spends\"></td></tr></table></form>";
+            $output .= "<tr><td colspan=8><input type='submit' name=\"pxSubmit\" value=\"Approve XP Spends\"></td></tr></table></form>";
         }
 
         return $output;
@@ -3865,10 +3865,10 @@
         /*************************************************************************/
 
         if ($showAll && $showUpdateTable) {
-            $output .= "<form name=\"PROFILE_UPDATE_FORM\" method=\"post\" action=\"" . $_SERVER['REQUEST_URI'] . "\">";
-            $output .= "<input type=\"HIDDEN\" name=\"GVLARP_FORM\" value=\"updateProfile\" />";
+            $output .= "<form name=\"PROFILE_UPDATE_FORM\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">";
+            $output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"updateProfile\" />";
             if (isset($_POST['CHARACTER'])) {
-                $output .= "<input type=\"HIDDEN\" name=\"CHARACTER\" value=\"" . $character . "\" />";
+                $output .= "<input type='HIDDEN' name=\"CHARACTER\" value=\"" . $character . "\" />";
             }
         }
 
@@ -3881,7 +3881,7 @@
                 }
             }
         }
-        $output .= "<table class=\"gvplugin\" id=\"gvid_prof_out\"><tr><th colspan=2 class=\"gvthhead\">";
+        $output .= "<table class='gvplugin' id=\"gvid_prof_out\"><tr><th colspan=2 class=\"gvthhead\">";
 
         if ($viewCharacterSheetLink == "") {
             $output .= $characterName;
@@ -3900,7 +3900,7 @@
             $output .= $publicIcon;
         }
 
-        $output .= "\">" . $quote . "<p><table class=\"gvplugin\" id=\"gvid_prof_in\">";
+        $output .= "\">" . $quote . "<p><table class='gvplugin' id=\"gvid_prof_in\">";
 
         $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Player:</td><td class=\"gvcol_2 gvcol_val\">" . $playerName . "</td></tr>";
         $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Clan:</td><td class=\"gvcol_2 gvcol_val\">";
@@ -3934,7 +3934,7 @@
 
         if ($showAll && $showUpdateTable) {
             $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Display Name:</td><td class=\"gvcol_2 gvcol_val\">";
-            $output .= "<input type=\"text\" size=50 maxlength=50 name=\"displayName\" value=\"" . $displayName . "\">";
+            $output .= "<input type='text' size=50 maxlength=50 name=\"displayName\" value=\"" . $displayName . "\">";
             $output .= "</td></tr>";
 
             if ($password == true) {
@@ -3951,7 +3951,7 @@
                 $buttonText .= "/Password";
             }
             $output .= "<tr><td colspan=2 class=\"gvcol_1 gvcol_submit\">";
-            $output .= "<input type=\"submit\" name=\"profileUpdate\" value=\"" . $buttonText . "\">";
+            $output .= "<input type='submit' name=\"profileUpdate\" value=\"" . $buttonText . "\">";
             $output .= "</td></tr>";
         }
 
@@ -4079,21 +4079,21 @@
         foreach ($extBackgrounds as $extBackground) {
             $sqlOutput .= "<tr><td class=\"gvcol_1 gvcol_val\" width=50%>" . $extBackground->name . "</td><td class=\"gvcol_2 gvcol_val\" width=50%>" . $extBackground->title . "</td></tr>"
                 .  "<tr><td class=\"gvcol_1 gvcol_val\">" . $extBackground->current_text . "</td><td class=\"gvcol_2 gvcol_val\">" . $extBackground->proposed_text . "</td></tr>"
-                .  "<tr><td class=\"gvcol_1 gvcol_val\"><table class=\"gvplugin\" id=\"gvid_inpeb\"><tr><td class=\"gvcol_1 gvcol_val\" align=\"center\">
+                .  "<tr><td class=\"gvcol_1 gvcol_val\"><table class='gvplugin' id=\"gvid_inpeb\"><tr><td class=\"gvcol_1 gvcol_val\" align=\"center\">
                            Approve <input type=\"checkbox\" name=\"approved_extBack[]\" value=\"" . $extBackground->id . "\"></td><td class=\"gvcol_2 gvcol_val\" align=\"center\">"
                 .  "Deny <input type=\"checkbox\" name=\"denied_extBack[]\" value=\"" . $extBackground->id . "\"></td><td class=\"gvcol_3 gvcol_val\" align=\"right\">Reason:</td></tr></table>"
-                .  "</td><td class=\"gvcol_2 gvcol_val\"><input type=\"text\" name=\"reason_" . $extBackground->id . "\" size=50 maxlength=200></td></tr>";
+                .  "</td><td class=\"gvcol_2 gvcol_val\"><input type='text' name=\"reason_" . $extBackground->id . "\" size=50 maxlength=200></td></tr>";
         }
 
         if ($sqlOutput == "") {
             $output .= "No expanded background updates waiting for approval";
         }
         else {
-            $output .= "<form name=\"PEB_Form\" method=\"post\" action=\"" . $_SERVER['REQUEST_URI'] . "\">";
-            $output .= "<input type=\"HIDDEN\" name=\"GVLARP_FORM\" value=\"displayPendingExtendedBackgrounds\" />";
-            $output .= "<table class=\"gvplugin\" id=\"gvid_peb\">";
+            $output .= "<form name=\"PEB_Form\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">";
+            $output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"displayPendingExtendedBackgrounds\" />";
+            $output .= "<table class='gvplugin' id=\"gvid_peb\">";
             $output .= $sqlOutput;
-            $output .= "<tr><td colspan=2><input type=\"submit\" name=\"pebSubmit\" value=\"Approve/Deny Expanded Backgrounds\"></td></tr></table></form>";        }
+            $output .= "<tr><td colspan=2><input type='submit' name=\"pebSubmit\" value=\"Approve/Deny Expanded Backgrounds\"></td></tr></table></form>";        }
 
         return $output;
     }
@@ -4138,8 +4138,8 @@
             return "No extended character background found with id (" . $extendedBackgroundID . ")";
         }
 
-        $output  = "<table class=\"gvplugin\" id=\"gvid_ecb\"><tr><th class=\"gvthead gvcol_1\">" . $title . "</th></tr>";
-        $output .= "<input type=\"hidden\" name=\"ecbid_" .$counter . "\" value=\"" . $extendedBackgroundID . "\">";
+        $output  = "<table class='gvplugin' id=\"gvid_ecb\"><tr><th class=\"gvthead gvcol_1\">" . $title . "</th></tr>";
+        $output .= "<tr style='display:none'><td><input type='HIDDEN' name=\"ecbid_" .$counter . "\" value=\"" . $extendedBackgroundID . "\"></td></tr>";
         if ($currentAccepted == "Y" || $currentAccepted == "R") {
             if ($currentText != null && $currentText != "") {
                 $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Current</td></tr>";
@@ -4167,10 +4167,7 @@
     }
 
     function displayNewExtendedBackground($title, $code, $counter) {
-        $output  = "<table class=\"gvplugin\" id=\"gvid_ecb\"><tr><th class=\"gvthead gvcol_1\">" . $title . "</th></tr>";
-        $output .= "<input type=\"hidden\" name=\"code_"        . $counter . "\" value=\"" . $code        . "\">";
-        $output .= "<input type=\"hidden\" name=\"title_"       . $counter . "\" value=\"" . $title       . "\">";
-
+         $output .= "<input type='HIDDEN' name=\"code_"        . $counter . "\" value=\"" . $code        . "\">";        $output .= "<input type='HIDDEN' name=\"title_"       . $counter . "\" value=\"" . $title       . "\">";		$output  = "<table class='gvplugin' id=\"gvid_ecb\"><tr><th class=\"gvthead gvcol_1\">" . $title . "</th></tr>";
         $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Proposed</td></tr>";
         $output .= "<tr><td class=\"gvcol_1 gvcol_val\">"
             . "<textarea name=\"proposed_" . $counter . "\" rows=\"5\" cols=\"100\"></textarea></td></tr></table>";
@@ -4292,10 +4289,10 @@
         $expandedCharacterBackgrounds = $wpdb->get_results($sql);
 
         $i = 0;
-        $output  = "<form name=\"EBF_Form\" method=\"post\" action=\"" . $_SERVER['REQUEST_URI'] . "\">";
-        $output .= "<input type=\"HIDDEN\" name=\"GVLARP_FORM\" value=\"displayExpandedBackgrounds\" />";
-        $output .= "<input type=\"HIDDEN\" name=\"characterID\" value=\"". $characterID . "\" />";
-        $output .= "<input type=\"HIDDEN\" name=\"GVLARP_CHARACTER\" value=\"" . $character . "\" />";
+        $output  = "<form name=\"EBF_Form\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">";
+        $output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"displayExpandedBackgrounds\" />";
+        $output .= "<input type='HIDDEN' name=\"characterID\" value=\"". $characterID . "\" />";
+        $output .= "<input type='HIDDEN' name=\"GVLARP_CHARACTER\" value=\"" . $character . "\" />";
 
         $clanFlaw = extractExtendedCharacterBackground($expandedCharacterBackgrounds, "clan_flaw");
         if ($clanFlaw != null) {
@@ -4368,9 +4365,9 @@
             $i++;
         }
 
-        $output .= "<input type=\"hidden\" name=\"maxCounter\" value=\"" . $i . "\">";
-        $output .= "<input type=\"hidden\" name=\"characterID\" value=\"" . $characterID . "\">";
-        $output .= "<center><input type=\"submit\" name=\"ebSubmit\" value=\"Submit Background Updates\"></center></form>";
+        $output .= "<input type='HIDDEN' name=\"maxCounter\" value=\"" . $i . "\">";
+        $output .= "<input type='HIDDEN' name=\"characterID\" value=\"" . $characterID . "\">";
+        $output .= "<center><input type='submit' name=\"ebSubmit\" value=\"Submit Background Updates\"></center></form>";
 
         return $output;
     }
@@ -4411,12 +4408,12 @@
                     $playerStatusId = $playerDetail->player_status_id;
                 }
             }
-            $output  = "<form name=\"PLAYER_UPDATE_FORM\" method=\"post\" action=\"" . $_SERVER['REQUEST_URI'] . "\">";
-            $output .= "<input type=\"HIDDEN\" name=\"GVLARP_FORM\" value=\"displayUpdatePlayer\" />";
-            $output .= "<input type=\"HIDDEN\" name=\"playerID\" value=\"" . $playerID . "\" />";
+            $output  = "<form name=\"PLAYER_UPDATE_FORM\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">";
+            $output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"displayUpdatePlayer\" />";
+            $output .= "<input type='HIDDEN' name=\"playerID\" value=\"" . $playerID . "\" />";
 
-            $output .= "<table class=\"gvplugin\" id=\"gvid_dup\"><tr><td class=\"gvcol_1 gvcol_key\">Player Name</td><td class=\"gvcol_2 gvcol_val\">
-                                <input type=\"text\" maxlength=60 name=\"playerName\" value=\"" . $playerName . "\"></td></tr>";
+            $output .= "<table class='gvplugin' id=\"gvid_dup\"><tr><td class=\"gvcol_1 gvcol_key\">Player Name</td><td class=\"gvcol_2 gvcol_val\">
+                                <input type='text' maxlength=60 name=\"playerName\" value=\"" . $playerName . "\"></td></tr>";
             $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Player Type</td><td class=\"gvcol_2 gvcol_val\"><select name=\"playerType\">";
             foreach ($playerTypes as $playerType) {
                 $output .= "<option value=\"" . $playerType->ID . "\"";
@@ -4436,9 +4433,9 @@
                 $output .= ">" . $playerStatus->name . "</OPTION>";
             }
             $output .= "</select></td></tr></table>";
-            $output .= "<table class=\"gvplugin\" id=\"gvid_spc\">
-                            <tr><td class=\"gvcol_1 gvcol_val\"><input type=\"submit\" name=\"cSubmit\" value=\"Submit player changes\" /></td>
-                                <td class=\"gvcol_2 gvcol_val\"><input type=\"submit\" name=\"cSubmit\" value=\"Back to the player list\" /></td></tr></table>";
+            $output .= "<table class='gvplugin' id=\"gvid_spc\">
+                            <tr><td class=\"gvcol_1 gvcol_val\"><input type='submit' name=\"cSubmit\" value=\"Submit player changes\" /></td>
+                                <td class=\"gvcol_2 gvcol_val\"><input type='submit' name=\"cSubmit\" value=\"Back to the player list\" /></td></tr></table>";
             $output .= "</form>";
         }
         else {
@@ -5165,18 +5162,18 @@
                 }
             }
 
-            $output  = "<form name=\"CHARACTER_UPDATE_FORM\" method=\"post\" action=\"" . $_SERVER['REQUEST_URI'] . "\">";
-            $output .= "<input type=\"HIDDEN\" name=\"GVLARP_FORM\" value=\"displayUpdateCharacter\" />";
-            $output .= "<table class=\"gvplugin\" id=\"gvid_ucti\">
-                        <tr><td class=\"gvcol_1 gvcol_val\"><input type=\"submit\" name=\"cSubmit\" value=\"Submit character changes\" /></td>
-                            <td class=\"gvcol_2 gvcol_val\"><input type=\"submit\" name=\"cSubmit\" value=\"Back to the character list\" /></td></tr></table>";
+            $output  = "<form name=\"CHARACTER_UPDATE_FORM\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">";
+            $output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"displayUpdateCharacter\" />";
+            $output .= "<table class='gvplugin' id=\"gvid_ucti\">
+                        <tr><td class=\"gvcol_1 gvcol_val\"><input type='submit' name=\"cSubmit\" value=\"Submit character changes\" /></td>
+                            <td class=\"gvcol_2 gvcol_val\"><input type='submit' name=\"cSubmit\" value=\"Back to the character list\" /></td></tr></table>";
 
-            if ((int) ($characterID) > 0) { $output .= "<input type=\"HIDDEN\" name=\"characterID\" value=\"" . $characterID . "\" />"; }
-            $output .= "<table class=\"gvplugin\" id=\"gvid_uctu\">
+            if ((int) ($characterID) > 0) { $output .= "<input type='HIDDEN' name=\"characterID\" value=\"" . $characterID . "\" />"; }
+            $output .= "<table class='gvplugin' id=\"gvid_uctu\">
                             <tr><td class=\"gvcol_1 gvcol_key\">Character Name</td>
-                                <td class=\"gvcol_2 gvcol_val\" colspan=2><input type=\"text\" maxlength=60 name=\"charName\" value=\"" . $characterName . "\"></td>
+                                <td class=\"gvcol_2 gvcol_val\" colspan=2><input type='text' maxlength=60 name=\"charName\" value=\"" . $characterName . "\"></td>
                                 <td class=\"gvcol_4 gvcol_key\">Player Name</td>
-                                <td class=\"gvcol_5 gvcol_val\" colspan=2><select name=\"charPlayer\">";
+                                <td class='gvcol_5 gvcol_val' colspan=2><select name=\"charPlayer\">";
             foreach ($players as $player) {
                 $output .= "<option value=\"" . $player->ID . "\" ";
                 if ($player->ID == $characterPlayerId) {
@@ -5196,7 +5193,7 @@
                 $output .= ">" . $clan->name . "</option>";
             }
             $output .= "</select></td><td class=\"gvcol_4 gvcol_key\">Private Clan</td>
-                                      <td class=\"gvcol_5 gvcol_val\" colspan=2><select name=\"charPrivClan\">";
+                                      <td class='gvcol_5 gvcol_val' colspan=2><select name=\"charPrivClan\">";
             foreach ($clans as $clan) {
                 $output .= "<option value=\"" . $clan->ID . "\" ";
                 if ($clan->ID == $characterPrivateClanId) {
@@ -5215,11 +5212,11 @@
                 $output .= ">" . $generation->name . "th</option>";
             }
             $output .= "</select></td><td class=\"gvcol_4 gvcol_key\">Sire</td>
-                               <td class=\"gvcol_5 gvcol_val\" colspan=2><input type=\"text\" maxlength=60 name=\"charSire\" value=\"" . $characterSire . "\" /></td></tr>";
+                               <td class='gvcol_5 gvcol_val' colspan=2><input type='text' maxlength=60 name=\"charSire\" value=\"" . $characterSire . "\" /></td></tr>";
             $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Date of birth</td>
-                               <td class=\"gvcol_2 gvcol_val\" colspan=2><input type=\"text\" maxlength=10 name=\"charDoB\" value=\"" . $characterDateOfBirth . "\" /> YYYY-MM-DD</td>
+                               <td class=\"gvcol_2 gvcol_val\" colspan=2><input type='text' maxlength=10 name=\"charDoB\" value=\"" . $characterDateOfBirth . "\" /> YYYY-MM-DD</td>
                                     <td class=\"gvcol_4 gvcol_key\">Date of Embrace</td>
-                               <td class=\"gvcol_5 gvcol_val\" colspan=2><input type=\"text\" maxlength=10 name=\"charDoE\" value=\"" . $characterDateOfEmbrace . "\" /> YYYY-MM-DD</td></tr>";
+                               <td class='gvcol_5 gvcol_val' colspan=2><input type='text' maxlength=10 name=\"charDoE\" value=\"" . $characterDateOfEmbrace . "\" /> YYYY-MM-DD</td></tr>";
             $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Road or Path</td>
                                 <td class=\"gvcol_2 gvcol_val\"><select name=\"charRoadOrPath\">";
             foreach ($roadsOrPaths as $roadOrPath) {
@@ -5229,9 +5226,9 @@
                 }
                 $output .= ">" . $roadOrPath->name . "</option>";
             }
-            $output .= "</select></td><td class=\"gvcol_3 gvcol_val\"><input type=\"text\" maxlength=3 name=\"charRoadOrPathRating\" value=\"" . $characterRoadOrPathRating . "\" /></td>";
+            $output .= "</select></td><td class=\"gvcol_3 gvcol_val\"><input type='text' maxlength=3 name=\"charRoadOrPathRating\" value=\"" . $characterRoadOrPathRating . "\" /></td>";
             $output .= "<td class=\"gvcol_4 gvcol_key\">Court</td>
-                            <td class=\"gvcol_5 gvcol_val\" colspan=2><select name=\"charCourt\">";
+                            <td class='gvcol_5 gvcol_val' colspan=2><select name=\"charCourt\">";
             foreach ($courts as $court) {
                 $output .= "<option value=\"" . $court->ID . "\" ";
                 if ($court->ID == $characterCourtId || ($characterID == 0 && $court->name == 'Glasgow')) {
@@ -5250,7 +5247,7 @@
                 $output .= ">" . $characterType->name . "</option>";
             }
             $output .= "</select></td><td class=\"gvcol_4 gvcol_key\">Character Status</td>
-                                          <td class=\"gvcol_5 gvcol_val\"><select name=\"charStatus\">";
+                                          <td class='gvcol_5 gvcol_val'><select name=\"charStatus\">";
             foreach ($characterStatuses as $characterStatus) {
                 $output .= "<option value=\"" . $characterStatus->ID . "\" ";
                 if ($characterStatus->ID == $characterStatusId) {
@@ -5258,10 +5255,10 @@
                 }
                 $output .= ">" . $characterStatus->name . "</option>";
             }
-            $output .= "</select></td><td class=\"gvcol_6 gvcol_val\"><input type=\"text\" maxlength=30 name=\"charStatusComment\" value=\"" . $characterStatusComment . "\" /></td></tr>";
+            $output .= "</select></td><td class='gvcol_6 gvcol_val'><input type='text' maxlength=30 name=\"charStatusComment\" value=\"" . $characterStatusComment . "\" /></td></tr>";
 
             $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Harpy Quote</td><td class=\"gvcol_2 gvcol_val\" colspan=5><textarea name=\"charHarpyQuote\" rows=\"5\" cols=\"100\">" . $characterHarpyQuote . "</textarea></td></tr>";
-            $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Portrait URL</td><td class=\"gvcol_2 gvcol_val\" colspan=5><input type=\"text\" maxlength=250 size=100 name=\"charPortraitURL\" value=\"" . $characterPortraitURL . "\" /></td></tr>";
+            $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Portrait URL</td><td class=\"gvcol_2 gvcol_val\" colspan=5><input type='text' maxlength=250 size=100 name=\"charPortraitURL\" value=\"" . $characterPortraitURL . "\" /></td></tr>";
 
             $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Visible</td><td class=\"gvcol_2 gvcol_val\" colspan=2><select name=\"charVisible\"><option value=\"Y\" ";
             if ($characterVisible == "Y" ) {
@@ -5272,7 +5269,7 @@
                 $output .= "SELECTED";
             }
             $output .= ">No</option></select></td><td class=\"gvcol_4 gvcol_key\">WordPress Account</td>
-                                                      <td class=\"gvcol_5 gvcol_val\" colspan=2><input type=\"text\" maxlength=30 name=\"charWordPress\" value=\"" . $characterWordpressName . "\" /></td></tr>";
+                                                      <td class='gvcol_5 gvcol_val' colspan=2><input type='text' maxlength=30 name=\"charWordPress\" value=\"" . $characterWordpressName . "\" /></td></tr>";
             $output .= "</table>";
 
             $sql = "SELECT stat.name,
@@ -5295,8 +5292,8 @@
             }
             $stats = listStats();
 
-            $output .= "<hr /><table class=\"gvplugin\" id=\"gvid_uctsto\">
-                                  <tr><td class=\"gvcol_1 gvcol_val\"><table class=\"gvplugin\" id=\"gvid_uctsti\">
+            $output .= "<hr /><table class='gvplugin' id=\"gvid_uctsto\">
+                                  <tr><td class=\"gvcol_1 gvcol_val\"><table class='gvplugin' id=\"gvid_uctsti\">
                                           <tr><th class=\"gvthead gvcol_1\">Stat Name</th>
                                               <th class=\"gvthead gvcol_2\">Value</th>
                                               <th class=\"gvthead gvcol_3\">Comment</th>
@@ -5305,32 +5302,32 @@
             $i = 0;
             foreach ($stats as $stat) {
                 if ($i == 3) {
-                    $output .= "</table></td><td class=\"gvcol\"><table class=\"gvplugin\" id=\"gvid_uctsti\"><tr><th class=\"gvthead gvcol_1\">Stat Name</th>
+                    $output .= "</table></td><td class=\"gvcol\"><table class='gvplugin' id=\"gvid_uctsti\"><tr><th class=\"gvthead gvcol_1\">Stat Name</th>
                                                                                                       <th class=\"gvthead gvcol_2\">Value</th>
                                                                                                       <th class=\"gvthead gvcol_3\">Comment</th>
                                                                                                       <th class=\"gvthead gvcol_4\">Delete</th></tr>";
                 }
                 elseif ($i == 9) {
-                    $output .= "</table></td><td class=\"gvcol\"><table class=\"gvplugin\" id=\"gvid_uctsti\">";
+                    $output .= "</table></td><td class=\"gvcol\"><table class='gvplugin' id=\"gvid_uctsti\">";
                 }
                 elseif ($i == 6) {
-                    $output .= "</table></td></tr><tr><td class=\"gvcol\"><table class=\"gvplugin\" id=\"gvid_uctsti\">";
+                    $output .= "</table></td></tr><tr><td class=\"gvcol\"><table class='gvplugin' id=\"gvid_uctsti\">";
                 }
                 elseif ($i == 14) {
-                    $output .= "</table></td></tr><tr><td class=\"gvcol\"><table class=\"gvplugin\" id=\"gvid_uctsti\">";
+                    $output .= "</table></td></tr><tr><td class=\"gvcol\"><table class='gvplugin' id=\"gvid_uctsti\">";
                 }
                 $statName = $stat->name;
                 $currentStat = $arr[$statName];
                 $output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $stat->name . "</td>"
                     . "<td class=\"gvcol_2 gvcol_val\">" . printSelectCounter($statName, $currentStat->level, 0, 10) . "</td>"
-                    . "<td class=\"gvcol_3 gvcol_val\"><input type=\"text\" name=\"" . $statName . "Comment\" value=\"" . $currentStat->comment . "\" /></td>"
-                    . "<td class=\"gvcol_4 gvcol_val\">";
+                    . "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\"" . $statName . "Comment\" value=\"" . $currentStat->comment . "\" /></td>"
+                    . "<td class='gvcol_4 gvcol_val'>";
 
                 if ($currentStat->grouping == "Virtue"  && $statName != "Courage") {
                     $output .= "<input type=\"checkbox\" name=\"" . $statName . "Delete\" value=\"" . $currentStat->cstatid . "\" />";
                 }
 
-                $output .= "<input type=\"hidden\" name=\"" . $statName . "ID\" value=\"" . $currentStat->cstatid . "\" />"
+                $output .= "<input type='HIDDEN' name=\"" . $statName . "ID\" value=\"" . $currentStat->cstatid . "\" />"
                     . "</td></tr>";
                 $i++;
             }
@@ -5361,7 +5358,7 @@
                     if ($lastGroup != "Something") {
                         $output .= "</table><br />";
                     }
-                    $output .= "<table class=\"gvplugin\" id=\"gvid_uctskg\"><tr><th class=\"gvthead gvcol_1\">" . $characterSkill->grouping . " name</th>
+                    $output .= "<table class='gvplugin' id=\"gvid_uctskg\"><tr><th class=\"gvthead gvcol_1\">" . $characterSkill->grouping . " name</th>
                                                                                      <th class=\"gvthead gvcol_2\">Value</th>
                                                                                      <th class=\"gvthead gvcol_3\">Comment</th>
                                                                                      <th class=\"gvthead gvcol_4\">Delete</th></tr>";
@@ -5371,16 +5368,16 @@
                 $skillName = "skill" . $skillCount;
                 $output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $characterSkill->name . "</td>"
                     . "<td class=\"gvcol_2 gvcol_val\">" . printSelectCounter($skillName, $characterSkill->level, 0, 10) . "</td>"
-                    . "<td class=\"gvcol_3 gvcol_val\"><input type=\"text\" name=\""     . $skillName . "Comment\" value=\"" . $characterSkill->comment  . "\" /></td>"
-                    . "<td class=\"gvcol_4 gvcol_val\"><input type=\"checkbox\" name=\"" . $skillName . "Delete\" value=\""  . $characterSkill->cskillid . "\" />"
-                    .     "<input type=\"hidden\" name=\""   . $skillName . "ID\" value=\""      . $characterSkill->cskillid . "\" /></td></tr>";
+                    . "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $skillName . "Comment\" value=\"" . $characterSkill->comment  . "\" /></td>"
+                    . "<td class='gvcol_4 gvcol_val'><input type=\"checkbox\" name=\"" . $skillName . "Delete\" value=\""  . $characterSkill->cskillid . "\" />"
+                    .     "<input type='HIDDEN' name=\""   . $skillName . "ID\" value=\""      . $characterSkill->cskillid . "\" /></td></tr>";
 
                 $skillCount++;
             }
             $output .= "</table><br />";
-            $output .= "<input type=\"hidden\" name=\"maxOldSkillCount\" value=\"" . $skillCount . "\" />";
+            $output .= "<input type='HIDDEN' name=\"maxOldSkillCount\" value=\"" . $skillCount . "\" />";
 
-            $output .= "<table class=\"gvplugin\" id=\"gvid_uctskn\"><tr><th class=\"gvthead gvcol_1\">New skill name</th>
+            $output .= "<table class='gvplugin' id=\"gvid_uctskn\"><tr><th class=\"gvthead gvcol_1\">New skill name</th>
                                                                              <th class=\"gvthead gvcol_2\">Value</th>
                                                                              <th class=\"gvthead gvcol_3\">Comment</th>
                                                                              <th class=\"gvthead gvcol_4\">Delete</th></tr>";
@@ -5395,13 +5392,13 @@
                 $skillName = "skill" . $skillCount;
                 $output .= "<tr><td class=\"gvcol_1 gvcol_key\"><select name=\"" . $skillName . "SID\">" . $skillBlock . "</select></td>"
                     . "<td class=\"gvcol_2 gvcol_val\">" . printSelectCounter($skillName, "", 0, 10) . "</td>"
-                    . "<td class=\"gvcol_3 gvcol_val\"><input type=\"text\" name=\"" . $skillName . "Comment\" /></td>"
-                    . "<td class=\"gvcol_4 gvcol_val\"></td></tr>";
+                    . "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\"" . $skillName . "Comment\" /></td>"
+                    . "<td class='gvcol_4 gvcol_val'></td></tr>";
 
                 $i++;
                 $skillCount++;
             }
-            $output .= "<input type=\"hidden\" name=\"maxNewSkillCount\" value=\"" . $skillCount . "\" />";
+            $output .= "<input type='HIDDEN' name=\"maxNewSkillCount\" value=\"" . $skillCount . "\" />";
             $output .= "</table><hr />";
 
             /*******************************************************************************************/
@@ -5420,7 +5417,7 @@
 
             $characterDisciplines = $wpdb->get_results($wpdb->prepare($sql, $characterID));
 
-            $output .= "<table class=\"gvplugin\" id=\"gvid_uctdi\"><tr><th class=\"gvthead gvcol_1\">Discipline name</th>
+            $output .= "<table class='gvplugin' id=\"gvid_uctdi\"><tr><th class=\"gvthead gvcol_1\">Discipline name</th>
                                                                             <th class=\"gvthead gvcol_2\">Value</th>
                                                                             <th class=\"gvthead gvcol_3\">Comment</th>
                                                                             <th class=\"gvthead gvcol_4\">Delete</th>
@@ -5441,9 +5438,9 @@
                 $disciplineName = "discipline" . $disciplineCount;
                 $output .= "<td class=\"gvcol_" . (1 + $colOffset) . " gvcol_key\">" . $characterDiscipline->name . "</td>"
                     . "<td class=\"gvcol_" . (2 + $colOffset) . " gvcol_val\">" . printSelectCounter($disciplineName, $characterDiscipline->level, 0, 10) . "</td>"
-                    . "<td class=\"gvcol_" . (3 + $colOffset) . " gvcol_val\"><input type=\"text\" name=\""     . $disciplineName . "Comment\" value=\"" . $characterDiscipline->comment  . "\" /></td>"
+                    . "<td class=\"gvcol_" . (3 + $colOffset) . " gvcol_val\"><input type='text' name=\""     . $disciplineName . "Comment\" value=\"" . $characterDiscipline->comment  . "\" /></td>"
                     . "<td class=\"gvcol_" . (4 + $colOffset) . " gvcol_val\"><input type=\"checkbox\" name=\"" . $disciplineName . "Delete\" value=\""  . $characterDiscipline->cdisciplineid . "\" />"
-                    .     "<input type=\"hidden\" name=\""   . $disciplineName . "ID\" value=\""      . $characterDiscipline->cdisciplineid . "\" /></td>";
+                    .     "<input type='HIDDEN' name=\""   . $disciplineName . "ID\" value=\""      . $characterDiscipline->cdisciplineid . "\" /></td>";
 
                 $i++;
                 $disciplineCount++;
@@ -5455,7 +5452,7 @@
                 $output .= "</tr>";
             }
 
-            $output .= "<input type=\"hidden\" name=\"maxOldDisciplineCount\" value=\"" . $disciplineCount . "\" />";
+            $output .= "<tr style='display:none'><td colspan=8><input type='HIDDEN' name=\"maxOldDisciplineCount\" value=\"" . $disciplineCount . "\" /></td></tr>";
 
             $disciplineBlock = "";
             $disciplines = listDisciplines("Y");
@@ -5470,7 +5467,7 @@
                 $disciplineName = "discipline" . $disciplineCount;
                 $output .= "<td class=\"gvcol_" . (1 + $colOffset) . " gvcol_key\"><select name=\"" . $disciplineName . "SID\">" . $disciplineBlock . "</select></td>"
                     . "<td class=\"gvcol_" . (2 + $colOffset) . " gvcol_val\">" . printSelectCounter($disciplineName, "", 0, 10) . "</td>"
-                    . "<td class=\"gvcol_" . (3 + $colOffset) . " gvcol_val\"><input type=\"text\" name=\""     . $disciplineName . "Comment\" /></td>"
+                    . "<td class=\"gvcol_" . (3 + $colOffset) . " gvcol_val\"><input type='text' name=\""     . $disciplineName . "Comment\" /></td>"
                     . "<td class=\"gvcol_" . (4 + $colOffset) . " gvcol_val\"></td>";
 
                 $i++;
@@ -5479,7 +5476,7 @@
                     $output .= "</tr>";
                 }
             }
-            $output .= "<input type=\"hidden\" name=\"maxNewDisciplineCount\" value=\"" . $disciplineCount . "\" />";
+            $output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxNewDisciplineCount\" value=\"" . $disciplineCount . "\" /></td></tr>";
             $output .= "</table><hr />";
 
             /*******************************************************************************************/
@@ -5499,7 +5496,7 @@
 
             $characterBackgrounds = $wpdb->get_results($wpdb->prepare($sql, $characterID));
 
-            $output .= "<table class=\"gvplugin\" id=\"gvid_uctdi\"><tr><th class=\"gvthead gvcol_1\">Background name</th>
+            $output .= "<table class='gvplugin' id=\"gvid_uctdi\"><tr><th class=\"gvthead gvcol_1\">Background name</th>
                                                                             <th class=\"gvthead gvcol_2\">Value</th>
                                                                             <th class=\"gvthead gvcol_3\">Comment</th>
                                                                             <th class=\"gvthead gvcol_4\">Delete</th>
@@ -5519,9 +5516,9 @@
                 $backgroundName = "background" . $backgroundCount;
                 $output .= "<td class=\"gvcol_" . (1 + $colOffset) . " gvcol_key\">" . $characterBackground->name . "</td>"
                     . "<td class=\"gvcol_" . (2 + $colOffset) . " gvcol_val\">" . printSelectCounter($backgroundName, $characterBackground->level, 0, 10) . "</td>"
-                    . "<td class=\"gvcol_" . (3 + $colOffset) . " gvcol_val\"><input type=\"text\" name=\""     . $backgroundName . "Comment\" value=\"" . $characterBackground->comment  . "\" /></td>"
+                    . "<td class=\"gvcol_" . (3 + $colOffset) . " gvcol_val\"><input type='text' name=\""     . $backgroundName . "Comment\" value=\"" . $characterBackground->comment  . "\" /></td>"
                     . "<td class=\"gvcol_" . (4 + $colOffset) . " gvcol_val\"><input type=\"checkbox\" name=\"" . $backgroundName . "Delete\" value=\""  . $characterBackground->cbackgroundid . "\" />"
-                    .     "<input type=\"hidden\" name=\""   . $backgroundName . "ID\" value=\""      . $characterBackground->cbackgroundid . "\" /></td>";
+                    .     "<input type='HIDDEN' name=\""   . $backgroundName . "ID\" value=\""      . $characterBackground->cbackgroundid . "\" /></td>";
 
                 $i++;
                 $backgroundCount++;
@@ -5533,7 +5530,7 @@
                 $output .= "</tr>";
             }
 
-            $output .= "<input type=\"hidden\" name=\"maxOldBackgroundCount\" value=\"" . $backgroundCount . "\" />";
+            $output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxOldBackgroundCount\" value=\"" . $backgroundCount . "\" /></td></tr>";
 
             $backgroundBlock = "";
             $backgrounds = listBackgrounds("", "Y");
@@ -5548,7 +5545,7 @@
                 $backgroundName = "background" . $backgroundCount;
                 $output .= "<td class=\"gvcol_" . (1 + $colOffset) . " gvcol_key\"><select name=\"" . $backgroundName . "SID\">" . $backgroundBlock . "</select></td>"
                     . "<td class=\"gvcol_" . (2 + $colOffset) . " gvcol_val\">" . printSelectCounter($backgroundName, "", 0, 10) . "</td>"
-                    . "<td class=\"gvcol_" . (3 + $colOffset) . " gvcol_val\"><input type=\"text\" name=\""     . $backgroundName . "Comment\" /></td>"
+                    . "<td class=\"gvcol_" . (3 + $colOffset) . " gvcol_val\"><input type='text' name=\""     . $backgroundName . "Comment\" /></td>"
                     . "<td class=\"gvcol_" . (4 + $colOffset) . " gvcol_val\"></td>";
 
                 $i++;
@@ -5557,7 +5554,7 @@
                     $output .= "</tr>";
                 }
             }
-            $output .= "<input type=\"hidden\" name=\"maxNewBackgroundCount\" value=\"" . $backgroundCount . "\" />";
+            $output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxNewBackgroundCount\" value=\"" . $backgroundCount . "\" /></td></tr>";
             $output .= "</table><hr />";
 
             /*******************************************************************************************/
@@ -5577,7 +5574,7 @@
 
             $characterMerits = $wpdb->get_results($wpdb->prepare($sql, $characterID));
 
-            $output .= "<table class=\"gvplugin\" id=\gvid_uctme\"><tr><th class=\"gvthead gvcol_1\">Merit name</th>
+            $output .= "<table class='gvplugin' id=\gvid_uctme\"><tr><th class=\"gvthead gvcol_1\">Merit name</th>
                                                                            <th class=\"gvthead gvcol_2\">Value</th>
                                                                            <th class=\"gvthead gvcol_3\">Comment</th>
                                                                            <th class=\"gvthead gvcol_4\">Delete</th></tr>";
@@ -5587,15 +5584,15 @@
                 $meritName = "merit" . $meritCount;
                 $output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $characterMerit->name . " (" . $characterMerit->value . ")</td>"
                     . "<td class=\"gvcol_2 gvcol_val\">" . printSelectCounter($meritName, $characterMerit->level, -7, 7) . "</td>"
-                    . "<td class=\"gvcol_3 gvcol_val\"><input type=\"text\" name=\""     . $meritName . "Comment\" value=\"" . $characterMerit->comment  . "\" /></td>"
-                    . "<td class=\"gvcol_4 gvcol_val\"><input type=\"checkbox\" name=\"" . $meritName . "Delete\" value=\""  . $characterMerit->cmeritid . "\" />"
-                    .     "<input type=\"hidden\" name=\""   . $meritName . "ID\" value=\""      . $characterMerit->cmeritid . "\" /></td></tr>";
+                    . "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $meritName . "Comment\" value=\"" . $characterMerit->comment  . "\" /></td>"
+                    . "<td class='gvcol_4 gvcol_val'><input type=\"checkbox\" name=\"" . $meritName . "Delete\" value=\""  . $characterMerit->cmeritid . "\" />"
+                    .     "<input type='HIDDEN' name=\""   . $meritName . "ID\" value=\""      . $characterMerit->cmeritid . "\" /></td></tr>";
 
                 $i++;
                 $meritCount++;
             }
 
-            $output .= "<input type=\"hidden\" name=\"maxOldMeritCount\" value=\"" . $meritCount . "\" />";
+            $output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxOldMeritCount\" value=\"" . $meritCount . "\" /></td></tr>";
 
             $meritBlock = "";
             $merits = listMerits("", "Y");
@@ -5607,12 +5604,12 @@
                 $meritName = "merit" . $meritCount;
                 $output .= "<tr><td class=\"gvcol_1 gvcol_key\"><select name=\"" . $meritName . "SID\">" . $meritBlock . "</select></td>"
                     . "<td class=\"gvcol_2 gvcol_val\">" . printSelectCounter($meritName, "", -7, 7) . "</td>"
-                    . "<td class=\"gvcol_3 gvcol_val\"><input type=\"text\" name=\""     . $meritName . "Comment\" /></td>"
-                    . "<td class=\"gvcol_4 gvcol_val\"></td></tr>";
+                    . "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $meritName . "Comment\" /></td>"
+                    . "<td class='gvcol_4 gvcol_val'></td></tr>";
 
                 $meritCount++;
             }
-            $output .= "<input type=\"hidden\" name=\"maxNewMeritCount\" value=\"" . $meritCount . "\" />";
+            $output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxNewMeritCount\" value=\"" . $meritCount . "\" /></td></tr>";
             $output .= "</table><hr />";
 
             /*******************************************************************************************/
@@ -5630,7 +5627,7 @@
 
             $characterComboDisciplines = $wpdb->get_results($wpdb->prepare($sql, $characterID));
 
-            $output .= "<table class=\"gvplugin\" id=\"gvid_uctcd\"><tr><th class=\"gvthead gvcol_1\">Combo Discipline name</th>
+            $output .= "<table class='gvplugin' id=\"gvid_uctcd\"><tr><th class=\"gvthead gvcol_1\">Combo Discipline name</th>
                                                                             <th class=\"gvthead gvcol_2\">Value</th>
                                                                             <th class=\"gvthead gvcol_3\">Comment</th>
                                                                             <th class=\"gvthead gvcol_4\">Delete</th></tr>";
@@ -5640,14 +5637,14 @@
             foreach($characterComboDisciplines as $characterComboDiscipline) {
                 $comboDisciplineName = "comboDiscipline" . $comboDisciplineCount;
                 $output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $characterComboDiscipline->name . "</td>"
-                    . "<td class=\"gvcol_2 gvcol_val\">Learned<input type=\"hidden\" name=\"" . $comboDisciplineName . "\" value=\"0\" /></td>"
-                    . "<td class=\"gvcol_3 gvcol_val\"><input type=\"text\" name=\""     . $comboDisciplineName . "Comment\" value=\"" . $characterComboDiscipline->comment  . "\" /></td>"
-                    . "<td class=\"gvcol_4 gvcol_val\"><input type=\"checkbox\" name=\"" . $comboDisciplineName . "Delete\" value=\""  . $characterComboDiscipline->ccombo_disciplineid . "\" />"
-                    .     "<input type=\"hidden\" name=\""   . $comboDisciplineName . "ID\" value=\""      . $characterComboDiscipline->ccombo_disciplineid . "\" /></td></tr>";
+                    . "<td class=\"gvcol_2 gvcol_val\">Learned<input type='HIDDEN' name=\"" . $comboDisciplineName . "\" value=\"0\" /></td>"
+                    . "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $comboDisciplineName . "Comment\" value=\"" . $characterComboDiscipline->comment  . "\" /></td>"
+                    . "<td class='gvcol_4 gvcol_val'><input type=\"checkbox\" name=\"" . $comboDisciplineName . "Delete\" value=\""  . $characterComboDiscipline->ccombo_disciplineid . "\" />"
+                    .     "<input type='HIDDEN' name=\""   . $comboDisciplineName . "ID\" value=\""      . $characterComboDiscipline->ccombo_disciplineid . "\" /></td></tr>";
 
                 $comboDisciplineCount++;
             }
-            $output .= "<input type=\"hidden\" name=\"maxOldComboDisciplineCount\" value=\"" . $comboDisciplineCount . "\" />";
+            $output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxOldComboDisciplineCount\" value=\"" . $comboDisciplineCount . "\" /></td></tr>";
 
             $comboDisciplineBlock = "";
             $comboDisciplines = listComboDisciplines("Y");
@@ -5658,11 +5655,11 @@
             $comboDisciplineName = "comboDiscipline" . $comboDisciplineCount;
             $output .= "<tr><td class=\"gvcol_1 gvcol_key\"><select name=\"" . $comboDisciplineName . "SID\">" . $comboDisciplineBlock . "</select></td>"
                 . "<td class=\"gvcol_2 gvcol_val\"><select name=\"" . $comboDisciplineName . "\"><option value=\"-100\">Not Learned</option><option value=\"1\">Learned</option></select></td>"
-                . "<td class=\"gvcol_3 gvcol_val\"><input type=\"text\" name=\"" . $comboDisciplineName . "Comment\" /></td>"
-                . "<td class=\"gvcol_4 gvcol_val\"></td></tr>";
+                . "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\"" . $comboDisciplineName . "Comment\" /></td>"
+                . "<td class='gvcol_4 gvcol_val'></td></tr>";
             $comboDisciplineCount++;
 
-            $output .= "<input type=\"hidden\" name=\"maxNewComboDisciplineCount\" value=\"" . $comboDisciplineCount . "\" />";
+            $output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxNewComboDisciplineCount\" value=\"" . $comboDisciplineCount . "\" /></td></tr>";
             $output .= "</table><hr />";
 
             /*******************************************************************************************/
@@ -5684,7 +5681,7 @@
 
             $characterPaths = $wpdb->get_results($wpdb->prepare($sql, $characterID));
 
-            $output .= "<table class=\"gvplugin\" id=\"gvid_uctpa\"><tr><th class=\"gvthead gvcol_1\">Path name</th>
+            $output .= "<table class='gvplugin' id=\"gvid_uctpa\"><tr><th class=\"gvthead gvcol_1\">Path name</th>
                                                                             <th class=\"gvthead gvcol_2\">Value</th>
                                                                             <th class=\"gvthead gvcol_3\">Comment</th>
                                                                             <th class=\"gvthead gvcol_4\">Delete</th></tr>";
@@ -5695,15 +5692,15 @@
                 $pathName = "path" . $pathCount;
                 $output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $characterPath->name . " (" . substr($characterPath->disname, 0, 5)  .")</td>"
                     . "<td class=\"gvcol_2 gvcol_val\">" . printSelectCounter($pathName, $characterPath->level, 0, 10) . "</td>"
-                    . "<td class=\"gvcol_3 gvcol_val\"><input type=\"text\" name=\""     . $pathName . "Comment\" value=\"" . $characterPath->comment  . "\" /></td>"
-                    . "<td class=\"gvcol_4 gvcol_val\"><input type=\"checkbox\" name=\"" . $pathName . "Delete\" value=\""  . $characterPath->cpathid . "\" />"
-                    .     "<input type=\"hidden\" name=\""   . $pathName . "ID\" value=\""      . $characterPath->cpathid . "\" /></td></tr>";
+                    . "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $pathName . "Comment\" value=\"" . $characterPath->comment  . "\" /></td>"
+                    . "<td class='gvcol_4 gvcol_val'><input type=\"checkbox\" name=\"" . $pathName . "Delete\" value=\""  . $characterPath->cpathid . "\" />"
+                    .     "<input type='HIDDEN' name=\""   . $pathName . "ID\" value=\""      . $characterPath->cpathid . "\" /></td></tr>";
 
                 $i++;
                 $pathCount++;
             }
 
-            $output .= "<input type=\"hidden\" name=\"maxOldPathCount\" value=\"" . $pathCount . "\" />";
+            $output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxOldPathCount\" value=\"" . $pathCount . "\" /></td></tr>";
 
             $pathBlock = "";
             $paths = listPaths("Y");
@@ -5715,11 +5712,11 @@
                 $pathName = "path" . $pathCount;
                 $output .= "<tr><td class=\"gvcol_1 gvcol_key\"><select name=\"" . $pathName . "SID\">" . $pathBlock . "</select></td>"
                     . "<td class=\"gvcol_2 gvcol_val\">" . printSelectCounter($pathName, "", 0, 10) . "</td>"
-                    . "<td class=\"gvcol_3 gvcol_val\"><input type=\"text\" name=\""     . $pathName . "Comment\" /></td>"
-                    . "<td class=\"gvcol_4 gvcol_val\"></td></tr>";
+                    . "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $pathName . "Comment\" /></td>"
+                    . "<td class='gvcol_4 gvcol_val'></td></tr>";
                 $pathCount++;
             }
-            $output .= "<input type=\"hidden\" name=\"maxNewPathCount\" value=\"" . $pathCount . "\" />";
+            $output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxNewPathCount\" value=\"" . $pathCount . "\" /></td></tr>";
             $output .= "</table><hr />";
 
             /*******************************************************************************************/
@@ -5742,7 +5739,7 @@
 
             $characterRituals = $wpdb->get_results($wpdb->prepare($sql, $characterID));
 
-            $output .= "<table class=\"gvplugin\" id=\"gvid_uctri\"><tr><th class=\"gvthead gvcol_1\">Ritual name</th>
+            $output .= "<table class='gvplugin' id=\"gvid_uctri\"><tr><th class=\"gvthead gvcol_1\">Ritual name</th>
                                                                             <th class=\"gvthead gvcol_2\">Value</th>
                                                                             <th class=\"gvthead gvcol_3\">Comment</th>
                                                                             <th class=\"gvthead gvcol_4\">Delete</th></tr>";
@@ -5752,16 +5749,16 @@
             foreach($characterRituals as $characterRitual) {
                 $ritualName = "ritual" . $ritualCount;
                 $output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $characterRitual->name . " (" . substr($characterRitual->disname, 0, 5)  . " " . $characterRitual->ritlevel .")</td>"
-                    . "<td class=\"gvcol_2 gvcol_val\">Learned<input type=\"hidden\" name=\"" . $ritualName . "\" value=\"0\" /></td>"
-                    . "<td class=\"gvcol_3 gvcol_val\"><input type=\"text\" name=\""     . $ritualName . "Comment\" value=\"" . $characterRitual->comment  . "\" /></td>"
-                    . "<td class=\"gvcol_4 gvcol_val\"><input type=\"checkbox\" name=\"" . $ritualName . "Delete\" value=\""  . $characterRitual->critualid . "\" />"
-                    .     "<input type=\"hidden\" name=\""   . $ritualName . "ID\" value=\""      . $characterRitual->critualid . "\" /></td></tr>";
+                    . "<td class=\"gvcol_2 gvcol_val\">Learned<input type='HIDDEN' name=\"" . $ritualName . "\" value=\"0\" /></td>"
+                    . "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $ritualName . "Comment\" value=\"" . $characterRitual->comment  . "\" /></td>"
+                    . "<td class='gvcol_4 gvcol_val'><input type=\"checkbox\" name=\"" . $ritualName . "Delete\" value=\""  . $characterRitual->critualid . "\" />"
+                    .     "<input type='HIDDEN' name=\""   . $ritualName . "ID\" value=\""      . $characterRitual->critualid . "\" /></td></tr>";
 
                 $i++;
                 $ritualCount++;
             }
 
-            $output .= "<input type=\"hidden\" name=\"maxOldRitualCount\" value=\"" . $ritualCount . "\" />";
+            $output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxOldRitualCount\" value=\"" . $ritualCount . "\" /></td></tr>";
 
             $ritualBlock = "";
             $rituals = listRituals("Y");
@@ -5773,11 +5770,11 @@
                 $ritualName = "ritual" . $ritualCount;
                 $output .= "<tr><td class=\"gvcol_1 gvcol_key\"><select name=\"" . $ritualName . "SID\">" . $ritualBlock . "</select></td>"
                     . "<td class=\"gvcol_2 gvcol_val\"><select name=\"" . $ritualName . "\"><option value=\"-100\">Not Learned</option><option value=\"1\">Learned</option></select></td>"
-                    . "<td class=\"gvcol_3 gvcol_val\"><input type=\"text\" name=\""     . $ritualName . "Comment\" /></td>"
-                    . "<td class=\"gvcol_4 gvcol_val\"></td></tr>";
+                    . "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $ritualName . "Comment\" /></td>"
+                    . "<td class='gvcol_4 gvcol_val'></td></tr>";
                 $ritualCount++;
             }
-            $output .= "<input type=\"hidden\" name=\"maxNewRitualCount\" value=\"" . $ritualCount . "\" />";
+            $output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxNewRitualCount\" value=\"" . $ritualCount . "\" /></td></tr>";
             $output .= "</table><hr />";
 
             /*******************************************************************************************/
@@ -5798,7 +5795,7 @@
 
             $characterOffices = $wpdb->get_results($wpdb->prepare($sql, $characterID));
 
-            $output .= "<table class=\"gvplugin\" id=\"gvid_uctof\"><tr><th class=\"gvthead gvcol_1\">Office name</th>
+            $output .= "<table class='gvplugin' id=\"gvid_uctof\"><tr><th class=\"gvthead gvcol_1\">Office name</th>
                                                                             <th class=\"gvthead gvcol_2\">Court</th>
                                                                             <th class=\"gvthead gvcol_3\">Status</th>
                                                                             <th class=\"gvthead gvcol_4\">Comment</th>
@@ -5810,15 +5807,15 @@
                 $officeName = "office" . $officeCount;
                 $output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $characterOffice->name . "</td>"
                     . "<td class=\"gvcol_2 gvcol_val\">" . $characterOffice->courtname . "</td>"
-                    . "<td class=\"gvcol_3 gvcol_val\">In office<input type=\"hidden\" name=\"" . $officeName . "\" value=\"0\" /></td>"
-                    . "<td class=\"gvcol_4 gvcol_val\"><input type=\"text\" name=\""     . $officeName . "Comment\" value=\"" . $characterOffice->comment  . "\" /></td>"
-                    . "<td class=\"gvcol_5 gvcol_val\"><input type=\"checkbox\" name=\"" . $officeName . "Delete\" value=\""  . $characterOffice->cofficeid . "\" />"
-                    .     "<input type=\"hidden\" name=\""   . $officeName . "ID\" value=\""      . $characterOffice->cofficeid . "\" /></td></tr>";
+                    . "<td class=\"gvcol_3 gvcol_val\">In office<input type='HIDDEN' name=\"" . $officeName . "\" value=\"0\" /></td>"
+                    . "<td class='gvcol_4 gvcol_val'><input type='text' name=\""     . $officeName . "Comment\" value=\"" . $characterOffice->comment  . "\" /></td>"
+                    . "<td class='gvcol_5 gvcol_val'><input type=\"checkbox\" name=\"" . $officeName . "Delete\" value=\""  . $characterOffice->cofficeid . "\" />"
+                    .     "<input type='HIDDEN' name=\""   . $officeName . "ID\" value=\""      . $characterOffice->cofficeid . "\" /></td></tr>";
                 $i++;
                 $officeCount++;
             }
 
-            $output .= "<input type=\"hidden\" name=\"maxOldOfficeCount\" value=\"" . $officeCount . "\" />";
+            $output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxOldOfficeCount\" value=\"" . $officeCount . "\" /></td></tr>";
 
             $officeBlock = "";
             $offices = listOffices("Y");
@@ -5837,18 +5834,18 @@
                 $output .= "<tr><td class=\"gvcol_1 gvcol_key\"><select name=\"" . $officeName . "OID\">" . $officeBlock . "</select></td>"
                     . "<td class=\"gvcol_2 gvcol_val\"><select name=\"" . $officeName . "CID\">" . $courtBlock . "</select></td>"
                     . "<td class=\"gvcol_3 gvcol_val\"><select name=\"" . $officeName . "\"><option value=\"-100\">Not in office</option><option value=\"1\">In office</option></select></td>"
-                    . "<td class=\"gvcol_4 gvcol_val\"><input type=\"text\" name=\""     . $officeName . "Comment\" /></td>"
-                    . "<td class=\"gvcol_5 gvcol_val\"></td></tr>";
+                    . "<td class='gvcol_4 gvcol_val'><input type='text' name=\""     . $officeName . "Comment\" /></td>"
+                    . "<td class='gvcol_5 gvcol_val'></td></tr>";
                 $officeCount++;
             }
-            $output .= "<input type=\"hidden\" name=\"maxNewOfficeCount\" value=\"" . $officeCount . "\" />";
+            $output .= "<tr style='display:none'><td colspan=5><input type='HIDDEN' name=\"maxNewOfficeCount\" value=\"" . $officeCount . "\" /></td></tr>";
             $output .= "</table><hr />";
 
             /*******************************************************************************************/
             /*******************************************************************************************/
 
-            $output .= "<table class=\"gvplugin\" id=\"gvid_scc\"><tr><td class=\"gvcol_1 gvcol_val\"><input type=\"submit\" name=\"cSubmit\" value=\"Submit character changes\" /></td>
-                                                                          <td class=\"gvcol_1 gvcol_val\"><input type=\"submit\" name=\"cSubmit\" value=\"Back to the character list\" /></td></tr></table>";
+            $output .= "<table class='gvplugin' id=\"gvid_scc\"><tr><td class=\"gvcol_1 gvcol_val\"><input type='submit' name=\"cSubmit\" value=\"Submit character changes\" /></td>
+                                                                          <td class=\"gvcol_1 gvcol_val\"><input type='submit' name=\"cSubmit\" value=\"Back to the character list\" /></td></tr></table>";
             $output .= "</form>";
         }
         else {
@@ -5880,12 +5877,10 @@
             . "remove them for the character database.<br />"
             . "Remember you can mark the character as absent or deactivate the player to remove them from most lists.<br />";
 
-        $output .= "<form name=\"CD_Form\" method=\"post\" action=\"" . $_SERVER['REQUEST_URI'] . "\">";
-        $output .= "<table class=\"gvplugin\" id=\"gvid_gvid_sdc\"><tr><td class=\"gvcol_1 gvcol_val\">";
-        $output .= "<input type=\"hidden\" name=\"GVLARP_FORM\" value=\"displayUpdateCharacter\" />";
-        $output .= "<input type=\"hidden\" name=\"characterID\" value=\"" . $characterID . "\" />";
-        $output .= "<input type=\"submit\" name=\"cSubmit\" value=\"Confirm Delete\" /></td><td>";
-        $output .= "<input type=\"submit\" name=\"cSubmit\" value=\"Abandon Delete\" /></td></tr></table></form>";
+        $output .= "<form name=\"CD_Form\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">";
+        $output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"displayUpdateCharacter\" />";        $output .= "<input type='HIDDEN' name=\"characterID\" value=\"" . $characterID . "\" />";        $output .= "<table class='gvplugin' id=\"gvid_gvid_sdc\"><tr><td class=\"gvcol_1 gvcol_val\">";
+        $output .= "<input type='submit' name=\"cSubmit\" value=\"Confirm Delete\" /></td><td>";
+        $output .= "<input type='submit' name=\"cSubmit\" value=\"Abandon Delete\" /></td></tr></table></form>";
         return $output;
     }
 
@@ -5917,10 +5912,9 @@
             $output = "Deleted character " . $sqlOutput;
         }
 
-        $output .= "<br /><form name=\"CD_Form\" method=\"post\" action=\"" . $_SERVER['REQUEST_URI'] . "\">";
-        $output .= "<table class=\"gvplugin\" id=\"gvid_dcf\"><tr><td class=\"gvcol_1 gvcol_val\">";
-        $output .= "<input type=\"hidden\" name=\"GVLARP_FORM\" value=\"displayUpdateCharacter\" />";
-        $output .= "<input type=\"submit\" name=\"cSubmit\" value=\"Back to the character list\" /></td></tr></table></form>";
+        $output .= "<br /><form name=\"CD_Form\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">";
+        $output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"displayUpdateCharacter\" />";        $output .= "<table class='gvplugin' id=\"gvid_dcf\"><tr><td class=\"gvcol_1 gvcol_val\">";
+        $output .= "<input type='submit' name=\"cSubmit\" value=\"Back to the character list\" /></td></tr></table></form>";
         return $output;
     }
 
@@ -6352,27 +6346,27 @@
         $player_id = "";
         $sqlOutput = "";
         foreach ($xp_characters as $current_character) {
-            $sqlOutput .= "<option value=" . $current_character->id . ">" . $current_character->name . "</option>";
+            $sqlOutput .= "<option value=" . $current_character->id . ">" . $current_character->name . "</option>\n";
             $player_id = $current_character->player_id;
         }
 
         if ($sqlOutput != "") {
-            $output  = "<form name=\"Master_XP_Form\" method=\"post\" action=\"" . $_SERVER['REQUEST_URI'] . "\">";
-            $output .= "<input type=\"HIDDEN\" name=\"GVLARP_FORM\" value=\"player_xp\" />";
-            $output .= "<input type=\"HIDDEN\" name=\"player\" value=\"" . $player_id . "\" />";
-            $output .= "<table class=\"gvplugin\" id=\"pxps\"><tr><td class=\"gvcol_1 gvcol_val\">Add xp change</td>"
+            $output  = "<form name=\"Master_XP_Form\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">";
+            $output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"player_xp\" />";
+            $output .= "<input type='HIDDEN' name=\"player\" value=\"" . $player_id . "\" />\n";
+            $output .= "<table class='gvplugin' id=\"pxps\"><tr><td class=\"gvcol_1 gvcol_val\">Add xp change</td>"
                 . "<td class=\"gvcol_2 gvcol_val\"><select name=\"character\">"
-                . $sqlOutput . "</select></td><td class=\"gvcol_3 gvcol_val\"><select name=\"xp_type\">";
+                . $sqlOutput . "</select></td><td class=\"gvcol_3 gvcol_val\">\n<select name=\"xp_type\">";
             foreach ($xpReasons as $current_reason) {
-                $output .= "<option value=\"" . $current_reason->id . "\">" . $current_reason->name . "</option>";
+                $output .= "<option value=\"" . $current_reason->id . "\">" . $current_reason->name . "</option>\n";
             }
-            $output .= "</select></td><td class=\"gvcol_4 gvcol_val\"><input type=\"text\" name=\"xp_value\" size=5 maxlength=3 /></td>";
-            $output .= "</select></td><td class=\"gvcol_5 gvcol_val\"><input type=\"text\" name=\"comment\" size=30 maxlength=110 /></td>";
-            $output .= "<td class=\"gvcol_6 gvcol_val\"><input type=\"submit\" name=\"submit\" value=\"Submit XP change\" /></td>";
-            $output .= "</tr></table></form>";
+            $output .= "</select></td><td class='gvcol_4 gvcol_val'><input type='text' name=\"xp_value\" size=5 maxlength=3 /></td>";
+            $output .= "<td class='gvcol_5 gvcol_val'><input type='text' name=\"comment\" size=30 maxlength=110 /></td>";
+            $output .= "<td class='gvcol_6 gvcol_val'><input type='submit' name=\"submit\" value=\"Submit XP change\" /></td>";
+            $output .= "</tr>\n</table></form>";
         }
         else {
-            $output = "<center>No characters found</center>";
+            $output = "<p>No characters found</p>";
         }
         return $output;
     }
