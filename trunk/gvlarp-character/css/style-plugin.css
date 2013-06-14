@@ -1,0 +1,381 @@
+/* =Plugin CSS
+-------------------------------------------------------------- */
+.gvplugin {
+	/* font-family: "Courier New"; */
+}
+
+/* =Character Sheet
+-------------------------------------------------------------- */
+div#csheet {
+    /* border: 1px solid green; */
+    float: left;
+    width: 100%;
+    display: block;
+	font-family: "Courier New";
+}
+	
+#csheet h3 {
+    text-align:center;
+}
+	
+#csheet h4 {
+    text-align:center;
+}
+
+#csheet .gvhr hr {
+    margin-bottom: 10px;
+    margin-top: 20px;
+	padding:1px;
+	border: 1px solid #666666;
+}
+
+#csheet td {
+    font-size:10pt;
+    padding:1px;
+	border:none;
+	/* vertical-align: middle !important; */
+}
+
+#csheet .gvcol_spec {
+	border-bottom: 1px dashed #999999;
+	font-size:8pt;
+	text-align:center;
+}
+#csheet .gvcol_key {
+    width: 100px;
+}
+
+/* td.chsheetcol1 {
+	width=33%;
+}
+td.chsheetcol2 {
+	width=33%;
+}
+td.chsheetcol3 {
+	width=33%;
+} */
+
+/* Willpower */
+#csheet #gvid_cstb_Willpower .gvcol_spec {
+   border-bottom: none;
+   width: 1px;  
+}
+#csheet #gvid_cstb_Willpower .gvcol_key {
+   font-size:12pt;
+   text-align: left;
+}
+#csheet #gvid_cstb_Willpower .gvcol_3 {
+   width: 145px;
+   background-size:140px;
+   background-position:right;
+}
+
+/* Combined Discipine */
+#csheet #gvid_ccb .gvcol_spec {
+    border-bottom: none;
+}
+#csheet #gvid_ccb .gvcol_key {
+	width: 100%;
+}
+
+/* Merits & Flaws */
+#csheet #gvid_cmb td.gvcol_key {
+   width: auto;
+}
+#csheet #gvid_cmb td.gvcol_val {
+   width: 10%;
+}
+
+/* Rituals */
+#csheet #gvid_crb td.gvcol_key {
+   width: auto;
+}
+#csheet #gvid_crb td.gvcol_val {
+   width: 10%;
+}
+
+/* Paths */
+#csheet #gvid_cpb td.gvcol_key {
+   width: auto;
+}
+/*
+.gvthead {
+    border: 1px solid black;
+    background-color: #660506;
+    color:black;
+	font-weight:bold;
+    vertical-align: middle;
+}
+.gvthleft {
+    text-align:left;
+	font-weight:bold;
+}
+.gvsummary {
+    font-weight:bold;
+    border: 1px solid #999999;
+}
+.gvcol_key {
+    width:100px;
+    border: none;
+}
+*/
+
+/* =DOTS
+-------------------------------------------------------------- */
+.gvdot_5_1 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-5-1.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center;
+}
+.gvdot_5_2 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-5-2.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center;
+}
+.gvdot_5_3 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-5-3.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_5_4 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-5-4.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_5_5 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-5-5.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_10_1 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-1.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_10_2 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-2.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_10_3 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-3.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_10_4 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-4.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_10_5 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-5.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_10_6 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-6.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_10_7 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-7.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_10_8 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-8.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}.gvdot_10_9 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-9.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; }
+.gvdot_10_10 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-10.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_5_6 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-6.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_5_7 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-7.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_5_8 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-8.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_5_9 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-9.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_5_10 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-10.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+
+/*
+#gvid_cxpt_1 .gvcol_3 {
+    text-align:center;
+}
+#gvid_cxpt_1 .gvcol_5 {
+    text-align:center;
+}
+*/
+
+/* PROFILE */
+#gvid_prof_out .gvthhead {
+    text-align: left;
+    font-weight: bold;
+    font-size: 26px;
+    padding-bottom: 10px;
+    font-family: inherit;
+}
+#gvid_prof_out .gvcol_1 {
+    vertical-align:top;
+}
+#gvid_prof_out img {
+    float:left;
+    margin: 5px;
+}
+#gvid_prof_out .gvcol_img img {
+	width:150px;
+}
+
+#gvid_prof_out .gvcol_key {
+    font-weight: bold;
+}
+#gvid_prof_in {
+    margin-left: 20px;
+}
+
+/*  */
+/*
+#gvid_cdib table td.gvcol_key {
+    width: 200px;
+    padding:0px;
+}
+
+#gvid_cdib table td.gvcol_spec {
+    width: 50px;
+}
+#gvid_cmb td.gvcol_key {
+   width: 250px;
+}
+#gvid_cmb td.gvcol_spec {
+   width: 250px;
+}
+
+*/
+
+
+/* =XP Spend Page
+-------------------------------------------------------------- */
+/*.xpspend {
+    font-family: "Courier New";
+} */
+#gvid_xpst td {
+    padding: 0px;
+	text-align: center;
+}
+#gvid_xpst th {
+    font-weight: bold;
+    background-color: #222;
+    padding: 3px;
+}
+
+#gvid_xpst .gvthleft {
+    text-align: left;
+    background-color: #000000;
+    padding: 0px;
+}
+
+/* #gvid_xpst table > tbody > tr > th:first-child {
+    text-align: left;
+    background-color: #000000;
+    padding: 0px;
+}
+#gvid_xpst table > tbody > tr:first-child > th:first-child {
+    text-align: center;
+    background-color: #222;
+} */
+
+/* =Status List Block
+-------------------------------------------------------------- */
+/*#gvid_slb .gvcol_key {
+	width: auto;
+}*/
+
+/* =Pending XP Spend
+-------------------------------------------------------------- */
+/*#gvid_xpa .gvcol_key {
+	width: 130px;
+}*/
+
+/* =Character Road/Path
+-------------------------------------------------------------- */
+/*#gvid_crpt .gvcol_2 {
+	text-align: center;
+}*/
+
+/* =Player Admin
+-------------------------------------------------------------- */
+/*#gvid_ppa_in2 .gvcol_key {
+	width: auto;
+}*/
+/* =Character Admin
+-------------------------------------------------------------- */
+/*#gvid_ucts .gvcol_key {
+    width: 230px;
+    text-align:right;
+}
+#gvid_uctcs .gvcol_key {
+    width: auto;
+}*/
