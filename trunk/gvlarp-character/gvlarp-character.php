@@ -103,7 +103,7 @@
                                      EXTENDED_CHARACTER_BACKGROUND
                               Change COST_MODEL_STEPS for spends above 5
          */
-
+/* define('GVLARP_INCLUDE_URL', plugins_url('inc', 'gvlarp-character')); */define( 'GVLARP_CHARACTER_URL', plugin_dir_path(__FILE__) );require GVLARP_CHARACTER_URL . 'inc/adminpages.php';
     add_option("gvlarp_character_db_version", "1.6.0");
 
     register_activation_hook(__FILE__, "gvlarp_character_install");
