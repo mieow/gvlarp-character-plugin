@@ -67,7 +67,7 @@ function character_datatables() {
 			</div>
 			<div id="gv-books" <?php tabdisplay("book"); ?>>
 				<h1>Sourcebooks</h1>
-				<p>Insert tables and forms for sourcebooks here.</p>
+				<?php render_sourcebook_page(); ?>
 			</div>
 		</div>
 
@@ -157,6 +157,32 @@ function render_rituals_page(){
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
 		<input type="hidden" name="tab" value="ritual" />
  		<?php $testListTable["rituals"]->display() ?>
+	</form>
+
+    <?php
+}
+function render_sourcebook_page(){
+
+    $testListTable["books"] = new gvadmin_books_table();
+	$doaction = book_input_validation();
+	
+	if ($doaction == "add-book") {
+		$testListTable["books"]->add_book($_REQUEST['book_name'], $_REQUEST['book_code'], $_REQUEST['book_visible']);
+									
+	}
+	if ($doaction == "save-edit-book") {
+		$testListTable["books"]->edit_book($_REQUEST['book_id'], $_REQUEST['book_name'], $_REQUEST['book_code'], $_REQUEST['book_visible']);
+									
+	}
+
+	render_book_add_form($doaction);
+	$testListTable["books"]->prepare_items();
+	?>	
+
+	<form id="books-filter" method="get">
+		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
+		<input type="hidden" name="tab" value="book" />
+ 		<?php $testListTable["books"]->display() ?>
 	</form>
 
     <?php
@@ -348,7 +374,7 @@ function render_ritual_add_form($addaction) {
 					ritual.SOURCE_BOOK_ID = books.ID and
 					ritual.ID = '$id';";
 		
-		echo "<p>$sql</p>";
+		/* echo "<p>$sql</p>"; */
 		
 		$data =$wpdb->get_results($wpdb->prepare($sql));
 		
@@ -440,6 +466,74 @@ function render_ritual_add_form($addaction) {
 		</tr>
 		<tr>
 			<td>Description: </td><td colspan=5><input type="text" name="<?php print $type; ?>_desc" value="<?php print $desc; ?>" size=120/></td>
+		</tr>
+		</table>
+		<input type="submit" name="do_add_<?php print $type; ?>" class="button-primary" value="Save <?php print ucfirst($type); ?>" />
+	</form>
+	
+	<?php
+}
+function render_book_add_form($addaction) {
+
+	global $wpdb;
+	
+	$type = "book";
+	
+	/* echo "<p>Creating book form based on action $addaction</p>"; */
+
+	if ('fix-' . $type == $addaction) {
+		$id = $_REQUEST['book'];
+		$name = $_REQUEST[$type . '_name'];
+
+		$visible = $_REQUEST[$type . '_visible'];
+		$code = $_REQUEST[$type . '_code'];
+		
+	} else if ('edit-' . $type == $addaction) {
+		/* Get values from database */
+		$id   = $_REQUEST['book'];
+		
+		$sql = "select books.ID, books.NAME, books.CODE, books.VISIBLE
+				from " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books
+				where books.ID = '$id';";
+		
+		/* echo "<p>$sql</p>"; */
+		
+		$data =$wpdb->get_results($wpdb->prepare($sql));
+		
+		/* print_r($data); */
+		
+		$name = $data[0]->NAME;
+		$code = $data[0]->CODE;
+		$visible = $data[0]->VISIBLE;
+		
+	} else {
+	
+		/* defaults */
+		$name = "";
+		$code = "";
+		$visible = "Y";
+	}
+
+	?>
+	<form id="new-<?php print $type; ?>" method="post">
+		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
+		<input type="hidden" name="tab" value="<?php print $type; ?>" />
+		<table style='width:500px'>
+		<tr>
+			<td><?php print ucfirst($type); ?> Code:  </td>
+			<td><input type="text" name="<?php print $type; ?>_code" value="<?php print $code; ?>" size=16 /></td> <!-- check sizes -->
+		</tr>
+		<tr>
+			<td><?php print ucfirst($type); ?> Name:  </td>
+			<td><input type="text" name="<?php print $type; ?>_name" value="<?php print $name; ?>" size=60 /></td> <!-- check sizes -->
+		</tr>
+		<tr>
+			<td>Visible to Players: </td><td>
+				<select name="<?php print $type; ?>_visible">
+					<option value="N" <?php selected($visible, "N"); ?>>No</option>
+					<option value="Y" <?php selected($visible, "Y"); ?>>Yes</option>
+				</select></td>
+
 		</tr>
 		</table>
 		<input type="submit" name="do_add_<?php print $type; ?>" class="button-primary" value="Save <?php print ucfirst($type); ?>" />
@@ -560,6 +654,35 @@ function ritual_input_validation() {
 		
 		/* WARN if difficulty isn't level + 3 */
 		
+	}
+	
+	/* echo "action: $doaction</p>"; */
+
+	return $doaction;
+}
+
+function book_input_validation() {
+
+	$type = "book";
+
+	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == $type)
+		$doaction = "edit-$type";
+		
+	/* echo "<p>Requested action: " . $_REQUEST['action'] . ", " . $type . "_name: " . $_REQUEST[$type . '_name']; */
+			
+	if (!empty($_REQUEST[$type . '_name'])){
+
+		if ($doaction == "edit-$type")
+			$doaction = "save-edit-$type";
+		else
+			$doaction = "add-$type";
+			
+		/* Input Validation */
+		if (empty($_REQUEST[$type . '_code']) || $_REQUEST[$type . '_code'] == "") {
+			$doaction = "fix-$type";
+			echo "<p style='color:red'>ERROR: Book code is missing</p>";
+		}
+				
 	}
 	
 	/* echo "action: $doaction</p>"; */

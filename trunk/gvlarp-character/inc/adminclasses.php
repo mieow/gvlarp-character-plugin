@@ -844,5 +844,249 @@ class gvadmin_rituals_table extends GVMultiPage_ListTable {
     }
 
 }
+/* 
+-----------------------------------------------
+SOURCEBOOKS TABLE
+------------------------------------------------ */
+
+
+class gvadmin_books_table extends GVMultiPage_ListTable {
+   
+    function __construct(){
+        global $status, $page;
+                
+        parent::__construct( array(
+            'singular'  => 'book',     
+            'plural'    => 'books',    
+            'ajax'      => false        
+        ) );
+    }
+	
+	function delete_book($selectedID) {
+		global $wpdb;
+		
+		/* Check if book in use in MERITS and FLAWS */
+		$sql = "select merits.NAME
+				from " . GVLARP_TABLE_PREFIX . "MERIT merits, " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books
+				where books.ID = merits.SOURCE_BOOK_ID and merits.SOURCE_BOOK_ID = $selectedID;";
+		$isused = $wpdb->get_results($wpdb->prepare($sql));
+		if ($isused) {
+			echo "<p style='color:red'>Cannot delete as this book is being used in the Merits and Flaws list:";
+			echo "<ul>";
+			foreach ($isused as $item)
+				echo "<li style='color:red'>{$item->NAME}</li>";
+			echo "</ul></p>";
+			return;
+		}
+		
+		/* Check if book in use in RITUALS */
+		$sql = "select rituals.NAME
+				from " . GVLARP_TABLE_PREFIX . "RITUAL rituals, " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books
+				where books.ID = rituals.SOURCE_BOOK_ID and rituals.SOURCE_BOOK_ID = $selectedID;";
+		$isused = $wpdb->get_results($wpdb->prepare($sql));
+		if ($isused) {
+			echo "<p style='color:red'>Cannot delete as this book is being used in the Rituals list:";
+			echo "<ul>";
+			foreach ($isused as $item)
+				echo "<li style='color:red'>{$item->NAME}</li>";
+			echo "</ul></p>";
+			return;
+		}
+
+		/* Check if book in use in COMBO DISCIPLINE */
+		
+		/* Check if book in use in DISCIPLINE */
+		
+		/* Check if book in use in MAJIK PATH */
+		
+		/* Check if book in use in ROAD OR PATH */
+		
+		if ($isused) {
+			echo "<p style='color:red'>Cannot delete as this book is being used in the following places:";
+			echo "<ul>";
+			foreach ($isused as $character)
+				echo "<li style='color:red'></li>";
+			echo "</ul></p>";
+		} else {
+		
+			$sql = "delete from " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK where ID = $selectedID;";
+			
+			$result = $wpdb->get_results($wpdb->prepare($sql));
+		
+			/* print_r($result); */
+			echo "<p style='color:green'>Deleted book $selectedID</p>";
+		}
+	}
+	
+ 	function add_book($bookname, $bookcode, $visible) {
+		global $wpdb;
+		
+		$wpdb->show_errors();
+		
+		$dataarray = array(
+						'NAME' => $bookname,
+						'CODE' => $bookcode,
+						'VISIBLE' => $visible
+					);
+		
+		/* print_r($dataarray); */
+		
+		$wpdb->insert(GVLARP_TABLE_PREFIX . "SOURCE_BOOK",
+					$dataarray,
+					array (
+						'%s',
+						'%s',
+						'%s'
+					)
+				);
+		
+		if ($wpdb->insert_id == 0) {
+			echo "<p style='color:red'><b>Error:</b> $bookname could not be inserted (";
+			$wpdb->print_error();
+			echo ")</p>";
+		} else {
+			echo "<p style='color:green'>Added book '$bookname' (ID: {$wpdb->insert_id})</p>";
+		}
+	}
+ 	function edit_book($bookid, $bookname, $bookcode, $visible) {
+		global $wpdb;
+		
+		$wpdb->show_errors();
+		
+		$dataarray = array(
+						'NAME' => $bookname,
+						'CODE' => $bookcode,
+						'VISIBLE' => $visible
+					);
+		
+		/* print_r($dataarray); */
+		
+		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "SOURCE_BOOK",
+					$dataarray,
+					array (
+						'ID' => $bookid
+					)
+				);
+		
+		if ($result) 
+			echo "<p style='color:green'>Updated $bookname</p>";
+		else if ($result === 0) 
+			echo "<p style='color:orange'>No updates made to $bookname</p>";
+		else {
+			$wpdb->print_error();
+			echo "<p style='color:red'>Could not update $bookname ($bookid)</p>";
+		}
+	}
+   
+    function column_default($item, $column_name){
+        switch($column_name){
+            case 'CODE':
+                return $item->$column_name;
+           default:
+                return print_r($item,true); 
+        }
+    }
+ 
+    function column_name($item){
+        
+        $actions = array(
+            'edit'      => sprintf('<a href="?page=%s&action=%s&book=%s&tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
+            'delete'    => sprintf('<a href="?page=%s&action=%s&book=%s&tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
+        );
+        
+        
+        return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
+            $item->NAME,
+            $item->ID,
+            $this->row_actions($actions)
+        );
+    }
+   
+
+    function get_columns(){
+        $columns = array(
+            'cb'           => '<input type="checkbox" />', 
+            'NAME'         => 'Name',
+            'CODE'         => 'Book Code',
+            'VISIBLE'      => 'Visible to Players'
+        );
+        return $columns;
+		
+    }
+    
+    function get_sortable_columns() {
+        $sortable_columns = array(
+            'NAME'        => array('NAME',true)
+        );
+        return $sortable_columns;
+    }
+	
+	
+	
+    
+    function get_bulk_actions() {
+        $actions = array(
+            'delete'    => 'Delete'
+       );
+        return $actions;
+    }
+    
+    function process_bulk_action() {
+        		
+        if( 'delete'===$this->current_action() && $_REQUEST['tab'] == $this->type) {
+			if ('string' == gettype($_REQUEST['book'])) {
+				$this->delete_book($_REQUEST['book']);
+			} else {
+				foreach ($_REQUEST['book'] as $book) {
+					$this->delete_book($book);
+				}
+			}
+        }
+     }
+
+        
+    function prepare_items() {
+        global $wpdb; 
+        
+        $columns = $this->get_columns();
+        $hidden = array();
+        $sortable = $this->get_sortable_columns();
+		
+		$type = "book";
+        			
+		$this->_column_headers = array($columns, $hidden, $sortable);
+        
+		$this->type = $type;
+        
+        $this->process_bulk_action();
+		
+		/* Get the data from the database */
+		$sql = "select books.ID, books.NAME, books.CODE, books.VISIBLE
+				from " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books";
+				
+		/* order the data according to sort columns */
+		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']))
+			$sql .= " ORDER BY books.{$_REQUEST['orderby']} {$_REQUEST['order']}";
+		
+		$sql .= ";";
+		
+		/* echo "<p>SQL: $sql</p>"; */
+		
+		$data =$wpdb->get_results($wpdb->prepare($sql));
+        
+        $current_page = $this->get_pagenum();
+        $total_items = count($data);
+
+        
+        $this->items = $data;
+        
+        $this->set_pagination_args( array(
+            'total_items' => $total_items,                  
+            'per_page'    => $total_items,                  
+            'total_pages' => 1
+        ) );
+    }
+
+}
 
 ?>
