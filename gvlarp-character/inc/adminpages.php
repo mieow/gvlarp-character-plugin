@@ -12,18 +12,172 @@ function admin_css() {
 }
 add_action('admin_enqueue_scripts', 'admin_css');
 
+
+function toolbar_link_gvadmin( $wp_admin_bar ) {
+	$args = array(
+		'id'    => 'gvcharacters',
+		'title' => 'Characters',
+		/* 'href'  => admin_url('admin.php?page=gvcharacter-plugin'), */
+		'meta'  => array( 'class' => 'my-toolbar-page' )
+	);
+	$wp_admin_bar->add_node( $args );
+	$args = array(
+		'id'    => 'gvdata',
+		'title' => 'Data Tables',
+		'href'  => admin_url('admin.php?page=gvcharacter-data'),
+		'parent' => 'gvcharacters',
+		'meta'  => array( 'class' => 'my-toolbar-page' )
+	);
+	$wp_admin_bar->add_node( $args );
+	$args = array(
+		'id'    => 'gvconfig',
+		'title' => 'Configuration',
+		'href'  => admin_url('admin.php?page=gvcharacter-config'),
+		'parent' => 'gvcharacters',
+		'meta'  => array( 'class' => 'my-toolbar-page' )
+	);
+	$wp_admin_bar->add_node( $args );
+}
+add_action( 'admin_bar_menu', 'toolbar_link_gvadmin', 999 );
+
 function register_character_menu() {
 	add_menu_page( "Character Plugin Options", "Characters", "manage_options", "gvcharacter-plugin", "character_options");
 	add_submenu_page( "gvcharacter-plugin", "Database Tables", "Data", "manage_options", "gvcharacter-data", "character_datatables" );  
+	add_submenu_page( "gvcharacter-plugin", "Configuration", "Configuration", "manage_options", "gvcharacter-config", "character_config" );  
 }
 
-function character_options() {
+function character_config() {
+	global $wpdb;
+
 	if ( !current_user_can( 'manage_options' ) )  {
 		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 	}
-	echo '<div class="wrap">';
-	echo '<p>Character Administration will eventually go here.</p>';
-	echo '</div>';
+			
+	?>
+	<div class="wrap">
+		<h2>Configuration</h2>
+		<h3>Options</h3>
+		<?php 
+			$inputsfail = 0;
+			if (isset($_REQUEST['save_options']) ) {
+				/* Validate entries */
+				if (!empty($_REQUEST['discount'])) {
+					if ( ($_REQUEST['discount']+0) == 0) {
+						$inputsfail = "Invalid value of discount";
+					}
+				}
+			}
+			if (!$inputsfail) {
+				if (isset($_REQUEST['save_options'])) {
+					$dataarray = array (
+						'PROFILE_LINK' => $_REQUEST['profile'],
+						'PLACEHOLDER_IMAGE' => $_REQUEST['placeholder'],
+						'CLAN_DISCIPLINE_DISCOUNT' => $_REQUEST['discount']
+					);
+					
+					$result = $wpdb->update(GVLARP_TABLE_PREFIX . "CONFIG",
+						$dataarray,
+						array (
+							'ID' => 1
+						)
+					);		
+					
+					if ($result) 
+						echo "<p style='color:green'>Updated configuration options</p>";
+					else if ($result === 0) 
+						echo "<p style='color:orange'>No updates made to options</p>";
+					else {
+						$wpdb->print_error();
+						echo "<p style='color:red'>Could not update options</p>";
+					}
+					
+				}
+				$sql = "select * from " . GVLARP_TABLE_PREFIX . "CONFIG;";
+				$options = $wpdb->get_results($wpdb->prepare($sql));
+			} else {
+				echo "<p style='color:red'>Could not save options: $inputsfail</p>";
+				$options[0]->PROFILE_LINK = $_REQUEST['profile'];
+				$options[0]->PLACEHOLDER_IMAGE = $_REQUEST['placeholder'];
+				$options[0]->CLAN_DISCIPLINE_DISCOUNT = $_REQUEST['discount'];
+			}
+		?>
+
+		<form id='options_form' method='post'>
+			<table>
+			<tr>
+				<td>URL to Character Profile</td>
+				<td><input type="text" name="profile" value="<?php print $options[0]->PROFILE_LINK; ?>" size=60 /></td>
+				<td>Location of profile page with the character summary.</td>
+			</tr><tr>
+				<td>URL to Profile Placeholder image</td>
+				<td><input type="text" name="placeholder" value="<?php print $options[0]->PLACEHOLDER_IMAGE; ?>" size=60 /></td>
+				<td>This image is used in place of a character portait on the profile page.</td>
+			</tr><tr>
+				<td>Discount for Clan Disciplines</td>
+				<td><input type="text" name="discount" value="<?php print $options[0]->CLAN_DISCIPLINE_DISCOUNT; ?>" size=5 /></td>
+				<td>Integer values will be applied to Discipline costs as a flat discount.  A decimal value will
+					be applied to the cost as a ratio.</td>
+			</tr>
+			</table>
+			<input type="submit" name="save_options" class="button-primary" value="Save Options" />
+		</form>
+		
+		<h3>Page Links</h3>
+		<?php 
+			if (isset($_REQUEST['save_st_links'])) {
+				for ($i=0; $i<$_REQUEST['linecount']; $i++) {
+					$dataarray = array (
+						'ORDERING' => $_REQUEST['order' . $i],
+						'LINK' => $_REQUEST['link' . $i]
+					);
+					
+					$result = $wpdb->update(GVLARP_TABLE_PREFIX . "ST_LINK",
+						$dataarray,
+						array (
+							'ID' => $_REQUEST['id' . $i]
+						)
+					);
+					
+					if ($result) 
+						echo "<p style='color:green'>Updated {$_REQUEST['value' . $i]}</p>";
+					else if ($result === 0) 
+						echo "<p style='color:orange'>No updates made to {$_REQUEST['value' . $i]}</p>";
+					else {
+						$wpdb->print_error();
+						echo "<p style='color:red'>Could not update {$_REQUEST['value' . $i]} ({$_REQUEST['id' . $i]})</p>";
+					}
+			
+				}
+			}
+			$sql = "select * from " . GVLARP_TABLE_PREFIX . "ST_LINK;";
+			$stlinks = $wpdb->get_results($wpdb->prepare($sql));
+		?>
+		<form id='ST_Links_form' method='post'>
+			<input type="hidden" name="linecount" value="<?php print count($stlinks); ?>" />
+			<table>
+				<tr><th>List Order</th><th>Name</th><th>Description</th><th>Link</th></tr>
+			<?php
+				$i = 0;
+				foreach ($stlinks as $stlink) {
+					
+					?>
+					<tr>
+						<td><input type="hidden" name="id<?php print $i ?>" value="<?php print $stlink->ID; ?>" size=5 />
+							<input type="text" name="order<?php print $i; ?>" value="<?php print $stlink->ORDERING; ?>" size=5 /></td>
+						<td><input type="hidden" name="value<?php print $i ?>" value="<?php print $stlink->VALUE; ?>" size=5 />
+							<?php print $stlink->VALUE; ?></td>
+						<td><?php print $stlink->DESCRIPTION; ?></td>
+						<td><input type="text" name="link<?php print $i; ?>" value="<?php print $stlink->LINK; ?>" size=60 /></td>
+					</tr>
+					<?php
+					$i++;
+				}
+			?>
+			</table>
+			<input type="submit" name="save_st_links" class="button-primary" value="Save Links" />
+		</form>
+	</div>
+	<?php
 }
 
 function character_datatables() {
