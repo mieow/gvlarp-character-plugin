@@ -46,6 +46,10 @@ function register_character_menu() {
 	add_submenu_page( "gvcharacter-plugin", "Configuration", "Configuration", "manage_options", "gvcharacter-config", "character_config" );  
 }
 
+function character_options() {
+
+}
+
 function character_config() {
 	global $wpdb;
 
