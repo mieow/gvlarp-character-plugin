@@ -130,9 +130,31 @@ function character_config() {
 		<?php 
 			if (isset($_REQUEST['save_st_links'])) {
 				for ($i=0; $i<$_REQUEST['linecount']; $i++) {
+					if ($_REQUEST['selectpage' . $i] == "0")
+						$link = $_REQUEST['link' . $i];
+					else if ($_REQUEST['selectpage' . $i] == "gvnewpage") {
+					
+						/* check if page with name $_REQUEST['value' . $i] exists */
+					
+						$my_page = array(
+							  'post_status'           => 'publish', 
+							  'post_type'             => 'page',
+							  'comment_status'		  => 'closed',
+							  'post_name'			  => $_REQUEST['value' . $i],
+							  'post_title'			  => $_REQUEST['link' . $i]
+						);
+
+						// Insert the post into the database
+						$pageid = wp_insert_post( $my_page );
+						
+						$link = "/" . get_page_uri($pageid);
+					}
+					else
+						$link = $_REQUEST['selectpage' . $i];
+								
 					$dataarray = array (
 						'ORDERING' => $_REQUEST['order' . $i],
-						'LINK' => $_REQUEST['link' . $i]
+						'LINK' => $link
 					);
 					
 					$result = $wpdb->update(GVLARP_TABLE_PREFIX . "ST_LINK",
@@ -155,22 +177,62 @@ function character_config() {
 			}
 			$sql = "select * from " . GVLARP_TABLE_PREFIX . "ST_LINK;";
 			$stlinks = $wpdb->get_results($wpdb->prepare($sql));
+			
+			$args = array(
+				'sort_order' => 'ASC',
+				'sort_column' => 'post_title',
+				'hierarchical' => 0,
+				'exclude' => '',
+				'include' => '',
+				'meta_key' => '',
+				'meta_value' => '',
+				'authors' => '',
+				'child_of' => 0,
+				'parent' => -1,
+				'exclude_tree' => '',
+				'number' => '',
+				'offset' => 0,
+				'post_type' => 'page',
+				'post_status' => 'publish'
+			); 
+			$pages = get_pages($args);
 		?>
+		
 		<form id='ST_Links_form' method='post'>
 			<input type="hidden" name="linecount" value="<?php print count($stlinks); ?>" />
 			<table>
-				<tr><th>List Order</th><th>Name</th><th>Description</th><th>Link</th></tr>
+				<tr><th>List Order</th><th>Name</th><th>Description</th><th>Select Page</th><th>Specify Link or New Page name</th></tr>
 			<?php
 				$i = 0;
 				foreach ($stlinks as $stlink) {
 					
 					?>
 					<tr>
-						<td><input type="hidden" name="id<?php print $i ?>" value="<?php print $stlink->ID; ?>" size=5 />
+						<td><input type="hidden" name="id<?php print $i ?>" value="<?php print $stlink->ID; ?>" />
 							<input type="text" name="order<?php print $i; ?>" value="<?php print $stlink->ORDERING; ?>" size=5 /></td>
-						<td><input type="hidden" name="value<?php print $i ?>" value="<?php print $stlink->VALUE; ?>" size=5 />
+						<td><input type="hidden" name="value<?php print $i ?>" value="<?php print $stlink->VALUE; ?>" />
 							<?php print $stlink->VALUE; ?></td>
-						<td><?php print $stlink->DESCRIPTION; ?></td>
+						<td><input type="hidden" name="desc<?php print $i ?>" value="<?php print $stlink->DESCRIPTION; ?>" />
+							<?php print $stlink->DESCRIPTION; ?></td>
+						<td>
+							<select name="selectpage<?php print $i; ?>">
+							<?php
+								$match = 0;
+								foreach ( $pages as $page ) {
+									if ('/' . get_page_uri( $page->ID ) == $stlink->LINK)
+										$match = 1;
+									echo "<option value='/" . get_page_uri( $page->ID ) . "' ";
+									selected('/' . get_page_uri( $page->ID ), $stlink->LINK);
+									echo ">{$page->post_title}</option>";
+								}								
+								echo "<option value='0' ";
+								if (!$match)
+									echo "selected";
+								echo ">[Specify Link]</option>";
+								echo "<option value='gvnewpage'>[New Page]</option>";
+							?>
+							</select>
+						</td>
 						<td><input type="text" name="link<?php print $i; ?>" value="<?php print $stlink->LINK; ?>" size=60 /></td>
 					</tr>
 					<?php
