@@ -104,9 +104,96 @@
                               Change COST_MODEL_STEPS for spends above 5
          */
 define( 'GVLARP_CHARACTER_URL', plugin_dir_path(__FILE__) );define( 'GVLARP_TABLE_PREFIX', $wpdb->prefix . "GVLARP_" );
-require GVLARP_CHARACTER_URL . 'inc/adminpages.php';
-require GVLARP_CHARACTER_URL . 'inc/install.php';
-require GVLARP_CHARACTER_URL . 'inc/extendedbackground.php';
+require_once GVLARP_CHARACTER_URL . 'inc/adminpages.php';
+require_once GVLARP_CHARACTER_URL . 'inc/install.php';
+require_once GVLARP_CHARACTER_URL . 'inc/extendedbackground.php';
+require_once GVLARP_CHARACTER_URL . 'inc/printable.php';
+
+function register_plugin_styles() {
+	wp_register_style( 'my-plugin', plugins_url( 'my-plugin/css/plugin.css' ) );
+	wp_enqueue_style( 'my-plugin' );
+}
+function plugin_style()  
+{ 
+  wp_register_style( 'plugin-style', plugins_url( 'gvlarp-character/css/style-plugin.css' ) );
+  wp_enqueue_style( 'plugin-style' );
+}
+add_action('wp_enqueue_scripts', 'plugin_style');
+
+function get_booknames() {
+
+	global $wpdb;
+
+	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK;";
+	$booklist = $wpdb->get_results($wpdb->prepare($sql));
+	
+	return $booklist;
+}
+function get_disciplines() {
+
+	global $wpdb;
+
+	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "DISCIPLINE;";
+	$list = $wpdb->get_results($wpdb->prepare($sql));
+	
+	return $list;
+}
+function get_costmodels() {
+
+	global $wpdb;
+
+	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "COST_MODEL;";
+	$list = $wpdb->get_results($wpdb->prepare($sql));
+	
+	return $list;
+}
+function get_sectors() {
+
+	global $wpdb;
+
+	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "SECTOR;";
+	$list = $wpdb->get_results($wpdb->prepare($sql));
+	
+	return $list;
+}
+function get_stlink_page($stlinkvalue) {
+	global $wpdb;
+
+	$sql = "select DESCRIPTION, LINK from " . GVLARP_TABLE_PREFIX . "ST_LINK where VALUE = '$stlinkvalue';";
+	$results = $wpdb->get_results($wpdb->prepare($sql));
+	
+	$pageid   = 0;
+	$pagename = "Page not matched";
+	if (count($results) == 1) {
+		$pages = get_pages();
+		foreach ( $pages as $page ) {
+			if ('/' . get_page_uri( $page->ID ) == $results[0]->LINK) {
+				$pageid = $page->ID;
+				$pagename = $page->post_title;
+			}
+		}		
+	}
+	
+	return $pagename;
+
+}
+function get_stlink_url($stlinkvalue) {
+	global $wpdb;
+
+	$sql = "select DESCRIPTION, LINK from " . GVLARP_TABLE_PREFIX . "ST_LINK where VALUE = '$stlinkvalue';";
+	$results = $wpdb->get_results($wpdb->prepare($sql));
+	
+	$url = "Page not matched";
+	if (count($results) == 1) {
+		$url = $results[0]->LINK;
+	}
+	
+	return $url;
+
+}
+
+
+
     function print_character_stats($atts, $content=null) {
         extract(shortcode_atts(array ("character" => "null", "group" => ""), $atts));
         $character = establishCharacter($character);
