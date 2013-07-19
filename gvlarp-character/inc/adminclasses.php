@@ -108,8 +108,8 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
             'ajax'      => false        
         ) );
 		
-		add_action('delete_merit', array($this, 'delete_merit'), 10, 1);
-		/* add_action('showhide_merit', array($this, 'gvlarp_showhide_merit'), 10, 2); */
+		/* add_action('delete_merit', array($this, 'delete_merit'), 10, 1);
+		add_action('showhide_merit', array($this, 'gvlarp_showhide_merit'), 10, 2); */
 		/* add_action('edit_merit', array($this, 'gvlarp_edit_merit'), 10, 1); */
         
     }
@@ -167,7 +167,7 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 	}
 	
  	function add_merit($meritname, $meritgroup, $sourcebookid, $pagenum,
-						$cost, $xp_cost, $multiple, $visible, $description) {
+						$cost, $xp_cost, $multiple, $visible, $description, $question) {
 		global $wpdb;
 		
 		$wpdb->show_errors();
@@ -182,7 +182,8 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 						'VALUE' => $cost,
 						'XP_COST' => $xp_cost,
 						'MULTIPLE' => $multiple,
-						'VISIBLE' => $visible
+						'VISIBLE' => $visible,
+						'BACKGROUND_QUESTION' => $question
 					);
 		
 		/* print_r($dataarray); */
@@ -199,6 +200,7 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 						'%d',
 						'%d',
 						'%s',
+						'%s',
 						'%s'
 					)
 				);
@@ -212,7 +214,7 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 		}
 	}
  	function edit_merit($meritid, $meritname, $meritgroup, $sourcebookid, $pagenum,
-						$cost, $xp_cost, $multiple, $visible, $description) {
+						$cost, $xp_cost, $multiple, $visible, $description, $question) {
 		global $wpdb;
 		
 		$wpdb->show_errors();
@@ -227,7 +229,8 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 						'VALUE' => $cost,
 						'XP_COST' => $xp_cost,
 						'MULTIPLE' => $multiple,
-						'VISIBLE' => $visible
+						'VISIBLE' => $visible,
+						'BACKGROUND_QUESTION' => $question
 					);
 		
 		/* print_r($dataarray); */
@@ -289,6 +292,14 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 	function column_multiple($item){
 		return ($item->MULTIPLE == "Y") ? "Yes" : "No";
     }
+	
+	function column_has_bg_q($item) {
+		if ($item->BACKGROUND_QUESTION == "")
+			return "No";
+		else
+			return "Yes";
+			
+	}
    
 
     function get_columns(){
@@ -302,7 +313,8 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
             'MULTIPLE'     => 'Can be bought multiple times?',
             'SOURCEBOOK'   => 'Source Book',
             'PAGE_NUMBER'  => 'Source Page',
-            'VISIBLE'      => 'Visible to Players'
+            'VISIBLE'      => 'Visible to Players',
+            'HAS_BG_Q'     => 'Extended Background'
         );
         return $columns;
 		
@@ -455,7 +467,7 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 		$sql = "select merit.ID, merit.NAME as NAME, merit.DESCRIPTION as DESCRIPTION, merit.GROUPING as GROUPING,
 						merit.COST as COST, merit.XP_COST as XP_COST, merit.MULTIPLE as MULTIPLE,
 						books.NAME as SOURCEBOOK, merit.PAGE_NUMBER as 	PAGE_NUMBER,
-						merit.VISIBLE as VISIBLE
+						merit.VISIBLE as VISIBLE, merit.BACKGROUND_QUESTION
 						from " . GVLARP_TABLE_PREFIX. "MERIT merit, " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books where ";
 		if ($type == "merit") {
 			$sql .= "merit.value >= 0";
@@ -1088,5 +1100,1085 @@ class gvadmin_books_table extends GVMultiPage_ListTable {
     }
 
 }
+
+
+/* 
+-----------------------------------------------
+BACKGROUNDS TABLE
+------------------------------------------------ */
+
+
+class gvadmin_backgrounds_table extends GVMultiPage_ListTable {
+   
+    function __construct(){
+        global $status, $page;
+                
+        parent::__construct( array(
+            'singular'  => 'background',     
+            'plural'    => 'backgrounds',    
+            'ajax'      => false        
+        ) );
+    }
+	
+	function delete_background($selectedID) {
+		global $wpdb;
+		
+		/* Check if background in use */
+		$sql = "select characters.NAME
+				from " . GVLARP_TABLE_PREFIX . "CHARACTER_BACKGROUND charbgs, 
+					" . GVLARP_TABLE_PREFIX . "BACKGROUND backgrounds,
+					" . GVLARP_TABLE_PREFIX . "CHARACTER characters
+				where charbgs.BACKGROUND_ID = backgrounds.ID 
+					and characters.ID = charbgs.CHARACTER_ID
+					and backgrounds.ID = $selectedID;";
+		$isused = $wpdb->get_results($wpdb->prepare($sql));
+		if ($isused) {
+			echo "<p style='color:red'>Cannot delete as this background is in use for the following characters:";
+			echo "<ul>";
+			foreach ($isused as $item)
+				echo "<li style='color:red'>{$item->NAME}</li>";
+			echo "</ul></p>";
+			return;
+			
+		} else {
+		
+			$sql = "delete from " . GVLARP_TABLE_PREFIX . "BACKGROUND where ID = $selectedID;";
+			
+			$result = $wpdb->get_results($wpdb->prepare($sql));
+		
+			/* print_r($result); */
+			echo "<p style='color:green'>Deleted background $selectedID</p>";
+		}
+	}
+	
+ 	function add_background($name, $description, $group, $costmodel_id, $visible, $has_sector, $question) {
+		global $wpdb;
+		
+		$wpdb->show_errors();
+		
+		$dataarray = array(
+						'NAME'          => $name,
+						'DESCRIPTION'   => $description,
+						'GROUPING'      => $group,
+						'COST_MODEL_ID' => $costmodel_id,
+						'VISIBLE'       => $visible,
+						'HAS_SECTOR'          => $has_sector,
+						'BACKGROUND_QUESTION' => $question
+					);
+		
+		/* print_r($dataarray); */
+		
+		$wpdb->insert(GVLARP_TABLE_PREFIX . "BACKGROUND",
+					$dataarray,
+					array (
+						'%s',
+						'%s',
+						'%s',
+						'%d',
+						'%s',
+						'%s',
+						'%s'
+					)
+				);
+		
+		if ($wpdb->insert_id == 0) {
+			echo "<p style='color:red'><b>Error:</b> $name could not be inserted (";
+			$wpdb->print_error();
+			echo ")</p>";
+		} else {
+			echo "<p style='color:green'>Added background '$name' (ID: {$wpdb->insert_id})</p>";
+		}
+	}
+ 	function edit_background($id, $name, $description, $group, $costmodel_id, $visible, $has_sector, $question) {
+		global $wpdb;
+		
+		$wpdb->show_errors();
+		
+		$dataarray = array(
+						'NAME'          => $name,
+						'DESCRIPTION'   => $description,
+						'GROUPING'      => $group,
+						'COST_MODEL_ID' => $costmodel_id,
+						'VISIBLE'       => $visible,
+						'HAS_SECTOR'          => $has_sector,
+						'BACKGROUND_QUESTION' => $question
+					);
+		
+		/* print_r($dataarray); */
+		
+		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "BACKGROUND",
+					$dataarray,
+					array (
+						'ID' => $id
+					)
+				);
+		
+		if ($result) 
+			echo "<p style='color:green'>Updated $name</p>";
+		else if ($result === 0) 
+			echo "<p style='color:orange'>No updates made to $name</p>";
+		else {
+			$wpdb->print_error();
+			echo "<p style='color:red'>Could not update $name ($id)</p>";
+		}
+	}
+   
+    function column_default($item, $column_name){
+        switch($column_name){
+            case 'DESCRIPTION':
+                return $item->$column_name;
+            case 'GROUPING':
+                return $item->$column_name;
+            case 'VISIBLE':
+                return $item->$column_name;
+            case 'COSTMODEL':
+                return $item->$column_name;
+           default:
+                return print_r($item,true); 
+        }
+    }
+ 
+    function column_name($item){
+        
+        $actions = array(
+            'edit'      => sprintf('<a href="?page=%s&action=%s&background=%s&tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
+            'delete'    => sprintf('<a href="?page=%s&action=%s&background=%s&tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
+        );
+        
+        
+        return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
+            $item->NAME,
+            $item->ID,
+            $this->row_actions($actions)
+        );
+    }
+
+	function column_has_bg_q($item) {
+		if ($item->BACKGROUND_QUESTION == "")
+			return "No";
+		else
+			return "Yes";
+			
+	}
+	function column_has_sector($item) {
+		if ($item->HAS_SECTOR == "Y")
+			return "Yes";
+		else
+			return "No";
+			
+	}
+
+    function get_columns(){
+        $columns = array(
+            'cb'           => '<input type="checkbox" />', 
+            'NAME'         => 'Name',
+            'DESCRIPTION'  => 'Description',
+            'GROUPING'     => 'Background Group',
+            'COSTMODEL'    => 'Cost Model',
+            'HAS_SECTOR'   => 'Has a Sector',
+            'VISIBLE'      => 'Visible to Players',
+            'HAS_BG_Q'     => 'Extended Background'
+        );
+        return $columns;
+		
+    }
+    
+    function get_sortable_columns() {
+        $sortable_columns = array(
+            'NAME'        => array('NAME',true),
+            'VISIBLE'     => array('VISIBLE',false)
+        );
+        return $sortable_columns;
+    }
+	
+	
+	
+    
+    function get_bulk_actions() {
+        $actions = array(
+            'delete'    => 'Delete'
+       );
+        return $actions;
+    }
+    
+    function process_bulk_action() {
+        		
+        if( 'delete'===$this->current_action() && $_REQUEST['tab'] == $this->type) {
+			if ('string' == gettype($_REQUEST['background'])) {
+				$this->delete_background($_REQUEST['background']);
+			} else {
+				foreach ($_REQUEST['background'] as $background) {
+					$this->delete_background($background);
+				}
+			}
+        }
+     }
+
+        
+    function prepare_items() {
+        global $wpdb; 
+        
+        $columns = $this->get_columns();
+        $hidden = array();
+        $sortable = $this->get_sortable_columns();
+		
+		$type = "bgdata";
+        			
+		$this->_column_headers = array($columns, $hidden, $sortable);
+        
+		$this->type = $type;
+        
+        $this->process_bulk_action();
+		
+		/* Get the data from the database */
+		$sql = "select 
+					backgrounds.ID, 
+					backgrounds.NAME, 
+					backgrounds.DESCRIPTION, 
+					backgrounds.GROUPING, 
+					costmodels.NAME as COSTMODEL, 
+					backgrounds.VISIBLE,
+					backgrounds.HAS_SECTOR,
+					backgrounds.BACKGROUND_QUESTION
+			from " . GVLARP_TABLE_PREFIX . "BACKGROUND backgrounds, " . GVLARP_TABLE_PREFIX . "COST_MODEL costmodels
+			where backgrounds.COST_MODEL_ID = costmodels.ID";
+				
+		/* order the data according to sort columns */
+		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']))
+			$sql .= " ORDER BY backgrounds.{$_REQUEST['orderby']} {$_REQUEST['order']}";
+			
+		$sql .= ";";
+		
+		/* echo "<p>SQL: $sql</p>"; */
+		
+		$data =$wpdb->get_results($wpdb->prepare($sql));
+        
+        $current_page = $this->get_pagenum();
+        $total_items = count($data);
+
+        
+        $this->items = $data;
+        
+        $this->set_pagination_args( array(
+            'total_items' => $total_items,                  
+            'per_page'    => $total_items,                  
+            'total_pages' => 1
+        ) );
+    }
+
+}
+
+/* 
+-----------------------------------------------
+SECTORS TABLE
+------------------------------------------------ */
+
+
+class gvadmin_sectors_table extends GVMultiPage_ListTable {
+   
+    function __construct(){
+        global $status, $page;
+                
+        parent::__construct( array(
+            'singular'  => 'sector',     
+            'plural'    => 'sectors',    
+            'ajax'      => false        
+        ) );
+    }
+	
+	function delete_sector($selectedID) {
+		global $wpdb;
+		
+		/* Check if sector in use */
+		$sql = "select characters.NAME
+				from " . GVLARP_TABLE_PREFIX . "CHARACTER_BACKGROUND charbgs, 
+					" . GVLARP_TABLE_PREFIX . "CHARACTER characters,
+					" . GVLARP_TABLE_PREFIX . "SECTOR sectors
+				where charbgs.SECTOR_ID = sectors.ID 
+					and characters.ID = charbgs.CHARACTER_ID
+					and sectors.ID = $selectedID;";
+		$isused = $wpdb->get_results($wpdb->prepare($sql));
+		if ($isused) {
+			echo "<p style='color:red'>Cannot delete as this sector is in use for the following characters:";
+			echo "<ul>";
+			foreach ($isused as $item)
+				echo "<li style='color:red'>{$item->NAME}</li>";
+			echo "</ul></p>";
+			return;
+			
+		} else {
+		
+			$sql = "delete from " . GVLARP_TABLE_PREFIX . "SECTOR where ID = $selectedID;";
+			
+			$result = $wpdb->get_results($wpdb->prepare($sql));
+		
+			/* print_r($result); */
+			echo "<p style='color:green'>Deleted sector $selectedID</p>";
+		}
+	}
+	
+ 	function add_sector($name, $description, $visible) {
+		global $wpdb;
+		
+		$wpdb->show_errors();
+		
+		$dataarray = array(
+						'NAME'          => $name,
+						'DESCRIPTION'   => $description,
+						'VISIBLE'       => $visible
+					);
+		
+		/* print_r($dataarray); */
+		
+		$wpdb->insert(GVLARP_TABLE_PREFIX . "SECTOR",
+					$dataarray,
+					array (
+						'%s',
+						'%s',
+						'%s',
+					)
+				);
+		
+		if ($wpdb->insert_id == 0) {
+			echo "<p style='color:red'><b>Error:</b> $name could not be inserted (";
+			$wpdb->print_error();
+			echo ")</p>";
+		} else {
+			echo "<p style='color:green'>Added sector '$name' (ID: {$wpdb->insert_id})</p>";
+		}
+	}
+ 	function edit_sector($id, $name, $description, $visible) {
+		global $wpdb;
+		
+		$wpdb->show_errors();
+		
+		$dataarray = array(
+						'NAME'          => $name,
+						'DESCRIPTION'   => $description,
+						'VISIBLE'       => $visible
+					);
+		
+		/* print_r($dataarray); */
+		
+		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "SECTOR",
+					$dataarray,
+					array (
+						'ID' => $id
+					)
+				);
+		
+		if ($result) 
+			echo "<p style='color:green'>Updated $name</p>";
+		else if ($result === 0) 
+			echo "<p style='color:orange'>No updates made to $name</p>";
+		else {
+			$wpdb->print_error();
+			echo "<p style='color:red'>Could not update $name ($id)</p>";
+		}
+	}
+   
+    function column_default($item, $column_name){
+        switch($column_name){
+            case 'DESCRIPTION':
+                return $item->$column_name;
+            case 'VISIBLE':
+                return $item->$column_name;
+           default:
+                return print_r($item,true); 
+        }
+    }
+ 
+    function column_name($item){
+        
+        $actions = array(
+            'edit'      => sprintf('<a href="?page=%s&action=%s&sector=%s&tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
+            'delete'    => sprintf('<a href="?page=%s&action=%s&sector=%s&tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
+        );
+        
+        
+        return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
+            $item->NAME,
+            $item->ID,
+            $this->row_actions($actions)
+        );
+    }
+   
+
+    function get_columns(){
+        $columns = array(
+            'cb'           => '<input type="checkbox" />', 
+            'NAME'         => 'Name',
+            'DESCRIPTION'  => 'Description',
+            'VISIBLE'      => 'Visible to Players'
+        );
+        return $columns;
+		
+    }
+    
+    function get_sortable_columns() {
+        $sortable_columns = array(
+            'NAME'        => array('NAME',true),
+            'VISIBLE'     => array('VISIBLE',false)
+        );
+        return $sortable_columns;
+    }
+	
+	
+	
+    
+    function get_bulk_actions() {
+        $actions = array(
+            'delete'    => 'Delete'
+       );
+        return $actions;
+    }
+    
+    function process_bulk_action() {
+        		
+        if( 'delete'===$this->current_action() && $_REQUEST['tab'] == $this->type) {
+			if ('string' == gettype($_REQUEST['sector'])) {
+				$this->delete_sector($_REQUEST['sector']);
+			} else {
+				foreach ($_REQUEST['sector'] as $sector) {
+					$this->delete_sector($sector);
+				}
+			}
+        }
+     }
+
+        
+    function prepare_items() {
+        global $wpdb; 
+        
+        $columns = $this->get_columns();
+        $hidden = array();
+        $sortable = $this->get_sortable_columns();
+		
+		$type = "sector";
+        			
+		$this->_column_headers = array($columns, $hidden, $sortable);
+        
+		$this->type = $type;
+        
+        $this->process_bulk_action();
+		
+		/* Get the data from the database */
+		$sql = "select sectors.ID, sectors.NAME, sectors.DESCRIPTION, sectors.VISIBLE
+			from " . GVLARP_TABLE_PREFIX . "SECTOR sectors;";
+				
+		/* order the data according to sort columns */
+		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']))
+			$sql .= " ORDER BY sectors.{$_REQUEST['orderby']} {$_REQUEST['order']}";
+			
+		$sql .= ";";
+		
+		/* echo "<p>SQL: $sql</p>"; */
+		
+		$data =$wpdb->get_results($wpdb->prepare($sql));
+        
+        $current_page = $this->get_pagenum();
+        $total_items = count($data);
+        
+        $this->items = $data;
+        
+        $this->set_pagination_args( array(
+            'total_items' => $total_items,                  
+            'per_page'    => $total_items,                  
+            'total_pages' => 1
+        ) );
+    }
+
+}
+/* 
+-----------------------------------------------
+EXTENDED BACKGROUNDS QUESTIONS TABLE
+------------------------------------------------ */
+
+
+class gvadmin_questions_table extends GVMultiPage_ListTable {
+   
+    function __construct(){
+        global $status, $page;
+                
+        parent::__construct( array(
+            'singular'  => 'question',     
+            'plural'    => 'questions',    
+            'ajax'      => false        
+        ) );
+    }
+	
+	function delete_question($selectedID) {
+		global $wpdb;
+		
+		/* Check if question in use */
+		$sql = "select characters.NAME
+				from " . GVLARP_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND charbgs, 
+					" . GVLARP_TABLE_PREFIX . "CHARACTER characters,
+					" . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND questions
+				where charbgs.QUESTION_ID = questions.ID 
+					and characters.ID = charbgs.CHARACTER_ID
+					and questions.ID = $selectedID;";
+		$isused = $wpdb->get_results($wpdb->prepare($sql));
+		if ($isused) {
+			echo "<p style='color:red'>Cannot delete as this question has been filled in for the following characters:";
+			echo "<ul>";
+			foreach ($isused as $item)
+				echo "<li style='color:red'>{$item->NAME}</li>";
+			echo "</ul></p>";
+			return;
+			
+		} else {
+		
+			$sql = "delete from " . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND where ID = $selectedID;";
+			
+			$result = $wpdb->get_results($wpdb->prepare($sql));
+		
+			echo "<p style='color:green'>Deleted question $selectedID</p>";
+		}
+	}
+	
+ 	function add_question($title, $ordering, $grouping, $question) {
+		global $wpdb;
+		
+		$wpdb->show_errors();
+		
+		$dataarray = array(
+						'TITLE'          => $title,
+						'ORDERING'       => $ordering,
+						'GROUPING'       => $grouping,
+						'BACKGROUND_QUESTION' => $question
+					);
+		
+		/* print_r($dataarray); */
+		
+		$wpdb->insert(GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND",
+					$dataarray,
+					array (
+						'%s',
+						'%d',
+						'%s',
+						'%s'
+					)
+				);
+		
+		if ($wpdb->insert_id == 0) {
+			echo "<p style='color:red'><b>Error:</b> $title could not be inserted (";
+			$wpdb->print_error();
+			echo ")</p>";
+		} else {
+			echo "<p style='color:green'>Added question '$title' (ID: {$wpdb->insert_id})</p>";
+		}
+	}
+ 	function edit_question($id, $title, $ordering, $grouping, $question) {
+		global $wpdb;
+		
+		$wpdb->show_errors();
+		
+		$dataarray = array(
+						'TITLE'          => $title,
+						'ORDERING'       => $ordering,
+						'GROUPING'       => $grouping,
+						'BACKGROUND_QUESTION' => $question
+					);
+		
+		/* print_r($dataarray); */
+		
+		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND",
+					$dataarray,
+					array (
+						'ID' => $id
+					)
+				);
+		
+		if ($result) 
+			echo "<p style='color:green'>Updated $title</p>";
+		else if ($result === 0) 
+			echo "<p style='color:orange'>No updates made to $title</p>";
+		else {
+			$wpdb->print_error();
+			echo "<p style='color:red'>Could not update $title ($id)</p>";
+		}
+	}
+   
+    function column_default($item, $column_name){
+        switch($column_name){
+            case 'ORDERING':
+                return $item->$column_name;
+            case 'GROUPING':
+                return $item->$column_name;
+            case 'BACKGROUND_QUESTION':
+                return $item->$column_name;
+            default:
+                return print_r($item,true); 
+        }
+    }
+ 
+    function column_title($item){
+        
+        $actions = array(
+            'edit'      => sprintf('<a href="?page=%s&action=%s&question=%s&tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
+            'delete'    => sprintf('<a href="?page=%s&action=%s&question=%s&tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
+        );
+        
+        
+        return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
+            $item->TITLE,
+            $item->ID,
+            $this->row_actions($actions)
+        );
+    }
+   
+
+    function get_columns(){
+        $columns = array(
+            'cb'            => '<input type="checkbox" />', 
+            'TITLE'         => 'Title',
+            'ORDERING'      => 'Order',
+            'GROUPING'      => 'Group',
+            'BACKGROUND_QUESTION'  => 'Question'
+        );
+        return $columns;
+		
+    }
+    
+    function get_sortable_columns() {
+        $sortable_columns = array(
+            'TITLE'        => array('NAME',true),
+            'GROUPING'     => array('GROUPING',false),
+            'ORDERING'     => array('ORDERING',false)
+        );
+        return $sortable_columns;
+    }
+	
+	
+	
+    
+    function get_bulk_actions() {
+        $actions = array(
+            'delete'    => 'Delete'
+       );
+        return $actions;
+    }
+    
+    function process_bulk_action() {       		
+        if( 'delete'===$this->current_action() && $_REQUEST['tab'] == $this->type) {
+			if ('string' == gettype($_REQUEST['question'])) {
+				$this->delete_question($_REQUEST['question']);
+			} else {
+				foreach ($_REQUEST['question'] as $question) {
+					$this->delete_question($question);
+				}
+			}
+        }
+     }
+
+        
+    function prepare_items() {
+        global $wpdb; 
+        
+        $columns = $this->get_columns();
+        $hidden = array();
+        $sortable = $this->get_sortable_columns();
+		
+		$type = "question";
+        			
+		$this->_column_headers = array($columns, $hidden, $sortable);
+        
+		$this->type = $type;
+        
+        $this->process_bulk_action();
+		
+		/* Get the data from the database */
+		$sql = "select questions.ID, questions.TITLE, questions.ORDERING, questions.GROUPING, questions.BACKGROUND_QUESTION
+			from " . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND questions;";
+				
+		/* order the data according to sort columns */
+		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']))
+			$sql .= " ORDER BY questions.{$_REQUEST['orderby']} {$_REQUEST['order']}";
+			
+		$sql .= ";";
+		
+		/* echo "<p>SQL: $sql</p>"; */
+		
+		$data =$wpdb->get_results($wpdb->prepare($sql));
+        
+        $current_page = $this->get_pagenum();
+        $total_items = count($data);
+        
+        $this->items = $data;
+        
+        $this->set_pagination_args( array(
+            'total_items' => $total_items,                  
+            'per_page'    => $total_items,                  
+            'total_pages' => 1
+        ) );
+    }
+
+}
+
+/* 
+-----------------------------------------------
+EXTENDED BACKGROUNDS APPROVAL
+------------------------------------------------ */
+
+
+class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
+   
+    function __construct(){
+        global $status, $page;
+                
+        parent::__construct( array(
+            'singular'  => 'extbackground',     
+            'plural'    => 'extbackgrounds',    
+            'ajax'      => false        
+        ) );
+    }
+	
+	function approve($tableid) {
+		global $wpdb;
+		$table = $this->items[$tableid]['TABLE'];
+		
+		$data = array(
+			'PENDING_DETAIL'  => '',
+			'APPROVED_DETAIL' => $this->items[$tableid]['TABLE.DETAIL']
+		);
+		$result = $wpdb->update(GVLARP_TABLE_PREFIX . $table,
+			$data,
+			array ('ID' => $this->items[$tableid]['TABLE.ID'])
+		);
+		
+		if ($result) echo "<p style='color:green'>Approved extended background</p>";
+		else echo "<p style='color:red'>Could not approve extended background</p>";
+		
+		/*
+		switch($table){
+			case 'CHARACTER_BACKGROUND':
+				$data = array(
+					'PENDING_DETAIL'  => '',
+					'APPROVED_DETAIL' => $this->items[$tableid]['TABLE.DETAIL']
+				);
+				$result = $wpdb->update(GVLARP_TABLE_PREFIX . "CHARACTER_BACKGROUND",
+					$data,
+					array ('ID' => $this->items[$tableid]['TABLE.ID'])
+				);
+				
+				if ($result) echo "<p style='color:green'>Approved background</p>";
+				else echo "<p style='color:red'>Could not approve background</p>";
+				break;
+			case 'CHARACTER_MERIT':
+				$data = array(
+					'PENDING_DETAIL'  => '',
+					'APPROVED_DETAIL' => $this->items[$tableid]['TABLE.DETAIL']
+				);
+				$result = $wpdb->update(GVLARP_TABLE_PREFIX . "CHARACTER_MERIT",
+					$data,
+					array ('ID' => $this->items[$tableid]['TABLE.ID'])
+				);
+				
+				if ($result) echo "<p style='color:green'>Approved Merit/Flaw</p>";
+				else echo "<p style='color:red'>Could not approve Merit/Flaw</p>";
+				break;
+			default:
+				break;
+		} */
+		
+	}
+	
+ 	function deny($tableid, $deny_message = 'Denied - see storytellers for more information') {
+		global $wpdb;
+		$table = $this->items[$tableid]['TABLE'];
+		
+		$data = array('DENIED_DETAIL'  => $deny_message);
+		$result = $wpdb->update(GVLARP_TABLE_PREFIX . $table,
+			$data,
+			array ('ID' => $this->items[$tableid]['TABLE.ID'])
+		);
+		
+		if ($result) echo "<p style='color:green'>Denied extended background</p>";
+		else echo "<p style='color:red'>Could not deny extended background</p>";
+		
+		/* switch($table){
+			case 'CHARACTER_BACKGROUND':
+				$data = array('DENIED_DETAIL'  => $deny_message);
+				$result = $wpdb->update(GVLARP_TABLE_PREFIX . "CHARACTER_BACKGROUND",
+					$data,
+					array ('ID' => $this->items[$tableid]['TABLE.ID'])
+				);
+				
+				if ($result) echo "<p style='color:green'>Denied background</p>";
+				else echo "<p style='color:red'>Could not deny background</p>";
+				break;
+			case 'CHARACTER_MERIT':
+				$data = array('DENIED_DETAIL'  => $deny_message);
+				$result = $wpdb->update(GVLARP_TABLE_PREFIX . "CHARACTER_MERIT",
+					$data,
+					array ('ID' => $this->items[$tableid]['TABLE.ID'])
+				);
+				
+				if ($result) echo "<p style='color:green'>Denied Merit/Flaw</p>";
+				else echo "<p style='color:red'>Could not deny Merit/Flaw</p>";
+				break;
+			case 'CHARACTER_EXTENDED_BACKGROUND':
+				$data = array('DENIED_DETAIL'  => $deny_message);
+				$result = $wpdb->update(GVLARP_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND",
+					$data,
+					array ('ID' => $this->items[$tableid]['TABLE.ID'])
+				);
+				
+				if ($result) echo "<p style='color:green'>Expanded Background Update denied</p>";
+				else echo "<p style='color:red'>Could not deny Expanded Background</p>";
+				break;
+			default:
+				break;
+		} */
+		
+	}
+  
+    function column_default($item, $column_name){
+        switch($column_name){
+            case 'DESCRIPTION':
+                return $item[$column_name];
+            case 'TABLE':
+                return $item[$column_name];
+            case 'TABLE.ID':
+                return $item[$column_name];
+            case 'TABLE.DETAIL':
+                return $item[$column_name];
+           default:
+                return print_r($item,true); 
+        }
+    }
+ 
+    function column_name($item){
+        
+        $actions = array(
+            'approveit' => sprintf('<a href="?page=%s&action=%s&extbackground=%s&tab=%s">Approve</a>',$_REQUEST['page'],'approveit',$item['ID'], $this->type),
+            'denyit'    => sprintf('<a href="?page=%s&action=%s&extbackground=%s&tab=%s">Deny</a>',$_REQUEST['page'],'denyit',$item['ID'], $this->type),
+        );
+        
+        
+        return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
+            $item[NAME],
+            $item[ID],
+            $this->row_actions($actions)
+        );
+    }
+   
+    function column_cb($item){
+        return sprintf(
+            '<input type="checkbox" name="%1$s[]" value="%2$s" />',
+            $this->_args['singular'],  
+            $item[ID]
+        );
+    }
+
+    function get_columns(){
+        $columns = array(
+            'cb'           => '<input type="checkbox" />', 
+            'NAME'         => 'Name',
+            'DESCRIPTION'  => 'Description',
+            'TABLE'        => 'Table Name',
+            'TABLE.ID'     => 'ID of item in table',
+			'TABLE.DETAIL' => 'Data for table'
+        );
+        return $columns;
+		
+    }
+    
+    function get_sortable_columns() {
+        $sortable_columns = array(
+            'NAME'        => array('NAME',true)
+        );
+        return $sortable_columns;
+    }
+	
+	
+	
+    
+    function get_bulk_actions() {
+        $actions = array(
+            'approveit' => 'Approve',
+            'denyit'    => 'Deny'
+       );
+        return $actions;
+    }
+    
+    function process_bulk_action() {
+        		
+		if( 'approveit'===$this->current_action() && $_REQUEST['tab'] == $this->type) {
+
+			if ('string' == gettype($_REQUEST['extbackground'])) {
+				$this->approve($_REQUEST['extbackground']);
+			} else {
+				foreach ($_REQUEST['extbackground'] as $extbackground) {
+					$this->approve($extbackground);
+				}
+			}
+        }
+        if( 'denyit'===$this->current_action() && $_REQUEST['tab'] == $this->type) {
+			if ('string' == gettype($_REQUEST['extbackground'])) {
+				/* $this->deny($_REQUEST['extbackground']); */
+			} else {
+				foreach ($_REQUEST['extbackground'] as $extbackground) {
+					$this->deny($extbackground);
+				}
+			}
+        }
+     }
+
+	function read_data() {
+		global $wpdb;
+		
+		$data = array();
+	
+		/* Get the data from the database - backgrounds */
+		$sql = "select characters.ID charID, charbgs.ID chargbID, characters.NAME charname, 
+					backgrounds.NAME background, charbgs.LEVEL, 
+					sectors.NAME sector, charbgs.PENDING_DETAIL, charbgs.DENIED_DETAIL,
+					backgrounds.HAS_SECTOR, charbgs.COMMENT
+				from	" . GVLARP_TABLE_PREFIX . "BACKGROUND backgrounds,
+						" . GVLARP_TABLE_PREFIX . "CHARACTER characters,
+						" . GVLARP_TABLE_PREFIX . "CHARACTER_BACKGROUND charbgs
+				left join
+						" . GVLARP_TABLE_PREFIX . "SECTOR sectors
+				on
+					charbgs.SECTOR_ID = sectors.ID
+				where	backgrounds.ID = charbgs.BACKGROUND_ID
+					and characters.ID = charbgs.CHARACTER_ID
+					and charbgs.PENDING_DETAIL != ''
+					and charbgs.DENIED_DETAIL = ''
+					and	(backgrounds.BACKGROUND_QUESTION != '' OR charbgs.SECTOR_ID > 0);";
+				
+		
+		$tempdata =$wpdb->get_results($wpdb->prepare($sql));
+		$row = 0;
+		foreach ($tempdata as $tablerow) {
+			$description = "<strong>{$tablerow->background} {$tablerow->LEVEL}";
+			$description .= ($tablerow->sector) ? " ({$tablerow->sector})" : "";
+			$description .= ($tablerow->COMMENT) ? " ({$tablerow->COMMENT})" : "";
+			$description .= "</strong><br /><span>{$tablerow->PENDING_DETAIL}</span>";
+			
+			$data[$row] = array (
+				'ID'          => $row,
+				'NAME'        => $tablerow->charname,
+				'TABLE.ID'    => $tablerow->chargbID,
+				'TABLE'       => "CHARACTER_BACKGROUND",
+				'TABLE.DETAIL' => $tablerow->PENDING_DETAIL,
+				'DESCRIPTION'  => $description,
+				'COMMENT'      => $tablerow->COMMENT
+			);
+			$row++;
+		}
+
+		/* Get the data from the database - merits and flaws */
+		$sql = "select characters.ID charID, charmerit.ID charmeritID, characters.NAME charname, 
+					merits.NAME merit, charmerit.COMMENT,
+					charmerit.PENDING_DETAIL, charmerit.DENIED_DETAIL
+				from	" . GVLARP_TABLE_PREFIX . "MERIT merits,
+						" . GVLARP_TABLE_PREFIX . "CHARACTER characters,
+						" . GVLARP_TABLE_PREFIX . "CHARACTER_MERIT charmerit
+				where	merits.ID = charmerit.MERIT_ID
+					and characters.ID = charmerit.CHARACTER_ID
+					and charmerit.PENDING_DETAIL != ''
+					and charmerit.DENIED_DETAIL = ''
+					and	merits.BACKGROUND_QUESTION != '';";
+				
+		
+		$tempdata =$wpdb->get_results($wpdb->prepare($sql));
+		foreach ($tempdata as $tablerow) {
+			$description = "<strong>{$tablerow->merit}";
+			$description .= ($tablerow->COMMENT) ? " ({$tablerow->COMMENT})" : "";
+			$description .= "</strong><br />
+				<span>{$tablerow->PENDING_DETAIL}</span>";
+			
+			$data[$row] = array (
+				'ID'          => $row,
+				'NAME'        => $tablerow->charname,
+				'TABLE.ID'    => $tablerow->charmeritID,
+				'TABLE'       => "CHARACTER_MERIT",
+				'TABLE.DETAIL' => $tablerow->PENDING_DETAIL,
+				'DESCRIPTION'  => $description,
+				'COMMENT'      => $tablerow->COMMENT
+			);
+			$row++;
+		}
+		
+		/* Get the data from the database - questions */
+		$sql = "select characters.ID charID, answers.ID answerID, characters.NAME charname, 
+					questions.TITLE, questions.GROUPING,
+					answers.PENDING_DETAIL, answers.DENIED_DETAIL
+				from	" . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND questions,
+						" . GVLARP_TABLE_PREFIX . "CHARACTER characters,
+						" . GVLARP_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND answers
+				where	questions.ID = answers.QUESTION_ID
+					and characters.ID = answers.CHARACTER_ID
+					and answers.PENDING_DETAIL != ''
+					and answers.DENIED_DETAIL = '';";
+					
+		$tempdata =$wpdb->get_results($wpdb->prepare($sql));
+		foreach ($tempdata as $tablerow) {
+			$description = "<strong>{$tablerow->TITLE} ({$tablerow->GROUPING})</strong><br />
+				<span>{$tablerow->PENDING_DETAIL}</span>";
+			
+			$data[$row] = array (
+				'ID'          => $row,
+				'NAME'        => $tablerow->charname,
+				'TABLE.ID'    => $tablerow->answerID,
+				'TABLE'       => "CHARACTER_EXTENDED_BACKGROUND",
+				'TABLE.DETAIL' => $tablerow->PENDING_DETAIL,
+				'DESCRIPTION'  => $description,
+				'COMMENT'      => ''
+			);
+			$row++;
+		}
+		
+		
+		return $data;
+	}
+        
+    function prepare_items() {
+        
+        $columns  = $this->get_columns();
+        $hidden   = array();
+        $sortable = $this->get_sortable_columns();
+		
+		$type = "gvapprove";
+        			
+		$this->_column_headers = array($columns, $hidden, $sortable);
+        
+		$this->type = $type;
+		
+		$data = $this->read_data();
+		$this->items = $data;
+        
+        $this->process_bulk_action();
+		
+		$data = $this->read_data();
+		$this->items = $data;
+		
+        function usort_reorder($a,$b){
+
+            $orderby = (!empty($_REQUEST['orderby'])) ? $_REQUEST['orderby'] : 'name';
+            $order = (!empty($_REQUEST['order'])) ? $_REQUEST['order'] : 'asc'; 
+            $result = strcmp($a[$orderby], $b[$orderby]); 
+            return ($order==='asc') ? $result : -$result; 
+        }
+        usort($data, 'usort_reorder');
+       
+        $current_page = $this->get_pagenum();
+        $total_items = count($data);
+
+        
+        $this->items = $data;
+        
+        $this->set_pagination_args( array(
+            'total_items' => $total_items,                  
+            'per_page'    => $total_items,                  
+            'total_pages' => 1
+        ) );
+    }
+
+}
+
 
 ?>
