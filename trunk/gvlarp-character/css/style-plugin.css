@@ -120,6 +120,95 @@ td.chsheetcol3 {
 }
 */
 
+/* =EXTENDED BACKGROUNDS
+-------------------------------------------------------------- */
+.gvext_name {
+    font-weight:bold;
+	font-size:1.1em;
+	padding-top:20px;
+	margin-bottom: 0;
+}
+.gvext_ques {
+    font-style:italic;
+	margin-bottom: 0;
+}
+.gvext_section {
+	background-color:#111;
+	border-radius:5px;
+	border: 1px solid #222;
+	margin:10px 10px 10px 10px;
+	padding:10px;
+}
+.gvext_section th {
+	font-weight:bold;
+	text-align:left;
+}
+.gvext_approved {
+	color:green;
+}
+.gvext_denied {
+	color:red;
+}
+
+.gvbgmenu {
+	background: #000;
+	clear: both;
+	display: block;
+	float: left;
+	width: 100%;
+	border-bottom: 1px dotted #666666;
+	margin-bottom: 10px;
+	padding: 0px;
+	
+}
+.gvbgmenu ul {
+	list-style: none;
+	z-index:1;
+	margin: 0;
+	padding: 0;
+}
+.gvbgmenu li {
+	float: left;
+	position: relative;
+}
+.gvbgmenu a {
+	color: #B8B8B8;
+	display: block;
+	text-decoration: none;
+	font-weight:bold;
+	padding: 5px;
+	border: 1px dotted #666666;
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+}
+.gvbgmenu li:hover > a,.gvbgmenu ul ul :hover > a,.gvbgmenu a:focus {
+	background: #BB0506;
+	background: -moz-linear-gradient(#770506, #BB0506);
+	background: -o-linear-gradient(#770506, #BB0506);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#BB0506)); /* Older webkit syntax */
+	background: -webkit-linear-gradient(#770506, #BB0506);
+	border-top-left-radius: 0px;
+	border-top-right-radius: 0px;}
+.gvbgmenu  li:hover > a,.gvbgmenu a:focus {
+	background: #BB0506;
+ 	background: -moz-linear-gradient(#770506, #BB0506);
+	background: -o-linear-gradient(#770506, #BB0506);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#BB0506)); /* Older webkit syntax */
+	background: -webkit-linear-gradient(#770506, #BB0506);
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+}
+.gvbgmenu  ul ul :hover > ul,.gvbgmenu ul li:hover > ul {	display: block;}
+.gvbgmenu .current-menu-item > a,.gvbgmenu .current-menu-ancestor > a,.gvbgmenu .current_page_item > a,.gvbgmenu .current_page_ancestor > a {
+	background: #BB0506;
+ 	background: -moz-linear-gradient(#770506, #BB0506);
+	background: -o-linear-gradient(#770506, #BB0506);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#BB0506)); /* Older webkit syntax */
+	background: -webkit-linear-gradient(#770506, #BB0506);
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;}
+
+
 /* =DOTS
 -------------------------------------------------------------- */
 .gvdot_5_1 {
