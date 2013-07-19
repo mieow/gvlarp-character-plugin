@@ -12,41 +12,59 @@ function admin_css() {
 }
 add_action('admin_enqueue_scripts', 'admin_css');
 
-
+/* WORDPRESS TOOLBAR 
+----------------------------------------------------------------- */
 function toolbar_link_gvadmin( $wp_admin_bar ) {
-	$args = array(
-		'id'    => 'gvcharacters',
-		'title' => 'Characters',
-		/* 'href'  => admin_url('admin.php?page=gvcharacter-plugin'), */
-		'meta'  => array( 'class' => 'my-toolbar-page' )
-	);
-	$wp_admin_bar->add_node( $args );
-	$args = array(
-		'id'    => 'gvdata',
-		'title' => 'Data Tables',
-		'href'  => admin_url('admin.php?page=gvcharacter-data'),
-		'parent' => 'gvcharacters',
-		'meta'  => array( 'class' => 'my-toolbar-page' )
-	);
-	$wp_admin_bar->add_node( $args );
-	$args = array(
-		'id'    => 'gvconfig',
-		'title' => 'Configuration',
-		'href'  => admin_url('admin.php?page=gvcharacter-config'),
-		'parent' => 'gvcharacters',
-		'meta'  => array( 'class' => 'my-toolbar-page' )
-	);
-	$wp_admin_bar->add_node( $args );
+
+	if ( current_user_can( 'manage_options' ) )  {
+		$args = array(
+			'id'    => 'gvcharacters',
+			'title' => 'Characters',
+			/* 'href'  => admin_url('admin.php?page=gvcharacter-plugin'), */
+			'meta'  => array( 'class' => 'my-toolbar-page' )
+		);
+		$wp_admin_bar->add_node( $args );
+		$args = array(
+			'id'    => 'gvdata',
+			'title' => 'Data Tables',
+			'href'  => admin_url('admin.php?page=gvcharacter-data'),
+			'parent' => 'gvcharacters',
+			'meta'  => array( 'class' => 'my-toolbar-page' )
+		);
+		/* 
+		$args = array(
+			'id'    => 'gvdata',
+			'title' => 'Background',
+			'href'  => admin_url('admin.php?page=gvcharacter-bg'),
+			'parent' => 'gvcharacters',
+			'meta'  => array( 'class' => 'my-toolbar-page' )
+		); */
+		$wp_admin_bar->add_node( $args );
+		$args = array(
+			'id'    => 'gvconfig',
+			'title' => 'Configuration',
+			'href'  => admin_url('admin.php?page=gvcharacter-config'),
+			'parent' => 'gvcharacters',
+			'meta'  => array( 'class' => 'my-toolbar-page' )
+		);
+		$wp_admin_bar->add_node( $args );
+	}
 }
 add_action( 'admin_bar_menu', 'toolbar_link_gvadmin', 999 );
+
+
+/* ADMIN MENUS
+----------------------------------------------------------------- */
 
 function register_character_menu() {
 	add_menu_page( "Character Plugin Options", "Characters", "manage_options", "gvcharacter-plugin", "character_options");
 	add_submenu_page( "gvcharacter-plugin", "Database Tables", "Data", "manage_options", "gvcharacter-data", "character_datatables" );  
+	add_submenu_page( "gvcharacter-plugin", "Backgrounds", "Backgrounds", "manage_options", "gvcharacter-bg", "character_backgrounds" );  
 	add_submenu_page( "gvcharacter-plugin", "Configuration", "Configuration", "manage_options", "gvcharacter-config", "character_config" );  
 }
 
 function character_options() {
+
 
 }
 
@@ -242,6 +260,85 @@ function character_config() {
 			</table>
 			<input type="submit" name="save_st_links" class="button-primary" value="Save Links" />
 		</form>
+		
+		<h3>PDF Character Sheet Options</h3>
+		<?php
+		
+		if (isset($_REQUEST['save_pdf_options'])) {
+		
+			$sheettitle  = ""; /* Fill in from form post and save options */
+			$titlefont   = "";
+			$titlesize   = "";
+			$titlecolour = "";
+			$textfont    = "";
+			$textcolour  = "";
+			
+			if (class_exists('Imagick')) {
+			
+				/* dots */
+				$dotwidth = 16;
+				$dotheight = 16;
+				$dotbgcolour = '#FFFFFF';
+				$dotcolour   = '#000000';
+				$dotborder   = 2;
+			
+				$image = new Imagick();
+				$image->newImage($dotwidth, $dotheight, new ImagickPixel($dotbgcolour), 'jpg');
+				
+				$dot = new ImagickDraw();
+				$dot->setStrokeColor($dotcolour);
+				$dot->setStrokeWidth($dotborder);
+				$dot->setFillColor($dotbgcolour);
+				$dot->circle( ($dotwidth / 2) - 1, $dotheight / 2, $dotwidth / 2, $dotborder);
+				$image->drawImage($dot);
+				
+				$image->writeImage(GVLARP_CHARACTER_URL . 'images/emptydot.jpg');
+				
+				$image->newImage($dotwidth, $dotheight, new ImagickPixel($dotbgcolour), 'jpg');
+				$dot = new ImagickDraw();
+				$dot->setStrokeColor($dotcolour);
+				$dot->setStrokeWidth($dotborder);
+				$dot->setFillColor($dotcolour);
+				$dot->circle( ($dotwidth / 2) - 1, $dotheight / 2, $dotwidth / 2, $dotborder);
+				$image->drawImage($dot);
+				
+				$image->writeImage(GVLARP_CHARACTER_URL . 'images/fulldot.jpg');
+
+			}
+		} else {
+			$sheettitle  = ""; /* Read from config options, set to defaults if no options */
+			$titlefont   = "";
+			$titlesize   = "";
+			$titlecolour = "";
+			$textfont    = "";
+			$textcolour  = "";
+			
+			$dotcolour   = "";
+		}
+		?>
+
+		<form id='pdfoptions_form' method='post'>
+		<table>
+			<tr><td>Character Sheet Title</td><td>[Box]</td></tr>
+			<tr><td>Title Font</td><td>[Select]</td></tr>
+			<tr><td>Title Font Size</td><td>[Box]</td></tr>
+			<tr><td>Title Font Colour</td><td>[Colour]</td></tr>
+			<tr><td>Text Font </td><td>[Select]</td></tr>
+			<tr><td>Text Font Colour</td><td>[Box]</td></tr>
+		<?php
+		if (class_exists('Imagick')) {
+		?>
+			<tr><td>Dot Colour</td><td>[Colour]</td></tr>
+		<?php
+		} 
+	?>
+			<tr><td>Empty Dot</td><td><img src='<?php echo GVLARP_CHARACTER_URL ?>images/emptydot.jpg'></td></tr>
+			<tr><td>Full Dot</td><td><img src='<?php echo GVLARP_CHARACTER_URL ?>images/fulldot.jpg'></td></tr>
+			
+			</table>
+			<input type="submit" name="save_pdf_options" class="button-primary" value="Save Options" />
+			</form>
+		
 	</div>
 	<?php
 }
@@ -296,13 +393,63 @@ function character_datatables() {
 	<?php
 }
 
+function character_backgrounds() {
+	if ( !current_user_can( 'manage_options' ) )  {
+		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
+	}
+	?>
+	<div class="wrap">
+		<h2>Backgrounds</h2>
+		<script type="text/javascript">
+			function tabSwitch(tab) {
+				document.getElementById('gv-approve').style.display = 'none';
+				document.getElementById('gv-bgdata').style.display = 'none';
+				document.getElementById('gv-sectors').style.display = 'none';
+				document.getElementById('gv-questions').style.display = 'none';
+				document.getElementById(tab).style.display = '';
+				return false;
+			}
+		</script>
+		<div class="gvadmin_nav">
+			<ul>
+				<li><a href="javascript:void(0);" onclick="tabSwitch('gv-approve');">Approvals</a></li>
+				<li><a href="javascript:void(0);" onclick="tabSwitch('gv-bgdata');">Background Data</a></li>
+				<li><a href="javascript:void(0);" onclick="tabSwitch('gv-questions');">Background Questions</a></li>
+				<li><a href="javascript:void(0);" onclick="tabSwitch('gv-sectors');">Sector Data</a></li>
+			</ul>
+		</div>
+		<div class="gvadmin_content">
+			<div id="gv-approve" <?php tabdisplay("gvapprove", "gvapprove"); ?>>
+				<h1>Extended Background Approvals</h1>
+				<?php render_approvals_data(); ?>
+			</div>
+			<div id="gv-bgdata" <?php tabdisplay("bgdata", "gvapprove"); ?>>
+				<h1>Background Data</h1>
+				<?php render_background_data(); ?>
+			</div>
+			<div id="gv-sectors" <?php tabdisplay("sector", "gvapprove"); ?>>
+				<h1>Background Sectors</h1>
+				<?php render_sector_data(); ?>
+			</div>
+			<div id="gv-questions" <?php tabdisplay("question", "gvapprove"); ?>>
+				<h1>Extended Background Questions</h1>
+				<?php render_question_data(); ?>
+			</div>
+		</div>
+
+	</div>
+	
+	<?php
+}
+
+
 function tabdisplay($tab, $default="merit") {
 
 	$display = "style='display:none'";
 
 	if (isset($_REQUEST['tab'])) {
 		if ($_REQUEST['tab'] == $tab)
-			$display = "class=" . $tab;
+			$display = "";
 	} else if ($tab == $default) {
 		$display = "class=default";
 	}
@@ -314,6 +461,186 @@ function tabdisplay($tab, $default="merit") {
 
 /* DISPLAY TABLES 
 -------------------------------------------------- */
+function render_approvals_data(){
+	global $wpdb;
+
+    $testListTable['gvapprove'] = new gvadmin_extbgapproval_table();
+
+	$showform = 0;
+	if (!empty($_REQUEST['do_deny'])) {
+		/* save denial */
+		
+		$data = array(
+			'DENIED_DETAIL'  => $_REQUEST['gvapprove_denied']
+		);
+		$result = $wpdb->update(GVLARP_TABLE_PREFIX . $_REQUEST['table'],
+			$data,
+			array (
+				'ID' => $_REQUEST['table_id']
+			)
+		);
+		
+		if ($result)
+			echo "<p style='color:green'>Denied message saved</p>";
+		else {
+			$wpdb->print_error();
+			echo "<p style='color:red'>Could not deny background</p>";
+		}
+		
+		/* switch ($_REQUEST['table']) {
+			case 'CHARACTER_BACKGROUND':
+				$data = array(
+					'DENIED_DETAIL'  => $_REQUEST['gvapprove_denied']
+				);
+				$result = $wpdb->update(GVLARP_TABLE_PREFIX . "CHARACTER_BACKGROUND",
+					$data,
+					array (
+						'ID' => $_REQUEST['table_id']
+					)
+				);
+				
+				if ($result)
+					echo "<p style='color:green'>Denied message saved</p>";
+				else {
+					$wpdb->print_error();
+					echo "<p style='color:red'>Could not deny background</p>";
+				}
+				break;
+			case 'CHARACTER_MERIT':
+				$data = array(
+					'DENIED_DETAIL'  => $_REQUEST['gvapprove_denied']
+				);
+				$result = $wpdb->update(GVLARP_TABLE_PREFIX . "CHARACTER_MERIT",
+					$data,
+					array (
+						'ID' => $_REQUEST['table_id']
+					)
+				);
+				
+				if ($result)
+					echo "<p style='color:green'>Denied message saved</p>";
+				else {
+					$wpdb->print_error();
+					echo "<p style='color:red'>Could not deny merit/flaw</p>";
+				}
+				break;
+		} */
+		
+		$id   = -1;
+		$data = array();
+	}
+	else if (!empty($_REQUEST['action']) && 'string' == gettype($_REQUEST['extbackground']) && $_REQUEST['action'] == 'denyit') {
+		
+		/* load from database */
+		$data = $testListTable['gvapprove']->read_data();
+		$id   = $_REQUEST['extbackground'];
+
+		$showform = 1;
+	}
+
+	render_approve_form($showform, $id, $data);
+	
+	$testListTable['gvapprove']->prepare_items();
+
+	
+
+   ?>	
+
+	<!-- Forms are NOT created automatically, so you need to wrap the table in one to use features like bulk actions -->
+	<form id="approve-filter" method="get">
+		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
+		<input type="hidden" name="tab" value="gvapprove" />
+ 		<?php $testListTable['gvapprove']->display() ?>
+	</form>
+
+    <?php
+}
+function render_question_data(){
+
+    $testListTable['question'] = new gvadmin_questions_table();
+	$doaction = question_input_validation();
+	
+ 	if ($doaction == "add-question") {
+		$testListTable['question']->add_question($_REQUEST['question_title'], $_REQUEST['question_order'], 
+												$_REQUEST['question_group'], $_REQUEST['question_question']);
+	}
+	if ($doaction == "save-edit-question") { 
+		$testListTable['question']->edit_question($_REQUEST['question_id'], $_REQUEST['question_title'], $_REQUEST['question_order'], 
+												$_REQUEST['question_group'], $_REQUEST['question_question']);
+	}
+
+	render_question_add_form($doaction); 
+	
+	$testListTable['question']->prepare_items();
+   ?>	
+
+	<!-- Forms are NOT created automatically, so you need to wrap the table in one to use features like bulk actions -->
+	<form id="question-filter" method="get">
+		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
+		<input type="hidden" name="tab" value="question" />
+ 		<?php $testListTable['question']->display() ?>
+	</form>
+
+    <?php
+}
+function render_sector_data(){
+
+    $testListTable['sector'] = new gvadmin_sectors_table();
+	$doaction = sector_input_validation();
+	
+ 	if ($doaction == "add-sector") {
+		$testListTable['sector']->add_sector($_REQUEST['sector_name'], $_REQUEST['sector_desc'], $_REQUEST['sector_visible']);
+	}
+	if ($doaction == "save-edit-sector") { 
+		$testListTable['sector']->edit_sector($_REQUEST['sector_id'], $_REQUEST['sector_name'], $_REQUEST['sector_desc'], $_REQUEST['sector_visible']);
+	}
+
+	render_sector_add_form($doaction); 
+	
+	$testListTable['sector']->prepare_items();
+   ?>	
+
+	<!-- Forms are NOT created automatically, so you need to wrap the table in one to use features like bulk actions -->
+	<form id="sector-filter" method="get">
+		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
+		<input type="hidden" name="tab" value="sector" />
+ 		<?php $testListTable['sector']->display() ?>
+	</form>
+
+    <?php
+}
+function render_background_data(){
+
+    $testListTable['bgdata'] = new gvadmin_backgrounds_table();
+	$doaction = bgdata_input_validation();
+	
+ 	if ($doaction == "add-bgdata") {
+		$testListTable['bgdata']->add_background($_REQUEST['bgdata_name'], $_REQUEST['bgdata_desc'], $_REQUEST['bgdata_group'], 
+									$_REQUEST['bgdata_costmodel'], $_REQUEST['bgdata_visible'],
+									$_REQUEST['bgdata_hassector'], $_REQUEST['bgdata_question']);
+	}
+	if ($doaction == "save-edit-bgdata") { 
+		$testListTable['bgdata']->edit_background($_REQUEST['bgdata_id'], $_REQUEST['bgdata_name'], $_REQUEST['bgdata_desc'], $_REQUEST['bgdata_group'], 
+									$_REQUEST['bgdata_costmodel'], $_REQUEST['bgdata_visible'],
+									$_REQUEST['bgdata_hassector'], $_REQUEST['bgdata_question']);
+	} 
+
+	render_bgdata_add_form($doaction);
+	
+	$testListTable['bgdata']->prepare_items();
+   ?>	
+
+	<!-- Forms are NOT created automatically, so you need to wrap the table in one to use features like bulk actions -->
+	<form id="bgdata-filter" method="get">
+		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
+		<input type="hidden" name="tab" value="bgdata" />
+ 		<?php $testListTable['bgdata']->display() ?>
+	</form>
+
+    <?php
+}
+
+
 function render_meritflaw_page($type){
 
     $testListTable[$type] = new gvadmin_meritsflaws_table();
@@ -323,14 +650,15 @@ function render_meritflaw_page($type){
 	if ($doaction == "add-$type") {
 		$testListTable[$type]->add_merit($_REQUEST[$type . '_name'], $_REQUEST[$type . '_group'], $_REQUEST[$type . '_sourcebook'], 
 									$_REQUEST[$type . '_page_number'], $_REQUEST[$type . '_cost'], $_REQUEST[$type . '_xp_cost'], 
-									$_REQUEST[$type . '_multiple'], $_REQUEST[$type . '_visible'], $_REQUEST[$type . '_desc']);
+									$_REQUEST[$type . '_multiple'], $_REQUEST[$type . '_visible'], $_REQUEST[$type . '_desc'],
+									$_REQUEST[$type . '_question']);
 									
 	}
 	if ($doaction == "save-edit-$type") { 
 		$testListTable[$type]->edit_merit($_REQUEST[$type . '_id'], $_REQUEST[$type . '_name'], $_REQUEST[$type . '_group'], 
 									$_REQUEST[$type . '_sourcebook'], $_REQUEST[$type . '_page_number'], $_REQUEST[$type . '_cost'], 
 									$_REQUEST[$type . '_xp_cost'], $_REQUEST[$type . '_multiple'], $_REQUEST[$type . '_visible'],
-									$_REQUEST[$type . '_desc']);
+									$_REQUEST[$type . '_desc'], $_REQUEST[$type . '_question']);
 	} 
 	
 	render_meritflaw_add_form($type, $doaction);
@@ -409,24 +737,6 @@ function render_sourcebook_page(){
 }
 
 
-function get_booknames() {
-
-	global $wpdb;
-
-	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK;";
-	$booklist = $wpdb->get_results($wpdb->prepare($sql));
-	
-	return $booklist;
-}
-function get_disciplines() {
-
-	global $wpdb;
-
-	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "DISCIPLINE;";
-	$list = $wpdb->get_results($wpdb->prepare($sql));
-	
-	return $list;
-}
 
 function gvmake_filter($sqlresult) {
 	
@@ -468,6 +778,7 @@ function render_meritflaw_add_form($type, $addaction) {
 		$multiple = $_REQUEST[$type . '_multiple'];
 		$visible = $_REQUEST[$type . '_visible'];
 		$desc = $_REQUEST[$type . '_desc'];
+		$question = $_REQUEST[$type . '_question'];
 	} else if ('edit-' . $type == $addaction) {
 		/* Get values from database */
 		$id   = $_REQUEST['merit'];
@@ -475,7 +786,7 @@ function render_meritflaw_add_form($type, $addaction) {
 		$sql = "select merit.ID, merit.NAME as NAME, merit.DESCRIPTION as DESCRIPTION, merit.GROUPING as GROUPING,
 						merit.COST as COST, merit.XP_COST as XP_COST, merit.MULTIPLE as MULTIPLE,
 						books.ID as SOURCEBOOK, merit.PAGE_NUMBER as PAGE_NUMBER,
-						merit.VISIBLE as VISIBLE
+						merit.VISIBLE as VISIBLE, merit.BACKGROUND_QUESTION
 						from " . GVLARP_TABLE_PREFIX . "MERIT merit, " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books 
 						where merit.ID = '$id' and books.ID = merit.SOURCE_BOOK_ID;";
 		
@@ -494,6 +805,7 @@ function render_meritflaw_add_form($type, $addaction) {
 		$multiple = $data[0]->MULTIPLE;
 		$visible = $data[0]->VISIBLE;
 		$desc = $data[0]->DESCRIPTION;
+		$question = $data[0]->BACKGROUND_QUESTION;
 		
 	} else {
 	
@@ -508,6 +820,7 @@ function render_meritflaw_add_form($type, $addaction) {
 		$multiple = "N";
 		$visible = "Y";
 		$desc = "";
+		$question = "";
 	}
 
 	$booklist = get_booknames();
@@ -550,6 +863,7 @@ function render_meritflaw_add_form($type, $addaction) {
 		</tr>
 		<tr>
 			<td>Description: </td><td colspan=3><input type="text" name="<?php print $type; ?>_desc" value="<?php print $desc; ?>" size=50/></td>
+			<td>Extended Background Question: </td><td colspan=3><input type="text" name="<?php print $type; ?>_question" value="<?php print $question; ?>" size=50/></td>
 		</tr>
 		</table>
 		<input type="submit" name="do_add_<?php print $type; ?>" class="button-primary" value="Save <?php print ucfirst($type); ?>" />
@@ -761,6 +1075,296 @@ function render_book_add_form($addaction) {
 	
 	<?php
 }
+function render_bgdata_add_form($addaction) {
+
+	global $wpdb;
+	
+	$type = "bgdata";
+	
+	/* echo "<p>Creating book form based on action $addaction</p>"; */
+
+	if ('fix-' . $type == $addaction) {
+		$id = $_REQUEST['background'];
+		$name = $_REQUEST[$type . '_name'];
+
+		$visible = $_REQUEST[$type . '_visible'];
+		$desc = $_REQUEST[$type . '_desc'];
+		$group = $_REQUEST[$type . '_group'];
+		$costmodel_id = $_REQUEST[$type . '_costmodel'];
+		$has_sector = $_REQUEST[$type . '_hassector'];
+		$bgquestion = $_REQUEST[$type . '_question'];
+		
+	} else if ('edit-' . $type == $addaction) {
+		/* Get values from database */
+		$id   = $_REQUEST['background'];
+		
+		$sql = "select *
+				from " . GVLARP_TABLE_PREFIX . "BACKGROUND 
+				where ID = '$id';";
+		
+		/* echo "<p>$sql</p>"; */
+		
+		$data =$wpdb->get_results($wpdb->prepare($sql));
+		
+		$name = $data[0]->NAME;
+		$group = $data[0]->GROUPING;
+		$costmodel_id = $data[0]->COST_MODEL_ID;
+		$desc = $data[0]->DESCRIPTION;
+		$visible = $data[0]->VISIBLE;
+		$has_sector = $data[0]->HAS_SECTOR;
+		$bgquestion = $data[0]->BACKGROUND_QUESTION;
+		
+	} else {
+	
+		/* defaults */
+		$name = "";
+		$group = "";
+		$costmodel_id = 0;
+		$desc = "";
+		$visible = "Y";
+		$has_sector = "N";
+		$bgquestion = "";
+	} 
+
+	?>
+	<form id="new-<?php print $type; ?>" method="post">
+		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
+		<input type="hidden" name="tab" value="<?php print $type; ?>" />
+		<table style='width:500px'>
+		<tr>
+			<td>Name:  </td>
+			<td><input type="text" name="<?php print $type; ?>_name" value="<?php print $name; ?>" size=20 /></td>
+		
+			<td>Grouping:  </td>
+			<td><input type="text" name="<?php print $type; ?>_group" value="<?php print $group; ?>" size=20 /></td>
+		
+			<td>Cost Model:  </td>
+			<td>
+				<select name="<?php print $type; ?>_costmodel">
+					<?php
+						print "<option value='0' ";
+						selected($costmodel->ID, $costmodel_id);
+						echo ">[Select]</option>";
+						
+						foreach (get_costmodels() as $costmodel) {
+							print "<option value='{$costmodel->ID}' ";
+							selected($costmodel->ID, $costmodel_id);
+							echo ">{$costmodel->NAME}</option>";
+						}
+					?>
+				</select></td>
+			
+			
+			</td>
+			<td>Visible to Players: </td><td>
+				<select name="<?php print $type; ?>_visible">
+					<option value="N" <?php selected($visible, "N"); ?>>No</option>
+					<option value="Y" <?php selected($visible, "Y"); ?>>Yes</option>
+				</select></td>
+		
+		</tr>
+		<tr>
+			<td>Has a Sector: </td><td>
+				<select name="<?php print $type; ?>_hassector">
+					<option value="N" <?php selected($has_sector, "N"); ?>>No</option>
+					<option value="Y" <?php selected($has_sector, "Y"); ?>>Yes</option>
+				</select></td>
+				
+			<td>Description:  </td>
+			<td colspan=5><input type="text" name="<?php print $type; ?>_desc" value="<?php print $desc; ?>" size=90 /></td> <!-- check sizes -->
+
+		</tr>
+		<tr>
+			<td colspan=8>Extended Background question (leave blank to exclude background from Extended Backgrounds):  </td>
+		</tr>
+		<tr>
+			<td colspan=8>
+				<textarea name="<?php print $type; ?>_question" rows="2" cols="100"><?php print $bgquestion; ?></textarea>
+			</td>
+		</tr>
+		</table>
+		<input type="submit" name="do_add_<?php print $type; ?>" class="button-primary" value="Save Background" />
+	</form>
+	
+	<?php
+}
+function render_sector_add_form($addaction) {
+
+	global $wpdb;
+	
+	$type = "sector";
+	
+	/* echo "<p>Creating sector form based on action $addaction</p>"; */
+
+	if ('fix-' . $type == $addaction) {
+		$id      = $_REQUEST['sector'];
+		$name    = $_REQUEST[$type . '_name'];
+		$visible = $_REQUEST[$type . '_visible'];
+		$desc    = $_REQUEST[$type . '_desc'];
+		
+	} else if ('edit-' . $type == $addaction) {
+		/* Get values from database */
+		$id   = $_REQUEST['sector'];
+		
+		$sql = "select *
+				from " . GVLARP_TABLE_PREFIX . "SECTOR 
+				where ID = '$id';";
+		
+		/* echo "<p>$sql</p>"; */
+		
+		$data =$wpdb->get_results($wpdb->prepare($sql));
+		
+		$name = $data[0]->NAME;
+		$desc = $data[0]->DESCRIPTION;
+		$visible = $data[0]->VISIBLE;
+		
+	} else {
+	
+		/* defaults */
+		$name = "";
+		$desc = "";
+		$visible = "Y";
+	} 
+
+	?>
+	<form id="new-<?php print $type; ?>" method="post">
+		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
+		<input type="hidden" name="tab" value="<?php print $type; ?>" />
+		<table style='width:500px'>
+		<tr>
+			<td>Name:  </td>
+			<td><input type="text" name="<?php print $type; ?>_name" value="<?php print $name; ?>" size=20 /></td>
+		
+			<td>Visible to Players: </td><td>
+				<select name="<?php print $type; ?>_visible">
+					<option value="N" <?php selected($visible, "N"); ?>>No</option>
+					<option value="Y" <?php selected($visible, "Y"); ?>>Yes</option>
+				</select></td>
+		
+		</tr>
+		<tr>
+		
+			<td>Description:  </td>
+			<td colspan=3><input type="text" name="<?php print $type; ?>_desc" value="<?php print $desc; ?>" size=100 /></td> <!-- check sizes -->
+
+		</tr>
+		</table>
+		<input type="submit" name="do_add_<?php print $type; ?>" class="button-primary" value="Save Sector" />
+	</form>
+	
+	<?php
+}
+function render_question_add_form($addaction) {
+
+	global $wpdb;
+	
+	$type = "question";
+	
+	/* echo "<p>Creating question form based on action $addaction</p>"; */
+
+	if ('fix-' . $type == $addaction) {
+		$id      = $_REQUEST['question'];
+		$title   = $_REQUEST[$type . '_title'];
+		$order   = $_REQUEST[$type . '_order'];
+		$group   = $_REQUEST[$type . '_group'];
+		$question = $_REQUEST[$type . '_question'];
+		
+	} else if ('edit-' . $type == $addaction) {
+		/* Get values from database */
+		$id   = $_REQUEST['question'];
+		
+		$sql = "select *
+				from " . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND 
+				where ID = '$id';";
+		
+		/* echo "<p>$sql</p>"; */
+		
+		$data =$wpdb->get_results($wpdb->prepare($sql));
+		
+		$title   = $data[0]->TITLE;
+		$order   = $data[0]->ORDERING;
+		$group   = $data[0]->GROUPING;
+		$question = $data[0]->BACKGROUND_QUESTION;
+		
+	} else {
+	
+		$sql = "select * from " . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND;";
+		$order = count($wpdb->get_results($wpdb->prepare($sql))) + 1;
+	
+		/* defaults */
+		$title   = "";
+		$group   = "";
+		$question = "";
+	} 
+
+	?>
+	<form id="new-<?php print $type; ?>" method="post">
+		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
+		<input type="hidden" name="tab" value="<?php print $type; ?>" />
+		<table style='width:500px'>
+		<tr>
+			<td>Title:  </td>
+			<td colspan=3><input type="text" name="<?php print $type; ?>_title" value="<?php print $title; ?>" size=60 /></td>
+		
+
+			
+		</tr>
+		<tr>
+			<td>Question Order: </td><td>
+			<input type="text" name="<?php print $type; ?>_order" value="<?php print $order; ?>" size=4 /></td>
+			<td>Group: </td>
+			<td><input type="text" name="<?php print $type; ?>_group" value="<?php print $group; ?>" size=30 /></td>
+		</tr>
+		<tr>
+		
+			<td>Question:  </td>
+			<td colspan=3>
+				<textarea name="<?php print $type; ?>_question" " rows="2" cols="100" ><?php print $question; ?></textarea>
+			</td> 
+
+		</tr>
+		</table>
+		<input type="submit" name="do_add_<?php print $type; ?>" class="button-primary" value="Save Question" />
+	</form>
+	
+	<?php
+}
+function render_approve_form($showform, $id, $data) {
+	
+	$type = "gvapprove";
+	
+	if ($showform) {
+		
+		/* load from database */
+		$table   = $data[$id]['TABLE'];
+		$pending = $data[$id]['DESCRIPTION'];
+		$tableid = $data[$id]['TABLE.ID'];
+		$denied = "";	
+	}
+
+	
+	if ($showform) {
+	?>
+	<form id="new-<?php print $type; ?>" method="post">
+		<input type="hidden" name="table_id" value="<?php print $tableid; ?>" />
+		<input type="hidden" name="table"    value="<?php print $table; ?>"/>
+		<input type="hidden" name="tab"      value="<?php print $type; ?>" />
+		<input type="hidden" name="extbackground" value="<?php print $id; ?>" />
+		<table style='width:500px'>
+		<tr>
+			<td>Description: </td><td><?php print $pending; ?></td>
+		</tr>
+		<tr>
+			<td>Denied Reason:  </td>
+			<td><textarea name="<?php print $type; ?>_denied"><?php print $denied; ?></textarea></td>
+		</tr>
+		</table>
+		<input type="submit" name="do_deny" class="button-primary" value="Deny" />
+	</form>
+	
+	<?php
+	}
+}
 
 function merit_input_validation($type) {
 
@@ -909,5 +1513,100 @@ function book_input_validation() {
 
 	return $doaction;
 }
+function bgdata_input_validation() {
 
+	$type = "bgdata";
+
+	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == $type)
+		$doaction = "edit-$type";
+		
+	/* echo "<p>Requested action: " . $_REQUEST['action'] . ", " . $type . "_name: " . $_REQUEST[$type . '_name']; */
+			
+	if (!empty($_REQUEST[$type . '_name'])){
+
+		if ($doaction == "edit-$type")
+			$doaction = "save-edit-$type";
+		else
+			$doaction = "add-$type";
+			
+		/* Input Validation */
+		if (empty($_REQUEST[$type . '_desc']) || $_REQUEST[$type . '_desc'] == "") {
+			$doaction = "fix-$type";
+			echo "<p style='color:red'>ERROR: Background Description is missing</p>";
+		} 
+		if (empty($_REQUEST[$type . '_group']) || $_REQUEST[$type . '_group'] == "") {
+			$doaction = "fix-$type";
+			echo "<p style='color:red'>ERROR: Background Group is missing</p>";
+		} 
+		if (empty($_REQUEST[$type . '_costmodel']) || $_REQUEST[$type . '_costmodel'] == 0) {
+			$doaction = "fix-$type";
+			echo "<p style='color:red'>ERROR: Select Background Cost Model</p>";
+		} 
+				
+	}
+
+	return $doaction;
+}
+function sector_input_validation() {
+
+	$type = "sector";
+
+	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == $type)
+		$doaction = "edit-$type";
+		
+	if (!empty($_REQUEST[$type . '_name'])){
+
+		if ($doaction == "edit-$type")
+			$doaction = "save-edit-$type";
+		else
+			$doaction = "add-$type";
+			
+		/* Input Validation */
+		if (empty($_REQUEST[$type . '_desc']) || $_REQUEST[$type . '_desc'] == "") {
+			$doaction = "fix-$type";
+			echo "<p style='color:red'>ERROR: Sector Description is missing</p>";
+		} 
+				
+	}
+
+	return $doaction;
+}
+
+function question_input_validation() {
+
+	$type = "question";
+
+	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == $type)
+		$doaction = "edit-$type";
+		
+	if (!empty($_REQUEST[$type . '_title'])){
+
+		if ($doaction == "edit-$type")
+			$doaction = "save-edit-$type";
+		else
+			$doaction = "add-$type";
+			
+		/* Input Validation */
+		if (empty($_REQUEST[$type . '_order']) || $_REQUEST[$type . '_order'] == "") {
+			$doaction = "fix-$type";
+			echo "<p style='color:red'>ERROR: Extended Background question order is missing</p>";
+		} else if ($_REQUEST[$type . '_order'] <= 0) {
+			$doaction = "fix-$type";
+			echo "<p style='color:red'>ERROR: Extended Background order should be a number greater than 0</p>";
+		} 
+		if (empty($_REQUEST[$type . '_group']) || $_REQUEST[$type . '_group'] == "") {
+			$doaction = "fix-$type";
+			echo "<p style='color:red'>ERROR: Extended Background group is missing</p>";
+		} 
+		if (empty($_REQUEST[$type . '_question']) || $_REQUEST[$type . '_question'] == "") {
+			$doaction = "fix-$type";
+			echo "<p style='color:red'>ERROR: Extended Background question is missing</p>";
+		} 
+				
+	}
+	
+	/* echo "<p>Doing action $doaction</p>"; */
+
+	return $doaction;
+}
 ?>
