@@ -89,21 +89,6 @@ function get_user_role() {
 	return $user_role;
 }
 
-/* PLUGIN STUFF
------------------------------------------------- */
-function plugin_style()  
-{ 
-  wp_register_style( 'plugin-style', 
-    get_template_directory_uri() . '/css/style-plugin.css', 
-    array(), 
-    false, 
-    'all' );
-
-  // enqueing:
-  wp_enqueue_style( 'plugin-style' );
-}
-add_action('wp_enqueue_scripts', 'plugin_style');
-
 /* THEME WIDGET
 	Welcome, <login>
 	----------------------
