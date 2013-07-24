@@ -189,7 +189,7 @@ td.chsheetcol3 {
 	background: -webkit-linear-gradient(#770506, #BB0506);
 	border-top-left-radius: 0px;
 	border-top-right-radius: 0px;}
-.gvbgmenu  li:hover > a,.gvbgmenu a:focus {
+.gvbgmenu  li:hover > a,.gvbgmenu a:focus,.gvbgmenu a.shown {
 	background: #BB0506;
  	background: -moz-linear-gradient(#770506, #BB0506);
 	background: -o-linear-gradient(#770506, #BB0506);
