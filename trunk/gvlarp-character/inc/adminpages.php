@@ -5,12 +5,70 @@ require_once GVLARP_CHARACTER_URL . 'inc/adminclasses.php';
 if(!class_exists('WP_List_Table')){
     require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
 }
-add_action( 'admin_menu', 'register_character_menu' );
+if ( is_admin() ){ // admin actions
+	add_action( 'admin_menu', 'register_character_menu' );
+	add_action( 'admin_init', 'register_gvlarp_character_settings' );
+} else {
+	// non-admin enqueues, actions, and filters
+}
+
 
 function admin_css() { 
 	wp_enqueue_style('my-admin-style', plugins_url('css/style-admin.css',dirname(__FILE__)));
 }
 add_action('admin_enqueue_scripts', 'admin_css');
+
+
+/* OPTIONS SETTINGS 
+----------------------------------------------------------------- */
+function register_gvlarp_character_settings() {
+	global $wp_roles;
+	
+	register_setting( 'gvcharacter_options_group', 'gvcharacter_pdf_title' );
+	register_setting( 'gvcharacter_options_group', 'gvcharacter_pdf_footer' );
+	register_setting( 'gvcharacter_options_group', 'gvcharacter_pdf_titlefont' );
+	register_setting( 'gvcharacter_options_group', 'gvcharacter_pdf_titlecolour' );
+	register_setting( 'gvcharacter_options_group', 'gvcharacter_pdf_divcolour' );
+	register_setting( 'gvcharacter_options_group', 'gvcharacter_pdf_divtextcolour' );
+	register_setting( 'gvcharacter_options_group', 'gvcharacter_pdf_divlinewidth' );
+	register_setting( 'gvcharacter_options_group', 'gvcharacter_pdf_dotcolour' );
+	register_setting( 'gvcharacter_options_group', 'gvcharacter_pdf_dotlinewidth' );
+
+	/* add_settings_section('gv_options_section_pdf', 'PDF Character Sheet', 'gv_options_section_pdf_text', 'gvcharacter-config');
+	add_settings_field('gv_pdf_title',     'Character Sheet Title',      'gvcharacter_pdf_input_title',  'gvcharacter-config',    'gv_options_section_pdf');
+	add_settings_field('gv_pdf_titlefont', 'Character Sheet Title Font', 'gvcharacter_pdf_input_titlefont', 'gvcharacter-config', 'gv_options_section_pdf');
+	*/
+}
+add_action( 'admin_menu', 'register_gvlarp_character_settings' );
+
+function gv_options_section_pdf_text() {
+	echo '<p>General settings for PDF character sheet generation.</p>';
+}
+function gvcharacter_pdf_input_title() {
+	$options = get_option('gvcharacter_options');
+	echo "<input id='gv_pdf_title' name='gvcharacter_options[title]' size='40' type='text' value='{$options['title']}' />";
+}
+
+function gvcharacter_options_validate($input) {
+
+	global $wp_roles;
+
+	$options = get_option('gvcharacter_plugin_options');
+	
+	$options['title'] = trim($input['title']);
+	
+	
+	return $options;
+}
+
+/* Admin pages still to add
+-----------------------------------------------------------------
+Generation (for costs)
+Characters
+Players
+Cost Models
+Skills
+*/
 
 /* WORDPRESS TOOLBAR 
 ----------------------------------------------------------------- */
@@ -24,22 +82,24 @@ function toolbar_link_gvadmin( $wp_admin_bar ) {
 			'meta'  => array( 'class' => 'my-toolbar-page' )
 		);
 		$wp_admin_bar->add_node( $args );
-		$args = array(
+		
+		/* 		$args = array(
 			'id'    => 'gvdata',
 			'title' => 'Data Tables',
 			'href'  => admin_url('admin.php?page=gvcharacter-data'),
 			'parent' => 'gvcharacters',
 			'meta'  => array( 'class' => 'my-toolbar-page' )
-		);
-		/* 
+		);*/
+
 		$args = array(
 			'id'    => 'gvdata',
 			'title' => 'Background',
 			'href'  => admin_url('admin.php?page=gvcharacter-bg'),
 			'parent' => 'gvcharacters',
 			'meta'  => array( 'class' => 'my-toolbar-page' )
-		); */
+		); 
 		$wp_admin_bar->add_node( $args );
+		
 		$args = array(
 			'id'    => 'gvconfig',
 			'title' => 'Configuration',
@@ -262,82 +322,129 @@ function character_config() {
 		</form>
 		
 		<h3>PDF Character Sheet Options</h3>
+		<form method="post" action="options.php">
 		<?php
 		
-		if (isset($_REQUEST['save_pdf_options'])) {
-		
-			$sheettitle  = ""; /* Fill in from form post and save options */
-			$titlefont   = "";
-			$titlesize   = "";
-			$titlecolour = "";
-			$textfont    = "";
-			$textcolour  = "";
-			
-			if (class_exists('Imagick')) {
-			
-				/* dots */
-				$dotwidth = 16;
-				$dotheight = 16;
-				$dotbgcolour = '#FFFFFF';
-				$dotcolour   = '#000000';
-				$dotborder   = 2;
-			
-				$image = new Imagick();
-				$image->newImage($dotwidth, $dotheight, new ImagickPixel($dotbgcolour), 'jpg');
-				
-				$dot = new ImagickDraw();
-				$dot->setStrokeColor($dotcolour);
-				$dot->setStrokeWidth($dotborder);
-				$dot->setFillColor($dotbgcolour);
-				$dot->circle( ($dotwidth / 2) - 1, $dotheight / 2, $dotwidth / 2, $dotborder);
-				$image->drawImage($dot);
-				
-				$image->writeImage(GVLARP_CHARACTER_URL . 'images/emptydot.jpg');
-				
-				$image->newImage($dotwidth, $dotheight, new ImagickPixel($dotbgcolour), 'jpg');
-				$dot = new ImagickDraw();
-				$dot->setStrokeColor($dotcolour);
-				$dot->setStrokeWidth($dotborder);
-				$dot->setFillColor($dotcolour);
-				$dot->circle( ($dotwidth / 2) - 1, $dotheight / 2, $dotwidth / 2, $dotborder);
-				$image->drawImage($dot);
-				
-				$image->writeImage(GVLARP_CHARACTER_URL . 'images/fulldot.jpg');
-
-			}
-		} else {
-			$sheettitle  = ""; /* Read from config options, set to defaults if no options */
-			$titlefont   = "";
-			$titlesize   = "";
-			$titlecolour = "";
-			$textfont    = "";
-			$textcolour  = "";
-			
-			$dotcolour   = "";
-		}
+		settings_fields( 'gvcharacter_options_group' );
+		do_settings_sections('gvcharacter_options_group');
 		?>
-
-		<form id='pdfoptions_form' method='post'>
 		<table>
-			<tr><td>Character Sheet Title</td><td>[Box]</td></tr>
-			<tr><td>Title Font</td><td>[Select]</td></tr>
-			<tr><td>Title Font Size</td><td>[Box]</td></tr>
-			<tr><td>Title Font Colour</td><td>[Colour]</td></tr>
-			<tr><td>Text Font </td><td>[Select]</td></tr>
-			<tr><td>Text Font Colour</td><td>[Box]</td></tr>
+			<tr>
+				<td>Character Sheet Title</td><td><input type="text" name="gvcharacter_pdf_title" value="<?php echo get_option('gvcharacter_pdf_title'); ?>" size=30 /></td>
+				<td>Title Font</td><td><select name="gvcharacter_pdf_titlefont">
+					<option value="Arial"     <?php if ('Arial' == get_option('gvcharacter_pdf_titlefont')) echo "selected='selected'"; ?>>Arial</option>
+					<option value="Courier"   <?php if ('Courier' == get_option('gvcharacter_pdf_titlefont')) echo "selected='selected'"; ?>>Courier</option>
+					<option value="Helvetica" <?php if ('Helvetica' == get_option('gvcharacter_pdf_titlefont')) echo "selected='selected'"; ?>>Helvetica</option>
+					<option value="Times"     <?php if ('Times' == get_option('gvcharacter_pdf_titlefont')) echo "selected='selected'"; ?>>Times New Roman</option>
+					</select>
+				</td>
+				<td>Title Text Colour (#RRGGBB)</td><td><input type="color" name="gvcharacter_pdf_titlecolour" value="<?php echo get_option('gvcharacter_pdf_titlecolour'); ?>" /></td>
+			</tr>
+			<tr>
+				<td>Divider Line Colour (#RRGGBB)</td><td><input type="color" name="gvcharacter_pdf_divcolour" value="<?php echo get_option('gvcharacter_pdf_divcolour'); ?>" /></td>
+				<td>Divider Text Colour (#RRGGBB)</td><td><input type="color" name="gvcharacter_pdf_divtextcolour" value="<?php echo get_option('gvcharacter_pdf_divtextcolour'); ?>" /></td>
+				<td>Divider Line Width (mm)</td><td><input type="text" name="gvcharacter_pdf_divlinewidth" value="<?php echo get_option('gvcharacter_pdf_divlinewidth'); ?>" size=4 /></td>
+			</tr>
+			<tr>
+				<td>Character Sheet Footer</td><td><input type="text" name="gvcharacter_pdf_footer" value="<?php echo get_option('gvcharacter_pdf_footer'); ?>" size=30 /></td>
+				<?php if (class_exists('Imagick')) { ?>
+				<td>Dot/Box Colour (#RRGGBB)</td><td><input type="color" name="gvcharacter_pdf_dotcolour" value="<?php echo get_option('gvcharacter_pdf_dotcolour'); ?>" /></td>
+				<td>Dot/Box Line Width (mm)</td><td><input type="text" name="gvcharacter_pdf_dotlinewidth" value="<?php echo get_option('gvcharacter_pdf_dotlinewidth'); ?>" size=4 /></td>
+			</tr>
+				<td colspan = 6>
+					<table><tr>
+					<td><img width=16 src='<?php echo plugins_url( 'gvlarp-character/images/emptydot.jpg' ); ?>'></td>
+					<td><img width=16 src='<?php echo plugins_url( 'gvlarp-character/images/fulldot.jpg' ); ?>'></td>
+					<td><img width=16 src='<?php echo plugins_url( 'gvlarp-character/images/box.jpg' ); ?>'></td>
+					<td><img width=16 src='<?php echo plugins_url( 'gvlarp-character/images/boxcross1.jpg' ); ?>'></td>
+					<td><img width=16 src='<?php echo plugins_url( 'gvlarp-character/images/boxcross2.jpg' ); ?>'></td>
+					<td><img width=16 src='<?php echo plugins_url( 'gvlarp-character/images/boxcross3.jpg' ); ?>'></td>
+					</tr></table>
+				</td>
+			<tr>
+				
+				<?php } else { ?>
+				<td colspan=4>&nbsp;</td>
+				<?php } ?>
+			</tr>
+		</table>
+		
+		<?php submit_button(); ?>
+		</form>
+		
 		<?php
+					
 		if (class_exists('Imagick')) {
-		?>
-			<tr><td>Dot Colour</td><td>[Colour]</td></tr>
-		<?php
-		} 
-	?>
-			<tr><td>Empty Dot</td><td><img src='<?php echo GVLARP_CHARACTER_URL ?>images/emptydot.jpg'></td></tr>
-			<tr><td>Full Dot</td><td><img src='<?php echo GVLARP_CHARACTER_URL ?>images/fulldot.jpg'></td></tr>
+		
+			$drawwidth    = 32;
+			$drawheight   = 32;
+			$drawbgcolour = '#FFFFFF';
+			$drawcolour   = get_option('gvcharacter_pdf_dotcolour');
+			$drawborder   = get_option('gvcharacter_pdf_dotlinewidth');
+			$imagetype    = 'jpg';
 			
-			</table>
-			<input type="submit" name="save_pdf_options" class="button-primary" value="Save Options" />
-			</form>
+			if ($drawcolour == '')
+				$drawcolour = '#000000';
+			if ($drawborder == '')
+				$drawcolour = 3;
+		
+			$image = new Imagick();
+			
+			$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
+			$draw = new ImagickDraw();
+			$draw->setStrokeColor($drawcolour);
+			$draw->setStrokeWidth($drawborder);
+			$draw->setFillColor($drawbgcolour);
+			$draw->circle( ($drawwidth / 2) - 1, $drawheight / 2, $drawwidth / 2, $drawborder);
+			$image->drawImage($draw);
+			$image->writeImage(GVLARP_CHARACTER_URL . 'images/emptydot.' . $imagetype);
+			
+			$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
+			$draw = new ImagickDraw();
+			$draw->setStrokeColor($drawcolour);
+			$draw->setStrokeWidth($drawborder);
+			$draw->setFillColor($drawcolour);
+			$draw->circle( ($drawwidth / 2) - 1, $drawheight / 2, $drawwidth / 2, $drawborder);
+			$image->drawImage($draw);
+			$image->writeImage(GVLARP_CHARACTER_URL . 'images/fulldot.' . $imagetype);
+			
+			$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
+			$draw = new ImagickDraw();
+			$draw->setStrokeColor($drawcolour);
+			$draw->setStrokeWidth($drawborder);
+			$draw->setFillColor($drawbgcolour);
+			$draw->rectangle( $drawborder, $drawborder, $drawwidth - $drawborder - 1, $drawheight - $drawborder - 1);
+			$image->drawImage($draw);
+			$image->writeImage(GVLARP_CHARACTER_URL . 'images/box.' . $imagetype);
+			
+			/* Add a line */
+			$draw = new ImagickDraw();
+			$draw->setStrokeColor($drawcolour);
+			$draw->setStrokeWidth($drawborder);
+			$draw->setFillColor($drawbgcolour);
+			$draw->line( $drawborder, $drawborder, $drawwidth - $drawborder - 1, $drawheight - $drawborder - 1);
+			$image->drawImage($draw);
+			$image->writeImage(GVLARP_CHARACTER_URL . 'images/boxcross1.' . $imagetype);
+			/* Add another line */
+			$draw = new ImagickDraw();
+			$draw->setStrokeColor($drawcolour);
+			$draw->setStrokeWidth($drawborder);
+			$draw->setFillColor($drawbgcolour);
+			$draw->line( $drawborder, $drawheight - $drawborder - 1, $drawwidth - $drawborder - 1, $drawborder);
+			$image->drawImage($draw);
+			$image->writeImage(GVLARP_CHARACTER_URL . 'images/boxcross2.' . $imagetype);
+			/* Add last line */
+			$draw = new ImagickDraw();
+			$draw->setStrokeColor($drawcolour);
+			$draw->setStrokeWidth($drawborder);
+			$draw->setFillColor($drawbgcolour);
+			$draw->line( $drawborder, $drawheight/2, $drawwidth - $drawborder - 1, $drawheight / 2);
+			$image->drawImage($draw);
+			$image->writeImage(GVLARP_CHARACTER_URL . 'images/boxcross3.' . $imagetype);
+			
+
+		}
+	?>
 		
 	</div>
 	<?php
