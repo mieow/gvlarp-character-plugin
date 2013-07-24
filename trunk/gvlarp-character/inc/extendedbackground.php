@@ -20,19 +20,18 @@ function get_extbackgrounds_content() {
 	$content = "<div class='wrap'>
 		<script type='text/javascript'>
 			function tabSwitch(tab) {
-				document.getElementById('gv-backgrounds').style.display = 'none';
-				document.getElementById('gv-meritflaw').style.display = 'none';
-				document.getElementById('gv-misc').style.display = 'none';
-				document.getElementById(tab).style.display = '';
+				setSwitchState('backgrounds', tab == 'backgrounds');
+				setSwitchState('meritflaw', tab == 'meritflaw');
+				setSwitchState('misc', tab == 'misc');
 				return false;
+			}
+			function setSwitchState(tab, show) {
+				document.getElementById('gv-'+tab).style.display = show ? 'block' : 'none';
+				document.getElementById('gvm-'+tab).className = show ? 'shown' : '';
 			}
 		</script>
 		<div class='gvbgmenu'>
-			<ul>
-				<li><a href='javascript:void(0);' onclick='tabSwitch(\"gv-backgrounds\");'>Backgrounds</a></li>
-				<li><a href='javascript:void(0);' onclick='tabSwitch(\"gv-meritflaw\");'>Merits and Flaws</a></li>
-				<li><a href='javascript:void(0);' onclick='tabSwitch(\"gv-misc\");'>Miscellaneous</a></li>
-			</ul>
+			<ul>				<li>" . get_tabanchor('backgrounds', 'Backgrounds') . "</li>				<li>" . get_tabanchor('meritflaw', 'Merits and Flaws') . "</li>				<li>" . get_tabanchor('misc', 'Miscellaneous') . "</li>			</ul>
 		</div>
 		<div class='gvbgmain'>
 			<div id='gv-backgrounds' " . get_tabdisplay('backgrounds') . ">
@@ -51,22 +50,20 @@ function get_extbackgrounds_content() {
 	</div>";
 	
 	return $content;
-
 }
-
+function get_tabanchor($tab, $text, $default = "backgrounds"){	$markup = '<a id="gvm-@TAB@" href="javascript:void(0);" onclick="tabSwitch(\'@TAB@\');"@SHOWN@>@TEXT@</a>';	return str_replace(				Array('@TAB@','@TEXT@','@SHOWN@'),				Array($tab, $text, get_highlight($tab, $default)),				$markup				);}function get_highlight($tab, $default="backgrounds"){	if ((isset($_REQUEST['tab']) && $_REQUEST['tab'] == $tab) || ($tab == $default))		return " class='shown'";	return "";}
 function get_tabdisplay($tab, $default="backgrounds") {
 
 	$display = "style='display:none'";
 
 	if (isset($_REQUEST['tab'])) {
 		if ($_REQUEST['tab'] == $tab)
-			$display = "class=" . $tab;
+			$display = "class='".$tab."'";
 	} else if ($tab == $default) {
-		$display = "class=default";
+		$display = "class='default'";
 	}
-		
+
 	return $display;
-		
 }
 
 function get_editbackgrounds_tab($characterID) {
