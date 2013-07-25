@@ -14,7 +14,7 @@ add_filter( 'the_content', 'gv_extended_background_content_filter' );
 
 function get_extbackgrounds_content() {
 
-	$character = establishCharacter('Ugly Duckling');
+	$character = establishCharacter('');
 	$characterID = establishCharacterID($character);
 		
 	$content = "<div class='wrap'>
@@ -117,7 +117,7 @@ function get_editbackgrounds_tab($characterID) {
 		$content .= ($background->COMMENT) ? " ({$background->COMMENT})" : "";
 		$content .= "</p>\n";
 		if (!empty($background->BACKGROUND_QUESTION))
-			$content .= "<p class='gvext_ques'>" . $background->BACKGROUND_QUESTION . "</p>\n";
+			$content .= "<p class='gvext_ques'>" . stripslashes($background->BACKGROUND_QUESTION) . "</p>\n";
 		$content .= "<div class='gvext_section'>";
 		$content .= "<form name='extbgform{$i}' action='' method='post'>\n";
 		$content .= "<input type='hidden' name='charID' value='$characterID' />";
@@ -142,9 +142,9 @@ function get_editbackgrounds_tab($characterID) {
 		
 		if ($background->BACKGROUND_QUESTION != '') {
 			if (!empty($background->APPROVED_DETAIL))
-				$content .= "<tr><th>Approved Description</th></tr><tr><td class='gvext_approved'>{$background->APPROVED_DETAIL}</td></tr>";
+				$content .= "<tr><th>Approved Description</th></tr><tr><td class='gvext_approved'>" . stripslashes($background->APPROVED_DETAIL) . "</td></tr>";
 			if ($background->DENIED_DETAIL != "") {
-				$content .= "<tr><th>Description Denied</th></tr><tr><td class='gvext_denied'>{$background->DENIED_DETAIL}</td></tr>\n";
+				$content .= "<tr><th>Description Denied</th></tr><tr><td class='gvext_denied'>" . stripslashes($background->DENIED_DETAIL) . "</td></tr>\n";
 			}
 			$content .= "<tr><th>Update Description";
 			if ($background->DENIED_DETAIL != "")
@@ -154,9 +154,9 @@ function get_editbackgrounds_tab($characterID) {
 			$content .= "</th></tr>";
 			$content .= "<tr><td><textarea name='pending' rows='5' cols='100'>";
 			if ($background->PENDING_DETAIL == "")
-				$content .= $background->APPROVED_DETAIL;
+				$content .= stripslashes($background->APPROVED_DETAIL);
 			else
-				$content .= $background->PENDING_DETAIL;
+				$content .= stripslashes($background->PENDING_DETAIL);
 			$content .= "</textarea></td></tr>";
 		}
 		
@@ -216,7 +216,7 @@ function get_editmerits_tab($characterID) {
 	
 		$content .= "<p class='gvext_name'>" . $merit->NAME;
 		$content .= ($merit->COMMENT) ? " ({$merit->COMMENT})" : "";
-		$content .= "</p>\n<p class='gvext_ques'>" . $merit->BACKGROUND_QUESTION . "</p>\n";
+		$content .= "</p>\n<p class='gvext_ques'>" . stripslashes($merit->BACKGROUND_QUESTION) . "</p>\n";
 		$content .= "<div class='gvext_section'>";
 		$content .= "<form name='extmeritform{$i}' action='' method='post'>\n";
 		$content .= "<input type='hidden' name='charID' value='$characterID' />";
@@ -226,9 +226,9 @@ function get_editmerits_tab($characterID) {
 		$content .= "<table>";
 
 		if (!empty($merit->APPROVED_DETAIL))
-			$content .= "<tr><th>Approved Description</th></tr><tr><td class='gvext_approved'>{$merit->APPROVED_DETAIL}</td></tr>";
+			$content .= "<tr><th>Approved Description</th></tr><tr><td class='gvext_approved'>" . stripslashes($merit->APPROVED_DETAIL) . "</td></tr>";
 		if ($merit->DENIED_DETAIL != "") {
-			$content .= "<tr><th>Description Denied</th></tr><tr><td class='gvext_denied'>{$merit->DENIED_DETAIL}</td></tr>\n";
+			$content .= "<tr><th>Description Denied</th></tr><tr><td class='gvext_denied'>" . stripslashes($merit->DENIED_DETAIL) . "</td></tr>\n";
 		}
 		$content .= "<tr><th>Update Description";
 		if ($merit->DENIED_DETAIL != "")
@@ -238,9 +238,9 @@ function get_editmerits_tab($characterID) {
 		$content .= "</th></tr>";
 		$content .= "<tr><td><textarea name='pending' rows='5' cols='100'>";
 		if ($merit->PENDING_DETAIL == "")
-			$content .= $merit->APPROVED_DETAIL;
+			$content .= stripslashes($merit->APPROVED_DETAIL);
 		else
-			$content .= $merit->PENDING_DETAIL;
+			$content .= stripslashes($merit->PENDING_DETAIL);
 		$content .= "</textarea></td></tr>";
 
 		
@@ -255,7 +255,7 @@ function get_editmerits_tab($characterID) {
 function get_editmisc_tab($characterID) {
 	global $wpdb;
 
-	$character = establishCharacter("Ugly Duckling");
+	$character = establishCharacter("");
 	$characterID = establishCharacterID($character);
 	$wpdb->show_errors();
 	
@@ -336,7 +336,7 @@ function get_editmisc_tab($characterID) {
 	foreach ($questions as $question) {
 	
 		$content .= "<p class='gvext_name'>" . $question->TITLE . "</p>\n";
-		$content .= "<p class='gvext_ques'>" . $question->BACKGROUND_QUESTION . "</p>\n";
+		$content .= "<p class='gvext_ques'>" . stripslashes($question->BACKGROUND_QUESTION) . "</p>\n";
 		$content .= "<div class='gvext_section'>";
 		$content .= "<form name='extmiscform{$i}' action='' method='post'>\n";
 		$content .= "<input type='hidden' name='charID' value='$characterID' />";
@@ -348,9 +348,9 @@ function get_editmisc_tab($characterID) {
 		$content .= "<table>";
 
 		if (!empty($question->APPROVED_DETAIL))
-			$content .= "<tr><th>Approved Description</th></tr><tr><td class='gvext_approved'>{$question->APPROVED_DETAIL}</td></tr>";
+			$content .= "<tr><th>Approved Description</th></tr><tr><td class='gvext_approved'>" . stripslashes($question->APPROVED_DETAIL) . "</td></tr>";
 		if ($question->DENIED_DETAIL != "") {
-			$content .= "<tr><th>Description Denied</th></tr><tr><td class='gvext_denied'>{$question->DENIED_DETAIL}</td></tr>\n";
+			$content .= "<tr><th>Description Denied</th></tr><tr><td class='gvext_denied'>" . stripslashes($question->DENIED_DETAIL) . "</td></tr>\n";
 		}
 		$content .= "<tr><th>Update Description";
 		if ($question->DENIED_DETAIL != "")
@@ -360,9 +360,9 @@ function get_editmisc_tab($characterID) {
 		$content .= "</th></tr>";
 		$content .= "<tr><td><textarea name='pending' rows='5' cols='100'>";
 		if ($question->PENDING_DETAIL == "")
-			$content .= $question->APPROVED_DETAIL;
+			$content .= stripslashes($question->APPROVED_DETAIL);
 		else
-			$content .= $question->PENDING_DETAIL;
+			$content .= stripslashes($question->PENDING_DETAIL);
 		$content .= "</textarea></td></tr>";
 
 		

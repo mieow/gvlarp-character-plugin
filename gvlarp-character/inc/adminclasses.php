@@ -1707,7 +1707,7 @@ class gvadmin_questions_table extends GVMultiPage_ListTable {
             case 'GROUPING':
                 return $item->$column_name;
             case 'BACKGROUND_QUESTION':
-                return $item->$column_name;
+                return stripslashes($item->$column_name);
             default:
                 return print_r($item,true); 
         }
@@ -2056,7 +2056,7 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
 			$description = "<strong>{$tablerow->background} {$tablerow->LEVEL}";
 			$description .= ($tablerow->sector) ? " ({$tablerow->sector})" : "";
 			$description .= ($tablerow->COMMENT) ? " ({$tablerow->COMMENT})" : "";
-			$description .= "</strong><br /><span>{$tablerow->PENDING_DETAIL}</span>";
+			$description .= "</strong><br /><span>" . stripslashes($tablerow->PENDING_DETAIL) . "</span>";
 			
 			$data[$row] = array (
 				'ID'          => $row,
@@ -2089,7 +2089,7 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
 			$description = "<strong>{$tablerow->merit}";
 			$description .= ($tablerow->COMMENT) ? " ({$tablerow->COMMENT})" : "";
 			$description .= "</strong><br />
-				<span>{$tablerow->PENDING_DETAIL}</span>";
+				<span>" . stripslashes($tablerow->PENDING_DETAIL) . "</span>";
 			
 			$data[$row] = array (
 				'ID'          => $row,
@@ -2118,7 +2118,7 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
 		$tempdata =$wpdb->get_results($wpdb->prepare($sql));
 		foreach ($tempdata as $tablerow) {
 			$description = "<strong>{$tablerow->TITLE} ({$tablerow->GROUPING})</strong><br />
-				<span>{$tablerow->PENDING_DETAIL}</span>";
+				<span>" . stripslashes($tablerow->PENDING_DETAIL) . "</span>";
 			
 			$data[$row] = array (
 				'ID'          => $row,

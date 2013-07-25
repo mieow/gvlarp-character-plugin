@@ -258,7 +258,7 @@ function gv_print_redirect()
 						if (!empty($backgrounds[$i]->comment)) $text .= " " . $backgrounds[$i]->comment;
 					
 						$pdf->FullWidthText($text, 'B');
-						if (!empty($backgrounds[$i]->detail))  $pdf->FullWidthText($backgrounds[$i]->detail);
+						if (!empty($backgrounds[$i]->detail))  $pdf->FullWidthText(stripslashes($backgrounds[$i]->detail));
 						$pdf->Ln($textrowheight/2);
 					}
 				}
@@ -273,7 +273,7 @@ function gv_print_redirect()
 						if (!empty($merits[$i]->comment)) $text .= " (" . $merits[$i]->comment . ")";
 					
 						$pdf->FullWidthText($text, 'B');
-						if (!empty($merits[$i]->detail))  $pdf->FullWidthText($merits[$i]->detail);
+						if (!empty($merits[$i]->detail))  $pdf->FullWidthText(stripslashes($merits[$i]->detail));
 						$pdf->Ln($textrowheight/2);
 					}
 				}

@@ -4,7 +4,7 @@ register_activation_hook(__FILE__, "gvlarp_character_install");
 register_activation_hook( __FILE__, 'gvlarp_character_install_data' );
 
 global $gvlarp_character_db_version;
-$gvlarp_character_db_version = "1.6.1"; /* 1.6.1 */
+$gvlarp_character_db_version = "1.6.2"; /* 1.6.1 */
 
 function gvlarp_update_db_check() {
     global $gvlarp_character_db_version;
@@ -819,28 +819,28 @@ function gvlarp_character_install_data() {
 	/* Extended Background Questions */
 	$data = array (
 		'0' => array (
-			'ID'       => 0,
+			'ID'       => 1,
 			'ORDERING' => 1,
 			'GROUPING' => "Clan Flaw",
 			'TITLE'    => "Clan Flaw",
 			'BACKGROUND_QUESTION' => "Explain your Clan Flaw"
 		),
 		'1' => array (
-			'ID'       => 1,
+			'ID'       => 2,
 			'ORDERING' => 2,
 			'GROUPING' => "Travel",
 			'TITLE'    => "Travel To/From Court",
 			'BACKGROUND_QUESTION' => "Explain your method of transport to and from court"
 		),
 		'2' => array (
-			'ID'       => 2,
+			'ID'       => 3,
 			'ORDERING' => 3,
 			'GROUPING' => "Feeding",
 			'TITLE'    => "Feeding Habits",
 			'BACKGROUND_QUESTION' => "Explain your usual method of hunting and feeding"
 		),
 		'3' => array (
-			'ID'       => 3,
+			'ID'       => 4,
 			'ORDERING' => 4,
 			'GROUPING' => "History",
 			'TITLE'    => "Character History",
@@ -856,13 +856,264 @@ function gvlarp_character_install_data() {
 				$rowsadded = $wpdb->insert( GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND", $entry);
 	
 	/* Generations */
+	$data = array (
+		0 => array (
+			'ID'              => 1,
+			'NAME'            => 8,
+			'BLOODPOOL'       => 15,
+			'BLOOD_PER_ROUND' => 3,
+			'MAX_RATING'      => 5,
+			'MAX_DISCIPLINE'  => 5,
+			'COST'            => 5
+		),
+		1 => array (
+			'ID'              => 2,
+			'NAME'            => 9,
+			'BLOODPOOL'       => 14,
+			'BLOOD_PER_ROUND' => 2,
+			'MAX_RATING'      => 5,
+			'MAX_DISCIPLINE'  => 5,
+			'COST'            => 4
+		),
+		2 => array (
+			'ID'              => 3,
+			'NAME'            => 10,
+			'BLOODPOOL'       => 13,
+			'BLOOD_PER_ROUND' => 3,
+			'MAX_RATING'      => 5,
+			'MAX_DISCIPLINE'  => 5,
+			'COST'            => 3
+		),
+		3 => array (
+			'ID'              => 4,
+			'NAME'            => 11,
+			'BLOODPOOL'       => 12,
+			'BLOOD_PER_ROUND' => 1,
+			'MAX_RATING'      => 5,
+			'MAX_DISCIPLINE'  => 5,
+			'COST'            => 2
+		),
+		4 => array (
+			'ID'              => 5,
+			'NAME'            => 12,
+			'BLOODPOOL'       => 11,
+			'BLOOD_PER_ROUND' => 1,
+			'MAX_RATING'      => 5,
+			'MAX_DISCIPLINE'  => 5,
+			'COST'            => 1
+		),
+		5 => array (
+			'ID'              => 6,
+			'NAME'            => 13,
+			'BLOODPOOL'       => 10,
+			'BLOOD_PER_ROUND' => 1,
+			'MAX_RATING'      => 5,
+			'MAX_DISCIPLINE'  => 5,
+			'COST'            => 0
+		)
+	);
+	$sql = "select ID from " . GVLARP_TABLE_PREFIX . "GENERATION;";
+	$rows = count($wpdb->get_results($wpdb->prepare($sql)));
+	if (!$rows)
+		foreach ($data as $id => $entry)
+				$rowsadded = $wpdb->insert( GVLARP_TABLE_PREFIX . "GENERATION", $entry);
 	
 	/* Player Status */
+	$data = array (
+		0 => array (
+			'ID'          => 1,
+			'NAME'        => 'Active',
+			'DESCRIPTION' => 'Player is active'
+		),
+		1 => array (
+			'ID'          => 2,
+			'NAME'        => 'Inactive',
+			'DESCRIPTION' => 'Player is not active'
+		)
+	)
+	$sql = "select ID from " . GVLARP_TABLE_PREFIX . "PLAYER_STATUS;";
+	$rows = count($wpdb->get_results($wpdb->prepare($sql)));
+	if (!$rows)
+		foreach ($data as $id => $entry)
+				$rowsadded = $wpdb->insert( GVLARP_TABLE_PREFIX . "PLAYER_STATUS", $entry);
 	
 	/* Character Status */
+	$data = array (
+		0 => array (
+			'ID'          => 1,
+			'NAME'        => 'Alive',
+			'DESCRIPTION' => 'Character is alive'
+		),
+		1 => array (
+			'ID'          => 2,
+			'NAME'        => 'Torpor',
+			'DESCRIPTION' => 'Character is in torpor and will wake up:'
+		),
+		2 => array (
+			'ID'          => 3
+			'NAME'        => 'Dead',
+			'DESCRIPTION' => 'The character has been destroyed:'
+		),
+		3 => array (
+			'ID'          => 4,
+			'NAME'        => 'Imprisoned',
+			'DESCRIPTION' => 'The character has been imprisoned at:'
+		),
+		4 => array (
+			'ID'          => 5,
+			'NAME'        => 'Missing',
+			'DESCRIPTION' => 'Location and status unknown'
+		)
+	);
+	$sql = "select ID from " . GVLARP_TABLE_PREFIX . "CHARACTER_STATUS;";
+	$rows = count($wpdb->get_results($wpdb->prepare($sql)));
+	if (!$rows)
+		foreach ($data as $id => $entry)
+				$rowsadded = $wpdb->insert( GVLARP_TABLE_PREFIX . "CHARACTER_STATUS", $entry);
 	
 	/* Attributes (expecially needed so that the groups match what we output for character sheets */
-
+	$data = array(
+		0 => array (
+			'ID' => 1,
+			'NAME' => 'Strength',
+			'DESCRIPTION' => 'How strong your character is',
+			'GROUPING' => 'Physical',
+			'ORDERING' => 1,
+			'COST_MODEL_ID' => 1,
+			'SPECIALISATION_AT' => 4
+		),
+		1 => array (
+			'ID' => 2,
+			'NAME' => 'Dexterity',
+			'DESCRIPTION' => 'How agile and coordinated your character is',
+			'GROUPING' => 'Physical',
+			'ORDERING' => 2,
+			'COST_MODEL_ID' => 1,
+			'SPECIALISATION_AT' => 4 
+		),
+		2 => array (
+			'ID' => 3,
+			'NAME' => 'Stamina',
+			'DESCRIPTION' => 'How much punishment your character can take',
+			'GROUPING' => 'Physical',
+			'ORDERING' => 3,
+			'COST_MODEL_ID' => 1,
+			'SPECIALISATION_AT' => 4
+		),
+		3 => array (
+			'ID' => 4,
+			'NAME' => 'Appearance',
+			'DESCRIPTION' => 'How good looking your character is',
+			'GROUPING' => 'Social',
+			'ORDERING' => 6,
+			'COST_MODEL_ID' => 1,
+			'SPECIALISATION_AT' => 4 
+		),
+		4 => array (
+			'ID' => 5,
+			'NAME' => 'Charisma',
+			'DESCRIPTION' => 'The strength of personality of your character',
+			'GROUPING' => 'Social',
+			'ORDERING' => 4,
+			'COST_MODEL_ID' => 1,
+			'SPECIALISATION_AT' => 4 
+		),
+		5 => array (
+			'ID' => 6,
+			'NAME' => 'Manipulation',
+			'DESCRIPTION' => 'How good your character is at manipulating others',
+			'GROUPING' => 'Social',
+			'ORDERING' => 5,
+			'COST_MODEL_ID' => 1,
+			'SPECIALISATION_AT' => 4 
+		),
+		6 => array (
+			'ID' => 7,
+			'NAME' => 'Intelligence',
+			'DESCRIPTION' => 'How smart your character is',
+			'GROUPING' => 'Mental',
+			'ORDERING' => 8,
+			'COST_MODEL_ID' => 1,
+			'SPECIALISATION_AT' => 4 
+		),
+		7 => array (
+			'ID' => 8,
+			'NAME' => 'Wits',
+			'DESCRIPTION' => 'How quick thinking your character is',
+			'GROUPING' => 'Mental',
+			'ORDERING' => 9,
+			'COST_MODEL_ID' => 1,
+			'SPECIALISATION_AT' => 4 
+		),
+		8 => array (
+			'ID' => 9,
+			'NAME' => 'Perception',
+			'DESCRIPTION' => 'How much your character notices',
+			'GROUPING' => 'Mental',
+			'ORDERING' => 7,
+			'COST_MODEL_ID' => 1,
+			'SPECIALISATION_AT' => 4 
+		),
+		9 => array (
+			'ID' => 10,
+			'NAME' => 'Self Control',
+			'DESCRIPTION' => 'How well you keep yourself in check',
+			'GROUPING' => 'Virtue',
+			'ORDERING' => 11,
+			'COST_MODEL_ID' => 10,
+			'SPECIALISATION_AT' => 0
+		),
+		10 => array (
+			'ID' => 11,
+			'NAME' => 'Courage',
+			'DESCRIPTION' => 'How brave you are',
+			'GROUPING' => 'Virtue',
+			'ORDERING' => 12,
+			'COST_MODEL_ID' => 10,
+			'SPECIALISATION_AT' => 0 
+		),
+		11 => array (
+			'ID' => 12,
+			'NAME' => 'Conscience',
+			'DESCRIPTION' => 'How caring you are',
+			'GROUPING' => 'Virtue',
+			'ORDERING' => 10,
+			'COST_MODEL_ID' => 10,
+			'SPECIALISATION_AT' => 0
+		),
+		12 => array (
+			'ID' => 13,
+			'NAME' => 'Conviction',
+			'DESCRIPTION' => 'The strength of your convictions',
+			'GROUPING' => 'Virtue',
+			'ORDERING' => 10,
+			'COST_MODEL_ID' => 10,
+			'SPECIALISATION_AT' => 0
+		),
+		13 => array (
+			'ID' => 14,
+			'NAME' => 'Instinct',
+			'DESCRIPTION' => 'How well you ride the beast',
+			'GROUPING' => 'Virtue',
+			'ORDERING' => 11,
+			'COST_MODEL_ID' => 10,
+			'SPECIALISATION_AT' => 0
+		),
+		14 => array (
+			'ID' => 15,
+			'NAME' => 'Willpower',
+			'DESCRIPTION' => 'How strong your force of will is',
+			'GROUPING' => 'Willpower',
+			'ORDERING' => 13,
+			'COST_MODEL_ID' => 11,
+			'SPECIALISATION_AT' => 0
+		)
+	);
+	$sql = "select ID from " . GVLARP_TABLE_PREFIX . "STAT;";
+	$rows = count($wpdb->get_results($wpdb->prepare($sql)));
+	if (!$rows)
+		foreach ($data as $id => $entry)
+				$rowsadded = $wpdb->insert( GVLARP_TABLE_PREFIX . "STAT", $entry);
 }
 
 ?>
