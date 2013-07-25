@@ -3090,7 +3090,7 @@ function get_stlink_url($stlinkvalue) {
         $profiles = $wpdb->get_results($sql);
 
         foreach ($profiles as $profile) {
-            $quote    = $profile->quote;
+            $quote    = stripslashes($profile->quote);
             $imageURL = $profile->portrait;
         }
 
@@ -3994,7 +3994,7 @@ function get_stlink_url($stlinkvalue) {
                 $characterProfiles = $wpdb->get_results($wpdb->prepare($sql, $characterID));
 
                 foreach ($characterProfiles as $characterProfile) {
-                    $characterHarpyQuote  = $characterProfile->QUOTE;
+                    $characterHarpyQuote  = stripslashes($characterProfile->QUOTE);
                     $characterPortraitURL = $characterProfile->PORTRAIT;
                 }
             }

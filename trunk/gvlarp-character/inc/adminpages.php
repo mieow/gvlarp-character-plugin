@@ -1391,7 +1391,7 @@ function render_question_add_form($addaction) {
 		$title   = $data[0]->TITLE;
 		$order   = $data[0]->ORDERING;
 		$group   = $data[0]->GROUPING;
-		$question = $data[0]->BACKGROUND_QUESTION;
+		$question = stripslashes($data[0]->BACKGROUND_QUESTION);
 		
 	} else {
 	
