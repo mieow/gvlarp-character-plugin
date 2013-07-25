@@ -108,6 +108,7 @@
 require_once GVLARP_CHARACTER_URL . 'inc/install.php';
 require_once GVLARP_CHARACTER_URL . 'inc/extendedbackground.php';
 require_once GVLARP_CHARACTER_URL . 'inc/printable.php';
+require_once GVLARP_CHARACTER_URL . 'inc/widgets.php';
 
 function register_plugin_styles() {
 	wp_register_style( 'my-plugin', plugins_url( 'my-plugin/css/plugin.css' ) );
