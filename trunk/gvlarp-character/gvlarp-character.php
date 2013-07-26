@@ -764,12 +764,15 @@ function get_stlink_url($stlinkvalue) {
                                    " . $table_prefix . "PLAYER player,
                                    " . $table_prefix . "PLAYER_STATUS pstatus,
                                    " . $table_prefix . "COURT court,
-                                   " . $table_prefix . "CLAN clan
+                                   " . $table_prefix . "CLAN clan,
+								   " . $table_prefix . "CHARACTER_STATUS cstatus
                               WHERE target_char.PUBLIC_CLAN_ID = clan.ID
                                 AND target_char.player_id = player.id
                                 AND player.player_status_id = pstatus.id
                                 AND target_char.court_id = court.id
                                 AND pstatus.name = 'Active'
+								AND target_char.character_status_id = cstatus.id
+								AND cstatus.name = 'Alive'
                                 AND clan.name = %s";
 
             $rightQuery = "SELECT target_char.id chara2_id,
@@ -786,8 +789,9 @@ function get_stlink_url($stlinkvalue) {
                                     " . $table_prefix . "CLAN target_clan,
                                     " . $table_prefix . "COURT target_court,
                                     " . $table_prefix . "BACKGROUND back,
-                                    " . $table_prefix . "CHARACTER_BACKGROUND cha_back
-                               WHERE source_clan.name = %s
+                                    " . $table_prefix . "CHARACTER_BACKGROUND cha_back,
+ 								    " . $table_prefix . "CHARACTER_STATUS cstatus
+                              WHERE source_clan.name = %s
                                  AND target_char.ID = cha_back.CHARACTER_ID
                                  AND cha_back.BACKGROUND_ID = back.id
                                  AND back.NAME = 'Clan Prestige'
@@ -795,6 +799,8 @@ function get_stlink_url($stlinkvalue) {
                                  AND target_char.DELETED != 'Y'
                                  AND target_char.player_id = player.id
                                  AND target_char.court_id = target_court.id
+								 AND target_char.character_status_id = cstatus.id
+								 AND cstatus.name = 'Alive'
                                  AND player.player_status_id = pstatus.id
                                  AND pstatus.name = 'Active'
                                  AND source_char.DELETED != 'Y'
