@@ -219,12 +219,12 @@ function gv_print_redirect()
 					'Sire',          $mycharacter->sire
 				)
 			);
-			/* $pdf->BasicInfoTableRow( array(
-					'Clan Flaw',     '<clan flaw>',
+			$pdf->BasicInfoTableRow( array(
+					'Clan Flaw',     $mycharacter->clan_flaw,
 					'Site Login',    $mycharacter->wordpress_id,
-					'Email address', '<email>'
+					'', ''
 				)
-			); */
+			);
 			$pdf->Ln();
 			
 			/* Rituals */
@@ -774,6 +774,7 @@ class larpcharacter {
 	var $sire;
 	var $combo_disciplines;
 	var $current_experience;
+	var $clan_flaw;
 	
 	function load ($characterID){
 		global $wpdb;
@@ -796,7 +797,8 @@ class larpcharacter {
 					   gen.max_rating,
 					   chara.date_of_birth,
 					   chara.date_of_embrace,
-					   chara.sire
+					   chara.sire,
+					   priv_clan.clan_flaw
                     FROM " . GVLARP_TABLE_PREFIX . "CHARACTER chara,
                          " . GVLARP_TABLE_PREFIX . "PLAYER player,
                          " . GVLARP_TABLE_PREFIX . "COURT court,
@@ -831,6 +833,7 @@ class larpcharacter {
 		$this->date_of_birth   = $result[0]->date_of_birth;
 		$this->date_of_embrace = $result[0]->date_of_embrace;
 		$this->player_id    = $result[0]->player_id;
+		$this->clan_flaw    = $result[0]->clan_flaw;
 		
 		/* Attributes */
 		$sql = "SELECT stat.name		name,
