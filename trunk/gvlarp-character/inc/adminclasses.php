@@ -30,6 +30,7 @@ class GVMultiPage_ListTable extends WP_List_Table {
 
 		$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 		$current_url = remove_query_arg( 'paged', $current_url );
+		$current_url = remove_query_arg( 'action', $current_url );
 		$current_url = add_query_arg('tab', $this->type, $current_url);
 
 		if ( isset( $_GET['orderby'] ) && (!isset($_GET['tab']) || (isset($_GET['tab']) && $_GET['tab'] == $this->type ) ) )
@@ -462,6 +463,7 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 		$this->type = $type;
         
         $this->process_bulk_action();
+		
 		
 		/* Get the data from the database */
 		$sql = "select merit.ID, merit.NAME as NAME, merit.DESCRIPTION as DESCRIPTION, merit.GROUPING as GROUPING,
@@ -1637,7 +1639,7 @@ class gvadmin_questions_table extends GVMultiPage_ListTable {
 		}
 	}
 	
- 	function add_question($title, $ordering, $grouping, $question) {
+ 	function add_question($title, $ordering, $grouping, $question, $visible) {
 		global $wpdb;
 		
 		$wpdb->show_errors();
@@ -1646,7 +1648,8 @@ class gvadmin_questions_table extends GVMultiPage_ListTable {
 						'TITLE'          => $title,
 						'ORDERING'       => $ordering,
 						'GROUPING'       => $grouping,
-						'BACKGROUND_QUESTION' => $question
+						'BACKGROUND_QUESTION' => $question,
+						'VISIBLE'        => $visible
 					);
 		
 		/* print_r($dataarray); */
@@ -1656,6 +1659,7 @@ class gvadmin_questions_table extends GVMultiPage_ListTable {
 					array (
 						'%s',
 						'%d',
+						'%s',
 						'%s',
 						'%s'
 					)
@@ -1669,7 +1673,7 @@ class gvadmin_questions_table extends GVMultiPage_ListTable {
 			echo "<p style='color:green'>Added question '$title' (ID: {$wpdb->insert_id})</p>";
 		}
 	}
- 	function edit_question($id, $title, $ordering, $grouping, $question) {
+ 	function edit_question($id, $title, $ordering, $grouping, $question, $visible) {
 		global $wpdb;
 		
 		$wpdb->show_errors();
@@ -1678,7 +1682,8 @@ class gvadmin_questions_table extends GVMultiPage_ListTable {
 						'TITLE'          => $title,
 						'ORDERING'       => $ordering,
 						'GROUPING'       => $grouping,
-						'BACKGROUND_QUESTION' => $question
+						'BACKGROUND_QUESTION' => $question,
+						'VISIBLE'        => $visible
 					);
 		
 		/* print_r($dataarray); */
@@ -1735,7 +1740,8 @@ class gvadmin_questions_table extends GVMultiPage_ListTable {
             'TITLE'         => 'Title',
             'ORDERING'      => 'Order',
             'GROUPING'      => 'Group',
-            'BACKGROUND_QUESTION'  => 'Question'
+ 			'VISIBLE'       => 'Question visible to players',
+           'BACKGROUND_QUESTION'  => 'Question'
         );
         return $columns;
 		
@@ -1789,7 +1795,7 @@ class gvadmin_questions_table extends GVMultiPage_ListTable {
         $this->process_bulk_action();
 		
 		/* Get the data from the database */
-		$sql = "select questions.ID, questions.TITLE, questions.ORDERING, questions.GROUPING, questions.BACKGROUND_QUESTION
+		$sql = "select questions.ID, questions.TITLE, questions.ORDERING, questions.GROUPING, questions.BACKGROUND_QUESTION, questions.VISIBLE
 			from " . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND questions;";
 				
 		/* order the data according to sort columns */
@@ -2180,5 +2186,260 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
 
 }
 
+/* 
+-----------------------------------------------
+CLANS
+------------------------------------------------ */
+class gvadmin_clans_table extends GVMultiPage_ListTable {
+   
+    function __construct(){
+        global $status, $page;
+                
+        parent::__construct( array(
+            'singular'  => 'clan',     
+            'plural'    => 'clans',    
+            'ajax'      => false        
+        ) );
+    }
+	
+	function delete_clan($selectedID) {
+		global $wpdb;
+		
+		/* Check if clan id in use in a character */
+		$sql = "select characters.NAME 
+			from " . GVLARP_TABLE_PREFIX . "CHARACTER characters
+			where characters.PUBLIC_CLAN_ID = $selectedID or characters.PRIVATE_CLAN_ID = $selectedID;";
+		$isused = $wpdb->get_results($wpdb->prepare($sql));
+		
+		if ($isused) {
+			echo "<p style='color:red'>Cannot delete as this {$this->type} is being used in the following characters:";
+			echo "<ul>";
+			foreach ($isused as $character)
+				echo "<li style='color:red'>{$character->NAME}</li>";
+			echo "</ul></p>";
+		} else {
+		
+			/* Check if clan id in use in a clan discipline */
+			$sql = "select disciplines.NAME 
+				from " . GVLARP_TABLE_PREFIX . "CLAN_DISCIPLINE clandisc, 
+					" . GVLARP_TABLE_PREFIX . "DISCIPLINE disciplines
+				where disciplines.ID = clandisc.DISCIPLINE_ID
+					and clandisc.CLAN_ID = $selectedID;";
+			$isused = $wpdb->get_results($wpdb->prepare($sql));
+
+			if ($isused) {
+				echo "<p style='color:red'>Cannot delete as this {$this->type} is being used in the following clan disciplines:";
+				echo "<ul>";
+				foreach ($isused as $disc)
+					echo "<li style='color:red'>{$disc->NAME}</li>";
+				echo "</ul></p>";
+			
+			} else {
+				$sql = "delete from " . GVLARP_TABLE_PREFIX . "CLAN where ID = $selectedID;";
+				
+				$result = $wpdb->get_results($wpdb->prepare($sql));
+			
+				/* print_r($result); */
+				echo "<p style='color:green'>Deleted item $selectedID</p>";
+			}
+		}
+	}
+	
+ 	function add_clan($name, $description, $iconlink, $clanpage,
+						$clanflaw, $visible) {
+		global $wpdb;
+		
+		$wpdb->show_errors();
+		
+		$dataarray = array(
+						'NAME' => $name,
+						'DESCRIPTION' => $description,
+						'ICON_LINK' => $iconlink,
+						'CLAN_PAGE_LINK' => $clanpage,
+						'CLAN_FLAW' => $clanflaw,
+						'VISIBLE' => $visible
+					);
+		
+		/* print_r($dataarray); */
+		
+		$wpdb->insert(GVLARP_TABLE_PREFIX . "CLAN",
+					$dataarray,
+					array (
+						'%s',
+						'%s',
+						'%s',
+						'%s',
+						'%s',
+						'%s'
+					)
+				);
+		
+		if ($wpdb->insert_id == 0) {
+			echo "<p style='color:red'><b>Error:</b> $name could not be inserted (";
+			$wpdb->print_error();
+			echo ")</p>";
+		} else {
+			echo "<p style='color:green'>Added clan '$name' (ID: {$wpdb->insert_id})</p>";
+		}
+	}
+ 	function edit_clan($clanid, $name, $description, $iconlink, $clanpage,
+						$clanflaw, $visible) {
+		global $wpdb;
+		
+		$wpdb->show_errors();
+		
+		$dataarray = array(
+						'NAME' => $name,
+						'DESCRIPTION' => $description,
+						'ICON_LINK' => $iconlink,
+						'CLAN_PAGE_LINK' => $clanpage,
+						'CLAN_FLAW' => $clanflaw,
+						'VISIBLE' => $visible
+					);
+		
+		/* print_r($dataarray); */
+		
+		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "CLAN",
+					$dataarray,
+					array (
+						'ID' => $clanid
+					)
+				);
+		
+		if ($result) 
+			echo "<p style='color:green'>Updated $name</p>";
+		else if ($result === 0) 
+			echo "<p style='color:orange'>No updates made to $name</p>";
+		else {
+			$wpdb->print_error();
+			echo "<p style='color:red'>Could not update $name ($clanid)</p>";
+		}
+	}
+   
+    function column_default($item, $column_name){
+        switch($column_name){
+            case 'DESCRIPTION':
+                return $item->$column_name;
+            case 'CLAN_PAGE_LINK':
+                return $item->$column_name;
+             case 'ICON_LINK':
+                return $item->$column_name;
+           case 'CLAN_FLAW':
+                return $item->$column_name;
+            default:
+                return print_r($item,true); 
+        }
+    }
+ 
+    function column_name($item){
+	
+		$act = ($item->VISIBLE === 'Y') ? 'hide' : 'show';
+        
+        $actions = array(
+            'edit'      => sprintf('<a href="?page=%s&action=%s&clan=%s&tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
+            'delete'    => sprintf('<a href="?page=%s&action=%s&clan=%s&tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
+        );
+        
+        
+        return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
+            $item->NAME,
+            $item->ID,
+            $this->row_actions($actions)
+        );
+    }
+      
+
+    function get_columns(){
+        $columns = array(
+            'cb'           => '<input type="checkbox" />', 
+            'NAME'         => 'Name',
+            'DESCRIPTION'  => 'Description',
+            'ICON_LINK'    => 'Link to clan icon',
+            'CLAN_PAGE_LINK' => 'Link to clan page',
+            'CLAN_FLAW'    => 'Clan Flaw',
+            'VISIBLE'      => 'Visible to Players',
+        );
+        return $columns;
+		
+    }
+    
+    function get_sortable_columns() {
+        $sortable_columns = array(
+            'NAME'        => array('NAME',true),
+            'VISIBLE'    => array('GROUPING',false),
+        );
+        return $sortable_columns;
+    }
+	
+	
+	
+    
+    function get_bulk_actions() {
+        $actions = array(
+            'delete'    => 'Delete',
+       );
+        return $actions;
+    }
+    
+    function process_bulk_action() {
+        
+		/* echo "<p>Bulk action " . $this->current_action() . ", currently on tab {$_REQUEST['tab']} and will do action if {$this->type}.</p>"; */
+		
+        if( 'delete'===$this->current_action() && $_REQUEST['tab'] == $this->type) {
+			if ('string' == gettype($_REQUEST['clan'])) {
+				$this->delete_clan($_REQUEST['clan']);
+			} else {
+				foreach ($_REQUEST['clan'] as $clan) {
+					$this->delete_clan($clan);
+				}
+			}
+        }
+		
+    } 
+    
+    function prepare_items() {
+        global $wpdb; 
+
+        /* $per_page = 20; */
+        
+        $columns = $this->get_columns();
+        $hidden = array();
+        $sortable = $this->get_sortable_columns();
+        			
+		$this->_column_headers = array($columns, $hidden, $sortable);
+        
+		$this->type = "clan";
+        
+        $this->process_bulk_action();
+		
+		/* Get the data from the database */
+		$sql = "select * from " . GVLARP_TABLE_PREFIX. "CLAN clan";
+		
+		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']) && $type == $_REQUEST['tab'])
+			$sql .= " ORDER BY clan.{$_REQUEST['orderby']} {$_REQUEST['order']}";
+		
+		$sql .= ";";
+		/* echo "<p>SQL: " . $sql . "</p>"; */
+		
+		$data =$wpdb->get_results($wpdb->prepare($sql));
+        
+        $current_page = $this->get_pagenum();
+        $total_items = count($data);
+                
+        $this->items = $data;
+        
+        /* $this->set_pagination_args( array(
+            'total_items' => $total_items,                  
+            'per_page'    => $per_page,                  
+            'total_pages' => ceil($total_items/$per_page)
+        ) ); */
+        $this->set_pagination_args( array(
+            'total_items' => $total_items,                  
+            'per_page'    => $total_items,                  
+            'total_pages' => 1
+        ) );
+    }
+
+}
 
 ?>

@@ -118,9 +118,10 @@ add_action( 'admin_bar_menu', 'toolbar_link_gvadmin', 999 );
 
 function register_character_menu() {
 	add_menu_page( "Character Plugin Options", "Characters", "manage_options", "gvcharacter-plugin", "character_options");
-	add_submenu_page( "gvcharacter-plugin", "Database Tables", "Data", "manage_options", "gvcharacter-data", "character_datatables" );  
-	add_submenu_page( "gvcharacter-plugin", "Backgrounds", "Backgrounds", "manage_options", "gvcharacter-bg", "character_backgrounds" );  
-	add_submenu_page( "gvcharacter-plugin", "Configuration", "Configuration", "manage_options", "gvcharacter-config", "character_config" );  
+	add_submenu_page( "gvcharacter-plugin", "Database Tables",     "Data",          "manage_options", "gvcharacter-data",   "character_datatables" );  
+	add_submenu_page( "gvcharacter-plugin", "Clans & Disciplines", "Clans",         "manage_options", "gvcharacter-clans",  "character_clans" );  
+	add_submenu_page( "gvcharacter-plugin", "Backgrounds",         "Backgrounds",   "manage_options", "gvcharacter-bg",     "character_backgrounds" );  
+	add_submenu_page( "gvcharacter-plugin", "Configuration",       "Configuration", "manage_options", "gvcharacter-config", "character_config" );  
 }
 
 function character_options() {
@@ -463,6 +464,7 @@ function character_datatables() {
 				document.getElementById('gv-flaws').style.display = 'none';
 				document.getElementById('gv-rituals').style.display = 'none';
 				document.getElementById('gv-books').style.display = 'none';
+				document.getElementById('gv-clans').style.display = 'none';
 				document.getElementById(tab).style.display = '';
 				return false;
 			}
@@ -473,6 +475,7 @@ function character_datatables() {
 				<li><a href="javascript:void(0);" onclick="tabSwitch('gv-flaws');">Flaws</a></li>
 				<li><a href="javascript:void(0);" onclick="tabSwitch('gv-rituals');">Rituals</a></li>
 				<li><a href="javascript:void(0);" onclick="tabSwitch('gv-books');">Sourcebooks</a></li>
+				<li><a href="javascript:void(0);" onclick="tabSwitch('gv-clans');">Clans</a></li>
 			</ul>
 		</div>
 		<!-- <p>tab: <?php echo $_REQUEST['tab'] ?>, m: <?php tabdisplay("merits"); ?>, f: <?php tabdisplay("flaws"); ?></p> -->
@@ -492,6 +495,39 @@ function character_datatables() {
 			<div id="gv-books" <?php tabdisplay("book"); ?>>
 				<h1>Sourcebooks</h1>
 				<?php render_sourcebook_page(); ?>
+			</div>
+			<div id="gv-clans" <?php tabdisplay("clan"); ?>>
+				<h1>Clans</h1>
+				<?php render_clan_page(); ?>
+			</div>
+		</div>
+
+	</div>
+	
+	<?php
+}
+function character_clans() {
+	if ( !current_user_can( 'manage_options' ) )  {
+		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
+	}
+	?>
+	<div class="wrap">
+		<h2>Clans and Disciplines</h2>
+		<script type="text/javascript">
+				document.getElementById('gv-clans').style.display = 'none';
+				document.getElementById(tab).style.display = '';
+				return false;
+			}
+		</script>
+		<div class="gvadmin_nav">
+			<ul>
+				<li><a href="javascript:void(0);" onclick="tabSwitch('gv-clans');">Clans</a></li>
+			</ul>
+		</div>
+		<div class="gvadmin_content">
+			<div id="gv-clans" <?php tabdisplay("clan", "clan"); ?>>
+				<h1>Clans</h1>
+				<?php render_clan_page(); ?>
 			</div>
 		</div>
 
@@ -649,12 +685,13 @@ function render_approvals_data(){
 	
 	$testListTable['gvapprove']->prepare_items();
 
-	
+	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+	$current_url = remove_query_arg( 'action', $current_url );
 
    ?>	
 
 	<!-- Forms are NOT created automatically, so you need to wrap the table in one to use features like bulk actions -->
-	<form id="approve-filter" method="get">
+	<form id="approve-filter" method="get" action='<?php print $current_url; ?>'>
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
 		<input type="hidden" name="tab" value="gvapprove" />
  		<?php $testListTable['gvapprove']->display() ?>
@@ -669,23 +706,25 @@ function render_question_data(){
 	
  	if ($doaction == "add-question") {
 		$testListTable['question']->add_question($_REQUEST['question_title'], $_REQUEST['question_order'], 
-												$_REQUEST['question_group'], $_REQUEST['question_question']);
+												$_REQUEST['question_group'], $_REQUEST['question_question'], $_REQUEST['question_visible']);
 	}
 	if ($doaction == "save-edit-question") { 
 		$testListTable['question']->edit_question($_REQUEST['question_id'], $_REQUEST['question_title'], $_REQUEST['question_order'], 
-												$_REQUEST['question_group'], $_REQUEST['question_question']);
+												$_REQUEST['question_group'], $_REQUEST['question_question'], $_REQUEST['question_visible']);
 	}
 
 	render_question_add_form($doaction); 
 	
 	$testListTable['question']->prepare_items();
-   ?>	
+ 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+	$current_url = remove_query_arg( 'action', $current_url );
+  ?>	
 
 	<!-- Forms are NOT created automatically, so you need to wrap the table in one to use features like bulk actions -->
-	<form id="question-filter" method="get">
+	<form id="question-filter" method="get" action='<?php print $current_url; ?>'>
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
 		<input type="hidden" name="tab" value="question" />
- 		<?php $testListTable['question']->display() ?>
+		<?php $testListTable['question']->display() ?>
 	</form>
 
     <?php
@@ -705,13 +744,15 @@ function render_sector_data(){
 	render_sector_add_form($doaction); 
 	
 	$testListTable['sector']->prepare_items();
-   ?>	
+ 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+	$current_url = remove_query_arg( 'action', $current_url );
+  ?>	
 
 	<!-- Forms are NOT created automatically, so you need to wrap the table in one to use features like bulk actions -->
-	<form id="sector-filter" method="get">
+	<form id="sector-filter" method="get" action='<?php print $current_url; ?>'>
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
 		<input type="hidden" name="tab" value="sector" />
- 		<?php $testListTable['sector']->display() ?>
+		<?php $testListTable['sector']->display() ?>
 	</form>
 
     <?php
@@ -735,13 +776,15 @@ function render_background_data(){
 	render_bgdata_add_form($doaction);
 	
 	$testListTable['bgdata']->prepare_items();
-   ?>	
+ 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+	$current_url = remove_query_arg( 'action', $current_url );
+  ?>	
 
 	<!-- Forms are NOT created automatically, so you need to wrap the table in one to use features like bulk actions -->
-	<form id="bgdata-filter" method="get">
+	<form id="bgdata-filter" method="get" action='<?php print $current_url; ?>'>
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
 		<input type="hidden" name="tab" value="bgdata" />
- 		<?php $testListTable['bgdata']->display() ?>
+		<?php $testListTable['bgdata']->display() ?>
 	</form>
 
     <?php
@@ -750,6 +793,7 @@ function render_background_data(){
 
 function render_meritflaw_page($type){
 
+	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
     $testListTable[$type] = new gvadmin_meritsflaws_table();
 	$doaction = merit_input_validation($type);
 	/* echo "<p>Merit action: $doaction</p>"; */
@@ -759,7 +803,6 @@ function render_meritflaw_page($type){
 									$_REQUEST[$type . '_page_number'], $_REQUEST[$type . '_cost'], $_REQUEST[$type . '_xp_cost'], 
 									$_REQUEST[$type . '_multiple'], $_REQUEST[$type . '_visible'], $_REQUEST[$type . '_desc'],
 									$_REQUEST[$type . '_question']);
-									
 	}
 	if ($doaction == "save-edit-$type") { 
 		$testListTable[$type]->edit_merit($_REQUEST[$type . '_id'], $_REQUEST[$type . '_name'], $_REQUEST[$type . '_group'], 
@@ -771,11 +814,12 @@ function render_meritflaw_page($type){
 	render_meritflaw_add_form($type, $doaction);
 	
     $testListTable[$type]->prepare_items($type);
+	$current_url = remove_query_arg( 'action', $current_url );
 
    ?>	
 
 	<!-- Forms are NOT created automatically, so you need to wrap the table in one to use features like bulk actions -->
-	<form id="<?php print $type ?>-filter" method="get">
+	<form id="<?php print $type ?>-filter" method="get" action='<?php print $current_url; ?>'>
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
 		<input type="hidden" name="tab" value="<?php print $type ?>" />
  		<?php $testListTable[$type]->display() ?>
@@ -806,9 +850,11 @@ function render_rituals_page(){
 
 	render_ritual_add_form($doaction);
 	$testListTable["rituals"]->prepare_items();
+	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+	$current_url = remove_query_arg( 'action', $current_url );
 	?>	
 
-	<form id="rituals-filter" method="get">
+	<form id="rituals-filter" method="get" action='<?php print $current_url; ?>'>
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
 		<input type="hidden" name="tab" value="ritual" />
  		<?php $testListTable["rituals"]->display() ?>
@@ -832,12 +878,44 @@ function render_sourcebook_page(){
 
 	render_book_add_form($doaction);
 	$testListTable["books"]->prepare_items();
+	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+	$current_url = remove_query_arg( 'action', $current_url );
 	?>	
 
-	<form id="books-filter" method="get">
+	<form id="books-filter" method="get" action='<?php print $current_url; ?>'>
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
 		<input type="hidden" name="tab" value="book" />
  		<?php $testListTable["books"]->display() ?>
+	</form>
+
+    <?php
+}
+function render_clan_page(){
+
+    $testListTable["clans"] = new gvadmin_clans_table();
+	$doaction = clan_input_validation();
+	
+	if ($doaction == "add-clan") {
+		$testListTable["clans"]->add_clan($_REQUEST['clan_name'], $_REQUEST['clan_description'], $_REQUEST['clan_iconlink'], 
+			$_REQUEST['clan_clanpage'], $_REQUEST['clan_flaw'], $_REQUEST['clan_visible'] );
+									
+	}
+	if ($doaction == "save-edit-clan") {
+		$testListTable["clans"]->edit_clan($_REQUEST['clan_id'], $_REQUEST['clan_name'], $_REQUEST['clan_description'], $_REQUEST['clan_iconlink'], 
+			$_REQUEST['clan_clanpage'], $_REQUEST['clan_flaw'], $_REQUEST['clan_visible']);
+									
+	}
+
+	render_clan_add_form($doaction);
+	$testListTable["clans"]->prepare_items();
+	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+	$current_url = remove_query_arg( 'action', $current_url );
+	?>	
+
+	<form id="clans-filter" method="get" action='<?php print $current_url; ?>'>
+		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
+		<input type="hidden" name="tab" value="clan" />
+ 		<?php $testListTable["clans"]->display() ?>
 	</form>
 
     <?php
@@ -931,11 +1009,14 @@ function render_meritflaw_add_form($type, $addaction) {
 	}
 
 	$booklist = get_booknames();
+	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+	$current_url = remove_query_arg( 'action', $current_url );
 
 	?>
-	<form id="new-<?php print $type; ?>" method="post">
+	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
 		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
 		<input type="hidden" name="tab" value="<?php print $type; ?>" />
+		<input type="hidden" name="action" value="edit" />
 		<table>
 		<tr>
 			<td><?php print ucfirst($type); ?> Name:  </td><td><input type="text" name="<?php print $type; ?>_name" value="<?php print $name; ?>" size=20/></td> <!-- check sizes -->
@@ -1048,11 +1129,14 @@ function render_ritual_add_form($addaction) {
 	}
 
 	$booklist = get_booknames();
+	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+	$current_url = remove_query_arg( 'action', $current_url );
 
 	?>
-	<form id="new-<?php print $type; ?>" method="post">
+	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
 		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
 		<input type="hidden" name="tab" value="<?php print $type; ?>" />
+		<input type="hidden" name="action" value="edit" />
 		<table>
 		<tr>
 			<td><?php print ucfirst($type); ?> Name:  </td>
@@ -1155,10 +1239,13 @@ function render_book_add_form($addaction) {
 		$visible = "Y";
 	}
 
+	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+	$current_url = remove_query_arg( 'action', $current_url );
 	?>
-	<form id="new-<?php print $type; ?>" method="post">
+	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
 		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
 		<input type="hidden" name="tab" value="<?php print $type; ?>" />
+		<input type="hidden" name="action" value="edit" />
 		<table style='width:500px'>
 		<tr>
 			<td><?php print ucfirst($type); ?> Code:  </td>
@@ -1174,6 +1261,100 @@ function render_book_add_form($addaction) {
 					<option value="N" <?php selected($visible, "N"); ?>>No</option>
 					<option value="Y" <?php selected($visible, "Y"); ?>>Yes</option>
 				</select></td>
+
+		</tr>
+		</table>
+		<input type="submit" name="do_add_<?php print $type; ?>" class="button-primary" value="Save <?php print ucfirst($type); ?>" />
+	</form>
+	
+	<?php
+}
+function render_clan_add_form($addaction) {
+
+	global $wpdb;
+	
+	$type = "clan";
+	
+	/* echo "<p>Creating clan form based on action $addaction</p>"; */
+
+	if ('fix-' . $type == $addaction) {
+		$id = $_REQUEST['clan'];
+		$name = $_REQUEST[$type . '_name'];
+
+		$description = $_REQUEST[$type . '_description'];
+		$iconlink = $_REQUEST[$type . '_iconlink'];
+		$clanpage = $_REQUEST[$type . '_clanpage'];
+		$clanflaw = $_REQUEST[$type . '_flaw'];
+		$visible = $_REQUEST[$type . '_visible'];
+		
+	} else if ('edit-' . $type == $addaction) {
+		/* Get values from database */
+		$id   = $_REQUEST['clan'];
+		
+		$sql = "select *
+				from " . GVLARP_TABLE_PREFIX . "CLAN clan
+				where clan.ID = '$id';";
+		
+		/* echo "<p>$sql</p>"; */
+		
+		$data =$wpdb->get_results($wpdb->prepare($sql));
+		
+		/* print_r($data); */
+		
+		$name = $data[0]->NAME;
+		$description = $data[0]->DESCRIPTION;
+		$iconlink = $data[0]->ICON_LINK;
+		$clanpage = $data[0]->CLAN_PAGE_LINK;
+		$clanflaw = $data[0]->CLAN_FLAW;
+		$visible = $data[0]->VISIBLE;
+		
+	} else {
+	
+		/* defaults */
+		$name = "";
+		$description = "";
+		$iconlink = "";
+		$clanpage = "";
+		$clanflaw = "";
+		$visible  = "Y";
+	}
+	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+	$current_url = remove_query_arg( 'action', $current_url );
+
+	?>
+	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
+		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
+		<input type="hidden" name="tab" value="<?php print $type; ?>" />
+		<input type="hidden" name="action" value="edit" />
+		<table style='width:500px'>
+		<tr>
+			<td>Clan Name:  </td>
+			<td><input type="text" name="<?php print $type; ?>_name" value="<?php print $name; ?>" size=30 /></td>
+			<td>Visible to Players: </td>
+			<td>
+				<select name="<?php print $type; ?>_visible">
+					<option value="N" <?php selected($visible, "N"); ?>>No</option>
+					<option value="Y" <?php selected($visible, "Y"); ?>>Yes</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td>Link to clan icon:  </td>
+			<td colspan=3><input type="text" name="<?php print $type; ?>_iconlink" value="<?php print $iconlink; ?>" size=60 /></td>
+		</tr>
+		<tr>
+			<td>Link to clan webpage:  </td>
+			<td colspan=3><input type="text" name="<?php print $type; ?>_clanpage" value="<?php print $clanpage; ?>" size=60 /></td>
+		</tr>
+		<tr>
+			<td>Clan Flaw:  </td>
+			<td colspan=3><input type="text" name="<?php print $type; ?>_flaw" value="<?php print $clanflaw; ?>" size=60 /></td>
+		</tr>
+		<tr>
+			<td>Description:  </td>
+			<td colspan=3><input type="text" name="<?php print $type; ?>_description" value="<?php print $description; ?>" size=60 /></td>
+		</tr>
+		<tr>
 
 		</tr>
 		</table>
@@ -1232,11 +1413,14 @@ function render_bgdata_add_form($addaction) {
 		$has_sector = "N";
 		$bgquestion = "";
 	} 
+	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+	$current_url = remove_query_arg( 'action', $current_url );
 
 	?>
-	<form id="new-<?php print $type; ?>" method="post">
+	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
 		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
 		<input type="hidden" name="tab" value="<?php print $type; ?>" />
+		<input type="hidden" name="action" value="edit" />
 		<table style='width:500px'>
 		<tr>
 			<td>Name:  </td>
@@ -1332,11 +1516,14 @@ function render_sector_add_form($addaction) {
 		$desc = "";
 		$visible = "Y";
 	} 
+	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+	$current_url = remove_query_arg( 'action', $current_url );
 
 	?>
-	<form id="new-<?php print $type; ?>" method="post">
+	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
 		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
 		<input type="hidden" name="tab" value="<?php print $type; ?>" />
+		<input type="hidden" name="action" value="edit" />
 		<table style='width:500px'>
 		<tr>
 			<td>Name:  </td>
@@ -1375,6 +1562,7 @@ function render_question_add_form($addaction) {
 		$order   = $_REQUEST[$type . '_order'];
 		$group   = $_REQUEST[$type . '_group'];
 		$question = $_REQUEST[$type . '_question'];
+		$visible = $_REQUEST[$type . '_visible'];
 		
 	} else if ('edit-' . $type == $addaction) {
 		/* Get values from database */
@@ -1392,6 +1580,7 @@ function render_question_add_form($addaction) {
 		$order   = $data[0]->ORDERING;
 		$group   = $data[0]->GROUPING;
 		$question = stripslashes($data[0]->BACKGROUND_QUESTION);
+		$visible = $data[0]->VISIBLE;
 		
 	} else {
 	
@@ -1402,30 +1591,37 @@ function render_question_add_form($addaction) {
 		$title   = "";
 		$group   = "";
 		$question = "";
+		$visible  = "Y";
 	} 
+	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+	$current_url = remove_query_arg( 'action', $current_url );
 
 	?>
-	<form id="new-<?php print $type; ?>" method="post">
+	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
 		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
 		<input type="hidden" name="tab" value="<?php print $type; ?>" />
+		<input type="hidden" name="action" value="edit" />
 		<table style='width:500px'>
 		<tr>
 			<td>Title:  </td>
 			<td colspan=3><input type="text" name="<?php print $type; ?>_title" value="<?php print $title; ?>" size=60 /></td>
 		
-
-			
+			<td>Visible:</td>
+			<td><select name="<?php print $type; ?>_visible">
+				<option value="Y" <?php selected($visible, "Y"); ?>>Yes</option>
+				<option value="N" <?php selected($visible, "N"); ?>>No</option>
+				</select>
+			</td>
 		</tr>
 		<tr>
-			<td>Question Order: </td><td>
-			<input type="text" name="<?php print $type; ?>_order" value="<?php print $order; ?>" size=4 /></td>
+			<td>Question Order: </td>
+			<td><input type="text" name="<?php print $type; ?>_order" value="<?php print $order; ?>" size=4 /></td>
 			<td>Group: </td>
-			<td><input type="text" name="<?php print $type; ?>_group" value="<?php print $group; ?>" size=30 /></td>
+			<td colspan=3><input type="text" name="<?php print $type; ?>_group" value="<?php print $group; ?>" size=30 /></td>
 		</tr>
 		<tr>
-		
 			<td>Question:  </td>
-			<td colspan=3>
+			<td colspan=5>
 				<textarea name="<?php print $type; ?>_question" " rows="2" cols="100" ><?php print $question; ?></textarea>
 			</td> 
 
@@ -1449,10 +1645,12 @@ function render_approve_form($showform, $id, $data) {
 		$denied = "";	
 	}
 
+	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+	$current_url = remove_query_arg( 'action', $current_url );
 	
 	if ($showform) {
 	?>
-	<form id="new-<?php print $type; ?>" method="post">
+	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
 		<input type="hidden" name="table_id" value="<?php print $tableid; ?>" />
 		<input type="hidden" name="table"    value="<?php print $table; ?>"/>
 		<input type="hidden" name="tab"      value="<?php print $type; ?>" />
@@ -1617,6 +1815,42 @@ function book_input_validation() {
 	}
 	
 	/* echo "action: $doaction</p>"; */
+
+	return $doaction;
+}
+function clan_input_validation() {
+
+	$type = "clan";
+
+	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == $type)
+		$doaction = "edit-$type";
+		
+	/* echo "<p>Requested action: " . $_REQUEST['action'] . ", " . $type . "_name: " . $_REQUEST[$type . '_name'];  */
+			
+	if (!empty($_REQUEST[$type . '_name'])){
+
+		if ($doaction == "edit-$type")
+			$doaction = "save-edit-$type";
+		else
+			$doaction = "add-$type";
+			
+		/* Input Validation */
+		if (empty($_REQUEST[$type . '_description']) || $_REQUEST[$type . '_description'] == "") {
+			$doaction = "fix-$type";
+			echo "<p style='color:red'>ERROR: Description is missing</p>";
+		} 
+		if (empty($_REQUEST[$type . '_iconlink']) || $_REQUEST[$type . '_iconlink'] == "") {
+			$doaction = "fix-$type";
+			echo "<p style='color:red'>ERROR: Icon Link is missing</p>";
+		} 
+		if (empty($_REQUEST[$type . '_flaw']) || $_REQUEST[$type . '_flaw'] == "") {
+			$doaction = "fix-$type";
+			echo "<p style='color:red'>ERROR: Clan Flaw is missing</p>";
+		} 
+				
+	}
+	
+	/* echo " action: $doaction</p>"; */
 
 	return $doaction;
 }
