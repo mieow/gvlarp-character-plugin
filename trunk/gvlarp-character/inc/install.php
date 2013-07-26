@@ -4,7 +4,7 @@ register_activation_hook(__FILE__, "gvlarp_character_install");
 register_activation_hook( __FILE__, 'gvlarp_character_install_data' );
 
 global $gvlarp_character_db_version;
-$gvlarp_character_db_version = "1.6.2"; /* 1.6.1 */
+$gvlarp_character_db_version = "1.6.1"; /* 1.6.1 */
 
 function gvlarp_update_db_check() {
     global $gvlarp_character_db_version;
@@ -127,11 +127,13 @@ function gvlarp_character_install() {
 
 		$current_table_name = $table_prefix . "CLAN";
 		$sql = "CREATE TABLE " . $current_table_name . " (
-					ID           MEDIUMINT(9)  NOT NULL AUTO_INCREMENT,
-					NAME         VARCHAR(16)   NOT NULL,
-					DESCRIPTION  TINYTEXT      NOT NULL,
-					ICON_LINK    TINYTEXT      NOT NULL,
-					VISIBLE      VARCHAR(1)    NOT NULL,
+					ID           	MEDIUMINT(9)  NOT NULL AUTO_INCREMENT,
+					NAME         	VARCHAR(16)   NOT NULL,
+					DESCRIPTION  	TINYTEXT      NOT NULL,
+					ICON_LINK    	TINYTEXT      NOT NULL,
+					CLAN_PAGE_LINK	TINYTEXT      NOT NULL,
+					CLAN_FLAW    	TINYTEXT      NOT NULL,
+					VISIBLE      	VARCHAR(1)    NOT NULL,
 					PRIMARY KEY  (ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
@@ -728,6 +730,7 @@ function gvlarp_character_install() {
 					GROUPING              VARCHAR(90)   NOT NULL,
 					TITLE                 VARCHAR(90)   NOT NULL,
 					BACKGROUND_QUESTION   TEXT   		NOT NULL,
+					VISIBLE				  VARCHAR(1)    NOT NULL,
 					PRIMARY KEY  (ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
@@ -823,28 +826,32 @@ function gvlarp_character_install_data() {
 			'ORDERING' => 1,
 			'GROUPING' => "Clan Flaw",
 			'TITLE'    => "Clan Flaw",
-			'BACKGROUND_QUESTION' => "Explain your Clan Flaw"
+			'BACKGROUND_QUESTION' => "Explain your Clan Flaw",
+			'VISIBLE'  => "N"
 		),
 		'1' => array (
 			'ID'       => 2,
 			'ORDERING' => 2,
 			'GROUPING' => "Travel",
 			'TITLE'    => "Travel To/From Court",
-			'BACKGROUND_QUESTION' => "Explain your method of transport to and from court"
+			'BACKGROUND_QUESTION' => "Explain your method of transport to and from court",
+			'VISIBLE'  => "N"
 		),
 		'2' => array (
 			'ID'       => 3,
 			'ORDERING' => 3,
 			'GROUPING' => "Feeding",
 			'TITLE'    => "Feeding Habits",
-			'BACKGROUND_QUESTION' => "Explain your usual method of hunting and feeding"
+			'BACKGROUND_QUESTION' => "Explain your usual method of hunting and feeding",
+			'VISIBLE'  => "N"
 		),
 		'3' => array (
 			'ID'       => 4,
 			'ORDERING' => 4,
 			'GROUPING' => "History",
 			'TITLE'    => "Character History",
-			'BACKGROUND_QUESTION' => "Give a summary of your character history"
+			'BACKGROUND_QUESTION' => "Give a summary of your character history",
+			'VISIBLE'  => "N"
 		)
 	
 	);
@@ -930,7 +937,7 @@ function gvlarp_character_install_data() {
 			'NAME'        => 'Inactive',
 			'DESCRIPTION' => 'Player is not active'
 		)
-	)
+	);
 	$sql = "select ID from " . GVLARP_TABLE_PREFIX . "PLAYER_STATUS;";
 	$rows = count($wpdb->get_results($wpdb->prepare($sql)));
 	if (!$rows)
@@ -950,7 +957,7 @@ function gvlarp_character_install_data() {
 			'DESCRIPTION' => 'Character is in torpor and will wake up:'
 		),
 		2 => array (
-			'ID'          => 3
+			'ID'          => 3,
 			'NAME'        => 'Dead',
 			'DESCRIPTION' => 'The character has been destroyed:'
 		),
@@ -1114,6 +1121,123 @@ function gvlarp_character_install_data() {
 	if (!$rows)
 		foreach ($data as $id => $entry)
 				$rowsadded = $wpdb->insert( GVLARP_TABLE_PREFIX . "STAT", $entry);
+				
+	/* Clans */
+	$data = array (
+		0 => array (
+			'ID' => 1,
+			'NAME' => 'Nosferatu',
+			'DESCRIPTION' => 'Nosferatu',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Nosferatu.gif',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => 'Horribly ugly',
+			'VISIBLE' => 'Y'), 
+		1 => array (
+			'ID' => 2,
+			'NAME' => 'Tremere',
+			'DESCRIPTION' => 'Tremere',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Tremere.png',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => 'Easily bloodbonded',
+			'VISIBLE' => 'Y'), 
+		2 => array (
+			'ID' => 3,
+			'NAME' => 'Malkavian',
+			'DESCRIPTION' => 'Malkavian',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Malkavian.png',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => 'Insane',
+			'VISIBLE' => 'Y'), 
+		3 => array (
+			'ID' => 4,
+			'NAME' => 'Brujah',
+			'DESCRIPTION' => 'Brujah',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Brujah.png',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => 'Frenzies easily',
+			'VISIBLE' => 'Y'), 
+		4 => array (
+			'ID' => 5,
+			'NAME' => 'Ventrue',
+			'DESCRIPTION' => 'Ventrue',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Ventrue.png',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => 'Rarified tastes',
+			'VISIBLE' => 'Y'), 
+		5 => array (
+			'ID' => 6,
+			'NAME' => 'Toreador',
+			'DESCRIPTION' => 'Toreador',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Toreador.png',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => 'Entranced by beauty',
+			'VISIBLE' => 'Y'), 
+		6 => array (
+			'ID' => 7,
+			'NAME' => 'Gangrel',
+			'DESCRIPTION' => 'Gangrel',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Gangrel.png',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => 'Animal features',
+			'VISIBLE' => 'Y'), 
+		7 => array (
+			'ID' => 8,
+			'NAME' => 'Giovanni',
+			'DESCRIPTION' => 'Giovanni',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Giovanni.png',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => 'Kiss causes pain and damage',
+			'VISIBLE' => 'N'),
+		8 => array (
+			'ID' => 9,
+			'NAME' => 'Lasombra',
+			'DESCRIPTION' => 'Lasombra',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Lasombra.png',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => 'No reflection',
+			'VISIBLE' => 'N'),
+		9 => array (
+			'ID' => 10,
+			'NAME' => 'Caitiff',
+			'DESCRIPTION' => 'Caitiff',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Caitiff.png',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => 'Clanless',
+			'VISIBLE' => 'Y'), 
+		10 => array (
+			'ID' => 11,
+			'NAME' => 'Assamite',
+			'DESCRIPTION' => 'Assamite',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Assamite.png',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => '',
+			'VISIBLE' => 'N' ),
+		11 => array (
+			'ID' => 12,
+			'NAME' => 'Followers of Set',
+			'DESCRIPTION' => 'Settites',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Settite.png',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => '',
+			'VISIBLE' => 'N'),
+		12 => array (
+			'ID' => 13,
+			'NAME' => 'Ravnos',
+			'DESCRIPTION' => 'Ravnos',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Ravnos.png',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => '',
+			'VISIBLE' => 'N'),
+		13 => array (
+			'ID' => 14,
+			'NAME' => 'Tzimisce',
+			'DESCRIPTION' => 'Tzimisce',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Tzimisce.png',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => '',
+			'VISIBLE' => 'N'
+		)
+	);
 }
 
 ?>
