@@ -327,7 +327,8 @@ function get_editmisc_tab($characterID) {
 					WHERE characters.ID = charmisc.CHARACTER_ID
 				) tempcharmisc 
 				ON questions.ID = tempcharmisc.QUESTION_ID AND tempcharmisc.charID = $characterID
-			WHERE characters.ID = $characterID";
+			WHERE characters.ID = $characterID
+				AND questions.VISIBLE = 'Y'";
 			
 	/* $content = "<p>SQL: $sql</p>"; */
 	
