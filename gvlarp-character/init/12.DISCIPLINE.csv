@@ -1,0 +1,19 @@
+ID,NAME,DESCRIPTION,COST_MODEL_ID,SOURCE_BOOK_ID,PAGE_NUMBER,VISIBLE
+1,Auspex,Auspex,4,1,1,Y
+2,Celerity,Celerity,4,1,1,Y
+3,Potence,Potence,4,1,1,Y
+4,Presence,Presence,4,1,1,Y
+5,Thaumaturgy,Blood magic,4,1,1,Y
+6,Animalism,Animalism,4,1,1,Y
+7,Chimerstry,Illusions,4,1,1,N
+8,Dementation,Spreading insanity,4,1,1,N
+9,Dominate,Enforcing your will,4,1,1,Y
+10,Fortitude,Withstanding injury,4,1,1,Y
+11,Necromancy,Magic over the dead,4,1,1,N
+12,Obfuscate,Hiding in shadows,4,1,1,Y
+13,Obtenebration,Control the shadows,4,1,1,N
+14,Protean,Shapshifting,4,1,1,Y
+15,Quietus,Powers of assassination,4,1,1,N
+16,Serpentis,Snake power,4,1,1,N
+17,Vicissitude,Fleshcrafting,4,1,1,N
+18,Thanatosis,Death and decay,4,1,410,N
