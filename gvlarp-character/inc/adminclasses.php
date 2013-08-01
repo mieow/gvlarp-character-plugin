@@ -277,9 +277,9 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 		$act = ($item->VISIBLE === 'Y') ? 'hide' : 'show';
         
         $actions = array(
-            'edit'      => sprintf('<a href="?page=%s&action=%s&merit=%s&tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
-            'delete'    => sprintf('<a href="?page=%s&action=%s&merit=%s&tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
-            $act        => sprintf('<a href="?page=%s&action=%s&merit=%s&tab=%s">%s</a>',$_REQUEST['page'],$act,$item->ID, $this->type, ucfirst($act)),
+            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&amp;merit=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
+            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&amp;merit=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
+            $act        => sprintf('<a href="?page=%s&amp;action=%s&amp;merit=%s&amp;tab=%s">%s</a>',$_REQUEST['page'],$act,$item->ID, $this->type, ucfirst($act)),
         );
         
         
@@ -666,8 +666,8 @@ class gvadmin_rituals_table extends GVMultiPage_ListTable {
     function column_name($item){
         
         $actions = array(
-            'edit'      => sprintf('<a href="?page=%s&action=%s&ritual=%s&tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
-            'delete'    => sprintf('<a href="?page=%s&action=%s&ritual=%s&tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
+            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&ritual=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
+            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&ritual=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
         );
         
         
@@ -1004,8 +1004,8 @@ class gvadmin_books_table extends GVMultiPage_ListTable {
     function column_name($item){
         
         $actions = array(
-            'edit'      => sprintf('<a href="?page=%s&action=%s&book=%s&tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
-            'delete'    => sprintf('<a href="?page=%s&action=%s&book=%s&tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
+            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&book=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
+            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&book=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
         );
         
         
@@ -1243,8 +1243,8 @@ class gvadmin_backgrounds_table extends GVMultiPage_ListTable {
     function column_name($item){
         
         $actions = array(
-            'edit'      => sprintf('<a href="?page=%s&action=%s&background=%s&tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
-            'delete'    => sprintf('<a href="?page=%s&action=%s&background=%s&tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
+            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&background=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
+            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&background=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
         );
         
         
@@ -1493,8 +1493,8 @@ class gvadmin_sectors_table extends GVMultiPage_ListTable {
     function column_name($item){
         
         $actions = array(
-            'edit'      => sprintf('<a href="?page=%s&action=%s&sector=%s&tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
-            'delete'    => sprintf('<a href="?page=%s&action=%s&sector=%s&tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
+            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&sector=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
+            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&sector=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
         );
         
         
@@ -1721,8 +1721,8 @@ class gvadmin_questions_table extends GVMultiPage_ListTable {
     function column_title($item){
         
         $actions = array(
-            'edit'      => sprintf('<a href="?page=%s&action=%s&question=%s&tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
-            'delete'    => sprintf('<a href="?page=%s&action=%s&question=%s&tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
+            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&question=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
+            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&question=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
         );
         
         
@@ -1958,8 +1958,8 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
     function column_name($item){
         
         $actions = array(
-            'approveit' => sprintf('<a href="?page=%s&action=%s&extbackground=%s&tab=%s">Approve</a>',$_REQUEST['page'],'approveit',$item['ID'], $this->type),
-            'denyit'    => sprintf('<a href="?page=%s&action=%s&extbackground=%s&tab=%s">Deny</a>',$_REQUEST['page'],'denyit',$item['ID'], $this->type),
+            'approveit' => sprintf('<a href="?page=%s&amp;action=%s&extbackground=%s&amp;tab=%s">Approve</a>',$_REQUEST['page'],'approveit',$item['ID'], $this->type),
+            'denyit'    => sprintf('<a href="?page=%s&amp;action=%s&extbackground=%s&amp;tab=%s">Deny</a>',$_REQUEST['page'],'denyit',$item['ID'], $this->type),
         );
         
         
@@ -2336,8 +2336,8 @@ class gvadmin_clans_table extends GVMultiPage_ListTable {
 		$act = ($item->VISIBLE === 'Y') ? 'hide' : 'show';
         
         $actions = array(
-            'edit'      => sprintf('<a href="?page=%s&action=%s&clan=%s&tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
-            'delete'    => sprintf('<a href="?page=%s&action=%s&clan=%s&tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
+            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&clan=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
+            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&clan=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
         );
         
         
