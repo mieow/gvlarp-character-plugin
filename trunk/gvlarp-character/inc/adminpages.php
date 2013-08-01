@@ -464,7 +464,6 @@ function character_datatables() {
 				document.getElementById('gv-flaws').style.display = 'none';
 				document.getElementById('gv-rituals').style.display = 'none';
 				document.getElementById('gv-books').style.display = 'none';
-				document.getElementById('gv-clans').style.display = 'none';
 				document.getElementById(tab).style.display = '';
 				return false;
 			}
@@ -475,7 +474,6 @@ function character_datatables() {
 				<li><a href="javascript:void(0);" onclick="tabSwitch('gv-flaws');">Flaws</a></li>
 				<li><a href="javascript:void(0);" onclick="tabSwitch('gv-rituals');">Rituals</a></li>
 				<li><a href="javascript:void(0);" onclick="tabSwitch('gv-books');">Sourcebooks</a></li>
-				<li><a href="javascript:void(0);" onclick="tabSwitch('gv-clans');">Clans</a></li>
 			</ul>
 		</div>
 		<!-- <p>tab: <?php echo $_REQUEST['tab'] ?>, m: <?php tabdisplay("merits"); ?>, f: <?php tabdisplay("flaws"); ?></p> -->
@@ -495,10 +493,6 @@ function character_datatables() {
 			<div id="gv-books" <?php tabdisplay("book"); ?>>
 				<h1>Sourcebooks</h1>
 				<?php render_sourcebook_page(); ?>
-			</div>
-			<div id="gv-clans" <?php tabdisplay("clan"); ?>>
-				<h1>Clans</h1>
-				<?php render_clan_page(); ?>
 			</div>
 		</div>
 
@@ -1019,8 +1013,8 @@ function render_meritflaw_add_form($type, $addaction) {
 		<input type="hidden" name="action" value="edit" />
 		<table>
 		<tr>
-			<td><?php print ucfirst($type); ?> Name:  </td><td><input type="text" name="<?php print $type; ?>_name" value="<?php print $name; ?>" size=20/></td> <!-- check sizes -->
-			<td>Grouping:   </td><td><input type="text" name="<?php print $type; ?>_group" value="<?php print $group; ?>" size=20/></td>
+			<td><?php print ucfirst($type); ?> Name:  </td><td><input type="text" name="<?php print $type; ?>_name" value="<?php print $name; ?>" size=20 /></td> <!-- check sizes -->
+			<td>Grouping:   </td><td><input type="text" name="<?php print $type; ?>_group" value="<?php print $group; ?>" size=20 /></td>
 			<td>Sourcebook: </td><td>
 				<select name="<?php print $type; ?>_sourcebook">
 					<?php
@@ -1039,19 +1033,19 @@ function render_meritflaw_add_form($type, $addaction) {
 			<td>Experience Cost: </td><td><input type="number" name="<?php print $type; ?>_xp_cost" value="<?php print $xpcost; ?>" /></td>
 			<td>Multiple?: </td><td>
 				<select name="<?php print $type; ?>_multiple">
-					<option value="N" <?php selected($multiple, "N"); ?>>No</option>
-					<option value="Y" <?php selected($multiple, "Y"); ?>>Yes</option>
+					<option value="N" <?php echo selected($multiple, "N"); ?>>No</option>
+					<option value="Y" <?php echo selected($multiple, "Y"); ?>>Yes</option>
 				</select>
 			</td>
 			<td>Visible to Players: </td><td>
 				<select name="<?php print $type; ?>_visible">
-					<option value="N" <?php selected($visible, "N"); ?>>No</option>
-					<option value="Y" <?php selected($visible, "Y"); ?>>Yes</option>
+					<option value="N" <?php echo selected($visible, "N"); ?>>No</option>
+					<option value="Y" <?php echo selected($visible, "Y"); ?>>Yes</option>
 				</select></td>
 		</tr>
 		<tr>
-			<td>Description: </td><td colspan=3><input type="text" name="<?php print $type; ?>_desc" value="<?php print $desc; ?>" size=50/></td>
-			<td>Extended Background Question: </td><td colspan=3><input type="text" name="<?php print $type; ?>_question" value="<?php print $question; ?>" size=50/></td>
+			<td>Description: </td><td colspan=3><input type="text" name="<?php print $type; ?>_desc" value="<?php print $desc; ?>" size=50 /></td>
+			<td>Extended Background Question: </td><td colspan=3><input type="text" name="<?php print $type; ?>_question" value="<?php print $question; ?>" size=50 /></td>
 		</tr>
 		</table>
 		<input type="submit" name="do_add_<?php print $type; ?>" class="button-primary" value="Save <?php print ucfirst($type); ?>" />
@@ -1190,7 +1184,7 @@ function render_ritual_add_form($addaction) {
 				</select></td>
 		</tr>
 		<tr>
-			<td>Description: </td><td colspan=5><input type="text" name="<?php print $type; ?>_desc" value="<?php print $desc; ?>" size=120/></td>
+			<td>Description: </td><td colspan=5><input type="text" name="<?php print $type; ?>_desc" value="<?php print $desc; ?>" size=120 /></td>
 		</tr>
 		</table>
 		<input type="submit" name="do_add_<?php print $type; ?>" class="button-primary" value="Save <?php print ucfirst($type); ?>" />
