@@ -1,0 +1,13 @@
+NAME,DESCRIPTION,VALUE,GROUPING,COST,XP_COST,MULTIPLE,SOURCE_BOOK_ID,PAGE_NUMBER,VISIBLE
+Early Riser,You need less sleep,1,Physical,1,0,N,1,480,Y
+Permanent Fangs,Your fangs do not retract,-3,Physical,-3,0,N,1,482,Y
+Natural Leader,Others often defer to your natural magnetism,2,Social,2,0,N,1,487,Y
+Recruitment Target,Someone in the Sabbat wants to recruit you,-1,Social,-1,0,N,1,490,Y
+Infertile Vitae,You cannot create childer,-5,Physical,-5,0,N,1,484,Y
+Old Flame,Someone you loved is now your enemy,-2,Social,-2,0,N,1,491,Y
+True Love,Your true love gives you strength,4,Supernatural,4,0,N,1,493,Y
+Scholar of Enemies,You understand much about the Sabbat,2,Social,2,0,N,1,489,Y
+Rival Sires,Two vampires wanted to embrace you,-2,Social,-2,0,N,1,491,Y
+Magic Resistance,"Resistant to magic rituals, spells and disciplines",3,Supernatural,3,0,N,1,493,Y
+Flashbacks,Trauma in your past affects you,-6,Mental,-6,0,N,1,487,Y
+Infectious Bite,Your bites have a 1 in 5 chance of becoming infected,-2,Physical,-2,0,N,1,481,Y

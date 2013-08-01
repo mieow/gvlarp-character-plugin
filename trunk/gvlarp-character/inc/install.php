@@ -4,7 +4,7 @@ register_activation_hook(__FILE__, "gvlarp_character_install");
 register_activation_hook( __FILE__, 'gvlarp_character_install_data' );
 
 global $gvlarp_character_db_version;
-$gvlarp_character_db_version = "1.6.1"; /* 1.6.1 */
+$gvlarp_character_db_version = "1.7.0"; /* 1.7.0 */
 
 function gvlarp_update_db_check() {
     global $gvlarp_character_db_version;
@@ -20,7 +20,7 @@ function gvlarp_character_install() {
 	global $wpdb;
 	global $gvlarp_character_db_version;
 	
-	$table_prefix = $wpdb->prefix . "GVLARP_";
+	$table_prefix = GVLARP_TABLE_PREFIX;
 	$installed_version = get_option( "gvlarp_character_db_version" );
 	
 	if( $installed_version != $gvlarp_character_db_version ) {
@@ -188,6 +188,7 @@ function gvlarp_character_install() {
 					BLOODPOOL       SMALLINT(3)  NOT NULL,
 					BLOOD_PER_ROUND SMALLINT(2)  NOT NULL,
 					MAX_RATING      SMALLINT(2)  NOT NULL,
+					MAX_DISCIPLINE  SMALLINT(2)  NOT NULL,
 					COST            SMALLINT(3)  NOT NULL,
 					PRIMARY KEY  (ID)
 					) ENGINE=INNODB;";
@@ -215,7 +216,7 @@ function gvlarp_character_install() {
 					DESCRIPTION     TINYTEXT      NOT NULL,
 					STAT1_ID        MEDIUMINT(9)  NOT NULL,
 					STAT2_ID        MEDIUMINT(9)  NOT NULL,
-					SOURCE_BOOK_ID  MEDIUINT(9)   NOT NULL,
+					SOURCE_BOOK_ID  MEDIUMINT(9)   NOT NULL,
 					PAGE_NUMBER     SMALLINT(4)   NOT NULL,
 					VISIBLE         VARCHAR(1)    NOT NULL,
 					PRIMARY KEY  (ID),
@@ -420,7 +421,7 @@ function gvlarp_character_install() {
 						NAME            VARCHAR(32)   NOT NULL,
 						DESCRIPTION     TINYTEXT      NOT NULL,
 						COST_MODEL_ID   MEDIUMINT(9)  NOT NULL,
-						SOURCE_BOOK_ID  MEDIUINT(9)   NOT NULL,
+						SOURCE_BOOK_ID  MEDIUMINT(9)   NOT NULL,
 						PAGE_NUMBER     SMALLINT(4)   NOT NULL,
 						VISIBLE         VARCHAR(1)    NOT NULL,
 						PRIMARY KEY  (ID),
@@ -438,7 +439,7 @@ function gvlarp_character_install() {
 						DESCRIPTION     TINYTEXT      NOT NULL,
 						DISCIPLINE_ID   MEDIUMINT(9)  NOT NULL,
 						COST_MODEL_ID   MEDIUMINT(9)  NOT NULL,
-						SOURCE_BOOK_ID  MEDIUINT(9)   NOT NULL,
+						SOURCE_BOOK_ID  MEDIUMINT(9)   NOT NULL,
 						PAGE_NUMBER     SMALLINT(4)   NOT NULL,
 						VISIBLE         VARCHAR(1)    NOT NULL,
 						PRIMARY KEY  (ID),
@@ -481,7 +482,7 @@ function gvlarp_character_install() {
 						DICE_POOL       VARCHAR(60)   NOT NULL,
 						DIFFICULTY      VARCHAR(60)   NOT NULL,
 						COST            SMALLINT(3)   NOT NULL,
-						SOURCE_BOOK_ID  MEDIUINT(9)   NOT NULL,
+						SOURCE_BOOK_ID  MEDIUMINT(9)   NOT NULL,
 						PAGE_NUMBER     SMALLINT(4)   NOT NULL,
 						VISIBLE         VARCHAR(1)    NOT NULL,
 						PRIMARY KEY  (ID),
@@ -502,7 +503,7 @@ function gvlarp_character_install() {
 						DICE_POOL       VARCHAR(60)   NOT NULL,
 						DIFFICULTY      VARCHAR(60)   NOT NULL,
 						COST            SMALLINT(3)   NOT NULL,
-						SOURCE_BOOK_ID  MEDIUINT(9)   NOT NULL,
+						SOURCE_BOOK_ID  MEDIUMINT(9)   NOT NULL,
 						PAGE_NUMBER     SMALLINT(4)   NOT NULL,
 						VISIBLE         VARCHAR(1)    NOT NULL,
 						PRIMARY KEY  (ID),
@@ -607,9 +608,9 @@ function gvlarp_character_install() {
 						MERIT_ID      MEDIUMINT(9)  NOT NULL,
 						LEVEL         SMALLINT(3)   NOT NULL,
 						COMMENT       VARCHAR(60),
-						APPROVED_DETAIL VARCHAR(255),
-						PENDING_DETAIL  VARCHAR(255),
-						DENIED_DETAIL   VARCHAR(255),
+						APPROVED_DETAIL TEXT,
+						PENDING_DETAIL  TEXT,
+						DENIED_DETAIL   TEXT,
 						PRIMARY KEY  (ID),
 						FOREIGN KEY (CHARACTER_ID) REFERENCES " . $table_prefix . "CHARACTER(ID),
 						FOREIGN KEY (MERIT_ID)     REFERENCES " . $table_prefix . "MERIT(ID)
@@ -647,22 +648,6 @@ function gvlarp_character_install() {
 						) ENGINE=INNODB;";
 			dbDelta($sql);
 		
-		/* TO REMOVE? */
-		/* $current_table_name = $table_prefix . "EXTENDED_CHARACTER_BACKGROUND";
-			$sql = "CREATE TABLE " . $current_table_name . " (
-						ID                 MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
-						CHARACTER_ID       MEDIUMINT(9)  NOT NULL,
-						TITLE              VARCHAR(64)   NOT NULL,
-						CODE               VARCHAR(32)   NOT NULL,
-						ORDERING		   SMALLINT(4)	 NOT NULL,
-						CURRENT_TEXT       TEXT          NOT NULL,
-						PROPOSED_TEXT      TEXT,
-						CURRENT_ACCEPTED   VARCHAR(1)    NOT NULL,
-						PRIMARY KEY  (ID),
-						FOREIGN KEY (CHARACTER_ID)  REFERENCES " . $table_prefix . "CHARACTER(ID)
-						) ENGINE=INNODB;";
-			dbDelta($sql); */
-
 		$current_table_name = $table_prefix . "COMBO_DISCIPLINE";
 			$sql = "CREATE TABLE " . $current_table_name . " (
 						ID              MEDIUMINT(9)  NOT NULL   AUTO_INCREMENT,
@@ -758,7 +743,6 @@ function gvlarp_character_install() {
 function gvlarp_character_install_data() {
 	global $wpdb;
 	
-	/* Setup ST Links Config Options */
 	$data = array (
 		'viewCharSheet' => array(	'VALUE' => 'viewCharSheet',
 									'DESCRIPTION' => 'View Character Sheet',
@@ -797,10 +781,51 @@ function gvlarp_character_install_data() {
 		if (!$exists) 
 			$rowsadded = $wpdb->insert( GVLARP_TABLE_PREFIX . "ST_LINK", $entry);
 	}
+
+	$datalist = glob(GVLARP_CHARACTER_URL . "init/*.csv");
 	
-
-	/* SECTORS */
-
+	foreach ($datalist as $datafile) {
+		$temp = explode(".", basename($datafile));
+		$tablename = $temp[1];
+		
+		$sql = "select ID from " . GVLARP_TABLE_PREFIX . $tablename;
+		$rows = count($wpdb->get_results($wpdb->prepare($sql)));
+		if (!$rows) {
+			/* print "<p>Reading data for table $tablename</p>";  */
+			$filehandle = fopen($datafile,"r");
+			
+			$i=0;
+			$data = array();
+			while(! feof($filehandle)) {
+				/* print_r(fgetcsv($filehandle)); */
+				
+				if ($i == 0) {
+					$headings = fgetcsv($filehandle,0,",");
+					/* print_r($headings); */
+				} else {
+					$line = fgetcsv($filehandle,0,",");
+					if ($line > 0) {
+						$j=0;
+						foreach ($headings as $heading) {
+							$data[$i-1][$heading] = $line[$j];
+							$j++;
+						}
+					}
+				}
+				
+				$i++;
+			}
+			fclose($filehandle);
+			/* print_r($data); */
+			foreach ($data as $id => $entry)
+					$rowsadded = $wpdb->insert( GVLARP_TABLE_PREFIX . $tablename, $entry);
+		}
+		
+		
+	}
+	
+	/*
+	
 	$sql = "select ID from " . GVLARP_TABLE_PREFIX . "SECTOR;";
 	$rows = count($wpdb->get_results($wpdb->prepare($sql)));
 	if (!$rows) {
@@ -819,7 +844,6 @@ function gvlarp_character_install_data() {
 		
 	}
 	
-	/* Extended Background Questions */
 	$data = array (
 		'0' => array (
 			'ID'       => 1,
@@ -862,7 +886,6 @@ function gvlarp_character_install_data() {
 		foreach ($data as $id => $entry)
 				$rowsadded = $wpdb->insert( GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND", $entry);
 	
-	/* Generations */
 	$data = array (
 		0 => array (
 			'ID'              => 1,
@@ -925,7 +948,6 @@ function gvlarp_character_install_data() {
 		foreach ($data as $id => $entry)
 				$rowsadded = $wpdb->insert( GVLARP_TABLE_PREFIX . "GENERATION", $entry);
 	
-	/* Player Status */
 	$data = array (
 		0 => array (
 			'ID'          => 1,
@@ -944,7 +966,6 @@ function gvlarp_character_install_data() {
 		foreach ($data as $id => $entry)
 				$rowsadded = $wpdb->insert( GVLARP_TABLE_PREFIX . "PLAYER_STATUS", $entry);
 	
-	/* Character Status */
 	$data = array (
 		0 => array (
 			'ID'          => 1,
@@ -978,8 +999,141 @@ function gvlarp_character_install_data() {
 		foreach ($data as $id => $entry)
 				$rowsadded = $wpdb->insert( GVLARP_TABLE_PREFIX . "CHARACTER_STATUS", $entry);
 	
+				
+	$data = array (
+		0 => array (
+			'ID' => 1,
+			'NAME' => 'Nosferatu',
+			'DESCRIPTION' => 'Nosferatu',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Nosferatu.gif',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => 'Horribly ugly',
+			'VISIBLE' => 'Y'), 
+		1 => array (
+			'ID' => 2,
+			'NAME' => 'Tremere',
+			'DESCRIPTION' => 'Tremere',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Tremere.png',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => 'Easily bloodbonded',
+			'VISIBLE' => 'Y'), 
+		2 => array (
+			'ID' => 3,
+			'NAME' => 'Malkavian',
+			'DESCRIPTION' => 'Malkavian',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Malkavian.png',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => 'Insane',
+			'VISIBLE' => 'Y'), 
+		3 => array (
+			'ID' => 4,
+			'NAME' => 'Brujah',
+			'DESCRIPTION' => 'Brujah',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Brujah.png',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => 'Frenzies easily',
+			'VISIBLE' => 'Y'), 
+		4 => array (
+			'ID' => 5,
+			'NAME' => 'Ventrue',
+			'DESCRIPTION' => 'Ventrue',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Ventrue.png',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => 'Rarified tastes',
+			'VISIBLE' => 'Y'), 
+		5 => array (
+			'ID' => 6,
+			'NAME' => 'Toreador',
+			'DESCRIPTION' => 'Toreador',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Toreador.png',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => 'Entranced by beauty',
+			'VISIBLE' => 'Y'), 
+		6 => array (
+			'ID' => 7,
+			'NAME' => 'Gangrel',
+			'DESCRIPTION' => 'Gangrel',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Gangrel.png',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => 'Animal features',
+			'VISIBLE' => 'Y'), 
+		7 => array (
+			'ID' => 8,
+			'NAME' => 'Giovanni',
+			'DESCRIPTION' => 'Giovanni',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Giovanni.png',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => 'Kiss causes pain and damage',
+			'VISIBLE' => 'N'),
+		8 => array (
+			'ID' => 9,
+			'NAME' => 'Lasombra',
+			'DESCRIPTION' => 'Lasombra',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Lasombra.png',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => 'No reflection',
+			'VISIBLE' => 'N'),
+		9 => array (
+			'ID' => 10,
+			'NAME' => 'Caitiff',
+			'DESCRIPTION' => 'Caitiff',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Caitiff.png',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => 'Clanless',
+			'VISIBLE' => 'Y'), 
+		10 => array (
+			'ID' => 11,
+			'NAME' => 'Assamite',
+			'DESCRIPTION' => 'Assamite',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Assamite.png',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => '',
+			'VISIBLE' => 'N' ),
+		11 => array (
+			'ID' => 12,
+			'NAME' => 'Followers of Set',
+			'DESCRIPTION' => 'Settites',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Settite.png',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => '',
+			'VISIBLE' => 'N'),
+		12 => array (
+			'ID' => 13,
+			'NAME' => 'Ravnos',
+			'DESCRIPTION' => 'Ravnos',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Ravnos.png',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => '',
+			'VISIBLE' => 'N'),
+		13 => array (
+			'ID' => 14,
+			'NAME' => 'Tzimisce',
+			'DESCRIPTION' => 'Tzimisce',
+			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Tzimisce.png',
+			'CLAN_PAGE_LINK' => '',
+			'CLAN_FLAW' => '',
+			'VISIBLE' => 'N'
+		)
+	);
+	$sql = "select ID from " . GVLARP_TABLE_PREFIX . "CLAN;";
+	$rows = count($wpdb->get_results($wpdb->prepare($sql)));
+	if (!$rows)
+		foreach ($data as $id => $entry)
+				$rowsadded = $wpdb->insert( GVLARP_TABLE_PREFIX . "CLAN", $entry);
+	*/
+	
+	/* Clan Disciplines */
+	
+	/* Backgrounds */
+	
+	/* Character Type */
+	
+	/* Cost Model */
+	
+	/* Cost Model Steps */
+	
 	/* Attributes (expecially needed so that the groups match what we output for character sheets */
-	$data = array(
+	/* $data = array(
 		0 => array (
 			'ID' => 1,
 			'NAME' => 'Strength',
@@ -1119,125 +1273,29 @@ function gvlarp_character_install_data() {
 	$sql = "select ID from " . GVLARP_TABLE_PREFIX . "STAT;";
 	$rows = count($wpdb->get_results($wpdb->prepare($sql)));
 	if (!$rows)
-		foreach ($data as $id => $entry)
+		foreach ($data as $id => $entry) {
 				$rowsadded = $wpdb->insert( GVLARP_TABLE_PREFIX . "STAT", $entry);
-				
-	/* Clans */
-	$data = array (
-		0 => array (
-			'ID' => 1,
-			'NAME' => 'Nosferatu',
-			'DESCRIPTION' => 'Nosferatu',
-			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Nosferatu.gif',
-			'CLAN_PAGE_LINK' => '',
-			'CLAN_FLAW' => 'Horribly ugly',
-			'VISIBLE' => 'Y'), 
-		1 => array (
-			'ID' => 2,
-			'NAME' => 'Tremere',
-			'DESCRIPTION' => 'Tremere',
-			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Tremere.png',
-			'CLAN_PAGE_LINK' => '',
-			'CLAN_FLAW' => 'Easily bloodbonded',
-			'VISIBLE' => 'Y'), 
-		2 => array (
-			'ID' => 3,
-			'NAME' => 'Malkavian',
-			'DESCRIPTION' => 'Malkavian',
-			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Malkavian.png',
-			'CLAN_PAGE_LINK' => '',
-			'CLAN_FLAW' => 'Insane',
-			'VISIBLE' => 'Y'), 
-		3 => array (
-			'ID' => 4,
-			'NAME' => 'Brujah',
-			'DESCRIPTION' => 'Brujah',
-			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Brujah.png',
-			'CLAN_PAGE_LINK' => '',
-			'CLAN_FLAW' => 'Frenzies easily',
-			'VISIBLE' => 'Y'), 
-		4 => array (
-			'ID' => 5,
-			'NAME' => 'Ventrue',
-			'DESCRIPTION' => 'Ventrue',
-			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Ventrue.png',
-			'CLAN_PAGE_LINK' => '',
-			'CLAN_FLAW' => 'Rarified tastes',
-			'VISIBLE' => 'Y'), 
-		5 => array (
-			'ID' => 6,
-			'NAME' => 'Toreador',
-			'DESCRIPTION' => 'Toreador',
-			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Toreador.png',
-			'CLAN_PAGE_LINK' => '',
-			'CLAN_FLAW' => 'Entranced by beauty',
-			'VISIBLE' => 'Y'), 
-		6 => array (
-			'ID' => 7,
-			'NAME' => 'Gangrel',
-			'DESCRIPTION' => 'Gangrel',
-			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Gangrel.png',
-			'CLAN_PAGE_LINK' => '',
-			'CLAN_FLAW' => 'Animal features',
-			'VISIBLE' => 'Y'), 
-		7 => array (
-			'ID' => 8,
-			'NAME' => 'Giovanni',
-			'DESCRIPTION' => 'Giovanni',
-			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Giovanni.png',
-			'CLAN_PAGE_LINK' => '',
-			'CLAN_FLAW' => 'Kiss causes pain and damage',
-			'VISIBLE' => 'N'),
-		8 => array (
-			'ID' => 9,
-			'NAME' => 'Lasombra',
-			'DESCRIPTION' => 'Lasombra',
-			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Lasombra.png',
-			'CLAN_PAGE_LINK' => '',
-			'CLAN_FLAW' => 'No reflection',
-			'VISIBLE' => 'N'),
-		9 => array (
-			'ID' => 10,
-			'NAME' => 'Caitiff',
-			'DESCRIPTION' => 'Caitiff',
-			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Caitiff.png',
-			'CLAN_PAGE_LINK' => '',
-			'CLAN_FLAW' => 'Clanless',
-			'VISIBLE' => 'Y'), 
-		10 => array (
-			'ID' => 11,
-			'NAME' => 'Assamite',
-			'DESCRIPTION' => 'Assamite',
-			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Assamite.png',
-			'CLAN_PAGE_LINK' => '',
-			'CLAN_FLAW' => '',
-			'VISIBLE' => 'N' ),
-		11 => array (
-			'ID' => 12,
-			'NAME' => 'Followers of Set',
-			'DESCRIPTION' => 'Settites',
-			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Settite.png',
-			'CLAN_PAGE_LINK' => '',
-			'CLAN_FLAW' => '',
-			'VISIBLE' => 'N'),
-		12 => array (
-			'ID' => 13,
-			'NAME' => 'Ravnos',
-			'DESCRIPTION' => 'Ravnos',
-			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Ravnos.png',
-			'CLAN_PAGE_LINK' => '',
-			'CLAN_FLAW' => '',
-			'VISIBLE' => 'N'),
-		13 => array (
-			'ID' => 14,
-			'NAME' => 'Tzimisce',
-			'DESCRIPTION' => 'Tzimisce',
-			'ICON_LINK' => '/wp-content/plugins/gvlarp-character/images/Tzimisce.png',
-			'CLAN_PAGE_LINK' => '',
-			'CLAN_FLAW' => '',
-			'VISIBLE' => 'N'
-		)
-	);
+		}
+	*/
+	/* Courts (Glasgow only) */
+	
+	/* Offices (standard Camarilla) */
+	
+	/* Magik Paths */
+	
+	/* Humanity/Path (just have humanity) */
+	
+	/* Humanity/Path change reasons */
+	
+	/* Player types */
+	
+	/* Rituals (just add level 1 thaum) */
+	
+	/* Abilities (V20) */
+	
+	/* XP reasons (Monthly, XP Spend, Other) */
+	
+	
 }
 
 ?>

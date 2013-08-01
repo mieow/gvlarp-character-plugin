@@ -1,0 +1,12 @@
+ID,NAME,DESCRIPTION
+1,Attribute,Attribute
+2,Skill,Abilities
+3,Lore,"Secondary Skill like lore, language etc"
+4,Discipline,Discipline
+5,Background,Background
+6,Merit,Merit
+7,Status,Status
+8,Generation,Generation
+9,Path,Path
+10,Virtue,Virtue
+11,Willpower,Willpower
