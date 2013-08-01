@@ -2,8 +2,8 @@
     /*  Plugin Name: GVLarp Character Plugin
         Plugin URI: http://www.gvlarp.com/character-plugin
         Description: Plugin to store and display PCs and NPCs of GVLarp
-        Author: Lambert Behnke
-        Version: 1.6.0
+        Author: Lambert Behnke & Jane Houston
+        Version: 1.7.0
         Author URI: http://www.gvlarp.com
     */
 
@@ -50,58 +50,68 @@
                       Change" default option, Prestige List character name links to profile, On XP Approval
                       and Profile character name links to character sheet for STs only, create monthly WP gain
                       table
+		Version 1.7.0 PDF version of the character sheet now available. Added wp-admin pages to manage Merits 
+					  & Flaws, Rituals, Backgrounds, Sourcebooks, Extended Background questions, Sectors, clans, 
+					  page locations & PDF customisations. Added extended backgrounds, with functionality for 
+					  STs to approve. Split off main PHP file into include files. Updated installation functions
+					  for properly upgrading the database when plugin is activated.  Added initial table data 
+					  during installation for ST links, Sectors, Extended Background questions, Generations,
+					  player status, character status, Attributes/stats, Clans.
 
         Comments:
-        On XP Expenditure page
-            Only show hidden skills (e.g. Dodge) if they already have it on their sheet
-            Works ... VISIBLE=N
 
-        On Master Path table:
-            Only Show PCs (This was in list for last version � thought I�d checked it)
-            Works ... add group=PC
-
-        Future Development / Outstanding
-    On Character Admin, after you have clicked the �Display Characters� button to take you to a character list:
-        Instead of selecting a character with a radio button, then clicking the button to select, have the character
-        name as a link that takes you directly to the page
-    Add a WP Admin Page for editing/adding/etc
-    (have a look at my theme code and wordpress.org for info on doing admin pages. It�s pretty easy to get a basic page there.):
-        The configuration table
-        Merits and Flaws
-        Rituals
-    Expanded Backgrounds � Characters can: (design will be provided by Jane)
-        Update their born/died dates
-        Explain their Merits and Flaws
-        Explain their Clan Flaw
-        List their ghouls
-        List their havens
-        List their Contacts
-        List their Allies
-        List their Retainers
-        List any buildings they own and businesses they control
-        List any items they own (e.g. artifacts, occult items, weapons)
-        Character History/back story
-    Expanded Backgrounds � additional info (design will be provided by Jane)
-        Any changes need to be approved by storytellers
-        Show differences between old and new entries, if possible
-        Display background sections in tabs
-        Insert XP spend table as an additional tab
-
-            Version 1.7.0 Existing Spends on XP Spend,
-            Version 2.0.0 Player Character Creator
-         */
+	*/
 
     /*
-            DB Changes: 1.6.0 Add    MULTIPLE to skill
-                                     SPECIALISATION_AT to skill
-                                     SPECIALISATION_AT to stat
-                                     SPECIALISATION to pending_xp_spend
-                                     MAX_DISCIPLINE to generation
-                                     TEMPORARY_STAT
-                                     CHARACTER_TEMPORARY_STAT
-                                     TEMPORARY_STAT_REASON
-                                     EXTENDED_CHARACTER_BACKGROUND
-                              Change COST_MODEL_STEPS for spends above 5
+        DB Changes: 
+		
+		Version 1.7.0 
+			Table PLAYER_TYPE, 		DESCRIPTION type changed to TINYTEXT
+			Table PLAYER_STATUS, 	DESCRIPTION type changed to TINYTEXT
+			Table ST_LINK, 			DESCRIPTION type changed to TINYTEXT
+			Table ST_LINK, 			LINK type changed to TINYTEXT
+			Table OFFICE, 			DESCRIPTION type changed to TINYTEXT
+			Table XP_REASON, 		DESCRIPTION type changed to TINYTEXT
+			Table PATH_REASON, 		DESCRIPTION type changed to TINYTEXT
+			Table TEMPORARY_STAT_REASON, DESCRIPTION type changed to TINYTEXT
+			Table CHARACTER_TYPE, 	DESCRIPTION type changed to TINYTEXT
+			Table CHARACTER_STATUS, DESCRIPTION type changed to TINYTEXT
+			Table CLAN, 			DESCRIPTION type changed to TINYTEXT
+			Table CLAN, 			Added field CLAN_PAGE_LINK
+			Table CLAN, 			Added field CLAN_FLAW
+			Table COURT, 			DESCRIPTION type changed to TINYTEXT
+			Table SOURCE_BOOK, 		DESCRIPTION type changed to TINYTEXT
+			Table COST_MODEL, 		DESCRIPTION type changed to TINYTEXT
+			Table STAT, 			DESCRIPTION type changed to TINYTEXT
+			Table STAT, 			Added field SPECIALISATION_AT
+			Table TEMPORARY_STAT, 	DESCRIPTION type changed to TINYTEXT
+			Table SKILL, 			DESCRIPTION type changed to TINYTEXT
+			Table SKILL, 			Added field MULTIPLE
+			Table SKILL, 			Added field SPECIALISATION_AT
+			Table BACKGROUND, 		DESCRIPTION type changed to TINYTEXT
+			Table HAS_SECTOR, 		DESCRIPTION type changed to TINYTEXT
+			Added table SECTOR
+			Table MERIT, 			DESCRIPTION type changed to TINYTEXT
+			Table DISCIPLINE, 		DESCRIPTION type changed to TINYTEXT
+			Table PATH, 			DESCRIPTION type changed to TINYTEXT
+			Table DISCIPLINE_POWER, DESCRIPTION type changed to TINYTEXT
+			Table PATH_POWER, 		DESCRIPTION type changed to TINYTEXT
+			Table RITUAL, 			DESCRIPTION type changed to TINYTEXT
+			Table CHARACTER_MERIT, 	Added field APPROVED_DETAIL
+			Table CHARACTER_MERIT, 	Added field PENDING_DETAIL
+			Table CHARACTER_MERIT, 	Added field DENIED_DETAIL
+			Table CHARACTER_BACKGROUND, 	Added field APPROVED_DETAIL
+			Table CHARACTER_BACKGROUND, 	Added field PENDING_DETAIL
+			Table CHARACTER_BACKGROUND, 	Added field DENIED_DETAIL
+			Table CHARACTER_BACKGROUND, 	Added field SECTOR_ID
+			Table COMBO_DISCIPLINE, QUOTE type changed to TEXT
+			Table COMBO_DISCIPLINE, PORTRAIT type changed to TINYTEXT
+			Table CONFIG, 			PROFILE_LINK type changed to TINYTEXT
+			Table CONFIG, 			PLACEHOLDER_IMAGE type changed to TINYTEXT
+			Removed table EXTENDED_CHARACTER_BACKGROUND
+			Added table EXTENDED_BACKGROUND
+			Added table CHARACTER_EXTENDED_BACKGROUND
+			
          */
 define( 'GVLARP_CHARACTER_URL', plugin_dir_path(__FILE__) );define( 'GVLARP_TABLE_PREFIX', $wpdb->prefix . "GVLARP_" );
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages.php';
@@ -200,7 +210,7 @@ function get_stlink_url($stlinkvalue) {
         $character = establishCharacter($character);
 
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $grouping_sector = "";
         $output    = "";
         $sqlOutput = "";
@@ -262,7 +272,7 @@ function get_stlink_url($stlinkvalue) {
         $character = establishCharacter($character);
 
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $output    = "";
         $sqlOutput = "";
         if ($group != "") {
@@ -315,7 +325,7 @@ function get_stlink_url($stlinkvalue) {
         $character = establishCharacter($character);
 
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $output    = "";
 
         $sql = "SELECT chara.name char_name,
@@ -384,7 +394,7 @@ function get_stlink_url($stlinkvalue) {
         $character = establishCharacter($character);
 
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $output    = "";
         $sqlOutput = "";
         $sqlComboOutput = "";
@@ -441,7 +451,7 @@ function get_stlink_url($stlinkvalue) {
         $character = establishCharacter($character);
 
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $output    = "";
         $sqlOutput = "";
 
@@ -481,7 +491,7 @@ function get_stlink_url($stlinkvalue) {
         $character = establishCharacter($character);
 
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $output    = "";
         $sqlOutput = "";
 
@@ -524,7 +534,7 @@ function get_stlink_url($stlinkvalue) {
         $character = establishCharacter($character);
 
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $output    = "";
         $sqlOutput = "";
         $sql = "SELECT merit.name, cha_merit.comment, cha_merit.level
@@ -561,7 +571,7 @@ function get_stlink_url($stlinkvalue) {
         $character = establishCharacter($character);
 
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $output    = "";
         $sqlOutput = "";
         $sql = "SELECT office.name office_name, court.name court_name, coffice.comment
@@ -600,7 +610,7 @@ function get_stlink_url($stlinkvalue) {
         $character = establishCharacter($character);
 
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $output    = "";
         $sqlOutput = "";
         $sql = "SELECT back.name, cha_back.comment, cha_back.level
@@ -637,7 +647,7 @@ function get_stlink_url($stlinkvalue) {
         $character = establishCharacter($character);
 
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
 
         $sqlOutput = "";
         $sql = "SELECT char_temp_stat.character_id, SUM(char_temp_stat.amount) total_temp_stat
@@ -677,7 +687,7 @@ function get_stlink_url($stlinkvalue) {
         extract(shortcode_atts(array ("court" => "Glasgow", "office" => ""), $atts));
 
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $output    = "";
         $sqlOutput = "";
 
@@ -749,7 +759,7 @@ function get_stlink_url($stlinkvalue) {
         $character = establishCharacter($character);
 
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $output    = "";
         $sqlOutput = "";
 
@@ -983,7 +993,7 @@ function get_stlink_url($stlinkvalue) {
         extract(shortcode_atts(array ("court" => "Glasgow", "displayzeros" => "N", "statusvalue" => "All"), $atts));
 
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $output    = "";
         $sqlOutput = "";
 
@@ -1096,7 +1106,7 @@ function get_stlink_url($stlinkvalue) {
         }
 
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $xpReasons = listXpReasons();
 
         $xpOptions = "";
@@ -1186,7 +1196,7 @@ function get_stlink_url($stlinkvalue) {
         extract(shortcode_atts(array ("court" => "Glasgow", "group" => "PC", "active" => "Y", "invisibles" => "N"), $atts));
 
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $output    = "";
 
         $activeSector = "";
@@ -1284,7 +1294,7 @@ function get_stlink_url($stlinkvalue) {
         }
 
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
 
         $output = "";
 
@@ -1426,7 +1436,7 @@ function get_stlink_url($stlinkvalue) {
         }
 
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
 
         $output = "";
         if ($_POST['GVLARP_FORM'] == "master_temp_stat_update"
@@ -1626,7 +1636,7 @@ function get_stlink_url($stlinkvalue) {
         $character = establishCharacter($character);
 
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
 
         $innerQuery = "SELECT xp_totals.player_id player_id, (total_xp + ifnull(total_pending, 0)) total_xp
                                FROM (SELECT player_xp.player_id player_id, SUM(player_xp.amount) total_xp
@@ -1726,7 +1736,7 @@ function get_stlink_url($stlinkvalue) {
         $character = establishCharacter($character);
 
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
 
         $sql = "SELECT chara.name char_name, preason.name reason_name, cpath.amount, cpath.comment, cpath.awarded, total_path
                         FROM " . $table_prefix . "CHARACTER chara,
@@ -2086,7 +2096,7 @@ function get_stlink_url($stlinkvalue) {
         }
 
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
 
         // Replacing all underscores with strings
         $defaultTrainingString = "Tell us who is teaching you or how you are learning.";
@@ -2691,7 +2701,7 @@ function get_stlink_url($stlinkvalue) {
 
     function print_xp_approval_table($atts, $content=null) {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
 
         $output    = "";
         $sqlOutput = "";
@@ -2913,7 +2923,7 @@ function get_stlink_url($stlinkvalue) {
         }
 
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
 
         $sql = "SELECT chara.id                        cid,
                            chara.name                      cname,
@@ -3229,7 +3239,7 @@ function get_stlink_url($stlinkvalue) {
 
     function displayUpdatePlayer($playerID) {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $output = "";
 
         if ($playerID == "0" || (int) ($playerID) > 0) {
@@ -3306,7 +3316,7 @@ function get_stlink_url($stlinkvalue) {
         $xp_total = print_character_xp_table($attributes, null);
 
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
 
         $checkSQL = "";
         $updateTraitSQL = "";
@@ -3632,7 +3642,7 @@ function get_stlink_url($stlinkvalue) {
         $xp_total = print_character_xp_table($attributes, null);
 
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
 
         $checkSQL = "";
         $xp_cost = 1000;
@@ -3874,7 +3884,7 @@ function get_stlink_url($stlinkvalue) {
 
     function processPlayerUpdate($playerID) {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
 
         $playerName   = $_POST['playerName'];
         $playerStatus = $_POST['playerStatus'];
@@ -3920,7 +3930,7 @@ function get_stlink_url($stlinkvalue) {
 
     function displayUpdateCharacter($characterID) {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $output = "";
 
         if ($characterID == "0" || (int) ($characterID) > 0) {
@@ -4700,7 +4710,7 @@ function get_stlink_url($stlinkvalue) {
 
     function displayDeleteCharacter($characterID) {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $output = "";
 
         $sql = "SELECT chara.name cname, player.name pname
@@ -4730,7 +4740,7 @@ function get_stlink_url($stlinkvalue) {
 
     function deleteCharacter($characterID) {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
 
         $sql = "UPDATE " . $table_prefix . "CHARACTER
                         SET DELETED = 'Y'
@@ -4764,7 +4774,7 @@ function get_stlink_url($stlinkvalue) {
 
     function processCharacterUpdate($characterID) {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
 
         $characterName             = $_POST['charName'];
         $characterPlayer           = $_POST['charPlayer'];
@@ -5170,7 +5180,7 @@ function get_stlink_url($stlinkvalue) {
 
     function print_xp_spend($character) {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
 
         $xpReasons = listXpReasons();
 
@@ -5250,7 +5260,7 @@ function get_stlink_url($stlinkvalue) {
 
     function addNewPlayer($name, $typeID, $statusID) {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $sql = "INSERT INTO " . $table_prefix . "PLAYER (name, player_type_id, player_status_id)
                         VALUES (%s, %d, %d)";
         $wpdb->query($wpdb->prepare($sql, $name, $typeID, $statusID));
@@ -5258,7 +5268,7 @@ function get_stlink_url($stlinkvalue) {
 
     function addPlayerXP($player, $character, $xpReason, $value, $comment) {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $sql = "INSERT INTO " . $table_prefix . "PLAYER_XP (player_id, amount, character_id, xp_reason_id, comment, awarded)
                         VALUES (%d, %d, %d, %d, %s, SYSDATE())";
         $wpdb->query($wpdb->prepare($sql, $player, ((int) $value), $character, $xpReason, $comment));
@@ -5266,7 +5276,7 @@ function get_stlink_url($stlinkvalue) {
 
     function listPlayerType() {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $sql = "SELECT ID, name, description
                         FROM " . $table_prefix . "PLAYER_TYPE ptype
                         ORDER BY description";
@@ -5277,7 +5287,7 @@ function get_stlink_url($stlinkvalue) {
 
     function listPlayerStatus() {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $sql = "SELECT ID, name, description
                         FROM " . $table_prefix . "PLAYER_STATUS status
                         ORDER BY description";
@@ -5288,7 +5298,7 @@ function get_stlink_url($stlinkvalue) {
 
     function listSTLinks() {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $sql = "SELECT ID, value, description, link
                         FROM " . $table_prefix . "ST_LINK stlinks
                         ORDER BY ordering";
@@ -5299,7 +5309,7 @@ function get_stlink_url($stlinkvalue) {
 
     function listPlayers($playerStatus, $playerType) {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
 
         $statusClause = "";
         if ($playerStatus != null && $playerStatus != "") {
@@ -5336,7 +5346,7 @@ function get_stlink_url($stlinkvalue) {
 
     function listClans() {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $sql = "SELECT ID, name
                         FROM " . $table_prefix . "CLAN
                         ORDER BY name";
@@ -5347,7 +5357,7 @@ function get_stlink_url($stlinkvalue) {
 
     function listGenerations() {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $sql = "SELECT ID, name
                 FROM " . $table_prefix . "GENERATION
                 ORDER BY BLOODPOOL, COST";
@@ -5358,7 +5368,7 @@ function get_stlink_url($stlinkvalue) {
 
     function listCharacterStatuses() {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $sql = "SELECT ID, name
                         FROM " . $table_prefix . "CHARACTER_STATUS
                         ORDER BY name";
@@ -5369,7 +5379,7 @@ function get_stlink_url($stlinkvalue) {
 
     function listCharacterTypes() {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $sql = "SELECT ID, name
                         FROM " . $table_prefix . "CHARACTER_TYPE
                         ORDER BY name";
@@ -5380,7 +5390,7 @@ function get_stlink_url($stlinkvalue) {
 
     function listRoadsOrPaths() {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $sql = "SELECT ID, name
                         FROM " . $table_prefix . "ROAD_OR_PATH
                         ORDER BY name";
@@ -5391,7 +5401,7 @@ function get_stlink_url($stlinkvalue) {
 
     function listCourts() {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $sql = "SELECT ID, name
                         FROM " . $table_prefix . "COURT
                         ORDER BY name";
@@ -5402,7 +5412,7 @@ function get_stlink_url($stlinkvalue) {
 
     function listOffices($showNotVisible) {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
 
         $visible_sector  = " VISIBLE = 'Y' ";
         if ($showNotVisible == "Y") {
@@ -5421,7 +5431,7 @@ function get_stlink_url($stlinkvalue) {
 
     function listCharacters($group, $activeCharacter, $playerName, $activePlayer, $showNotVisible) {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $grouping_sector = "";
         $activeCharacter_sector = "";
         $activePlayer_sector = "";
@@ -5521,7 +5531,7 @@ function get_stlink_url($stlinkvalue) {
 
     function listStats() {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $sql = "SELECT id, name, grouping
                         FROM " . $table_prefix . "STAT
                         ORDER BY ordering";
@@ -5531,7 +5541,7 @@ function get_stlink_url($stlinkvalue) {
 
     function listXpReasons() {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $sql = "SELECT id, name
                         FROM " . $table_prefix . "XP_REASON
                         ORDER BY id";
@@ -5541,7 +5551,7 @@ function get_stlink_url($stlinkvalue) {
 
     function listPathReasons() {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $sql = "SELECT id, name
                     FROM " . $table_prefix . "PATH_REASON
                     ORDER BY id";
@@ -5551,7 +5561,7 @@ function get_stlink_url($stlinkvalue) {
 
     function listTemporaryStatReasons() {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $sql = "SELECT id, name
                     FROM " . $table_prefix . "TEMPORARY_STAT_REASON
                     ORDER BY id";
@@ -5562,7 +5572,7 @@ function get_stlink_url($stlinkvalue) {
 
     function listSkills($group, $showNotVisible) {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $grouping_sector = "";
         $visible_sector  = " VISIBLE = 'Y' ";
 
@@ -5599,7 +5609,7 @@ function get_stlink_url($stlinkvalue) {
 
     function listDisciplines($showNotVisible) {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $visible_sector  = " VISIBLE = 'Y' ";
 
         if ($showNotVisible == "Y") {
@@ -5619,7 +5629,7 @@ function get_stlink_url($stlinkvalue) {
 
     function listComboDisciplines($showNotVisible) {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $visible_sector  = " VISIBLE = 'Y' ";
 
         if ($showNotVisible == "Y") {
@@ -5639,7 +5649,7 @@ function get_stlink_url($stlinkvalue) {
 
     function listPaths($showNotVisible) {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $visible_sector  = " AND VISIBLE = 'Y' ";
 
         if ($showNotVisible == "Y") {
@@ -5658,7 +5668,7 @@ function get_stlink_url($stlinkvalue) {
 
     function listRituals($showNotVisible) {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $visible_sector  = " AND VISIBLE = 'Y' ";
 
         if ($showNotVisible == "Y") {
@@ -5677,7 +5687,7 @@ function get_stlink_url($stlinkvalue) {
 
     function listBackgrounds($group, $showNotVisible) {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $grouping_sector = "";
         $visible_sector  = " VISIBLE = 'Y' ";
 
@@ -5714,7 +5724,7 @@ function get_stlink_url($stlinkvalue) {
 
     function listMerits($group, $showNotVisible) {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $grouping_sector = "";
         $visible_sector  = " VISIBLE = 'Y' ";
 
@@ -5787,7 +5797,7 @@ function get_stlink_url($stlinkvalue) {
 
     function establishCharacterID($character) {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $sql = "SELECT id
                         FROM " . $table_prefix . "CHARACTER
                         WHERE WORDPRESS_ID = %s";
@@ -5801,7 +5811,7 @@ function get_stlink_url($stlinkvalue) {
 
     function establishPlayerID($character) {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $sql = "SELECT player_id
                         FROM " . $table_prefix . "CHARACTER
                         WHERE WORDPRESS_ID = %s";
@@ -5815,7 +5825,7 @@ function get_stlink_url($stlinkvalue) {
 
     function establishXPReasonID($xpReasonString) {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $sql = "SELECT id
                     FROM " . $table_prefix . "XP_REASON
                     WHERE NAME = %s";
@@ -5829,7 +5839,7 @@ function get_stlink_url($stlinkvalue) {
 
     function establishPathReasonID($pathReasonString) {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $sql = "SELECT id
                         FROM " . $table_prefix . "PATH_REASON
                         WHERE NAME = %s";
@@ -5843,7 +5853,7 @@ function get_stlink_url($stlinkvalue) {
 
     function establishTempStatID($tempStatString) {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $sql = "SELECT id
                 FROM " . $table_prefix . "TEMPORARY_STAT
                 WHERE NAME = %s";
@@ -5857,7 +5867,7 @@ function get_stlink_url($stlinkvalue) {
 
     function establishTempStatReasonID($tempStatReasonString) {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $sql = "SELECT id
                 FROM " . $table_prefix . "TEMPORARY_STAT_REASON
                 WHERE NAME = %s";
@@ -5871,7 +5881,7 @@ function get_stlink_url($stlinkvalue) {
 
     function getConfig() {
         global $wpdb;
-        $table_prefix = $wpdb->prefix . "GVLARP_";
+        $table_prefix = GVLARP_TABLE_PREFIX;
         $sql = "SELECT PROFILE_LINK, PLACEHOLDER_IMAGE, CLAN_DISCIPLINE_DISCOUNT
                 FROM " . $table_prefix . "CONFIG";
 
