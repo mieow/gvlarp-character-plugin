@@ -163,7 +163,9 @@ function get_editbackgrounds_tab($characterID) {
 		$content .= "<tr><td><input type='submit' name='save_bgform{$i}' value='Save {$background->NAME}' /></td></tr>\n";
 		$content .= "</table></form></div>";
 	}
-	
+	if (count($backgrounds) == 0) {
+		$content .= "<p>You have no backgrounds requiring explanation</p>";
+	}
 	
 	return $content;
 }
@@ -247,6 +249,9 @@ function get_editmerits_tab($characterID) {
 		$content .= "<tr><td><input type='submit' name='save_meritform{$i}' value='Save {$merit->NAME}' /></td></tr>\n";
 		$content .= "</table></form></div>";
 	}
+	if (count($merits) == 0) {
+		$content .= "<p>You have no merits or flaws requiring explanation</p>";
+	}
 	
 	
 	return $content;
@@ -328,7 +333,8 @@ function get_editmisc_tab($characterID) {
 				) tempcharmisc 
 				ON questions.ID = tempcharmisc.QUESTION_ID AND tempcharmisc.charID = '$characterID'
 			WHERE characters.ID = '$characterID'
-				AND questions.VISIBLE = 'Y'";
+				AND questions.VISIBLE = 'Y'
+			ORDER BY questions.ORDERING ASC";
 			
 	/* $content = "<p>SQL: $sql</p>"; */
 	
@@ -369,6 +375,9 @@ function get_editmisc_tab($characterID) {
 		
 		$content .= "<tr><td><input type='submit' name='save_miscform{$i}' value='Save {$question->TITLE}' /></td></tr>\n";
 		$content .= "</table></form></div>";
+	}
+	if (count($questions) == 0) {
+		$content .= "<p>There are no extended background questions to answer.</p>";
 	}
 	
 	
