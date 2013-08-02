@@ -73,9 +73,9 @@ function gv_print_redirect()
 			
 			for ($i=0;$i<3;$i++) {
 				$data = array(
-						$physical[$i]->name,$physical[$i]->specialty,$physical[$i]->level,
-						$social[$i]->name,$social[$i]->specialty,$social[$i]->level,
-						$mental[$i]->name,$mental[$i]->specialty,$mental[$i]->level,
+						$physical[$i]->name,stripslashes($physical[$i]->specialty),$physical[$i]->level,
+						$social[$i]->name,stripslashes($social[$i]->specialty),$social[$i]->level,
+						$mental[$i]->name,stripslashes($mental[$i]->specialty),$mental[$i]->level,
 						);
 				if ($i==0)
 					array_push($data, "Physical", "Social", "Mental");
@@ -96,9 +96,9 @@ function gv_print_redirect()
 			
 			for ($i=0;$i<$abilrows;$i++) {
 				$data = array(
-						$talent[$i]->skillname,$talent[$i]->specialty,$talent[$i]->level,
-						$skill[$i]->skillname,$skill[$i]->specialty,$skill[$i]->level,
-						$knowledge[$i]->skillname,$knowledge[$i]->specialty,$knowledge[$i]->level
+						$talent[$i]->skillname,stripslashes($talent[$i]->specialty),$talent[$i]->level,
+						$skill[$i]->skillname,stripslashes($skill[$i]->specialty),$skill[$i]->level,
+						$knowledge[$i]->skillname,stripslashes($knowledge[$i]->specialty),$knowledge[$i]->level
 						);
 				if ($i==0)
 					array_push($data, "Talents", "Skills", "Knowledges");
@@ -132,7 +132,7 @@ function gv_print_redirect()
 			for ($i=0;$i<$rows;$i++) {
 				$data = array (
 					$backgrounds[$i]->background,
-					(!empty($backgrounds[$i]->sector)) ?  $backgrounds[$i]->sector : $backgrounds[$i]->comment,
+					(!empty($backgrounds[$i]->sector)) ?  $backgrounds[$i]->sector : stripslashes($backgrounds[$i]->comment),
 					$backgrounds[$i]->level,
 					
 					$disciplines[$i]->name,
@@ -140,7 +140,7 @@ function gv_print_redirect()
 					$disciplines[$i]->level,
 					
 					$secondary[$i]->skillname,
-					$secondary[$i]->specialty,
+					stripslashes($secondary[$i]->specialty),
 					$secondary[$i]->level
 				);
 				if ($i==0)
@@ -163,7 +163,7 @@ function gv_print_redirect()
 					foreach ($merits as $merit) {
 						$string = $merit->name;
 						if (!empty($merit->comment))
-							$string .= " - " . $merit->comment;
+							$string .= " - " . stripslashes($merit->comment);
 						$string .= " (" . $merit->level . ")";
 						$pdf->SingleColumnText($string);
 					}
@@ -255,7 +255,7 @@ function gv_print_redirect()
 					if (!empty($backgrounds[$i]->sector) || !empty($backgrounds[$i]->comment) || !empty($backgrounds[$i]->detail)) {
 						$text = $backgrounds[$i]->background . " " . $backgrounds[$i]->level;
 						if (!empty($backgrounds[$i]->sector))  $text .= " (" . $backgrounds[$i]->sector . ")";
-						if (!empty($backgrounds[$i]->comment)) $text .= " " . $backgrounds[$i]->comment;
+						if (!empty($backgrounds[$i]->comment)) $text .= " " . stripslashes($backgrounds[$i]->comment);
 					
 						$pdf->FullWidthText($text, 'B');
 						if (!empty($backgrounds[$i]->detail))  $pdf->FullWidthText(stripslashes($backgrounds[$i]->detail));
@@ -270,7 +270,7 @@ function gv_print_redirect()
 				for ($i=0;$i<count($merits);$i++) {
 					if (!empty($merits[$i]->comment) || !empty($merits[$i]->detail)) {
 						$text = $merits[$i]->name;
-						if (!empty($merits[$i]->comment)) $text .= " (" . $merits[$i]->comment . ")";
+						if (!empty($merits[$i]->comment)) $text .= " (" . stripslashes($merits[$i]->comment) . ")";
 					
 						$pdf->FullWidthText($text, 'B');
 						if (!empty($merits[$i]->detail))  $pdf->FullWidthText(stripslashes($merits[$i]->detail));

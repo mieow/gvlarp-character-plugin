@@ -245,7 +245,7 @@ function get_stlink_url($stlinkvalue) {
 
         foreach ($character_stats as $current_stat) {
             $sqlOutput .= "<tr><td class=\"gvcol_1 gvcol_key\">"  . $current_stat->name    . "</td>
-                                   <td class=\"gvcol_2 gvcol_spec\">" . $current_stat->comment . "</td>
+                                   <td class=\"gvcol_2 gvcol_spec\">" . stripslashes($current_stat->comment) . "</td>
                                    <td class=\"gvcol_3 gvdot_";
             if ($current_stat->name == 'Willpower') {
                 $sqlOutput .= "10";
@@ -305,7 +305,7 @@ function get_stlink_url($stlinkvalue) {
 
         foreach ($character_skills as $current_skill) {
             $sqlOutput .="<tr><td class=\"gvcol_1 gvcol_key\">"  . $current_skill->name    . "</td>
-                                      <td class=\"gvcol_2 gvcol_spec\">" . $current_skill->comment . "</td>
+                                      <td class=\"gvcol_2 gvcol_spec\">" . stripslashes($current_skill->comment) . "</td>
                                       <td class=\"gvcol_3 gvdot_5_"      . $current_skill->level   . "\"></td></tr>";
         }
 
@@ -413,7 +413,7 @@ function get_stlink_url($stlinkvalue) {
 
         foreach ($character_disciplines as $current_discipline) {
             $sqlOutput .="<tr><td class=\"gvcol_1 gvcol_key\">"  . $current_discipline->name    . "</td>
-                                      <td class=\"gvcol_2 gvcol_spec\">" . $current_discipline->comment . "</td>
+                                      <td class=\"gvcol_2 gvcol_spec\">" . stripslashes($current_discipline->comment) . "</td>
                                       <td class=\"gvcol_3 gvdot_5_"      . $current_discipline->level   . "\"></td></tr>";
         }
 
@@ -431,7 +431,7 @@ function get_stlink_url($stlinkvalue) {
 
         foreach ($character_combo_disciplines as $current_combo_discipline) {
             $sqlComboOutput .="<tr><td class=\"gvcol_1 gvcol_key\">"  . $current_combo_discipline->name    . "</td>
-                                       <td class=\"gvcol_2 gvcol_spec\">" . $current_combo_discipline->comment . "</td></tr>";
+                                       <td class=\"gvcol_2 gvcol_spec\">" . stripslashes($current_combo_discipline->comment) . "</td></tr>";
         }
 
         if ($sqlOutput != "") {
@@ -471,7 +471,7 @@ function get_stlink_url($stlinkvalue) {
 
         foreach ($character_paths as $current_path) {
             $sqlOutput .="<tr><td class=\"gvcol_1 gvcol_key\">"  . $current_path->name    . "</td>
-                                      <td class=\"gvcol_2 gvcol_spec\">" . $current_path->comment . "</td>
+                                      <td class=\"gvcol_2 gvcol_spec\">" . stripslashes($current_path->comment) . "</td>
                                       <td class=\"gvcol_3 gvdot_5_"      . $current_path->level   . "\"></td></tr>";
         }
 
@@ -513,7 +513,7 @@ function get_stlink_url($stlinkvalue) {
 
             foreach ($character_rituals as $current_ritual) {
                 $sqlOutput .="<tr><td class=\"gvcol_1 gvcol_key\">"  . $current_ritual->name    . "</td>
-                                          <td class=\"gvcol_2 gvcol_spec\">" . $current_ritual->comment . "</td>
+                                          <td class=\"gvcol_2 gvcol_spec\">" . stripslashes($current_ritual->comment) . "</td>
                                           <td class=\"gvcol_3 gvcol_val\">"  . $current_ritual->level   . "</td></tr>";
             }
         }
@@ -551,7 +551,7 @@ function get_stlink_url($stlinkvalue) {
 
         foreach ($character_merits as $current_merit) {
             $sqlOutput .="<tr><td class=\"gvcol_1 gvcol_key\">"  . $current_merit->name    . "</td>
-                                      <td class=\"gvcol_2 gvcol_spec\">" . $current_merit->comment . "</td>
+                                      <td class=\"gvcol_2 gvcol_spec\">" . stripslashes($current_merit->comment) . "</td>
                                       <td class=\"gvcol_3 gvcol_val\">"  . $current_merit->level   . "</td></tr>";
         }
 
@@ -591,7 +591,7 @@ function get_stlink_url($stlinkvalue) {
         foreach ($character_offices as $current_office) {
             $sqlOutput .="<tr><td class=\"gvcol_1 gvcol_key\">"  . $current_office->office_name . "</td>
                                       <td class=\"gvcol_2 gvcol_val\">"  . $current_office->court_name  . "</td>
-                                      <td class=\"gvcol_3 gvcol_spec\">" . $current_office->comment     . "</td></tr>";
+                                      <td class=\"gvcol_3 gvcol_spec\">" . stripslashes($current_office->comment)     . "</td></tr>";
         }
 
         if ($sqlOutput != "") {
@@ -627,7 +627,7 @@ function get_stlink_url($stlinkvalue) {
 
         foreach ($character_backgrounds as $current_background) {
             $sqlOutput .="<tr><td class=\"gvcol_1 gvcol_key\">"  . $current_background->name    . "</td>
-                                      <td class=\"gvcol_2 gvcol_spec\">" . $current_background->comment . "</td>
+                                      <td class=\"gvcol_2 gvcol_spec\">" . stripslashes($current_background->comment) . "</td>
                                       <td class=\"gvcol_3 gvdot_5_"      . $current_background->level   . "\"></td></tr>";
         }
 
@@ -729,7 +729,7 @@ function get_stlink_url($stlinkvalue) {
                 else {
                     $sqlOutput .= "<tr><td class=\"gvcol_1 gvcol_key\">&nbsp;</td>";
                 }
-                $sqlOutput .= "<td class=\"gvcol_2 gvcol_val\">" . $characterOffice->charname . "</td><td class=\"gvcol_3 gvcol_val\">" . $characterOffice->comment . "</td></tr>";
+                $sqlOutput .= "<td class=\"gvcol_2 gvcol_val\">" . $characterOffice->charname . "</td><td class=\"gvcol_3 gvcol_val\">" . stripslashes($characterOffice->comment) . "</td></tr>";
             }
 
             if ($sqlOutput != "") {
@@ -970,7 +970,7 @@ function get_stlink_url($stlinkvalue) {
                                        <a href=\"" . $config->PROFILE_LINK . "?CHARACTER=" . urlencode($current_character->Wordpress_Id) . "\">"
                 . $currentCharacter->character_name . "</a></td>
                                    <td class=\"gvcol_2 gvcol_key\">" . $currentCharacter->court_name . "</td>
-                                   <td colspan=2 class=\"gvcol_3 gvcol_val\">" . $currentCharacter->merit_name . " " . $currentCharacter->comment . "</td></tr>";
+                                   <td colspan=2 class=\"gvcol_3 gvcol_val\">" . $currentCharacter->merit_name . " " . stripslashes($currentCharacter->comment) . "</td></tr>";
         }
 
         if ($sqlOutput != "") {
@@ -1690,7 +1690,7 @@ function get_stlink_url($stlinkvalue) {
                 $arr[$i] = "<tr><td class=\"gvcol_1 gvcol_key\">" . $current_xp->char_name   . "</td><td class=\"gvcol_2 gvcol_val\">"
                     . $current_xp->reason_name . "</td><td class=\"gvcol_3 gvcol_val\">"
                     . $current_xp->amount      . "</td><td class='gvcol_4 gvcol_val'>"
-                    . $current_xp->comment     . "</td><td class='gvcol_5 gvcol_val'>"
+                    . stripslashes($current_xp->comment)     . "</td><td class='gvcol_5 gvcol_val'>"
                     . $current_xp->awarded     . "</td></tr>\n";
                 $xp_total = (int) $current_xp->total_xp;
                 $i++;
@@ -1767,7 +1767,7 @@ function get_stlink_url($stlinkvalue) {
             foreach ($character_path as $current_path) {
                 $arr[$i] = "<tr><td class=\"gvcol_1 gvcol_val\">" . $current_path->reason_name . "</td><td class=\"gvcol_2 gvcol_val\">"
                     . $current_path->amount      . "</td><td class=\"gvcol_3 gvcol_val\">"
-                    . $current_path->comment     . "</td><td class='gvcol_4 gvcol_val'>"
+                    . stripslashes($current_path->comment)     . "</td><td class='gvcol_4 gvcol_val'>"
                     . $current_path->awarded     . "</td></tr>";
                 $path_total = (int) $current_path->total_path;
                 $i++;
@@ -2176,7 +2176,7 @@ function get_stlink_url($stlinkvalue) {
                 $sqlOutput .= "<input type='text' name=\"spec_stat_" . $stat_xp->id . $specialisationIndicator . "\" value=\"" . $defaultSpecialisation . "\" size=20 maxlength=60>";
             }
             else {
-                $sqlOutput .= $stat_xp->comment;
+                $sqlOutput .= stripslashes($stat_xp->comment);
             }
             $sqlOutput .= "</td><td class=\"gvcol_3 gvcol_val\">" . $stat_xp->level
                 . "</td><td class='gvcol_4 gvcol_val'>=></td>";
@@ -2277,7 +2277,7 @@ function get_stlink_url($stlinkvalue) {
                 $sqlOutput .= "\" value=\"" . $defaultSpecialisation . "\" size=20 maxlength=60>";
             }
             else {
-                $sqlOutput .= $skill_xp->comment;
+                $sqlOutput .= stripslashes($skill_xp->comment);
             }
 
             $sqlOutput .= "</td><td class=\"gvcol_3 gvcol_val\">" . $skill_xp->level
@@ -2382,7 +2382,7 @@ function get_stlink_url($stlinkvalue) {
         $sqlOutput = "";
         foreach ($character_discipline_xp as $dis_xp) {
             $sqlOutput .= "<tr><th class=\"gvthleft\">" . $dis_xp->dis_name
-                . "</th><td class=\"gvcol_2 gvcol_val\">" . $dis_xp->comment
+                . "</th><td class=\"gvcol_2 gvcol_val\">" . stripslashes($dis_xp->comment)
                 . "</td><td class=\"gvcol_3 gvcol_val\">" . $dis_xp->level
                 . "</td><td class='gvcol_4 gvcol_val'>=></td>";
 
@@ -2737,7 +2737,7 @@ function get_stlink_url($stlinkvalue) {
                     $character = $xpSpend->wpid;
                     $xpSpendCode    = $xpSpend->code;
                     $characterName  = $xpSpend->cname;
-                    $xpSpendComment = $xpSpend->comment;
+                    $xpSpendComment = stripslashes($xpSpend->comment);
                     $specialisation = $xpSpend->specialisation;
                     $xpCost         = $xpSpend->amount;
                 }
@@ -2771,7 +2771,7 @@ function get_stlink_url($stlinkvalue) {
             $xpSpendDetails = $wpdb->get_results($wpdb->prepare($sql, $deniedXPSpends[$i]));
             foreach ($xpSpendDetails as $xpSpend) {
                 $characterName  = $xpSpend->cname;
-                $xpSpendComment = $xpSpend->comment;
+                $xpSpendComment = stripslashes($xpSpend->comment);
                 $xpCost         = $xpSpend->amount;
             }
 
@@ -2815,7 +2815,7 @@ function get_stlink_url($stlinkvalue) {
                     . $xp_spend->cname . "</a>";
             }
 
-            $sqlOutput .= "</td><td class=\"gvcol_2 gvcol_val\">" . $xp_spend->comment
+            $sqlOutput .= "</td><td class=\"gvcol_2 gvcol_val\">" . stripslashes($xp_spend->comment)
                 .  "</td><td class=\"gvcol_3 gvcol_val\">" . $xp_spend->specialisation
                 .  "</td><td class='gvcol_4 gvcol_val'>" . $xp_spend->training_note
                 .  "</td><td class='gvcol_5 gvcol_val'>" . $xp_spend->awarded
@@ -3038,7 +3038,7 @@ function get_stlink_url($stlinkvalue) {
             if ($showAll || $currentPrestige->comment == $observerClan) {
                 $clanPrestige = $currentPrestige->level;
                 if ($currentPrestige->comment != $publicClan) {
-                    $clanPrestige .= " (" . $currentPrestige->comment . ")";
+                    $clanPrestige .= " (" . stripslashes($currentPrestige->comment) . ")";
                 }
             }
         }
@@ -3070,7 +3070,7 @@ function get_stlink_url($stlinkvalue) {
                     if ($clanEnmity != "") {
                         $clanEnmity .= "<br />";
                     }
-                    $clanEnmity .= $currentMerit->comment;
+                    $clanEnmity .= stripslashes($currentMerit->comment);
                 }
             }
         }
@@ -4174,7 +4174,7 @@ function get_stlink_url($stlinkvalue) {
                 $currentStat = $arr[$statName];
                 $output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $stat->name . "</td>"
                     . "<td class=\"gvcol_2 gvcol_val\">" . printSelectCounter($statName, $currentStat->level, 0, 10) . "</td>"
-                    . "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\"" . $statName . "Comment\" value=\"" . $currentStat->comment . "\" /></td>"
+                    . "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\"" . $statName . "Comment\" value=\"" . stripslashes($currentStat->comment) . "\" /></td>"
                     . "<td class='gvcol_4 gvcol_val'>";
 
                 if ($currentStat->grouping == "Virtue"  && $statName != "Courage") {
@@ -4222,7 +4222,7 @@ function get_stlink_url($stlinkvalue) {
                 $skillName = "skill" . $skillCount;
                 $output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $characterSkill->name . "</td>"
                     . "<td class=\"gvcol_2 gvcol_val\">" . printSelectCounter($skillName, $characterSkill->level, 0, 10) . "</td>"
-                    . "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $skillName . "Comment\" value=\"" . $characterSkill->comment  . "\" /></td>"
+                    . "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $skillName . "Comment\" value=\"" . stripslashes($characterSkill->comment)  . "\" /></td>"
                     . "<td class='gvcol_4 gvcol_val'><input type=\"checkbox\" name=\"" . $skillName . "Delete\" value=\""  . $characterSkill->cskillid . "\" />"
                     .     "<input type='HIDDEN' name=\""   . $skillName . "ID\" value=\""      . $characterSkill->cskillid . "\" /></td></tr>";
 
@@ -4292,7 +4292,7 @@ function get_stlink_url($stlinkvalue) {
                 $disciplineName = "discipline" . $disciplineCount;
                 $output .= "<td class=\"gvcol_" . (1 + $colOffset) . " gvcol_key\">" . $characterDiscipline->name . "</td>"
                     . "<td class=\"gvcol_" . (2 + $colOffset) . " gvcol_val\">" . printSelectCounter($disciplineName, $characterDiscipline->level, 0, 10) . "</td>"
-                    . "<td class=\"gvcol_" . (3 + $colOffset) . " gvcol_val\"><input type='text' name=\""     . $disciplineName . "Comment\" value=\"" . $characterDiscipline->comment  . "\" /></td>"
+                    . "<td class=\"gvcol_" . (3 + $colOffset) . " gvcol_val\"><input type='text' name=\""     . $disciplineName . "Comment\" value=\"" . stripslashes($characterDiscipline->comment)  . "\" /></td>"
                     . "<td class=\"gvcol_" . (4 + $colOffset) . " gvcol_val\"><input type=\"checkbox\" name=\"" . $disciplineName . "Delete\" value=\""  . $characterDiscipline->cdisciplineid . "\" />"
                     .     "<input type='HIDDEN' name=\""   . $disciplineName . "ID\" value=\""      . $characterDiscipline->cdisciplineid . "\" /></td>";
 
@@ -4370,7 +4370,7 @@ function get_stlink_url($stlinkvalue) {
                 $backgroundName = "background" . $backgroundCount;
                 $output .= "<td class=\"gvcol_" . (1 + $colOffset) . " gvcol_key\">" . $characterBackground->name . "</td>"
                     . "<td class=\"gvcol_" . (2 + $colOffset) . " gvcol_val\">" . printSelectCounter($backgroundName, $characterBackground->level, 0, 10) . "</td>"
-                    . "<td class=\"gvcol_" . (3 + $colOffset) . " gvcol_val\"><input type='text' name=\""     . $backgroundName . "Comment\" value=\"" . $characterBackground->comment  . "\" /></td>"
+                    . "<td class=\"gvcol_" . (3 + $colOffset) . " gvcol_val\"><input type='text' name=\""     . $backgroundName . "Comment\" value=\"" . stripslashes($characterBackground->comment)  . "\" /></td>"
                     . "<td class=\"gvcol_" . (4 + $colOffset) . " gvcol_val\"><input type=\"checkbox\" name=\"" . $backgroundName . "Delete\" value=\""  . $characterBackground->cbackgroundid . "\" />"
                     .     "<input type='HIDDEN' name=\""   . $backgroundName . "ID\" value=\""      . $characterBackground->cbackgroundid . "\" /></td>";
 
@@ -4438,7 +4438,7 @@ function get_stlink_url($stlinkvalue) {
                 $meritName = "merit" . $meritCount;
                 $output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $characterMerit->name . " (" . $characterMerit->value . ")</td>"
                     . "<td class=\"gvcol_2 gvcol_val\">" . printSelectCounter($meritName, $characterMerit->level, -7, 7) . "</td>"
-                    . "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $meritName . "Comment\" value=\"" . $characterMerit->comment  . "\" /></td>"
+                    . "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $meritName . "Comment\" value=\"" . stripslashes($characterMerit->comment)  . "\" /></td>"
                     . "<td class='gvcol_4 gvcol_val'><input type=\"checkbox\" name=\"" . $meritName . "Delete\" value=\""  . $characterMerit->cmeritid . "\" />"
                     .     "<input type='HIDDEN' name=\""   . $meritName . "ID\" value=\""      . $characterMerit->cmeritid . "\" /></td></tr>";
 
@@ -4492,7 +4492,7 @@ function get_stlink_url($stlinkvalue) {
                 $comboDisciplineName = "comboDiscipline" . $comboDisciplineCount;
                 $output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $characterComboDiscipline->name . "</td>"
                     . "<td class=\"gvcol_2 gvcol_val\">Learned<input type='HIDDEN' name=\"" . $comboDisciplineName . "\" value=\"0\" /></td>"
-                    . "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $comboDisciplineName . "Comment\" value=\"" . $characterComboDiscipline->comment  . "\" /></td>"
+                    . "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $comboDisciplineName . "Comment\" value=\"" . stripslashes($characterComboDiscipline->comment)  . "\" /></td>"
                     . "<td class='gvcol_4 gvcol_val'><input type=\"checkbox\" name=\"" . $comboDisciplineName . "Delete\" value=\""  . $characterComboDiscipline->ccombo_disciplineid . "\" />"
                     .     "<input type='HIDDEN' name=\""   . $comboDisciplineName . "ID\" value=\""      . $characterComboDiscipline->ccombo_disciplineid . "\" /></td></tr>";
 
@@ -4546,7 +4546,7 @@ function get_stlink_url($stlinkvalue) {
                 $pathName = "path" . $pathCount;
                 $output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $characterPath->name . " (" . substr($characterPath->disname, 0, 5)  .")</td>"
                     . "<td class=\"gvcol_2 gvcol_val\">" . printSelectCounter($pathName, $characterPath->level, 0, 10) . "</td>"
-                    . "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $pathName . "Comment\" value=\"" . $characterPath->comment  . "\" /></td>"
+                    . "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $pathName . "Comment\" value=\"" . stripslashes($characterPath->comment)  . "\" /></td>"
                     . "<td class='gvcol_4 gvcol_val'><input type=\"checkbox\" name=\"" . $pathName . "Delete\" value=\""  . $characterPath->cpathid . "\" />"
                     .     "<input type='HIDDEN' name=\""   . $pathName . "ID\" value=\""      . $characterPath->cpathid . "\" /></td></tr>";
 
@@ -4604,7 +4604,7 @@ function get_stlink_url($stlinkvalue) {
                 $ritualName = "ritual" . $ritualCount;
                 $output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $characterRitual->name . " (" . substr($characterRitual->disname, 0, 5)  . " " . $characterRitual->ritlevel .")</td>"
                     . "<td class=\"gvcol_2 gvcol_val\">Learned<input type='HIDDEN' name=\"" . $ritualName . "\" value=\"0\" /></td>"
-                    . "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $ritualName . "Comment\" value=\"" . $characterRitual->comment  . "\" /></td>"
+                    . "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $ritualName . "Comment\" value=\"" . stripslashes($characterRitual->comment)  . "\" /></td>"
                     . "<td class='gvcol_4 gvcol_val'><input type=\"checkbox\" name=\"" . $ritualName . "Delete\" value=\""  . $characterRitual->critualid . "\" />"
                     .     "<input type='HIDDEN' name=\""   . $ritualName . "ID\" value=\""      . $characterRitual->critualid . "\" /></td></tr>";
 
@@ -4662,7 +4662,7 @@ function get_stlink_url($stlinkvalue) {
                 $output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $characterOffice->name . "</td>"
                     . "<td class=\"gvcol_2 gvcol_val\">" . $characterOffice->courtname . "</td>"
                     . "<td class=\"gvcol_3 gvcol_val\">In office<input type='HIDDEN' name=\"" . $officeName . "\" value=\"0\" /></td>"
-                    . "<td class='gvcol_4 gvcol_val'><input type='text' name=\""     . $officeName . "Comment\" value=\"" . $characterOffice->comment  . "\" /></td>"
+                    . "<td class='gvcol_4 gvcol_val'><input type='text' name=\""     . $officeName . "Comment\" value=\"" . stripslashes($characterOffice->comment)  . "\" /></td>"
                     . "<td class='gvcol_5 gvcol_val'><input type=\"checkbox\" name=\"" . $officeName . "Delete\" value=\""  . $characterOffice->cofficeid . "\" />"
                     .     "<input type='HIDDEN' name=\""   . $officeName . "ID\" value=\""      . $characterOffice->cofficeid . "\" /></td></tr>";
                 $i++;
