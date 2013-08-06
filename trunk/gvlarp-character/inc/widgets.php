@@ -182,8 +182,8 @@ function get_clan_link() {
 			FROM " . GVLARP_TABLE_PREFIX . "CLAN clans,
 				" . GVLARP_TABLE_PREFIX . "CHARACTER characters
 			WHERE clans.ID = characters.PRIVATE_CLAN_ID
-				AND characters.ID = $characterID;";
-	$result = $wpdb->get_results($wpdb->prepare($sql));
+				AND characters.ID = %d;";
+	$result = $wpdb->get_results($wpdb->prepare($sql, $characterID));
 	
 	return $result[0]->CLAN_PAGE_LINK;
 	
