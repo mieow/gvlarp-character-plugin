@@ -31,7 +31,11 @@ function get_extbackgrounds_content() {
 			}
 		</script>
 		<div class='gvbgmenu'>
-			<ul>				<li>" . get_tabanchor('backgrounds', 'Backgrounds') . "</li>				<li>" . get_tabanchor('meritflaw', 'Merits and Flaws') . "</li>				<li>" . get_tabanchor('misc', 'Miscellaneous') . "</li>			</ul>
+			<ul>
+			<li>" . get_tabanchor('backgrounds', 'Backgrounds') . "</li>
+			<li>" . get_tabanchor('meritflaw', 'Merits and Flaws') . "</li>
+			<li>" . get_tabanchor('misc', 'Miscellaneous') . "</li>
+			</ul>
 		</div>
 		<div class='gvbgmain'>
 			<div id='gv-backgrounds' " . get_tabdisplay('backgrounds') . ">
@@ -51,7 +55,19 @@ function get_extbackgrounds_content() {
 	
 	return $content;
 }
-function get_tabanchor($tab, $text, $default = "backgrounds"){	$markup = '<a id="gvm-@TAB@" href="javascript:void(0);" onclick="tabSwitch(\'@TAB@\');"@SHOWN@>@TEXT@</a>';	return str_replace(				Array('@TAB@','@TEXT@','@SHOWN@'),				Array($tab, $text, get_highlight($tab, $default)),				$markup				);}function get_highlight($tab, $default="backgrounds"){	if ((isset($_REQUEST['tab']) && $_REQUEST['tab'] == $tab) || ($tab == $default))		return " class='shown'";	return "";}
+function get_tabanchor($tab, $text, $default = "backgrounds"){
+	$markup = '<a id="gvm-@TAB@" href="javascript:void(0);" onclick="tabSwitch(\'@TAB@\');"@SHOWN@>@TEXT@</a>';
+	return str_replace(
+		Array('@TAB@','@TEXT@','@SHOWN@'),
+			Array($tab, $text, get_highlight($tab, $default)),
+			$markup
+		);
+}
+function get_highlight($tab, $default="backgrounds"){
+	if ((isset($_REQUEST['tab']) && $_REQUEST['tab'] == $tab) || ($tab == $default))
+		return " class='shown'";
+	return "";
+}
 function get_tabdisplay($tab, $default="backgrounds") {
 
 	$display = "style='display:none'";
@@ -105,12 +121,12 @@ function get_editbackgrounds_tab($characterID) {
 					" . GVLARP_TABLE_PREFIX . "CHARACTER_BACKGROUND charbgs,
 					" . GVLARP_TABLE_PREFIX . "CHARACTER characters
 			where	backgrounds.ID = charbgs.BACKGROUND_ID
-				and	characters.ID = $characterID
+				and	characters.ID = %d
 				and characters.ID = charbgs.CHARACTER_ID
 				and	(backgrounds.BACKGROUND_QUESTION != '' OR charbgs.SECTOR_ID > 0);";
 	/* $content = "<p>SQL: $sql</p>";  */
 	
-	$backgrounds = $wpdb->get_results($wpdb->prepare($sql));
+	$backgrounds = $wpdb->get_results($wpdb->prepare($sql, $characterID));
 	$i = 0;
 	foreach ($backgrounds as $background) {
 		$content .= "<p class='gvext_name'>" . $background->NAME . ": " . $background->LEVEL;
@@ -207,12 +223,12 @@ function get_editmerits_tab($characterID) {
 					" . GVLARP_TABLE_PREFIX . "CHARACTER_MERIT charmerits,
 					" . GVLARP_TABLE_PREFIX . "CHARACTER characters
 			where	merits.ID = charmerits.MERIT_ID
-				and	characters.ID = $characterID
+				and	characters.ID = %d
 				and characters.ID = charmerits.CHARACTER_ID
 				and	merits.BACKGROUND_QUESTION != '';";
 	/* $content = "<p>SQL: $sql</p>"; */
 	
-	$merits = $wpdb->get_results($wpdb->prepare($sql));
+	$merits = $wpdb->get_results($wpdb->prepare($sql, $characterID));
 	$i = 0;
 	foreach ($merits as $merit) {
 	
@@ -331,14 +347,14 @@ function get_editmisc_tab($characterID) {
 						 " . GVLARP_TABLE_PREFIX . "CHARACTER characters
 					WHERE characters.ID = charmisc.CHARACTER_ID
 				) tempcharmisc 
-				ON questions.ID = tempcharmisc.QUESTION_ID AND tempcharmisc.charID = '$characterID'
-			WHERE characters.ID = '$characterID'
+				ON questions.ID = tempcharmisc.QUESTION_ID AND tempcharmisc.charID = %d
+			WHERE characters.ID = %d
 				AND questions.VISIBLE = 'Y'
 			ORDER BY questions.ORDERING ASC";
 			
 	/* $content = "<p>SQL: $sql</p>"; */
 	
-	$questions = $wpdb->get_results($wpdb->prepare($sql));
+	$questions = $wpdb->get_results($wpdb->prepare($sql, $characterID, $characterID));
 	$i = 0;
 	foreach ($questions as $question) {
 	

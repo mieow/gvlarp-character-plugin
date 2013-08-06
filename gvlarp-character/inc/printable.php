@@ -112,7 +112,7 @@ function gv_print_redirect()
 			$disciplines =  $mycharacter->getDisciplines();
 			
 			$sql = "SELECT DISTINCT GROUPING FROM " . GVLARP_TABLE_PREFIX . "SKILL skills;";
-			$allgroups = $wpdb->get_results($wpdb->prepare($sql));	
+			$allgroups = $wpdb->get_results($wpdb->prepare($sql,''));	
 			
 			$secondarygroups = array();
 			foreach ($allgroups as $group) {

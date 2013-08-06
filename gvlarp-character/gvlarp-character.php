@@ -136,7 +136,7 @@ function get_booknames() {
 	global $wpdb;
 
 	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK;";
-	$booklist = $wpdb->get_results($wpdb->prepare($sql));
+	$booklist = $wpdb->get_results($wpdb->prepare($sql,''));
 	
 	return $booklist;
 }
@@ -145,7 +145,7 @@ function get_disciplines() {
 	global $wpdb;
 
 	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "DISCIPLINE;";
-	$list = $wpdb->get_results($wpdb->prepare($sql));
+	$list = $wpdb->get_results($wpdb->prepare($sql,''));
 	
 	return $list;
 }
@@ -154,7 +154,7 @@ function get_costmodels() {
 	global $wpdb;
 
 	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "COST_MODEL;";
-	$list = $wpdb->get_results($wpdb->prepare($sql));
+	$list = $wpdb->get_results($wpdb->prepare($sql,''));
 	
 	return $list;
 }
@@ -163,15 +163,15 @@ function get_sectors() {
 	global $wpdb;
 
 	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "SECTOR;";
-	$list = $wpdb->get_results($wpdb->prepare($sql));
+	$list = $wpdb->get_results($wpdb->prepare($sql,''));
 	
 	return $list;
 }
 function get_stlink_page($stlinkvalue) {
 	global $wpdb;
 
-	$sql = "select DESCRIPTION, LINK from " . GVLARP_TABLE_PREFIX . "ST_LINK where VALUE = '$stlinkvalue';";
-	$results = $wpdb->get_results($wpdb->prepare($sql));
+	$sql = "select DESCRIPTION, LINK from " . GVLARP_TABLE_PREFIX . "ST_LINK where VALUE = %s;";
+	$results = $wpdb->get_results($wpdb->prepare($sql, $stlinkvalue));
 	
 	$pageid   = 0;
 	$pagename = "Page not matched";
@@ -191,8 +191,8 @@ function get_stlink_page($stlinkvalue) {
 function get_stlink_url($stlinkvalue) {
 	global $wpdb;
 
-	$sql = "select DESCRIPTION, LINK from " . GVLARP_TABLE_PREFIX . "ST_LINK where VALUE = '$stlinkvalue';";
-	$results = $wpdb->get_results($wpdb->prepare($sql));
+	$sql = "select DESCRIPTION, LINK from " . GVLARP_TABLE_PREFIX . "ST_LINK where VALUE = %s;";
+	$results = $wpdb->get_results($wpdb->prepare($sql, $stlinkvalue));
 	
 	$url = "Page not matched";
 	if (count($results) == 1) {
@@ -3258,7 +3258,6 @@ function get_stlink_url($stlinkvalue) {
 
                 foreach ($playerDetails as $playerDetail) {
                     $playerName     = $playerDetail->name;
-                    $playerTypeId   = $playerDetail->player_type_id;
                     $playerStatusId = $playerDetail->player_status_id;
                 }
             }
@@ -3440,8 +3439,9 @@ function get_stlink_url($stlinkvalue) {
                                  WHERE new_dis.cmid          = cmstep.COST_MODEL_ID
                                    AND cmstep.current_value  = 0
                                    AND new_dis.dis_id        = %d";
-
-            $newDisciplines = $wpdb->get_results($wpdb->prepare($checkSQL, $tokens [2]));
+			$checkSQL = $wpdb->prepare($checkSQL, $character, $character, $tokens [2]);
+            $newDisciplines = $wpdb->get_results($checkSQL);
+			print_r($newDisciplines);
             foreach ($newDisciplines as $newDiscipline) {
                 $xp_cost      = $newDiscipline->xp_cost;
                 $traitName    = $newDiscipline->name;
@@ -3466,7 +3466,7 @@ function get_stlink_url($stlinkvalue) {
                                    AND cdis.CHARACTER_ID    = %d
                                    AND cdis.id              = %d";
 
-            $updateDisciplines = $wpdb->get_results($wpdb->prepare($checkSQL, $characterID, $tokens [1]));
+            $updateDisciplines = $wpdb->get_results($wpdb->prepare($checkSQL, $character, $character, $characterID, $tokens [1]));
             foreach ($updateDisciplines as $updateDiscipline) {
                 $xp_cost      = $updateDiscipline->xp_cost;
                 $traitName    = $updateDiscipline->name;

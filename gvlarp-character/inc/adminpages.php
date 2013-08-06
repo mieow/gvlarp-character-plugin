@@ -176,7 +176,7 @@ function character_config() {
 					
 				}
 				$sql = "select * from " . GVLARP_TABLE_PREFIX . "CONFIG;";
-				$options = $wpdb->get_results($wpdb->prepare($sql));
+				$options = $wpdb->get_results($wpdb->prepare($sql,''));
 			} else {
 				echo "<p style='color:red'>Could not save options: $inputsfail</p>";
 				$options[0]->PROFILE_LINK = $_REQUEST['profile'];
@@ -255,7 +255,7 @@ function character_config() {
 				}
 			}
 			$sql = "select * from " . GVLARP_TABLE_PREFIX . "ST_LINK;";
-			$stlinks = $wpdb->get_results($wpdb->prepare($sql));
+			$stlinks = $wpdb->get_results($wpdb->prepare($sql,''));
 			
 			$args = array(
 				'sort_order' => 'ASC',
@@ -460,37 +460,40 @@ function character_datatables() {
 		<h2>Database Tables</h2>
 		<script type="text/javascript">
 			function tabSwitch(tab) {
-				document.getElementById('gv-merits').style.display = 'none';
-				document.getElementById('gv-flaws').style.display = 'none';
-				document.getElementById('gv-rituals').style.display = 'none';
-				document.getElementById('gv-books').style.display = 'none';
-				document.getElementById(tab).style.display = '';
+				setSwitchState('merit', tab == 'merit');
+				setSwitchState('flaw', tab == 'flaw');
+				setSwitchState('ritual', tab == 'ritual');
+				setSwitchState('book', tab == 'book');
 				return false;
+			}
+			function setSwitchState(tab, show) {
+				document.getElementById('gv-'+tab).style.display = show ? 'block' : 'none';
+				document.getElementById('gvm-'+tab).className = show ? 'shown' : '';
 			}
 		</script>
 		<div class="gvadmin_nav">
 			<ul>
-				<li><a href="javascript:void(0);" onclick="tabSwitch('gv-merits');">Merits</a></li>
-				<li><a href="javascript:void(0);" onclick="tabSwitch('gv-flaws');">Flaws</a></li>
-				<li><a href="javascript:void(0);" onclick="tabSwitch('gv-rituals');">Rituals</a></li>
-				<li><a href="javascript:void(0);" onclick="tabSwitch('gv-books');">Sourcebooks</a></li>
+				<li><?php echo get_tabanchor('merit', 'Merits', 'merit'); ?></li>
+				<li><?php echo get_tabanchor('flaw', 'Flaws', 'merit'); ?></li>
+				<li><?php echo get_tabanchor('ritual', 'Rituals', 'merit'); ?></li>
+				<li><?php echo get_tabanchor('book', 'Sourcebooks', 'merit'); ?></li>
+				<li>
 			</ul>
 		</div>
-		<!-- <p>tab: <?php echo $_REQUEST['tab'] ?>, m: <?php tabdisplay("merits"); ?>, f: <?php tabdisplay("flaws"); ?></p> -->
 		<div class="gvadmin_content">
-			<div id="gv-merits" <?php tabdisplay("merit"); ?>>
+			<div id="gv-merit" <?php echo get_tabdisplay('merit', 'merit'); ?>>
 				<h1>Merits</h1>
 				<?php render_meritflaw_page("merit"); ?>
 			</div>
-			<div id="gv-flaws" <?php tabdisplay("flaw"); ?>>
+			<div id="gv-flaw" <?php echo get_tabdisplay("flaw", 'merit'); ?>>
 				<h1>Flaws</h1>
 				<?php render_meritflaw_page("flaw"); ?>
 			</div>
-			<div id="gv-rituals" <?php tabdisplay("ritual"); ?>>
+			<div id="gv-ritual" <?php echo get_tabdisplay("ritual", 'merit'); ?>>
 				<h1>Rituals</h1>
 				<?php render_rituals_page(); ?>
 			</div>
-			<div id="gv-books" <?php tabdisplay("book"); ?>>
+			<div id="gv-book" <?php echo get_tabdisplay("book", 'merit'); ?>>
 				<h1>Sourcebooks</h1>
 				<?php render_sourcebook_page(); ?>
 			</div>
@@ -967,11 +970,11 @@ function render_meritflaw_add_form($type, $addaction) {
 						books.ID as SOURCEBOOK, merit.PAGE_NUMBER as PAGE_NUMBER,
 						merit.VISIBLE as VISIBLE, merit.BACKGROUND_QUESTION
 						from " . GVLARP_TABLE_PREFIX . "MERIT merit, " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books 
-						where merit.ID = '$id' and books.ID = merit.SOURCE_BOOK_ID;";
+						where merit.ID = %d and books.ID = merit.SOURCE_BOOK_ID;";
 		
 		/* echo "<p>$sql</p>"; */
 		
-		$data =$wpdb->get_results($wpdb->prepare($sql));
+		$data =$wpdb->get_results($wpdb->prepare($sql, $id));
 		
 		/* print_r($data); */
 		
@@ -1088,11 +1091,11 @@ function render_ritual_add_form($addaction) {
 					" . GVLARP_TABLE_PREFIX . "DISCIPLINE as discipline
 				where ritual.DISCIPLINE_ID = discipline.ID and
 					ritual.SOURCE_BOOK_ID = books.ID and
-					ritual.ID = '$id';";
+					ritual.ID = %d;";
 		
 		/* echo "<p>$sql</p>"; */
 		
-		$data =$wpdb->get_results($wpdb->prepare($sql));
+		$data =$wpdb->get_results($wpdb->prepare($sql, $id));
 		
 		/* print_r($data); */
 		
@@ -1213,11 +1216,11 @@ function render_book_add_form($addaction) {
 		
 		$sql = "select books.ID, books.NAME, books.CODE, books.VISIBLE
 				from " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books
-				where books.ID = '$id';";
+				where books.ID = %d;";
 		
 		/* echo "<p>$sql</p>"; */
 		
-		$data =$wpdb->get_results($wpdb->prepare($sql));
+		$data =$wpdb->get_results($wpdb->prepare($sql, $id));
 		
 		/* print_r($data); */
 		
@@ -1287,11 +1290,11 @@ function render_clan_add_form($addaction) {
 		
 		$sql = "select *
 				from " . GVLARP_TABLE_PREFIX . "CLAN clan
-				where clan.ID = '$id';";
+				where clan.ID = %d;";
 		
 		/* echo "<p>$sql</p>"; */
 		
-		$data =$wpdb->get_results($wpdb->prepare($sql));
+		$data =$wpdb->get_results($wpdb->prepare($sql, $id));
 		
 		/* print_r($data); */
 		
@@ -1382,11 +1385,11 @@ function render_bgdata_add_form($addaction) {
 		
 		$sql = "select *
 				from " . GVLARP_TABLE_PREFIX . "BACKGROUND 
-				where ID = '$id';";
+				where ID = %d;";
 		
 		/* echo "<p>$sql</p>"; */
 		
-		$data =$wpdb->get_results($wpdb->prepare($sql));
+		$data =$wpdb->get_results($wpdb->prepare($sql, $id));
 		
 		$name = $data[0]->NAME;
 		$group = $data[0]->GROUPING;
@@ -1493,11 +1496,11 @@ function render_sector_add_form($addaction) {
 		
 		$sql = "select *
 				from " . GVLARP_TABLE_PREFIX . "SECTOR 
-				where ID = '$id';";
+				where ID = %d;";
 		
 		/* echo "<p>$sql</p>"; */
 		
-		$data =$wpdb->get_results($wpdb->prepare($sql));
+		$data =$wpdb->get_results($wpdb->prepare($sql, $id));
 		
 		$name = $data[0]->NAME;
 		$desc = $data[0]->DESCRIPTION;
@@ -1564,11 +1567,11 @@ function render_question_add_form($addaction) {
 		
 		$sql = "select *
 				from " . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND 
-				where ID = '$id';";
+				where ID = %d;";
 		
 		/* echo "<p>$sql</p>"; */
 		
-		$data =$wpdb->get_results($wpdb->prepare($sql));
+		$data =$wpdb->get_results($wpdb->prepare($sql, $id));
 		
 		$title   = $data[0]->TITLE;
 		$order   = $data[0]->ORDERING;
@@ -1579,7 +1582,7 @@ function render_question_add_form($addaction) {
 	} else {
 	
 		$sql = "select * from " . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND;";
-		$order = count($wpdb->get_results($wpdb->prepare($sql))) + 1;
+		$order = count($wpdb->get_results($wpdb->prepare($sql,''))) + 1;
 	
 		/* defaults */
 		$title   = "";

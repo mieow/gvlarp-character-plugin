@@ -244,7 +244,6 @@ function gvlarp_character_install() {
 					ROAD_OR_PATH_RATING       SMALLINT(3)   NOT NULL,
 					COURT_ID                  MEDIUMINT(9)  NOT NULL,
 					WORDPRESS_ID              VARCHAR(32)   NOT NULL,
-					VISIBLE                   VARCHAR(1)    NOT NULL,
 					DELETED                   VARCHAR(1)    NOT NULL,
 					PRIMARY KEY  (ID),
 					FOREIGN KEY (PUBLIC_CLAN_ID)       REFERENCES " . $table_prefix . "CLAN(ID),
@@ -776,8 +775,8 @@ function gvlarp_character_install_data() {
 						),
 	);
 	foreach ($data as $key => $entry) {
-		$sql = "select VALUE from " . GVLARP_TABLE_PREFIX . "ST_LINK where VALUE = '" . $key . "';";
-		$exists = count($wpdb->get_results($wpdb->prepare($sql)));
+		$sql = "select VALUE from " . GVLARP_TABLE_PREFIX . "ST_LINK where VALUE = %s;";
+		$exists = count($wpdb->get_results($wpdb->prepare($sql,$key)));
 		if (!$exists) 
 			$rowsadded = $wpdb->insert( GVLARP_TABLE_PREFIX . "ST_LINK", $entry);
 	}
@@ -789,7 +788,7 @@ function gvlarp_character_install_data() {
 		$tablename = $temp[1];
 		
 		$sql = "select ID from " . GVLARP_TABLE_PREFIX . $tablename;
-		$rows = count($wpdb->get_results($wpdb->prepare($sql)));
+		$rows = count($wpdb->get_results($wpdb->prepare($sql,'')));
 		if (!$rows) {
 			/* print "<p>Reading data for table $tablename</p>";  */
 			$filehandle = fopen($datafile,"r");

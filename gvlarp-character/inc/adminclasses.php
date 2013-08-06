@@ -121,8 +121,8 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 		/* Check if merit id in use */
 		$sql = "select characters.NAME 
 			from " . GVLARP_TABLE_PREFIX . "CHARACTER_MERIT charmerits , " . GVLARP_TABLE_PREFIX . "CHARACTER characters
-			where charmerits.MERIT_ID = $selectedID and charmerits.CHARACTER_ID = characters.ID;";
-		$isused = $wpdb->get_results($wpdb->prepare($sql));
+			where charmerits.MERIT_ID = %d and charmerits.CHARACTER_ID = characters.ID;";
+		$isused = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
 		if ($isused) {
 			echo "<p style='color:red'>Cannot delete as this {$this->type} is being used in the following characters:";
@@ -131,9 +131,9 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 				echo "<li style='color:red'>{$character->NAME}</li>";
 			echo "</ul></p>";
 		} else {
-			$sql = "delete from " . GVLARP_TABLE_PREFIX . "MERIT where ID = $selectedID;";
+			$sql = "delete from " . GVLARP_TABLE_PREFIX . "MERIT where ID = %d;";
 			
-			$result = $wpdb->get_results($wpdb->prepare($sql));
+			$result = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
 			/* print_r($result); */
 			echo "<p style='color:green'>Deleted item $selectedID</p>";
@@ -439,7 +439,7 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 			);
 			
 		$sql = "SELECT DISTINCT GROUPING FROM " . GVLARP_TABLE_PREFIX . "MERIT merit;";
-		$groups =$wpdb->get_results($wpdb->prepare($sql));
+		$groups =$wpdb->get_results($wpdb->prepare($sql, ''));
 		$this->filter_group = gvmake_filter($groups);
 			
 		if ( isset( $_REQUEST[$type . '_filter'] ) && array_key_exists( $_REQUEST[$type . '_filter'], $this->filter_visible ) ) {
@@ -491,7 +491,7 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 		$sql .= ";";
 		/* echo "<p>SQL: " . $sql . "</p>"; */
 		
-		$data =$wpdb->get_results($wpdb->prepare($sql));
+		$data =$wpdb->get_results($wpdb->prepare($sql,''));
         
         $current_page = $this->get_pagenum();
         $total_items = count($data);
@@ -537,8 +537,8 @@ class gvadmin_rituals_table extends GVMultiPage_ListTable {
 		/* Check if ritual id in use */
 		$sql = "select characters.NAME
 					from " . GVLARP_TABLE_PREFIX . "CHARACTER_RITUAL charrituals, " . GVLARP_TABLE_PREFIX . "CHARACTER characters
-					where charrituals.RITUAL_ID = $selectedID and charrituals.CHARACTER_ID = characters.ID;";
-		$isused = $wpdb->get_results($wpdb->prepare($sql));
+					where charrituals.RITUAL_ID = %d and charrituals.CHARACTER_ID = characters.ID;";
+		$isused = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
 		if ($isused) {
 			echo "<p style='color:red'>Cannot delete as this ritual is being used in the following characters:";
@@ -548,9 +548,9 @@ class gvadmin_rituals_table extends GVMultiPage_ListTable {
 			echo "</ul></p>";
 		} else {
 		
-			$sql = "delete from " . GVLARP_TABLE_PREFIX . "RITUAL where ID = $selectedID;";
+			$sql = "delete from " . GVLARP_TABLE_PREFIX . "RITUAL where ID = %d;";
 			
-			$result = $wpdb->get_results($wpdb->prepare($sql));
+			$result = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
 			/* print_r($result); */
 			echo "<p style='color:green'>Deleted ritual $selectedID</p>";
@@ -779,19 +779,19 @@ class gvadmin_rituals_table extends GVMultiPage_ListTable {
 		$sql = "SELECT DISTINCT disciplines.ID as ID, disciplines.NAME as NAME
 				FROM " . GVLARP_TABLE_PREFIX . "RITUAL rituals, " . GVLARP_TABLE_PREFIX . "DISCIPLINE disciplines
 				WHERE disciplines.ID = rituals.DISCIPLINE_ID;";
-		$disciplines = $wpdb->get_results($wpdb->prepare($sql));
+		$disciplines = $wpdb->get_results($wpdb->prepare($sql,''));
 		$this->filter_discipline = gvmake_filter($disciplines);
 		
 		/* Ritual Level filter */
 		$sql = "SELECT DISTINCT LEVEL FROM " . GVLARP_TABLE_PREFIX . "RITUAL;";
-		$levels = $wpdb->get_results($wpdb->prepare($sql));
+		$levels = $wpdb->get_results($wpdb->prepare($sql,''));
 		$this->filter_level = gvmake_filter($levels);
 			
 		/* Book filter */
 		$sql = "SELECT DISTINCT books.ID, books.NAME 
 				FROM " . GVLARP_TABLE_PREFIX . "RITUAL rituals, " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books
 				WHERE rituals.SOURCE_BOOK_ID = books.ID;";
-		$books = $wpdb->get_results($wpdb->prepare($sql));
+		$books = $wpdb->get_results($wpdb->prepare($sql,''));
 		$this->filter_book = gvmake_filter($books);
 						
 		if ( isset( $_REQUEST[$type . '_discipline'] ) && array_key_exists( $_REQUEST[$type . '_discipline'], $this->filter_discipline ) ) {
@@ -842,7 +842,7 @@ class gvadmin_rituals_table extends GVMultiPage_ListTable {
 		
 		/* echo "<p>SQL: $sql</p>"; */
 		
-		$data =$wpdb->get_results($wpdb->prepare($sql));
+		$data =$wpdb->get_results($wpdb->prepare($sql,''));
         
         $current_page = $this->get_pagenum();
         $total_items = count($data);
@@ -882,8 +882,8 @@ class gvadmin_books_table extends GVMultiPage_ListTable {
 		/* Check if book in use in MERITS and FLAWS */
 		$sql = "select merits.NAME
 				from " . GVLARP_TABLE_PREFIX . "MERIT merits, " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books
-				where books.ID = merits.SOURCE_BOOK_ID and merits.SOURCE_BOOK_ID = $selectedID;";
-		$isused = $wpdb->get_results($wpdb->prepare($sql));
+				where books.ID = merits.SOURCE_BOOK_ID and merits.SOURCE_BOOK_ID = %d;";
+		$isused = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		if ($isused) {
 			echo "<p style='color:red'>Cannot delete as this book is being used in the Merits and Flaws list:";
 			echo "<ul>";
@@ -896,8 +896,8 @@ class gvadmin_books_table extends GVMultiPage_ListTable {
 		/* Check if book in use in RITUALS */
 		$sql = "select rituals.NAME
 				from " . GVLARP_TABLE_PREFIX . "RITUAL rituals, " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books
-				where books.ID = rituals.SOURCE_BOOK_ID and rituals.SOURCE_BOOK_ID = $selectedID;";
-		$isused = $wpdb->get_results($wpdb->prepare($sql));
+				where books.ID = rituals.SOURCE_BOOK_ID and rituals.SOURCE_BOOK_ID = %d;";
+		$isused = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		if ($isused) {
 			echo "<p style='color:red'>Cannot delete as this book is being used in the Rituals list:";
 			echo "<ul>";
@@ -923,9 +923,9 @@ class gvadmin_books_table extends GVMultiPage_ListTable {
 			echo "</ul></p>";
 		} else {
 		
-			$sql = "delete from " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK where ID = $selectedID;";
+			$sql = "delete from " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK where ID = %d;";
 			
-			$result = $wpdb->get_results($wpdb->prepare($sql));
+			$result = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
 			/* print_r($result); */
 			echo "<p style='color:green'>Deleted book $selectedID</p>";
@@ -1086,7 +1086,7 @@ class gvadmin_books_table extends GVMultiPage_ListTable {
 		
 		/* echo "<p>SQL: $sql</p>"; */
 		
-		$data =$wpdb->get_results($wpdb->prepare($sql));
+		$data =$wpdb->get_results($wpdb->prepare($sql,''));
         
         $current_page = $this->get_pagenum();
         $total_items = count($data);
@@ -1132,8 +1132,8 @@ class gvadmin_backgrounds_table extends GVMultiPage_ListTable {
 					" . GVLARP_TABLE_PREFIX . "CHARACTER characters
 				where charbgs.BACKGROUND_ID = backgrounds.ID 
 					and characters.ID = charbgs.CHARACTER_ID
-					and backgrounds.ID = $selectedID;";
-		$isused = $wpdb->get_results($wpdb->prepare($sql));
+					and backgrounds.ID = %d;";
+		$isused = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		if ($isused) {
 			echo "<p style='color:red'>Cannot delete as this background is in use for the following characters:";
 			echo "<ul>";
@@ -1144,9 +1144,9 @@ class gvadmin_backgrounds_table extends GVMultiPage_ListTable {
 			
 		} else {
 		
-			$sql = "delete from " . GVLARP_TABLE_PREFIX . "BACKGROUND where ID = $selectedID;";
+			$sql = "delete from " . GVLARP_TABLE_PREFIX . "BACKGROUND where ID = %d;";
 			
-			$result = $wpdb->get_results($wpdb->prepare($sql));
+			$result = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
 			/* print_r($result); */
 			echo "<p style='color:green'>Deleted background $selectedID</p>";
@@ -1353,7 +1353,7 @@ class gvadmin_backgrounds_table extends GVMultiPage_ListTable {
 		
 		/* echo "<p>SQL: $sql</p>"; */
 		
-		$data =$wpdb->get_results($wpdb->prepare($sql));
+		$data =$wpdb->get_results($wpdb->prepare($sql,''));
         
         $current_page = $this->get_pagenum();
         $total_items = count($data);
@@ -1398,8 +1398,8 @@ class gvadmin_sectors_table extends GVMultiPage_ListTable {
 					" . GVLARP_TABLE_PREFIX . "SECTOR sectors
 				where charbgs.SECTOR_ID = sectors.ID 
 					and characters.ID = charbgs.CHARACTER_ID
-					and sectors.ID = $selectedID;";
-		$isused = $wpdb->get_results($wpdb->prepare($sql));
+					and sectors.ID = %d;";
+		$isused = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		if ($isused) {
 			echo "<p style='color:red'>Cannot delete as this sector is in use for the following characters:";
 			echo "<ul>";
@@ -1410,9 +1410,9 @@ class gvadmin_sectors_table extends GVMultiPage_ListTable {
 			
 		} else {
 		
-			$sql = "delete from " . GVLARP_TABLE_PREFIX . "SECTOR where ID = $selectedID;";
+			$sql = "delete from " . GVLARP_TABLE_PREFIX . "SECTOR where ID = %d;";
 			
-			$result = $wpdb->get_results($wpdb->prepare($sql));
+			$result = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
 			/* print_r($result); */
 			echo "<p style='color:green'>Deleted sector $selectedID</p>";
@@ -1576,7 +1576,7 @@ class gvadmin_sectors_table extends GVMultiPage_ListTable {
 		
 		/* echo "<p>SQL: $sql</p>"; */
 		
-		$data =$wpdb->get_results($wpdb->prepare($sql));
+		$data =$wpdb->get_results($wpdb->prepare($sql,''));
         
         $current_page = $this->get_pagenum();
         $total_items = count($data);
@@ -1619,8 +1619,8 @@ class gvadmin_questions_table extends GVMultiPage_ListTable {
 					" . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND questions
 				where charbgs.QUESTION_ID = questions.ID 
 					and characters.ID = charbgs.CHARACTER_ID
-					and questions.ID = $selectedID;";
-		$isused = $wpdb->get_results($wpdb->prepare($sql));
+					and questions.ID = %d;";
+		$isused = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		if ($isused) {
 			echo "<p style='color:red'>Cannot delete as this question has been filled in for the following characters:";
 			echo "<ul>";
@@ -1631,9 +1631,9 @@ class gvadmin_questions_table extends GVMultiPage_ListTable {
 			
 		} else {
 		
-			$sql = "delete from " . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND where ID = $selectedID;";
+			$sql = "delete from " . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND where ID = %d;";
 			
-			$result = $wpdb->get_results($wpdb->prepare($sql));
+			$result = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
 			echo "<p style='color:green'>Deleted question $selectedID</p>";
 		}
@@ -1806,7 +1806,7 @@ class gvadmin_questions_table extends GVMultiPage_ListTable {
 		
 		/* echo "<p>SQL: $sql</p>"; */
 		
-		$data =$wpdb->get_results($wpdb->prepare($sql));
+		$data =$wpdb->get_results($wpdb->prepare($sql,''));
         
         $current_page = $this->get_pagenum();
         $total_items = count($data);
@@ -2056,7 +2056,7 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
 					and	(backgrounds.BACKGROUND_QUESTION != '' OR charbgs.SECTOR_ID > 0);";
 				
 		
-		$tempdata =$wpdb->get_results($wpdb->prepare($sql));
+		$tempdata =$wpdb->get_results($wpdb->prepare($sql,''));
 		$row = 0;
 		foreach ($tempdata as $tablerow) {
 			$description = "<strong>{$tablerow->background} {$tablerow->LEVEL}";
@@ -2090,7 +2090,7 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
 					and	merits.BACKGROUND_QUESTION != '';";
 				
 		
-		$tempdata =$wpdb->get_results($wpdb->prepare($sql));
+		$tempdata =$wpdb->get_results($wpdb->prepare($sql,''));
 		foreach ($tempdata as $tablerow) {
 			$description = "<strong>{$tablerow->merit}";
 			$description .= ($tablerow->COMMENT) ? " ({$tablerow->COMMENT})" : "";
@@ -2121,7 +2121,7 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
 					and answers.PENDING_DETAIL != ''
 					and answers.DENIED_DETAIL = '';";
 					
-		$tempdata =$wpdb->get_results($wpdb->prepare($sql));
+		$tempdata =$wpdb->get_results($wpdb->prepare($sql,''));
 		foreach ($tempdata as $tablerow) {
 			$description = "<strong>{$tablerow->TITLE} ({$tablerow->GROUPING})</strong><br />
 				<span>" . stripslashes($tablerow->PENDING_DETAIL) . "</span>";
@@ -2208,8 +2208,8 @@ class gvadmin_clans_table extends GVMultiPage_ListTable {
 		/* Check if clan id in use in a character */
 		$sql = "select characters.NAME 
 			from " . GVLARP_TABLE_PREFIX . "CHARACTER characters
-			where characters.PUBLIC_CLAN_ID = $selectedID or characters.PRIVATE_CLAN_ID = $selectedID;";
-		$isused = $wpdb->get_results($wpdb->prepare($sql));
+			where characters.PUBLIC_CLAN_ID = %d or characters.PRIVATE_CLAN_ID = %d;";
+		$isused = $wpdb->get_results($wpdb->prepare($sql, $selectedID, $selectedID));
 		
 		if ($isused) {
 			echo "<p style='color:red'>Cannot delete as this {$this->type} is being used in the following characters:";
@@ -2224,8 +2224,8 @@ class gvadmin_clans_table extends GVMultiPage_ListTable {
 				from " . GVLARP_TABLE_PREFIX . "CLAN_DISCIPLINE clandisc, 
 					" . GVLARP_TABLE_PREFIX . "DISCIPLINE disciplines
 				where disciplines.ID = clandisc.DISCIPLINE_ID
-					and clandisc.CLAN_ID = $selectedID;";
-			$isused = $wpdb->get_results($wpdb->prepare($sql));
+					and clandisc.CLAN_ID = %d;";
+			$isused = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 
 			if ($isused) {
 				echo "<p style='color:red'>Cannot delete as this {$this->type} is being used in the following clan disciplines:";
@@ -2235,9 +2235,9 @@ class gvadmin_clans_table extends GVMultiPage_ListTable {
 				echo "</ul></p>";
 			
 			} else {
-				$sql = "delete from " . GVLARP_TABLE_PREFIX . "CLAN where ID = $selectedID;";
+				$sql = "delete from " . GVLARP_TABLE_PREFIX . "CLAN where ID = %d;";
 				
-				$result = $wpdb->get_results($wpdb->prepare($sql));
+				$result = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 			
 				/* print_r($result); */
 				echo "<p style='color:green'>Deleted item $selectedID</p>";
@@ -2421,7 +2421,7 @@ class gvadmin_clans_table extends GVMultiPage_ListTable {
 		$sql .= ";";
 		/* echo "<p>SQL: " . $sql . "</p>"; */
 		
-		$data =$wpdb->get_results($wpdb->prepare($sql));
+		$data =$wpdb->get_results($wpdb->prepare($sql,''));
         
         $current_page = $this->get_pagenum();
         $total_items = count($data);
