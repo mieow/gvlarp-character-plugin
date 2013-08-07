@@ -158,11 +158,13 @@ function get_costmodels() {
 	
 	return $list;
 }
-function get_sectors() {
+function get_sectors($showhidden = false) {
 
 	global $wpdb;
 
-	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "SECTOR;";
+	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "SECTOR";
+	if (!$showhidden)
+		$sql .= " WHERE VISIBLE = 'Y'";
 	$list = $wpdb->get_results($wpdb->prepare($sql,''));
 	
 	return $list;
