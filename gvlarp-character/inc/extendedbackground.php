@@ -147,12 +147,23 @@ function get_editbackgrounds_tab($characterID) {
 			if ($background->SECTOR_ID == 0)
 				$content .= "selected='selected'";
 			$content .= ">[Select]</option>";
-			foreach (get_sectors() as $sector) {
+			$found = 0;
+			foreach (get_sectors(isST()) as $sector) {
 				$content .= "<option value='{$sector->ID}' ";
-				if ($background->SECTOR_ID == $sector->ID)
+				if ($background->SECTOR_ID == $sector->ID) {
 					$content .= "selected='selected'";
+					$found = 1;
+				}
 				$content .= ">{$sector->NAME}</option>";
 			}
+			if (!$found && !empty($background->SECTOR_ID)) {
+				foreach (get_sectors(true) as $sector) {
+					if ($background->SECTOR_ID == $sector->ID) {
+						$content .= "<option value='{$sector->ID}' selected='selected' >{$sector->NAME}</option>";
+					}
+				}
+			}
+				
 			$content .= "</select></td></tr>\n";
 		}
 		
