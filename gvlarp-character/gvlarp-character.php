@@ -829,16 +829,19 @@ function get_stlink_url($stlinkvalue) {
                                    " . $table_prefix . "PLAYER player,
                                    " . $table_prefix . "PLAYER_STATUS pstatus,
                                    " . $table_prefix . "COURT court,
-                                   " . $table_prefix . "CLAN clan
+                                   " . $table_prefix . "CLAN clan,
+ 								   " . $table_prefix . "CHARACTER_STATUS cstatus
                               WHERE target_char.PUBLIC_CLAN_ID = source_char.PUBLIC_CLAN_ID
                                 AND target_char.PUBLIC_CLAN_ID = clan.id
                                 AND (target_char.VISIBLE = 'Y' OR target_char.id = source_char.id)
                                 AND target_char.DELETED != 'Y'
                                 AND target_char.player_id = player.id
                                 AND target_char.court_id = court.id
+								AND target_char.character_status_id = cstatus.id
                                 AND player.player_status_id = pstatus.id
                                 AND pstatus.name = 'Active'
                                 AND source_char.DELETED != 'Y'
+								AND cstatus.name = 'Alive'
                                 AND source_char.WORDPRESS_ID = %s";
 
             $rightQuery = "SELECT target_char.id chara2_id,
@@ -855,7 +858,8 @@ function get_stlink_url($stlinkvalue) {
                                     " . $table_prefix . "CLAN target_clan,
                                     " . $table_prefix . "COURT target_court,
                                     " . $table_prefix . "BACKGROUND back,
-                                    " . $table_prefix . "CHARACTER_BACKGROUND cha_back
+                                    " . $table_prefix . "CHARACTER_BACKGROUND cha_back,
+ 								    " . $table_prefix . "CHARACTER_STATUS cstatus
                                WHERE source_char.PUBLIC_CLAN_ID = source_clan.id
                                  AND target_char.ID = cha_back.CHARACTER_ID
                                  AND cha_back.BACKGROUND_ID = back.id
@@ -866,8 +870,10 @@ function get_stlink_url($stlinkvalue) {
                                  AND target_char.DELETED != 'Y'
                                  AND target_char.player_id = player.id
                                  AND target_char.court_id = target_court.id
+								 AND target_char.character_status_id = cstatus.id
                                  AND player.player_status_id = pstatus.id
                                  AND pstatus.name = 'Active'
+								 AND cstatus.name = 'Alive'
                                  AND source_char.DELETED != 'Y'
                                  AND source_char.WORDPRESS_ID = %s";
         }
