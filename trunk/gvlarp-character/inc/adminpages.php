@@ -627,44 +627,6 @@ function render_approvals_data(){
 			echo "<p style='color:red'>Could not deny background</p>";
 		}
 		
-		/* switch ($_REQUEST['table']) {
-			case 'CHARACTER_BACKGROUND':
-				$data = array(
-					'DENIED_DETAIL'  => $_REQUEST['gvapprove_denied']
-				);
-				$result = $wpdb->update(GVLARP_TABLE_PREFIX . "CHARACTER_BACKGROUND",
-					$data,
-					array (
-						'ID' => $_REQUEST['table_id']
-					)
-				);
-				
-				if ($result)
-					echo "<p style='color:green'>Denied message saved</p>";
-				else {
-					$wpdb->print_error();
-					echo "<p style='color:red'>Could not deny background</p>";
-				}
-				break;
-			case 'CHARACTER_MERIT':
-				$data = array(
-					'DENIED_DETAIL'  => $_REQUEST['gvapprove_denied']
-				);
-				$result = $wpdb->update(GVLARP_TABLE_PREFIX . "CHARACTER_MERIT",
-					$data,
-					array (
-						'ID' => $_REQUEST['table_id']
-					)
-				);
-				
-				if ($result)
-					echo "<p style='color:green'>Denied message saved</p>";
-				else {
-					$wpdb->print_error();
-					echo "<p style='color:red'>Could not deny merit/flaw</p>";
-				}
-				break;
-		} */
 		
 		$id   = -1;
 		$data = array();
@@ -705,7 +667,7 @@ function render_question_data(){
 		$testListTable['question']->add_question($_REQUEST['question_title'], $_REQUEST['question_order'], 
 												$_REQUEST['question_group'], $_REQUEST['question_question'], $_REQUEST['question_visible']);
 	}
-	if ($doaction == "save-edit-question") { 
+	if ($doaction == "save-question") { 
 		$testListTable['question']->edit_question($_REQUEST['question_id'], $_REQUEST['question_title'], $_REQUEST['question_order'], 
 												$_REQUEST['question_group'], $_REQUEST['question_question'], $_REQUEST['question_visible']);
 	}
@@ -734,7 +696,7 @@ function render_sector_data(){
  	if ($doaction == "add-sector") {
 		$testListTable['sector']->add_sector($_REQUEST['sector_name'], $_REQUEST['sector_desc'], $_REQUEST['sector_visible']);
 	}
-	if ($doaction == "save-edit-sector") { 
+	if ($doaction == "save-sector") { 
 		$testListTable['sector']->edit_sector($_REQUEST['sector_id'], $_REQUEST['sector_name'], $_REQUEST['sector_desc'], $_REQUEST['sector_visible']);
 	}
 
@@ -764,7 +726,7 @@ function render_background_data(){
 									$_REQUEST['bgdata_costmodel'], $_REQUEST['bgdata_visible'],
 									$_REQUEST['bgdata_hassector'], $_REQUEST['bgdata_question']);
 	}
-	if ($doaction == "save-edit-bgdata") { 
+	if ($doaction == "save-bgdata") { 
 		$testListTable['bgdata']->edit_background($_REQUEST['bgdata_id'], $_REQUEST['bgdata_name'], $_REQUEST['bgdata_desc'], $_REQUEST['bgdata_group'], 
 									$_REQUEST['bgdata_costmodel'], $_REQUEST['bgdata_visible'],
 									$_REQUEST['bgdata_hassector'], $_REQUEST['bgdata_question']);
@@ -801,7 +763,7 @@ function render_meritflaw_page($type){
 									$_REQUEST[$type . '_multiple'], $_REQUEST[$type . '_visible'], $_REQUEST[$type . '_desc'],
 									$_REQUEST[$type . '_question']);
 	}
-	if ($doaction == "save-edit-$type") { 
+	if ($doaction == "save-$type") { 
 		$testListTable[$type]->edit_merit($_REQUEST[$type . '_id'], $_REQUEST[$type . '_name'], $_REQUEST[$type . '_group'], 
 									$_REQUEST[$type . '_sourcebook'], $_REQUEST[$type . '_page_number'], $_REQUEST[$type . '_cost'], 
 									$_REQUEST[$type . '_xp_cost'], $_REQUEST[$type . '_multiple'], $_REQUEST[$type . '_visible'],
@@ -832,14 +794,14 @@ function render_rituals_page(){
 	
 	if ($doaction == "add-ritual") {
 		$testListTable["rituals"]->add_ritual($_REQUEST['ritual_name'], $_REQUEST['ritual_desc'], 
-			$_REQUEST['ritual_level'], $_REQUEST['ritual_discipline'], $_REQUEST['ritual_dicepool'], 
+			$_REQUEST['ritual_level'], $_REQUEST['ritual_disc'], $_REQUEST['ritual_dicepool'], 
 			$_REQUEST['ritual_difficulty'], $_REQUEST['ritual_cost'], $_REQUEST['ritual_sourcebook'], 
 			$_REQUEST['ritual_page_number'], $_REQUEST['ritual_visible']);
 									
 	}
-	if ($doaction == "save-edit-ritual") {
+	if ($doaction == "save-ritual") {
 		$testListTable["rituals"]->edit_ritual($_REQUEST['ritual_id'], $_REQUEST['ritual_name'], $_REQUEST['ritual_desc'], 
-			$_REQUEST['ritual_level'], $_REQUEST['ritual_discipline'], $_REQUEST['ritual_dicepool'], 
+			$_REQUEST['ritual_level'], $_REQUEST['ritual_disc'], $_REQUEST['ritual_dicepool'], 
 			$_REQUEST['ritual_difficulty'], $_REQUEST['ritual_cost'], $_REQUEST['ritual_sourcebook'], 
 			$_REQUEST['ritual_page_number'], $_REQUEST['ritual_visible']);
 									
@@ -868,7 +830,7 @@ function render_sourcebook_page(){
 		$testListTable["books"]->add_book($_REQUEST['book_name'], $_REQUEST['book_code'], $_REQUEST['book_visible']);
 									
 	}
-	if ($doaction == "save-edit-book") {
+	if ($doaction == "save-book") {
 		$testListTable["books"]->edit_book($_REQUEST['book_id'], $_REQUEST['book_name'], $_REQUEST['book_code'], $_REQUEST['book_visible']);
 									
 	}
@@ -897,7 +859,7 @@ function render_clan_page(){
 			$_REQUEST['clan_clanpage'], $_REQUEST['clan_flaw'], $_REQUEST['clan_visible'] );
 									
 	}
-	if ($doaction == "save-edit-clan") {
+	if ($doaction == "save-clan") {
 		$testListTable["clans"]->edit_clan($_REQUEST['clan_id'], $_REQUEST['clan_name'], $_REQUEST['clan_description'], $_REQUEST['clan_iconlink'], 
 			$_REQUEST['clan_clanpage'], $_REQUEST['clan_flaw'], $_REQUEST['clan_visible']);
 									
@@ -961,6 +923,9 @@ function render_meritflaw_add_form($type, $addaction) {
 		$visible = $_REQUEST[$type . '_visible'];
 		$desc = $_REQUEST[$type . '_desc'];
 		$question = $_REQUEST[$type . '_question'];
+		
+		$nextaction = $_REQUEST['action'];
+		
 	} else if ('edit-' . $type == $addaction) {
 		/* Get values from database */
 		$id   = $_REQUEST['merit'];
@@ -989,6 +954,8 @@ function render_meritflaw_add_form($type, $addaction) {
 		$desc = $data[0]->DESCRIPTION;
 		$question = $data[0]->BACKGROUND_QUESTION;
 		
+		$nextaction = "save";
+		
 	} else {
 	
 		/* defaults */
@@ -1003,6 +970,8 @@ function render_meritflaw_add_form($type, $addaction) {
 		$visible = "Y";
 		$desc = "";
 		$question = "";
+		
+		$nextaction = "add";
 	}
 
 	$booklist = get_booknames();
@@ -1013,7 +982,7 @@ function render_meritflaw_add_form($type, $addaction) {
 	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
 		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
 		<input type="hidden" name="tab" value="<?php print $type; ?>" />
-		<input type="hidden" name="action" value="edit" />
+		<input type="hidden" name="action" value="<?php print $nextaction; ?>" />
 		<table>
 		<tr>
 			<td><?php print ucfirst($type); ?> Name:  </td><td><input type="text" name="<?php print $type; ?>_name" value="<?php print $name; ?>" size=20 /></td> <!-- check sizes -->
@@ -1075,9 +1044,11 @@ function render_ritual_add_form($addaction) {
 		$desc = $_REQUEST[$type . '_desc'];
 	
 		$level = $_REQUEST[$type . '_level'];
-		$disciplineid = $_REQUEST[$type . '_discipline'];
+		$disciplineid = $_REQUEST[$type . '_disc'];
 		$dicepool = $_REQUEST[$type . '_dicepool'];
 		$diff = $_REQUEST[$type . '_difficulty'];
+		
+		$nextaction = $_REQUEST['action'];
 		
 	} else if ('edit-' . $type == $addaction) {
 		/* Get values from database */
@@ -1110,6 +1081,8 @@ function render_ritual_add_form($addaction) {
 		$pagenum = $data[0]->PAGE_NUMBER;
 		$visible = $data[0]->VISIBLE;
 		
+		$nextaction = "save";
+		
 	} else {
 	
 		/* defaults */
@@ -1123,6 +1096,8 @@ function render_ritual_add_form($addaction) {
 		$bookid = 1;
 		$pagenum = "";
 		$visible = "Y";
+		
+		$nextaction = "add";
 	}
 
 	$booklist = get_booknames();
@@ -1133,7 +1108,7 @@ function render_ritual_add_form($addaction) {
 	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
 		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
 		<input type="hidden" name="tab" value="<?php print $type; ?>" />
-		<input type="hidden" name="action" value="edit" />
+		<input type="hidden" name="action" value="<?php print $nextaction; ?>" />
 		<table>
 		<tr>
 			<td><?php print ucfirst($type); ?> Name:  </td>
@@ -1143,7 +1118,7 @@ function render_ritual_add_form($addaction) {
 		<tr>
 			<td>Discipline:  </td>
 			<td>
-				<select name="<?php print $type; ?>_discipline">
+				<select name="<?php print $type; ?>_disc">
 					<?php
 						foreach (get_disciplines() as $disc) {
 							print "<option value='{$disc->ID}' ";
@@ -1210,6 +1185,8 @@ function render_book_add_form($addaction) {
 		$visible = $_REQUEST[$type . '_visible'];
 		$code = $_REQUEST[$type . '_code'];
 		
+		$nextaction = $_REQUEST['action'];
+		
 	} else if ('edit-' . $type == $addaction) {
 		/* Get values from database */
 		$id   = $_REQUEST['book'];
@@ -1228,12 +1205,16 @@ function render_book_add_form($addaction) {
 		$code = $data[0]->CODE;
 		$visible = $data[0]->VISIBLE;
 		
+		$nextaction = "save";
+		
 	} else {
 	
 		/* defaults */
 		$name = "";
 		$code = "";
 		$visible = "Y";
+		
+		$nextaction = "add";
 	}
 
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
@@ -1242,7 +1223,7 @@ function render_book_add_form($addaction) {
 	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
 		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
 		<input type="hidden" name="tab" value="<?php print $type; ?>" />
-		<input type="hidden" name="action" value="edit" />
+		<input type="hidden" name="action" value="<?php print $nextaction; ?>" />
 		<table style='width:500px'>
 		<tr>
 			<td><?php print ucfirst($type); ?> Code:  </td>
@@ -1284,6 +1265,8 @@ function render_clan_add_form($addaction) {
 		$clanflaw = $_REQUEST[$type . '_flaw'];
 		$visible = $_REQUEST[$type . '_visible'];
 		
+		$nextaction = $_REQUEST['action'];
+		
 	} else if ('edit-' . $type == $addaction) {
 		/* Get values from database */
 		$id   = $_REQUEST['clan'];
@@ -1305,6 +1288,8 @@ function render_clan_add_form($addaction) {
 		$clanflaw = $data[0]->CLAN_FLAW;
 		$visible = $data[0]->VISIBLE;
 		
+		$nextaction = "save";
+		
 	} else {
 	
 		/* defaults */
@@ -1314,6 +1299,8 @@ function render_clan_add_form($addaction) {
 		$clanpage = "";
 		$clanflaw = "";
 		$visible  = "Y";
+		
+		$nextaction = "add";
 	}
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
@@ -1322,7 +1309,7 @@ function render_clan_add_form($addaction) {
 	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
 		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
 		<input type="hidden" name="tab" value="<?php print $type; ?>" />
-		<input type="hidden" name="action" value="edit" />
+		<input type="hidden" name="action" value="<?php print $nextaction; ?>" />
 		<table style='width:500px'>
 		<tr>
 			<td>Clan Name:  </td>
@@ -1379,6 +1366,8 @@ function render_bgdata_add_form($addaction) {
 		$has_sector = $_REQUEST[$type . '_hassector'];
 		$bgquestion = $_REQUEST[$type . '_question'];
 		
+		$nextaction = $_REQUEST['action'];
+		
 	} else if ('edit-' . $type == $addaction) {
 		/* Get values from database */
 		$id   = $_REQUEST['background'];
@@ -1399,6 +1388,8 @@ function render_bgdata_add_form($addaction) {
 		$has_sector = $data[0]->HAS_SECTOR;
 		$bgquestion = $data[0]->BACKGROUND_QUESTION;
 		
+		$nextaction = "save";
+		
 	} else {
 	
 		/* defaults */
@@ -1409,6 +1400,8 @@ function render_bgdata_add_form($addaction) {
 		$visible = "Y";
 		$has_sector = "N";
 		$bgquestion = "";
+		
+		$nextaction = "add";
 	} 
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
@@ -1417,7 +1410,7 @@ function render_bgdata_add_form($addaction) {
 	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
 		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
 		<input type="hidden" name="tab" value="<?php print $type; ?>" />
-		<input type="hidden" name="action" value="edit" />
+		<input type="hidden" name="action" value="<?php print $nextaction; ?>" />
 		<table style='width:500px'>
 		<tr>
 			<td>Name:  </td>
@@ -1485,10 +1478,11 @@ function render_sector_add_form($addaction) {
 	/* echo "<p>Creating sector form based on action $addaction</p>"; */
 
 	if ('fix-' . $type == $addaction) {
-		$id      = $_REQUEST['sector'];
-		$name    = $_REQUEST[$type . '_name'];
-		$visible = $_REQUEST[$type . '_visible'];
-		$desc    = $_REQUEST[$type . '_desc'];
+		$id         = $_REQUEST['sector'];
+		$name       = $_REQUEST[$type . '_name'];
+		$visible    = $_REQUEST[$type . '_visible'];
+		$desc       = $_REQUEST[$type . '_desc'];
+		$nextaction = $_REQUEST['action'];
 		
 	} else if ('edit-' . $type == $addaction) {
 		/* Get values from database */
@@ -1506,12 +1500,17 @@ function render_sector_add_form($addaction) {
 		$desc = $data[0]->DESCRIPTION;
 		$visible = $data[0]->VISIBLE;
 		
+		$nextaction = "save";
+		
 	} else {
 	
 		/* defaults */
+		$id   = "";
 		$name = "";
 		$desc = "";
 		$visible = "Y";
+		
+		$nextaction = "add";
 	} 
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
@@ -1520,7 +1519,7 @@ function render_sector_add_form($addaction) {
 	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
 		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
 		<input type="hidden" name="tab" value="<?php print $type; ?>" />
-		<input type="hidden" name="action" value="edit" />
+		<input type="hidden" name="action" value="<?php print $nextaction; ?>" />
 		<table style='width:500px'>
 		<tr>
 			<td>Name:  </td>
@@ -1561,6 +1560,8 @@ function render_question_add_form($addaction) {
 		$question = $_REQUEST[$type . '_question'];
 		$visible = $_REQUEST[$type . '_visible'];
 		
+		$nextaction = $_REQUEST['action'];
+		
 	} else if ('edit-' . $type == $addaction) {
 		/* Get values from database */
 		$id   = $_REQUEST['question'];
@@ -1579,6 +1580,8 @@ function render_question_add_form($addaction) {
 		$question = stripslashes($data[0]->BACKGROUND_QUESTION);
 		$visible = $data[0]->VISIBLE;
 		
+		$nextaction = "save";
+		
 	} else {
 	
 		$sql = "select * from " . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND;";
@@ -1589,6 +1592,8 @@ function render_question_add_form($addaction) {
 		$group   = "";
 		$question = "";
 		$visible  = "Y";
+		
+		$nextaction = "add";
 	} 
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
@@ -1597,7 +1602,7 @@ function render_question_add_form($addaction) {
 	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
 		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
 		<input type="hidden" name="tab" value="<?php print $type; ?>" />
-		<input type="hidden" name="action" value="edit" />
+		<input type="hidden" name="action" value="<?php print $nextaction; ?>" />
 		<table style='width:500px'>
 		<tr>
 			<td>Title:  </td>
@@ -1671,17 +1676,15 @@ function render_approve_form($showform, $id, $data) {
 function merit_input_validation($type) {
 
 	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == $type)
-		$doaction = "edit-$type";
+		$doaction = "edit-$type"; 
 		
 	/* echo "<p>Requested action: " . $_REQUEST['action'] . ", " . $type . "_name: " . $_REQUEST[$type . '_name']; */
-			
+	
+	
 	if (!empty($_REQUEST[$type . '_name'])){
 
-		if ($doaction == "edit-$type")
-			$doaction = "save-edit-$type";
-		else
-			$doaction = "add-$type";
-			
+		$doaction = $_REQUEST['action'] . "-" . $type;
+		
 		/* Input Validation */
 		if (empty($_REQUEST[$type . '_group']) || $_REQUEST[$type . '_group'] == "") {
 			$doaction = "fix-$type";
@@ -1720,7 +1723,7 @@ function merit_input_validation($type) {
 			echo "<p style='color:red'>ERROR: Experience point cost should greater than or equal to 0</p>";
 		}
 		
-	}
+	} 
 	
 	/* echo "action: $doaction</p>"; */
 
@@ -1732,17 +1735,14 @@ function ritual_input_validation() {
 	$type = "ritual";
 
 	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == $type)
-		$doaction = "edit-$type";
+		$doaction = "edit-$type"; 
 		
 	/* echo "<p>Requested action: " . $_REQUEST['action'] . ", " . $type . "_name: " . $_REQUEST[$type . '_name']; */
-			
+	
 	if (!empty($_REQUEST[$type . '_name'])){
-
-		if ($doaction == "edit-$type")
-			$doaction = "save-edit-$type";
-		else
-			$doaction = "add-$type";
 			
+		$doaction = $_REQUEST['action'] . "-" . $type;
+		
 		/* Input Validation */
 		if (empty($_REQUEST[$type . '_desc']) || $_REQUEST[$type . '_desc'] == "") {
 			$doaction = "fix-$type";
@@ -1795,13 +1795,10 @@ function book_input_validation() {
 		$doaction = "edit-$type";
 		
 	/* echo "<p>Requested action: " . $_REQUEST['action'] . ", " . $type . "_name: " . $_REQUEST[$type . '_name']; */
-			
+	
+	
 	if (!empty($_REQUEST[$type . '_name'])){
-
-		if ($doaction == "edit-$type")
-			$doaction = "save-edit-$type";
-		else
-			$doaction = "add-$type";
+		$doaction = $_REQUEST['action'] . "-" . $type;
 			
 		/* Input Validation */
 		if (empty($_REQUEST[$type . '_code']) || $_REQUEST[$type . '_code'] == "") {
@@ -1820,17 +1817,14 @@ function clan_input_validation() {
 	$type = "clan";
 
 	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == $type)
-		$doaction = "edit-$type";
+		$doaction = "edit-$type"; 
 		
 	/* echo "<p>Requested action: " . $_REQUEST['action'] . ", " . $type . "_name: " . $_REQUEST[$type . '_name'];  */
-			
+	
 	if (!empty($_REQUEST[$type . '_name'])){
-
-		if ($doaction == "edit-$type")
-			$doaction = "save-edit-$type";
-		else
-			$doaction = "add-$type";
 			
+		$doaction = $_REQUEST['action'] . "-" . $type;
+		
 		/* Input Validation */
 		if (empty($_REQUEST[$type . '_description']) || $_REQUEST[$type . '_description'] == "") {
 			$doaction = "fix-$type";
@@ -1859,14 +1853,11 @@ function bgdata_input_validation() {
 		$doaction = "edit-$type";
 		
 	/* echo "<p>Requested action: " . $_REQUEST['action'] . ", " . $type . "_name: " . $_REQUEST[$type . '_name']; */
-			
+	
+	
 	if (!empty($_REQUEST[$type . '_name'])){
-
-		if ($doaction == "edit-$type")
-			$doaction = "save-edit-$type";
-		else
-			$doaction = "add-$type";
 			
+		$doaction = $_REQUEST['action'] . "-" . $type;
 		/* Input Validation */
 		if (empty($_REQUEST[$type . '_desc']) || $_REQUEST[$type . '_desc'] == "") {
 			$doaction = "fix-$type";
@@ -1888,16 +1879,17 @@ function bgdata_input_validation() {
 function sector_input_validation() {
 
 	$type = "sector";
+	
+	/* echo "<p>Requested action: " . $_REQUEST['action'] . ", " . $type . "_name: " . $_REQUEST[$type . '_name']; */
 
 	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == $type)
 		$doaction = "edit-$type";
 		
-	if (!empty($_REQUEST[$type . '_name'])){
+	
+	if (!empty($_REQUEST['action']) && !empty($_REQUEST[$type . '_name']) ){
 
-		if ($doaction == "edit-$type")
-			$doaction = "save-edit-$type";
-		else
-			$doaction = "add-$type";
+		$doaction = $_REQUEST['action'] . "-" . $type;
+		
 			
 		/* Input Validation */
 		if (empty($_REQUEST[$type . '_desc']) || $_REQUEST[$type . '_desc'] == "") {
@@ -1906,6 +1898,8 @@ function sector_input_validation() {
 		} 
 				
 	}
+	
+	/* echo "<p>Doing action $doaction</p>"; */
 
 	return $doaction;
 }
@@ -1916,14 +1910,11 @@ function question_input_validation() {
 
 	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == $type)
 		$doaction = "edit-$type";
-		
+	
 	if (!empty($_REQUEST[$type . '_title'])){
-
-		if ($doaction == "edit-$type")
-			$doaction = "save-edit-$type";
-		else
-			$doaction = "add-$type";
 			
+		$doaction = $_REQUEST['action'] . "-" . $type;
+		
 		/* Input Validation */
 		if (empty($_REQUEST[$type . '_order']) || $_REQUEST[$type . '_order'] == "") {
 			$doaction = "fix-$type";
