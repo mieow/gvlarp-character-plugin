@@ -119,6 +119,7 @@ require_once GVLARP_CHARACTER_URL . 'inc/install.php';
 require_once GVLARP_CHARACTER_URL . 'inc/extendedbackground.php';
 require_once GVLARP_CHARACTER_URL . 'inc/printable.php';
 require_once GVLARP_CHARACTER_URL . 'inc/widgets.php';
+require_once GVLARP_CHARACTER_URL . 'inc/android.php';
 
 function register_plugin_styles() {
 	wp_register_style( 'my-plugin', plugins_url( 'my-plugin/css/plugin.css' ) );
@@ -499,7 +500,7 @@ function get_stlink_url($stlinkvalue) {
 
         if ($group == "Overview" || $group == "") {
 
-            $sql = "SELECT rit.name, cha_rit.comment, cha_rit.level
+            $sql = "SELECT rit.name, cha_rit.comment, rit.level
                             FROM " . $table_prefix . "DISCIPLINE dis,
                                  " . $table_prefix . "CHARACTER_RITUAL cha_rit,
                                  " . $table_prefix . "RITUAL rit,
@@ -510,9 +511,10 @@ function get_stlink_url($stlinkvalue) {
                               AND chara.DELETED != 'Y'
                               AND chara.WORDPRESS_ID = %s
                             ORDER BY dis.name, rit.level, rit.name";
-
-            $character_rituals = $wpdb->get_results($wpdb->prepare($sql, $character));
-
+			$sql = $wpdb->prepare($sql, $character);
+			
+            $character_rituals = $wpdb->get_results($sql);
+			/* print "<tr><td colspan=3>SQL: $sql</td></tr>"; */
             foreach ($character_rituals as $current_ritual) {
                 $sqlOutput .="<tr><td class=\"gvcol_1 gvcol_key\">"  . $current_ritual->name    . "</td>
                                           <td class=\"gvcol_2 gvcol_spec\">" . stripslashes($current_ritual->comment) . "</td>
@@ -5890,8 +5892,7 @@ function get_stlink_url($stlinkvalue) {
     function getConfig() {
         global $wpdb;
         $table_prefix = GVLARP_TABLE_PREFIX;
-        $sql = "SELECT PROFILE_LINK, PLACEHOLDER_IMAGE, CLAN_DISCIPLINE_DISCOUNT
-                FROM " . $table_prefix . "CONFIG";
+        $sql = "SELECT * FROM " . $table_prefix . "CONFIG";
 
         $configs = $wpdb->get_results($sql);
         foreach ($configs as $config) {
