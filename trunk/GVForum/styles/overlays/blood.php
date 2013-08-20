@@ -71,16 +71,16 @@ $listSectionBackGround	= $listSectionSolid; # pick background from: $listSection
 # ------------------------------------------------------------------
 # Header sections within lists
 # ------------------------------------------------------------------
-$itemHeaderBase			= '#222222';
-$itemHeaderFrom			= '#222222';
-$itemHeaderTo			= '#222222';
-$itemHeaderBorder		= '1px solid #770506';
-$itemHeaderColor		= '#BB0506';
-$itemHeaderHover		= '1px solid #cccccc';
+$itemHeaderBase			= '#560606';
+$itemHeaderFrom			= '#560606';
+$itemHeaderTo			= '#770506';
+$itemHeaderBorder		= '1px solid #BB0506';
+$itemHeaderColor		= '#cccccc';
+$itemHeaderHover		= '1px solid #dddddd';
 $itemHeaderGradient		= "-moz-linear-gradient(100% 100% 90deg, $itemHeaderTo, $itemHeaderFrom); background: -webkit-gradient(linear, 0% 0%, 0% 100%, from($itemHeaderFrom), to($itemHeaderTo)); background-color: $itemHeaderBase;";
-$itemHeaderSolid		= '#222222';
+$itemHeaderSolid		= '#770506';
 $itemHeaderImage		= 'url("images/image.gif")';
-$itemHeaderBackGround	= $itemHeaderSolid; # pick background from: $itemHeaderSolid, $itemHeaderImage or $itemHeaderGradient
+$itemHeaderBackGround	= $itemHeaderGradient; # pick background from: $itemHeaderSolid, $itemHeaderImage or $itemHeaderGradient
 $headerMessageColor     ='#FFFFFF';
 
 # ------------------------------------------------------------------
@@ -206,7 +206,7 @@ $alt6Color			= '#555555';
 # ------------------------------------------------------------------
 $controlBackGround		= '#111111';
 $controlBorder			= '1px solid #cccccc';
-$controlColor			= '#BB0506';
+$controlColor			= '#cccccc';
 $controlHeight			= '25px';
 $linkButtonHeight		= '21px';
 $controlLineHeight		= '1.6em';
@@ -273,7 +273,7 @@ $alt1LinkColor			= '#AAAAAA';
 $alt1LinkHover			= '#ff0000';
 $alt1LinkDecoration		= 'none';
 
-$alt2LinkColor			= '#00ffff';
+$alt2LinkColor			= '#ff1717';
 $alt2LinkHover			= '#ff0000';
 $alt2LinkDecoration		= 'none';
 
@@ -285,7 +285,7 @@ $alt4LinkColor			= '#cccccc';
 $alt4LinkHover			= '1px solid #ff0000';
 $alt4LinkDecoration		= 'none';
 
-$alt5LinkColor			= '#8A1717';
+$alt5LinkColor			= '#ff1717';
 $alt5LinkHover			= '#ff0000';
 $alt5LinkDecoration		= 'none';
 
