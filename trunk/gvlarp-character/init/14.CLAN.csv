@@ -1,16 +1,16 @@
-"ID","NAME","DESCRIPTION","ICON_LINK","VISIBLE"
-"1","Nosferatu","Nosferatu","/wp-content/plugins/gvlarp-character/images/Nosferatu.gif","Y"
-"2","Tremere","Tremere","/wp-content/plugins/gvlarp-character/images/Tremere.png","Y"
-"3","Malkavian","Malkavian","/wp-content/plugins/gvlarp-character/images/Malkavian.png","Y"
-"4","Brujah","Brujah","/wp-content/plugins/gvlarp-character/images/Brujah.png","Y"
-"5","Ventrue","Ventrue","/wp-content/plugins/gvlarp-character/images/Ventrue.png","Y"
-"6","Toreador","Toreador","/wp-content/plugins/gvlarp-character/images/Toreador.png","Y"
-"7","Gangrel","Gangrel","/wp-content/plugins/gvlarp-character/images/Gangrel.png","Y"
-"8","Giovanni","Giovanni","/wp-content/plugins/gvlarp-character/images/Giovanni.png","N"
-"9","Lasombra","Lasombra","/wp-content/plugins/gvlarp-character/images/Lasombra.png","N"
-"10","Caitiff","Caitiff","/wp-content/plugins/gvlarp-character/images/Caitiff.png","Y"
-"11","Assamite","Assamite","/wp-content/plugins/gvlarp-character/images/Assamite.png","N"
-"12","Followers of Set","Settites","/wp-content/plugins/gvlarp-character/images/FollowersOfSet.png","N"
-"13","Ravnos","Ravnos","/wp-content/plugins/gvlarp-character/images/Ravnos.png","N"
-"14","Tzimisce","Tzimisce","/wp-content/plugins/gvlarp-character/images/Tzimisce.png","N"
-"15","Samedi","Samedi","/wp-content/plugins/gvlarp-character/images/Samedi.png","N"
+ID,NAME,DESCRIPTION,ICON_LINK,CLAN_COST_MODEL_ID,NONCLAN_COST_MODEL_ID,VISIBLE
+1,Nosferatu,Nosferatu,/wp-content/plugins/gvlarp-character/images/Nosferatu.gif,4,12,Y
+2,Tremere,Tremere,/wp-content/plugins/gvlarp-character/images/Tremere.png,4,12,Y
+3,Malkavian,Malkavian,/wp-content/plugins/gvlarp-character/images/Malkavian.png,4,12,Y
+4,Brujah,Brujah,/wp-content/plugins/gvlarp-character/images/Brujah.png,4,12,Y
+5,Ventrue,Ventrue,/wp-content/plugins/gvlarp-character/images/Ventrue.png,4,12,Y
+6,Toreador,Toreador,/wp-content/plugins/gvlarp-character/images/Toreador.png,4,12,Y
+7,Gangrel,Gangrel,/wp-content/plugins/gvlarp-character/images/Gangrel.png,4,12,Y
+8,Giovanni,Giovanni,/wp-content/plugins/gvlarp-character/images/Giovanni.png,4,12,N
+9,Lasombra,Lasombra,/wp-content/plugins/gvlarp-character/images/Lasombra.png,4,12,N
+10,Caitiff,Caitiff,/wp-content/plugins/gvlarp-character/images/Caitiff.png,13,13,Y
+11,Assamite,Assamite,/wp-content/plugins/gvlarp-character/images/Assamite.png,4,12,N
+12,Followers of Set,Settites,/wp-content/plugins/gvlarp-character/images/FollowersOfSet.png,4,12,N
+13,Ravnos,Ravnos,/wp-content/plugins/gvlarp-character/images/Ravnos.png,4,12,N
+14,Tzimisce,Tzimisce,/wp-content/plugins/gvlarp-character/images/Tzimisce.png,4,12,N
+15,Samedi,Samedi,/wp-content/plugins/gvlarp-character/images/Samedi.png,4,12,N
