@@ -4,7 +4,7 @@ register_activation_hook(__FILE__, "gvlarp_character_install");
 register_activation_hook( __FILE__, 'gvlarp_character_install_data' );
 
 global $gvlarp_character_db_version;
-$gvlarp_character_db_version = "1.8.0"; /* 1.8.0 */
+$gvlarp_character_db_version = "1.8.6"; /* 1.8.0 */
 
 function gvlarp_update_db_check() {
     global $gvlarp_character_db_version;
@@ -133,8 +133,12 @@ function gvlarp_character_install() {
 					ICON_LINK    	TINYTEXT      NOT NULL,
 					CLAN_PAGE_LINK	TINYTEXT      NOT NULL,
 					CLAN_FLAW    	TINYTEXT      NOT NULL,
+					CLAN_COST_MODEL_ID      MEDIUMINT(9) NOT NULL,
+					NONCLAN_COST_MODEL_ID   MEDIUMINT(9) NOT NULL,
 					VISIBLE      	VARCHAR(1)    NOT NULL,
 					PRIMARY KEY  (ID)
+					FOREIGN KEY (CLAN_COST_MODEL_ID) REFERENCES " . $table_prefix . "COST_MODEL(ID)
+					FOREIGN KEY (NONCLAN_COST_MODEL_ID) REFERENCES " . $table_prefix . "COST_MODEL(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 
@@ -288,17 +292,32 @@ function gvlarp_character_install() {
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 
+		/* 	CHARTABLE 		= Character table to update or add new row to
+			CHARTABLE_ID	= ID of row in character table to update (0 for new)
+			CHARTABLE_LEVEL = LEVEL of item to add/update character table to
+			SPECIALISATION  = COMMENT of item to add/update character table to
+			COMMENT			= What gets displayed in spend table
+			ITEMTABLE       = For new skills/stats/etc: what table they belong to
+			ITEMNAME        = For new skills/stats/etc: what is the name of the column for the item
+			ITEMTABLE_ID    = For new skills/stats/etc: what table ID they have
+		*/
 		$current_table_name = $table_prefix . "PENDING_XP_SPEND";
 		$sql = "CREATE TABLE " . $current_table_name . " (
 					ID             MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
 					PLAYER_ID      MEDIUMINT(9)  NOT NULL,
 					CHARACTER_ID   MEDIUMINT(9)  NOT NULL,
 					CODE           VARCHAR(20)   NOT NULL,
+					CHARTABLE      TINYTEXT      NOT NULL,
+					CHARTABLE_ID   MEDIUMINT(9)  NOT NULL,
+					CHARTABLE_LEVEL  TINYTEXT    NOT NULL,
 					AWARDED        DATE          NOT NULL,
 					AMOUNT         SMALLINT(3)   NOT NULL,
 					COMMENT        VARCHAR(120)  NOT NULL,
 					SPECIALISATION VARCHAR(64)	 NOT NULL,
 					TRAINING_NOTE  VARCHAR(164)  NOT NULL,
+					ITEMTABLE      TINYTEXT      NOT NULL,
+					ITEMNAME       TINYTEXT      NOT NULL,
+					ITEMTABLE_ID   MEDIUMINT(9)  NOT NULL,
 					PRIMARY KEY  (ID),
 					FOREIGN KEY (PLAYER_ID)    REFERENCES " . $table_prefix . "PLAYER(ID),
 					FOREIGN KEY (CHARACTER_ID) REFERENCES " . $table_prefix . "CHARACTER(ID)
@@ -369,7 +388,7 @@ function gvlarp_character_install() {
 		$current_table_name = $table_prefix . "BACKGROUND";
 		$sql = "CREATE TABLE " . $current_table_name . " (
 					ID              MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
-					NAME            VARCHAR(16)   NOT NULL,
+					NAME            VARCHAR(30)   NOT NULL,
 					DESCRIPTION     TINYTEXT      NOT NULL,
 					GROUPING        VARCHAR(30)   NOT NULL,
 					COST_MODEL_ID   MEDIUMINT(9)  NOT NULL,
@@ -419,13 +438,11 @@ function gvlarp_character_install() {
 						ID              MEDIUMINT(9)  NOT NULL   AUTO_INCREMENT,
 						NAME            VARCHAR(32)   NOT NULL,
 						DESCRIPTION     TINYTEXT      NOT NULL,
-						COST_MODEL_ID   MEDIUMINT(9)  NOT NULL,
 						SOURCE_BOOK_ID  MEDIUMINT(9)   NOT NULL,
 						PAGE_NUMBER     SMALLINT(4)   NOT NULL,
 						VISIBLE         VARCHAR(1)    NOT NULL,
 						PRIMARY KEY  (ID),
-						FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID),
-						FOREIGN KEY (COST_MODEL_ID)  REFERENCES " . $table_prefix . "COST_MODEL(ID)
+						FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
 						) ENGINE=INNODB;";
 
 			
