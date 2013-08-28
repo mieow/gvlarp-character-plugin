@@ -424,8 +424,35 @@ td.chsheetcol3 {
     text-align: left;
     background-color: #000000;
     padding: 0px;
+	width: 30px;
+}
+#gvid_xpst .gvcol_val {
+	width: 40px;
+	padding: 0px 5px 0px 5px;
+}
+.gvxp_dot {
+    width:16px;
+	margin: 0px;
+	padding: 0px;
+}
+#gvid_xpst td.gvxp_dot img{
+	width:12px;
 }
 
+.gvcol_error {
+	background-color: #ff0000;
+}
+
+.gvxp_radio {
+    font-size:10px;
+	margin: 0px;
+	padding: 0px;
+
+}
+.gvcol_radiohead {
+    width:20px;
+
+}
 /* #gvid_xpst table > tbody > tr > th:first-child {
     text-align: left;
     background-color: #000000;
