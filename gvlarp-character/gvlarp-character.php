@@ -113,8 +113,8 @@
 			Added table CHARACTER_EXTENDED_BACKGROUND
 			
          */
-define( 'GVLARP_CHARACTER_URL', plugin_dir_path(__FILE__) );define( 'GVLARP_TABLE_PREFIX', $wpdb->prefix . "GVLARP_" );
-require_once GVLARP_CHARACTER_URL . 'inc/printable.php';
+define( 'GVLARP_CHARACTER_URL', plugin_dir_path(__FILE__) );define( 'GVLARP_TABLE_PREFIX', $wpdb->prefix . "GVLARP_" );
+require_once GVLARP_CHARACTER_URL . 'inc/printable.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages.php';
 require_once GVLARP_CHARACTER_URL . 'inc/install.php';
 require_once GVLARP_CHARACTER_URL . 'inc/extendedbackground.php';
@@ -2106,155 +2106,7 @@ function get_clans() {
         return $output;
     }
     add_shortcode('player_admin', 'print_player_admin');
-
-    function print_xp_approval_table($atts, $content=null) {
-        global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
-
-        $output    = "";
-        $sqlOutput = "";
-
-        if (!isST()) {
-            return "<br /><h2>Only STs can access the pending XP table!</h2><br />";
-        }
-
-        if ($_POST['GVLARP_FORM'] == "displayPendingXPSpends"
-            && $_POST['pxSubmit'] == "Approve XP Spends") {
-
-            $approvedXPSpends = $_POST['approved_xp_spends'];
-            $count = count($approvedXPSpends);
-
-            $character      = "";
-            $characterName  = "";
-            $xpSpendCode    = "";
-            $xpSpendComment = "";
-            $xpTrainingNote = "";
-            $xpSpendOutput  = "";
-            $specialisation = "";
-            $xpCost         = "";
-
-            for ($i = 0; $i < $count; $i++) {
-                $sql = "SELECT chara.name cname, chara.wordpress_id wpid, pxps.code, pxps.comment, pxps.specialisation, pxps.amount
-                                FROM " . $table_prefix . "PENDING_XP_SPEND pxps,
-                                 " . $table_prefix . "CHARACTER chara
-                                WHERE pxps.character_id = chara.id
-                                  AND pxps.id = %d";
-
-                $xpSpendDetails = $wpdb->get_results($wpdb->prepare($sql, $approvedXPSpends[$i]));
-                foreach ($xpSpendDetails as $xpSpend) {
-                    $character = $xpSpend->wpid;
-                    $xpSpendCode    = $xpSpend->code;
-                    $characterName  = $xpSpend->cname;
-                    $xpSpendComment = stripslashes($xpSpend->comment);
-                    $specialisation = $xpSpend->specialisation;
-                    $xpCost         = $xpSpend->amount;
-                }
-
-                $xpSpendOutput = doXPSpend($character, $xpSpendCode, $xpCost, $specialisation);
-
-                if (substr($xpSpendOutput, 0, 8) == "XP Spend") {
-                    $delete = "DELETE FROM " . $table_prefix . "PENDING_XP_SPEND
-                                       WHERE id = %d";
-                    $wpdb->query($wpdb->prepare($delete, $approvedXPSpends[$i]));
-
-                    $output .= $xpSpendOutput . "<br />";
-                }
-                else {
-                    $output .= "Xp Spend (" . $xpSpendComment . ") for " . $characterName
-                        . " failed with comment: <br />" . $xpSpendOutput . "<br />";
-                }
-            }
-        }
-
-        $deniedXPSpends = $_POST['denied_xp_spends'];
-        $count = count($deniedXPSpends);
-
-        for ($i = 0; $i < $count; $i++) {
-            $sql = "SELECT chara.name cname, pxps.comment, pxps.amount
-                            FROM " . $table_prefix . "PENDING_XP_SPEND pxps,
-                             " . $table_prefix . "CHARACTER chara
-                            WHERE pxps.character_id = chara.id
-                              AND pxps.id = %d";
-
-            $xpSpendDetails = $wpdb->get_results($wpdb->prepare($sql, $deniedXPSpends[$i]));
-            foreach ($xpSpendDetails as $xpSpend) {
-                $characterName  = $xpSpend->cname;
-                $xpSpendComment = stripslashes($xpSpend->comment);
-                $xpCost         = $xpSpend->amount;
-            }
-
-            $delete = "DELETE FROM " . $table_prefix . "PENDING_XP_SPEND
-                               WHERE id = %d";
-            $wpdb->query($wpdb->prepare($delete, $deniedXPSpends[$i]));
-
-            $output .= "Denied " . $xpSpendComment . " to " . $characterName . ". " . $xpCost . " XP freed up<br />";
-        }
-
-        $sql = "SELECT chara.name cname,
-                           chara.wordpress_id wpid,
-                           pxps.id,
-                           pxps.awarded,
-                           pxps.amount,
-                           pxps.comment,
-                           pxps.specialisation,
-                           pxps.training_note
-                    FROM " . $table_prefix . "PENDING_XP_SPEND pxps,
-                         " . $table_prefix . "CHARACTER chara
-                    WHERE pxps.character_id = chara.id
-                    ORDER BY chara.name, awarded";
-
-        $pending_xp_spends = $wpdb->get_results($sql);
-
-        $viewCharacterSheetLink = "";
-        $stLinks = listSTLinks();
-        foreach ($stLinks as $stLink) {
-            if ($stLink->description == 'View Character Sheet') {
-                $viewCharacterSheetLink = get_site_url() . $stLink->link;
-            }
-        }
-
-        foreach ($pending_xp_spends as $xp_spend) {
-            $sqlOutput .= "<tr><td class=\"gvcol_1 gvcol_key\">";
-            if ($viewCharacterSheetLink == "") {
-                $sqlOutput .= $xp_spend->cname;
-            }
-            else {
-                $sqlOutput .= "<a href=\"" . $viewCharacterSheetLink . "?CHARACTER=" . urldecode($xp_spend->wpid) . "\">"
-                    . $xp_spend->cname . "</a>";
-            }
-
-            $sqlOutput .= "</td><td class=\"gvcol_2 gvcol_val\">" . stripslashes($xp_spend->comment)
-                .  "</td><td class=\"gvcol_3 gvcol_val\">" . $xp_spend->specialisation
-                .  "</td><td class='gvcol_4 gvcol_val'>" . $xp_spend->training_note
-                .  "</td><td class='gvcol_5 gvcol_val'>" . $xp_spend->awarded
-                .  "</td><td class='gvcol_6 gvcol_val'>" . $xp_spend->amount
-                .  "</td><td class=\"gvcol_7 gvcol_val\"><input type=\"checkbox\" name=\"approved_xp_spends[]\" value=\"" . $xp_spend->id . "\">"
-                .  "</td><td class=\"gvcol_8 gvcol_val\"><input type=\"checkbox\" name=\"denied_xp_spends[]\" value=\"" . $xp_spend->id . "\">"
-                .  "</td></tr>";
-        }
-
-        if ($sqlOutput == "") {
-            $output .= "There are no pending XP Spends<br />";
-        }
-        else {
-            $output .= "<form name=\"PXP_Form\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">";
-            $output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"displayPendingXPSpends\" />";
-            $output .= "<table class='gvplugin' id=\"gvid_xpa\"><tr><th class=\"gvthead gvcol_1\">Character Name</th>
-                                                                          <th class=\"gvthead gvcol_2\">XP Spend</th>
-                                                                          <th class=\"gvthead gvcol_3\">Specialisation</th>
-                                                                          <th class=\"gvthead gvcol_4\">Training</th>
-                                                                          <th class=\"gvthead gvcol_5\">Requested</th>
-                                                                          <th class=\"gvthead gvcol_6\">XP Cost</th>
-                                                                          <th class=\"gvthead gvcol_7\">Approve</th>
-                                                                          <th class=\"gvthead gvcol_8\">Deny</th></tr>";
-            $output .= $sqlOutput;
-            $output .= "<tr><td colspan=8><input type='submit' name=\"pxSubmit\" value=\"Approve XP Spends\"></td></tr></table></form>";
-        }
-
-        return $output;
-    }
-    add_shortcode('xp_approval', 'print_xp_approval_table');
-
+	
     function print_character_profile($atts, $content=null) {
         extract(shortcode_atts(array ("character" => "null", "group" => "Full", "pwchange" => "False"), $atts));
 
@@ -3556,7 +3408,7 @@ function get_clans() {
             . "Remember you can mark the character as absent or deactivate the player to remove them from most lists.<br />";
 
         $output .= "<form name=\"CD_Form\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">";
-        $output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"displayUpdateCharacter\" />";        $output .= "<input type='HIDDEN' name=\"characterID\" value=\"" . $characterID . "\" />";        $output .= "<table class='gvplugin' id=\"gvid_gvid_sdc\"><tr><td class=\"gvcol_1 gvcol_val\">";
+        $output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"displayUpdateCharacter\" />";        $output .= "<input type='HIDDEN' name=\"characterID\" value=\"" . $characterID . "\" />";        $output .= "<table class='gvplugin' id=\"gvid_gvid_sdc\"><tr><td class=\"gvcol_1 gvcol_val\">";
         $output .= "<input type='submit' name=\"cSubmit\" value=\"Confirm Delete\" /></td><td>";
         $output .= "<input type='submit' name=\"cSubmit\" value=\"Abandon Delete\" /></td></tr></table></form>";
         return $output;
@@ -3591,7 +3443,7 @@ function get_clans() {
         }
 
         $output .= "<br /><form name=\"CD_Form\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">";
-        $output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"displayUpdateCharacter\" />";        $output .= "<table class='gvplugin' id=\"gvid_dcf\"><tr><td class=\"gvcol_1 gvcol_val\">";
+        $output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"displayUpdateCharacter\" />";        $output .= "<table class='gvplugin' id=\"gvid_dcf\"><tr><td class=\"gvcol_1 gvcol_val\">";
         $output .= "<input type='submit' name=\"cSubmit\" value=\"Back to the character list\" /></td></tr></table></form>";
         return $output;
     }
