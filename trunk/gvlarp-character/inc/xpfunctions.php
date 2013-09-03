@@ -1,629 +1,77 @@
 <?php
 
-/* 
-called by addPlayerXP
-*/
+function gv_xp_spend_content_filter($content) {
 
- function doXPSpend($character, $xpSpendString, $xpBonus, $specialisation) {
-        if (!isST()) {
-            return "Only STs can spend XP on characters";
-        }
-
-        if ($xpBonus == null || $xpBonus == "") {
-            $xpBonus = 0;
-        }
-
-        $character   = establishCharacter($character);
-        $characterID = establishCharacterID($character);
-        $playerID    = establishPlayerID($character);
-        $xpReasonID  = establishXPReasonID("XP Spend");
-        $tokens = explode("_", $xpSpendString);
-        $attributes = array ("character" => $character, "group" => "TOTAL", maxrecords => "1");
-        $xp_total = print_character_xp_table($attributes, null);
-
-        global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
-
-        $checkSQL = "";
-        $updateTraitSQL = "";
-        $xp_cost = 1000;
-        $traitName = "";
-        $newValue     = "";
-
-        $config = getConfig();
-        $clanDisciplineDiscount = $config->CLAN_DISCIPLINE_DISCOUNT;
-        $factor =  0;
-        if ($clanDisciplineDiscount == 0) {
-            $offset = 0;
-        }
-        else if ($clanDisciplineDiscount < 1) {
-            $offset = 0;
-            $factor = $clanDisciplineDiscount;
-        }
-        else {
-            $offset = $clanDisciplineDiscount;
-        }
-
-        $innerTable = "(SELECT dis.name dis_name, " . $offset . " xp_offset, " . $factor . " xp_factor, dis.id dis_id, dis.cost_model_id cmid, dis.visible dis_vis
-                                FROM " . $table_prefix . "DISCIPLINE dis,
-                                     " . $table_prefix . "CHARACTER chara,
-                                     " . $table_prefix . "CLAN_DISCIPLINE clandis
-                                WHERE chara.private_clan_id = clandis.CLAN_ID
-                                  AND clandis.DISCIPLINE_id = dis.ID
-                                  AND chara.wordpress_id = %s
-                                union
-                                SELECT dis.name dis_id, 0 xp_offset, 0 xp_factor, dis.id dis_id, dis.cost_model_id cmid, dis.visible dis_vis
-                                FROM " . $table_prefix . "DISCIPLINE dis
-                                WHERE dis.ID NOT IN (SELECT dis.ID
-                                                     FROM " . $table_prefix . "DISCIPLINE dis,
-                                                          " . $table_prefix . "CHARACTER chara,
-                                                          " . $table_prefix . "CLAN_DISCIPLINE clandis
-                                                     WHERE chara.private_clan_id = clandis.CLAN_ID
-                                                       AND clandis.DISCIPLINE_id = dis.ID
-                                                       AND chara.wordpress_id = %s)) new_dis ";
-
-        if ($tokens [0] == "stat") {
-            $checkSQL = "SELECT stat.name, cmstep.xp_cost, cmstep.current_value, cmstep.next_value
-                                 FROM " . $table_prefix . "STAT stat,
-                                      " . $table_prefix . "COST_MODEL_STEP cmstep,
-                                      " . $table_prefix . "CHARACTER_STAT cstat
-                                 WHERE stat.COST_MODEL_ID    = cmstep.COST_MODEL_ID
-                                   AND cmstep.CURRENT_VALUE  = cstat.level
-                                   AND cstat.STAT_ID         = stat.ID
-                                   AND cstat.CHARACTER_ID    = %s
-                                   AND cstat.id              = %d";
-
-            $updateStats = $wpdb->get_results($wpdb->prepare($checkSQL, $characterID, $tokens [1]));
-            foreach ($updateStats as $updateStat) {
-                $xp_cost      = $updateStat->xp_cost;
-                $traitName    = $updateStat->name;
-                $currentValue = $updateStat->current_value;
-                $newValue     = $updateStat->next_value;
-            }
-
-            if ($newValue != "") {
-                $updateTraitSQL = "UPDATE " . $table_prefix . "CHARACTER_STAT
-                                           SET level   = %d,
-                                               comment = %s
-                                           WHERE ID = %d";
-                $updateTraitSQL = $wpdb->prepare($updateTraitSQL, $newValue, $specialisation, $tokens [1]);
-            }
-        }
-        else if ($tokens [0] == "skill" && $tokens [1] == "new") {
-            $checkSQL = "SELECT skill.name, cmstep.xp_cost, cmstep.current_value, cmstep.next_value
-                                 FROM " . $table_prefix . "SKILL skill,
-                                      " . $table_prefix . "COST_MODEL_STEP cmstep
-                                 WHERE skill.COST_MODEL_ID   = cmstep.COST_MODEL_ID
-                                   AND cmstep.current_value  = 0
-                                   AND skill.id              = %d";
-
-            $newSkills = $wpdb->get_results($wpdb->prepare($checkSQL, $tokens [2]));
-            foreach ($newSkills as $newSkill) {
-                $xp_cost      = $newSkill->xp_cost;
-                $traitName    = $newSkill->name;
-                $currentValue = $newSkill->current_value;
-                $newValue     = $newSkill->next_value;
-            }
-
-            if ($newValue != "") {
-                $updateTraitSQL = "INSERT INTO " . $table_prefix . "CHARACTER_SKILL (character_id, skill_id, level, comment)
-                                           VALUES (%d, %d, %d, %s)";
-                $updateTraitSQL = $wpdb->prepare($updateTraitSQL, $characterID, $tokens [2], $newValue, $specialisation);
-            }
-        }
-        else if ($tokens [0] == "skill") {
-            $checkSQL = "SELECT skill.name, cmstep.xp_cost, cmstep.current_value, cmstep.next_value
-                                 FROM " . $table_prefix . "SKILL skill,
-                                      " . $table_prefix . "COST_MODEL_STEP cmstep,
-                                      " . $table_prefix . "CHARACTER_SKILL cskill
-                                 WHERE skill.COST_MODEL_ID   = cmstep.COST_MODEL_ID
-                                   AND cmstep.CURRENT_VALUE  = cskill.level
-                                   AND cskill.SKILL_ID       = skill.ID
-                                   AND cskill.CHARACTER_ID   = %d
-                                   AND cskill.id             = %d";
-
-            $updateSkills = $wpdb->get_results($wpdb->prepare($checkSQL, $characterID, $tokens [1]));
-            foreach ($updateSkills as $updateSkill) {
-                $xp_cost      = $updateSkill->xp_cost;
-                $traitName    = $updateSkill->name;
-                $currentValue = $updateSkill->current_value;
-                $newValue     = $updateSkill->next_value;
-            }
-
-            if ($newValue != "") {
-                $updateTraitSQL = "UPDATE " . $table_prefix . "CHARACTER_SKILL
-                                           SET level   = %d,
-                                               comment = %s
-                                           WHERE ID    = %d";
-                $updateTraitSQL = $wpdb->prepare($updateTraitSQL, $newValue, $specialisation, $tokens [1]);
-            }
-        }
-        else if ($tokens [0] == "dis" && $tokens [1] == "new") {
-            $checkSQL = "SELECT new_dis.dis_name name, ROUND((cmstep.xp_cost - new_dis.xp_offset) * (1 - new_dis.xp_factor)) xp_cost, cmstep.current_value, cmstep.next_value
-                                 FROM " . $innerTable   . ",
-                                      " . $table_prefix . "COST_MODEL_STEP cmstep
-                                 WHERE new_dis.cmid          = cmstep.COST_MODEL_ID
-                                   AND cmstep.current_value  = 0
-                                   AND new_dis.dis_id        = %d";
-			$checkSQL = $wpdb->prepare($checkSQL, $character, $character, $tokens [2]);
-            $newDisciplines = $wpdb->get_results($checkSQL);
-			print_r($newDisciplines);
-            foreach ($newDisciplines as $newDiscipline) {
-                $xp_cost      = $newDiscipline->xp_cost;
-                $traitName    = $newDiscipline->name;
-                $currentValue = $newDiscipline->current_value;
-                $newValue     = $newDiscipline->next_value;
-            }
-
-            if ($newValue != "") {
-                $updateTraitSQL = "INSERT INTO " . $table_prefix . "CHARACTER_DISCIPLINE (character_id, discipline_id, level)
-                                           VALUES (%d, %d, %d)";
-                $updateTraitSQL = $wpdb->prepare($updateTraitSQL, $characterID, $tokens [2], $newValue);
-            }
-        }
-        else if ($tokens [0] == "dis") {
-            $checkSQL = "SELECT new_dis.dis_name name, ROUND((cmstep.xp_cost - new_dis.xp_offset) * (1 - new_dis.xp_factor)) xp_cost, cmstep.current_value, cmstep.next_value
-                                 FROM " . $innerTable . ",
-                                      " . $table_prefix . "COST_MODEL_STEP cmstep,
-                                      " . $table_prefix . "CHARACTER_DISCIPLINE cdis
-                                 WHERE new_dis.cmid         = cmstep.COST_MODEL_ID
-                                   AND cmstep.CURRENT_VALUE = cdis.level
-                                   AND cdis.DISCIPLINE_ID   = dis_id
-                                   AND cdis.CHARACTER_ID    = %d
-                                   AND cdis.id              = %d";
-
-            $updateDisciplines = $wpdb->get_results($wpdb->prepare($checkSQL, $character, $character, $characterID, $tokens [1]));
-            foreach ($updateDisciplines as $updateDiscipline) {
-                $xp_cost      = $updateDiscipline->xp_cost;
-                $traitName    = $updateDiscipline->name;
-                $currentValue = $updateDiscipline->current_value;
-                $newValue     = $updateDiscipline->next_value;
-            }
-
-            if ($newValue != "") {
-                $updateTraitSQL = "UPDATE " . $table_prefix . "CHARACTER_DISCIPLINE
-                                           SET level = %d
-                                           WHERE ID  = %d";
-                $updateTraitSQL = $wpdb->prepare($updateTraitSQL, $newValue, $tokens [1]);
-            }
-        }
-        else if ($tokens [0] == "path" && $tokens [1] == "new") {
-            $checkSQL = "SELECT path.name, cmstep.xp_cost, cmstep.current_value, cmstep.next_value
-                                 FROM " . $table_prefix . "PATH path,
-                                      " . $table_prefix . "CHARACTER_DISCIPLINE cha_dis,
-                                      " . $table_prefix . "COST_MODEL_STEP cmstep
-                                 WHERE path.COST_MODEL_ID    = cmstep.COST_MODEL_ID
-                                   AND cmstep.current_value  = 0
-                                   AND cha_dis.DISCIPLINE_ID = path.discipline_id
-                                   AND cha_dis.level        >= cmstep.next_value
-                                   AND cha_dis.CHARACTER_ID  = %d
-                                   AND path.id               = %d";
-
-            $newPaths = $wpdb->get_results($wpdb->prepare($checkSQL, $characterID, $tokens [2]));
-            foreach ($newPaths as $newPath) {
-                $xp_cost      = $newPath->xp_cost;
-                $traitName    = $newPath->name;
-                $currentValue = $newPath->current_value;
-                $newValue     = $newPath->next_value;
-            }
-
-            if ($newValue != "") {
-                $updateTraitSQL = "INSERT INTO " . $table_prefix . "CHARACTER_PATH (character_id, path_id, level)
-                                           VALUES (%d, %d, %d)";
-                $updateTraitSQL = $wpdb->prepare($updateTraitSQL, $characterID, $tokens [2], $newValue);
-            }
-
-        }
-        else if ($tokens [0] == "path") {
-            $checkSQL = "SELECT path.name, cmstep.xp_cost, cmstep.current_value, cmstep.next_value
-                                 FROM " . $table_prefix . "PATH path,
-                                      " . $table_prefix . "COST_MODEL_STEP cmstep,
-                                      " . $table_prefix . "CHARACTER_PATH cpath,
-                                      " . $table_prefix . "CHARACTER_DISCIPLINE cdis
-                                 WHERE path.COST_MODEL_ID   = cmstep.COST_MODEL_ID
-                                   AND cmstep.CURRENT_VALUE = cpath.level
-                                   AND cpath.PATH_ID        = path.ID
-                                   AND cdis.CHARACTER_ID    = cpath.CHARACTER_ID
-                                   AND cdis.DISCIPLINE_ID   = path.DISCIPLINE_ID
-                                   AND cdis.level          >= cmstep.next_value
-                                   AND cpath.CHARACTER_ID   = %d
-                                   AND cpath.id             = %d";
-
-            $updatePaths = $wpdb->get_results($wpdb->prepare($checkSQL, $characterID, $tokens [1]));
-            foreach ($updatePaths as $updatePath) {
-                $xp_cost      = $updatePath->xp_cost;
-                $traitName    = $updatePath->name;
-                $currentValue = $updatePath->current_value;
-                $newValue     = $updatePath->next_value;
-            }
-
-            if ($newValue != "") {
-                $updateTraitSQL = "UPDATE " . $table_prefix . "CHARACTER_PATH
-                                           SET level = %d
-                                           WHERE ID  = %d";
-                $updateTraitSQL = $wpdb->prepare($updateTraitSQL, $newValue, $tokens [1]);
-            }
-        }
-        else if ($tokens [0] == "ritual" && $tokens [1] == "new") {
-            $checkSQL = "SELECT rit.name, rit.cost xp_cost,  0 current_value, rit.level next_value
-                                 FROM " . $table_prefix . "RITUAL rit,
-                                      " . $table_prefix . "CHARACTER_DISCIPLINE cha_dis
-                                 WHERE cha_dis.DISCIPLINE_ID = rit.DISCIPLINE_ID
-                                   AND cha_dis.level        >= rit.level
-                                   AND cha_dis.CHARACTER_ID  = %d
-                                   AND rit.id                = %d";
-
-            $newRituals = $wpdb->get_results($wpdb->prepare($checkSQL, $characterID, ((int) $tokens [2])));
-            foreach ($newRituals as $newRitual) {
-                $xp_cost      = $newRitual->xp_cost;
-                $traitName    = $newRitual->name;
-                $currentValue = $newRitual->current_value;
-                $newValue     = $newRitual->next_value;
-            }
-
-            if ($newValue != "") {
-                $updateTraitSQL = "INSERT INTO " . $table_prefix . "CHARACTER_RITUAL (character_id, ritual_id, level)
-                                           VALUES (%d, %d, %d)";
-                $updateTraitSQL = $wpdb->prepare($updateTraitSQL, $characterID, $tokens [2], $newValue);
-            }
-        }
-        else if ($tokens [0] == "merit" && $tokens [1] == "new") {
-            $checkSQL = "SELECT merit.name, merit.xp_cost, 0 current_value, merit.value next_value
-                             FROM " . $table_prefix . "MERIT merit
-                             WHERE merit.id = %d ";
-            $newMerits = $wpdb->get_results($wpdb->prepare($checkSQL, $tokens [2]));
-            foreach ($newMerits as $newMerit) {
-                $xp_cost      = $newMerit->xp_cost;
-                $traitName    = $newMerit->name;
-                $currentValue = $newMerit->current_value;
-                $newValue     = $newMerit->next_value;
-            }
-
-            if ($newValue != "") {
-                $updateTraitSQL = "INSERT INTO " . $table_prefix . "CHARACTER_MERIT (character_id, merit_id, level)
-                                       VALUES (%d, %d, %d)";
-                $updateTraitSQL = $wpdb->prepare($updateTraitSQL, $characterID, $tokens [2], $newValue);
-            }
-        }
-        else if ($tokens [0] == "merit") {
-            $checkSQL = "SELECT merit.name, merit.xp_cost, 'Afflicted' current_value, 'Removed' next_value
-                             FROM " . $table_prefix . "MERIT merit,
-                                  " . $table_prefix . "CHARACTER_MERIT cmerit
-                             WHERE cmerit.merit_id = merit.id
-                               AND cmerit.CHARACTER_ID = %d
-                               AND cmerit.id           = %d ";
-            $updateMerits = $wpdb->get_results($wpdb->prepare($checkSQL, $characterID, $tokens [1]));
-            foreach ($updateMerits as $updateMerit) {
-                $xp_cost      = $updateMerit->xp_cost;
-                $traitName    = $updateMerit->name;
-                $currentValue = "Afflicted";
-                $newValue     = "Cured";
-            }
-
-            if ($newValue != "") {
-                $updateTraitSQL = "DELETE FROM " . $table_prefix . "CHARACTER_MERIT
-                                       WHERE CHARACTER_ID = %d
-                                         AND ID           = %d";
-                $updateTraitSQL = $wpdb->prepare($updateTraitSQL, $characterID, $tokens [1]);
-            }
-        }
-
-        else {
-            return "Illegal combination of characer (" . $character . ") and xpSpendString (" . $xpSpendString . ")";
-        }
-
-        if ($updateTraitSQL == "") {
-            return "Could not find trait to update for character (" . $character . ") and xpSpendString (" . $xpSpendString . ") "
-                . $newValue . "<p>" . $checkSQL . "</p>";
-        }
-
-        // Minus the XP Bonus because its the cost and hence a negative
-        if ((((int) $xp_total) - $xpBonus - ((int) $xp_cost)) < 0) {
-            return "Not enough XP (" . $xp_total . ") for update (" . $traitName . " " . $currentValue . " > " . $newValue . ") which costs (" . $xp_cost . ")";
-        }
-        $comment = $traitName . " " . $currentValue . " > " . $newValue;
-        $updateXPSQL = "INSERT INTO " . $table_prefix . "PLAYER_XP (player_id,
-                                                                            character_id,
-                                                                            xp_reason_id,
-                                                                            awarded,
-                                                                            amount,
-                                                                            comment)
-                                VALUES (%d, %d, %d, SYSDATE(), %d, %s)";
-
-        $negativeCost = $xp_cost * -1;
-        $wpdb->query($wpdb->prepare($updateXPSQL, $playerID, $characterID, $xpReasonID, $negativeCost, $comment));
-
-
-        $wpdb->query($updateTraitSQL);
-
-        return "XP Spend (" . $comment . ") applied to " . $character . ", " . $xp_cost . " XP deducted.";
-    }
-
+  if (is_page(get_stlink_page('viewXPSpend')) && is_user_logged_in()) {
+    $content .= print_xp_spend_table();
+  }
+  // otherwise returns the database content
+  return $content;
+}
+add_filter( 'the_content', 'gv_xp_spend_content_filter' );
 
 /*
 	Called by print_xp_spend_table
 */
-    function doPendingXPSpend($character) {
-        global $wpdb;
-        $character   = establishCharacter($character);
-        $characterID = establishCharacterID($character);
-        $playerID    = establishPlayerID($character);
-		
-        $table_prefix = GVLARP_TABLE_PREFIX;
-		
-		/* Stats */
-		if (isset($_REQUEST['stat_level'])) {
-			$newid = save_to_pending('stat', 'CHARACTER_STAT', 'STAT', 'STAT_ID', $playerID, $characterID);
-		}
-		if (isset($_REQUEST['skill_level'])) {
-			$newid = save_to_pending('skill', 'CHARACTER_SKILL', 'SKILL', 'SKILL_ID', $playerID, $characterID);
-		}
-		if (isset($_REQUEST['newskill_level'])) {
-			$newid = save_to_pending('newskill', 'CHARACTER_SKILL', 'SKILL', 'SKILL_ID', $playerID, $characterID);
-		}
-		if (isset($_REQUEST['disc_level'])) {
-			$newid = save_to_pending('disc', 'CHARACTER_DISCIPLINE', 'DISCIPLINE', 'DISCIPLINE_ID', $playerID, $characterID);
-		}
-		if (isset($_REQUEST['newdisc_level'])) {
-			$newid = save_to_pending('newdisc', 'CHARACTER_DISCIPLINE', 'DISCIPLINE', 'DISCIPLINE_ID', $playerID, $characterID);
-		}
-		if (isset($_REQUEST['path_level'])) {
-			$newid = save_to_pending('path', 'CHARACTER_PATH', 'PATH', 'PATH_ID', $playerID, $characterID);
-		}
-
-		/*
-        $config = getConfig();
-        $clanDisciplineDiscount = $config->CLAN_DISCIPLINE_DISCOUNT;
-        $factor =  0;
-        if ($clanDisciplineDiscount == 0) {
-            $offset = 0;
-        }
-        else if ($clanDisciplineDiscount < 1) {
-            $offset = 0;
-            $factor = $clanDisciplineDiscount;
-        }
-        else {
-            $offset = $clanDisciplineDiscount;
-        }
-		*/
-
-		/*
-        $innerTable = "(SELECT dis.name dis_name, " . $offset . " xp_offset, " . $factor . " xp_factor, dis.id dis_id, dis.cost_model_id cmid, dis.visible dis_vis
-                                FROM " . $table_prefix . "DISCIPLINE dis,
-                                     " . $table_prefix . "CHARACTER chara,
-                                     " . $table_prefix . "CLAN_DISCIPLINE clandis
-                                WHERE chara.private_clan_id = clandis.CLAN_ID
-                                  AND clandis.DISCIPLINE_id = dis.ID
-                                  AND chara.wordpress_id = %s
-                                union
-                                SELECT dis.name dis_id, 0 xp_offset, 0 xp_factor, dis.id dis_id, dis.cost_model_id cmid, dis.visible dis_vis
-                                FROM " . $table_prefix . "DISCIPLINE dis
-                                WHERE dis.ID NOT IN (SELECT dis.ID
-                                                     FROM " . $table_prefix . "DISCIPLINE dis,
-                                                          " . $table_prefix . "CHARACTER chara,
-                                                          " . $table_prefix . "CLAN_DISCIPLINE clandis
-                                                     WHERE chara.private_clan_id = clandis.CLAN_ID
-                                                       AND clandis.DISCIPLINE_id = dis.ID
-                                                       AND chara.wordpress_id = %s)) new_dis ";
-
-        if ($tokens [0] == "stat") {
-            $checkSQL = "SELECT stat.name, cmstep.xp_cost, cmstep.current_value, cmstep.next_value
-                                 FROM " . $table_prefix . "STAT stat,
-                                      " . $table_prefix . "COST_MODEL_STEP cmstep,
-                                      " . $table_prefix . "CHARACTER_STAT cstat
-                                 WHERE stat.COST_MODEL_ID    = cmstep.COST_MODEL_ID
-                                   AND cmstep.CURRENT_VALUE  = cstat.level
-                                   AND cstat.STAT_ID         = stat.ID
-                                   AND cstat.CHARACTER_ID    = %d
-                                   AND cstat.id              = %d";
-            $checkSQL = $wpdb->prepare($checkSQL, $characterID, $tokens [1]);
-        }
-        else if ($tokens [0] == "skill" && $tokens [1] == "new") {
-            $checkSQL = "SELECT skill.name, cmstep.xp_cost, cmstep.current_value, cmstep.next_value
-                                 FROM " . $table_prefix . "SKILL skill,
-                                      " . $table_prefix . "COST_MODEL_STEP cmstep
-                                 WHERE skill.COST_MODEL_ID   = cmstep.COST_MODEL_ID
-                                   AND cmstep.current_value  = 0
-                                   AND skill.id              = %d";
-            $checkSQL = $wpdb->prepare($checkSQL, $tokens [2]);
-        }
-        else if ($tokens [0] == "skill") {
-            $checkSQL = "SELECT skill.name, cmstep.xp_cost, cmstep.current_value, cmstep.next_value
-                                 FROM " . $table_prefix . "SKILL skill,
-                                      " . $table_prefix . "COST_MODEL_STEP cmstep,
-                                      " . $table_prefix . "CHARACTER_SKILL cskill
-                                 WHERE skill.COST_MODEL_ID   = cmstep.COST_MODEL_ID
-                                   AND cmstep.CURRENT_VALUE  = cskill.level
-                                   AND cskill.SKILL_ID       = skill.ID
-                                   AND cskill.CHARACTER_ID   = %d
-                                   AND cskill.id             = %d";
-            $checkSQL = $wpdb->prepare($checkSQL, $characterID, $tokens [1]);
-        }
-        else if ($tokens [0] == "dis" && $tokens [1] == "new") {
-            $checkSQL = "SELECT new_dis.dis_name name, ROUND((cmstep.xp_cost - new_dis.xp_offset) * (1 - new_dis.xp_factor)) xp_cost, cmstep.current_value, cmstep.next_value
-                                 FROM " . $innerTable   . ",
-                                      " . $table_prefix . "COST_MODEL_STEP cmstep
-                                 WHERE new_dis.cmid          = cmstep.COST_MODEL_ID
-                                   AND cmstep.current_value  = 0
-                                   AND new_dis.dis_id        = %d";
-            $checkSQL = $wpdb->prepare($checkSQL, $character, $character, $tokens [2]);
-        }
-        else if ($tokens [0] == "dis") {
-            $checkSQL = "SELECT new_dis.dis_name name, ROUND((cmstep.xp_cost - new_dis.xp_offset) * (1 - new_dis.xp_factor)) xp_cost, cmstep.current_value, cmstep.next_value
-                                 FROM " . $innerTable . ",
-                                      " . $table_prefix . "COST_MODEL_STEP cmstep,
-                                      " . $table_prefix . "CHARACTER_DISCIPLINE cdis
-                                 WHERE new_dis.cmid         = cmstep.COST_MODEL_ID
-                                   AND cmstep.CURRENT_VALUE = cdis.level
-                                   AND cdis.DISCIPLINE_ID   = dis_id
-                                   AND cdis.CHARACTER_ID    = %d
-                                   AND cdis.id              = %d";
-            $checkSQL = $wpdb->prepare($checkSQL, $character, $character, $characterID, $tokens [1]);
-
-        }
-        else if ($tokens [0] == "path" && $tokens [1] == "new") {
-            $checkSQL = "SELECT path.name, cmstep.xp_cost, cmstep.current_value, cmstep.next_value
-                                 FROM " . $table_prefix . "PATH path,
-                                      " . $table_prefix . "COST_MODEL_STEP cmstep
-                                 WHERE path.COST_MODEL_ID   = cmstep.COST_MODEL_ID
-                                   AND cmstep.current_value = 0
-                                   AND path.id              = %d";
-            $checkSQL = $wpdb->prepare($checkSQL, $tokens [2]);
-
-        }
-        else if ($tokens [0] == "path") {
-            $checkSQL = "SELECT path.name, cmstep.xp_cost, cmstep.current_value, cmstep.next_value
-                                 FROM " . $table_prefix . "PATH path,
-                                      " . $table_prefix . "COST_MODEL_STEP cmstep,
-                                      " . $table_prefix . "CHARACTER_PATH cpath,
-                                      " . $table_prefix . "CHARACTER_DISCIPLINE cdis
-                                 WHERE path.COST_MODEL_ID   = cmstep.COST_MODEL_ID
-                                   AND cmstep.CURRENT_VALUE = cpath.level
-                                   AND cpath.PATH_ID        = path.ID
-                                   AND cdis.CHARACTER_ID    = cpath.CHARACTER_ID
-                                   AND cdis.DISCIPLINE_ID   = path.DISCIPLINE_ID
-                                   AND cdis.level          >= cmstep.next_value
-                                   AND cpath.CHARACTER_ID   = %d
-                                   AND cpath.id             = %d";
-            $checkSQL = $wpdb->prepare($checkSQL, $characterID, $tokens [1]);
-
-        }
-        else if ($tokens [0] == "ritual" && $tokens [1] == "new") {
-            $checkSQL = "SELECT rit.name, rit.cost xp_cost,  0 current_value, 'Learned' next_value
-                                 FROM " . $table_prefix . "RITUAL rit
-                                 WHERE rit.id = %d ";
-            $checkSQL = $wpdb->prepare($checkSQL, $tokens [2]);
-        }
-        else if ($tokens [0] == "merit" && $tokens [1] == "new") {
-            $checkSQL = "SELECT merit.name, merit.xp_cost, 0 current_value, 'Acquired' next_value
-                             FROM " . $table_prefix . "MERIT merit
-                             WHERE merit.id = %d ";
-            $checkSQL = $wpdb->prepare($checkSQL, $tokens [2]);
-        }
-        else if ($tokens [0] == "merit") {
-            $checkSQL = "SELECT merit.name, merit.xp_cost, 'Afflicted' current_value, 'Removed' next_value
-                             FROM " . $table_prefix . "MERIT merit,
-                                  " . $table_prefix . "CHARACTER_MERIT cmerit
-                             WHERE cmerit.merit_id = merit.id
-                               AND cmerit.CHARACTER_ID = %d
-                               AND cmerit.id           = %d ";
-            $checkSQL = $wpdb->prepare($checkSQL, $characterID, $tokens [1]);
-        }
-        else {
-            return "Illegal combination of characer (" . $character . ") and xpSpendString (" . $xpSpendString . ")";
-        }
-
-        $xpSpendDetails = $wpdb->get_results($checkSQL);
-        foreach ($xpSpendDetails as $xpSpend) {
-            $xp_cost      = $xpSpend->xp_cost;
-            $traitName    = $xpSpend->name;
-            $currentValue = $xpSpend->current_value;
-            $newValue     = $xpSpend->next_value;
-        }
-
-        if ($traitName == "") {
-            return "Could not find trait to update for characer (" . $character . ") and xpSpendString (" . $xpSpendString . ") "
-                . $newValue . "<p>" . $checkSQL . "</p>";
-        }
-
-        if ((((int) $xp_total) - ((int) $xp_cost)) < 0) {
-            return "Not enough XP (" . $xp_total . ") for update (" . $traitName . " " . $currentValue . " > " . $newValue . ") which costs (" . $xp_cost . ")";
-        }
-
-        $comment = $traitName . " " . $currentValue . " > " . $newValue;
-        $duplicateSQL = "SELECT id
-                                 FROM " . $table_prefix . "PENDING_XP_SPEND
-                                 WHERE character_id = %d
-                                   AND comment      = %s
-                                   AND code         = %s";
-
-        $duplicateID = "";
-        $duplicates = $wpdb->get_results($wpdb->prepare($duplicateSQL, $characterID, $comment, $xpSpendString));
-        foreach ($duplicates as $duplicate) {
-            $duplicateID = $duplicate->id;
-        }
-
-        if ($duplicateID != "") {
-            return "A duplicate pending xp Spend (" . $comment . ") for " . $character . " is already pending.";
-        }
-
-        $duplicateSkill = "";
-        if ($tokens [0] == "skill" && $tokens [2] == "spec") {
-            $duplicateSQL = "SELECT skill.name, cskill_outer.comment
-                                 FROM " . $table_prefix . "CHARACTER_SKILL cskill_inner,
-                                      " . $table_prefix . "CHARACTER_SKILL cskill_outer,
-                                      " . $table_prefix . "SKILL skill
-                                 WHERE cskill_inner.CHARACTER_ID   = %d
-                                   AND cskill_inner.id             = %d
-                                   AND cskill_outer.skill_id       = cskill_inner.skill_id
-                                   AND cskill_inner.skill_id       = skill.id
-                                   AND cskill_outer.CHARACTER_ID   = cskill_inner.CHARACTER_ID";
-            $duplicates = $wpdb->get_results($wpdb->prepare($duplicateSQL, $characterID, $tokens [1]));
-
-            foreach ($duplicates as $duplicate) {
-                if ($duplicate->comment == $specialisation) {
-                    $duplicateSkill = $duplicates->name;
-                }
-            }
-        }
-        else if ($tokens [0] == "skill" && $tokens [3] == "spec") {
-            $duplicateSQL = "SELECT skill.name, cskill.comment
-                                 FROM " . $table_prefix . "CHARACTER_SKILL cskill,
-                                      " . $table_prefix . "SKILL cskill
-                                 WHERE cskill.CHARACTER_ID   = %d
-                                   AND skill.id              = %d
-                                   AND skill.skill_id        = cskill.skill_id";
-            $duplicates = $wpdb->get_results($wpdb->prepare($duplicateSQL, $characterID, $tokens [2]));
-
-            foreach ($duplicates as $duplicate) {
-                if ($duplicate->comment == $specialisation) {
-                    $duplicateSkill = $duplicates->name;
-                }
-            }
-        }
-
-        if ($duplicateSkill != "") {
-            return "A duplicate skill (" . $duplicateSkill . ") with the same specialisation (" . $specialisation . ") already exists, XP Spend aborted";
-        }
-
-        $pendingXPSQL = "INSERT INTO " . $table_prefix . "PENDING_XP_SPEND(player_id,
-                                                                                   character_id,
-                                                                                   code,
-                                                                                   awarded,
-                                                                                   amount,
-                                                                                   comment,
-                                                                                   training_note,
-                                                                                   specialisation)
-                             VALUES (%d, %d, %s, SYSDATE(), %d, %s, %s, %s)";
-
-        $negativeXpCost = $xp_cost * -1;
-
-        $pendingXPSQL = $wpdb->prepare($pendingXPSQL, $playerID, $characterID, $xpSpendString, $negativeXpCost, $comment, $trainingNote, $specialisation);
-
-        $wpdb->query($pendingXPSQL);
-
-        return "PENDING XP Spend (" . $traitName . " " . $currentValue . " > " . $newValue . ") applied to " . $character
-            . " " . $xp_cost . " XP reserved."; */
-    }
+function doPendingXPSpend($character) {
+	global $wpdb;
+	$character   = establishCharacter($character);
+	$characterID = establishCharacterID($character);
+	$playerID    = establishPlayerID($character);
+	
+	$table_prefix = GVLARP_TABLE_PREFIX;
+	
+	/* Stats */
+	if (isset($_REQUEST['stat_level'])) {
+		$newid = save_to_pending('stat', 'CHARACTER_STAT', 'STAT', 'STAT_ID', $playerID, $characterID);
+	}
+	if (isset($_REQUEST['skill_level'])) {
+		$newid = save_to_pending('skill', 'CHARACTER_SKILL', 'SKILL', 'SKILL_ID', $playerID, $characterID);
+	}
+	if (isset($_REQUEST['newskill_level'])) {
+		$newid = save_to_pending('newskill', 'CHARACTER_SKILL', 'SKILL', 'SKILL_ID', $playerID, $characterID);
+	}
+	if (isset($_REQUEST['disc_level'])) {
+		$newid = save_to_pending('disc', 'CHARACTER_DISCIPLINE', 'DISCIPLINE', 'DISCIPLINE_ID', $playerID, $characterID);
+	}
+	if (isset($_REQUEST['newdisc_level'])) {
+		$newid = save_to_pending('newdisc', 'CHARACTER_DISCIPLINE', 'DISCIPLINE', 'DISCIPLINE_ID', $playerID, $characterID);
+	}
+	if (isset($_REQUEST['path_level'])) {
+		$newid = save_to_pending('path', 'CHARACTER_PATH', 'PATH', 'PATH_ID', $playerID, $characterID);
+	}
+	if (isset($_REQUEST['newpath_level'])) {
+		$newid = save_to_pending('newpath', 'CHARACTER_PATH', 'PATH', 'PATH_ID', $playerID, $characterID);
+	}
+	if (isset($_REQUEST['ritual_level'])) {
+		$newid = save_to_pending('ritual', 'CHARACTER_RITUAL', 'RITUAL', 'RITUAL_ID', $playerID, $characterID);
+	}
+	if (isset($_REQUEST['merit_level'])) {
+		$newid = save_merit_to_pending('merit', 'CHARACTER_MERIT', 'MERIT', 'MERIT_ID', $playerID, $characterID);
+	}
+	if (isset($_REQUEST['newmerit_level'])) {
+		$newid = save_merit_to_pending('newmerit', 'CHARACTER_MERIT', 'MERIT', 'MERIT_ID', $playerID, $characterID);
+	}
+}
 	
 /*
 	master_xp_update GVLARP_FORM
 */
-    function handleMasterXP() {
-        $counter = 1;
-        while (isset($_POST['counter_' . $counter])) {
-            $current_player_id = $_POST['counter_' . $counter];
-            $current_xp_value  = $_POST[$current_player_id . '_xp_value'];
-            if (is_numeric($current_xp_value) && ((int) $current_xp_value != 0)) {
-                addPlayerXP($current_player_id,
-                    $_POST[$current_player_id . '_character'],
-                    $_POST[$current_player_id . '_xp_reason'],
-                    $current_xp_value,
-                    $_POST[$current_player_id . '_xp_comment']);
-            }
-            $counter++;
-        }
-    }
+function handleMasterXP() {
+	$counter = 1;
+	while (isset($_POST['counter_' . $counter])) {
+		$current_player_id = $_POST['counter_' . $counter];
+		$current_xp_value  = $_POST[$current_player_id . '_xp_value'];
+		if (is_numeric($current_xp_value) && ((int) $current_xp_value != 0)) {
+			addPlayerXP($current_player_id,
+				$_POST[$current_player_id . '_character'],
+				$_POST[$current_player_id . '_xp_reason'],
+				$current_xp_value,
+				$_POST[$current_player_id . '_xp_comment']);
+		}
+		$counter++;
+	}
+}
 	
 /* Add XP to the database
 	- called by handleMasterXP
@@ -639,9 +87,8 @@ function addPlayerXP($player, $character, $xpReason, $value, $comment) {
 
 /* shortcode */
 
-function print_xp_spend_table($atts, $content=null) {
-	extract(shortcode_atts(array ("character" => "null", "visible" => "N"), $atts));
-	$character = establishCharacter($character);
+function print_xp_spend_table() {
+	$character   = establishCharacter($character);
 	$characterID = establishCharacterID($character);
 	
 	if (!isST()) {
@@ -653,24 +100,37 @@ function print_xp_spend_table($atts, $content=null) {
 	
 	/* Exit if this character has been deleted */
 	/* TO DO */
+	
+	/* how much XP is available to spend */
+	$xp_total   = get_total_xp($characterID);
+	$xp_pending = get_pending_xp($characterID);
+	
 
 	// Replacing all underscores with strings
 	$defaultTrainingString = "Tell us how you are learning this";
 	$defaultSpecialisation = "New Specialisation";
 	$trainingNote          = $_POST['trainingNote'];
-	/* $xpSpend               = $_POST['xp_spend'];
-	$specialisation        = $_POST['spec_' . $xpSpend]; */
 	$fulldoturl            = plugins_url( 'gvlarp-character/images/viewfulldot.jpg' );
 	$emptydoturl           = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
 	$pendingdoturl         = plugins_url( 'gvlarp-character/images/pendingdot.jpg' );
+	
+	$sectioncontent        = array();
+	$sectionheading        = array();
+	$sectiontitle          = array();
+	$sectioncols           = array();
+	$sectionorder          = array('stat', 'skill', 'newskill', 'disc', 'newdisc', 'path', 'newpath',
+								'ritual', 'merit', 'newmerit');
 
 	$output    = "";
+	$outputError = "";
 
 	$postedCharacter = $_POST['character'];
 
 	if ($_POST['GVLARP_FORM'] == "applyXPSpend"
 		&& $postedCharacter != ""
 		&& $_POST['xSubmit'] == "Spend XP") {
+		
+		$xp_spent = 0;
 		
 		if (isset($_REQUEST['stat_level'])) {
 			$spec_at = $_REQUEST['stat_spec_at'];
@@ -683,8 +143,10 @@ function print_xp_spend_table($atts, $content=null) {
 					$stat_spec_error[$id] = 1;
 				}
 			}
+			$xp_spent += calc_submitted_spend('stat');
+			
 			if (count($stat_spec_error))
-				$output .= "<p>Please fix mising or invalid specialisations</p>";
+				$outputError .= "<li>Please fix missing or invalid <a href='#gvid_xpst_stat'>Attribute</a> specialisations</li>";
 				
 			foreach ($stattraining as $id => $trainingnote) {
 				if ($statlevels[$id] &&
@@ -693,7 +155,7 @@ function print_xp_spend_table($atts, $content=null) {
 				}
 			}
 			if (count($stat_train_error))
-				$output .= "<p>Please fix mising training notes</p>";
+				$outputError .= "<li>Please fix missing <a href='#gvid_xpst_stat'>Attribute</a> training notes</li>";
 	
 		}
 		if (isset($_REQUEST['skill_level'])) {
@@ -707,8 +169,9 @@ function print_xp_spend_table($atts, $content=null) {
 					$skill_spec_error[$id] = 1;
 				}
 			}
+			$xp_spent += calc_submitted_spend('skill');
 			if (count($skill_spec_error))
-				$output .= "<p>Please fix mising or invalid specialisations</p>";
+				$outputError .= "<li>Please fix missing or invalid <a href='#gvid_xpst_skill'>Ability</a> specialisations</li>";
 				
 			foreach ($skilltraining as $id => $trainingnote) {
 				if ($skilllevels[$id] &&
@@ -717,7 +180,7 @@ function print_xp_spend_table($atts, $content=null) {
 				}
 			}
 			if (count($skill_train_error))
-				$output .= "<p>Please fix mising training notes</p>";
+				$outputError .= "<li>Please fix missing <a href='#gvid_xpst_skill'>Ability</a> training notes</li>";
 	
 		}
 
@@ -732,8 +195,9 @@ function print_xp_spend_table($atts, $content=null) {
 					$newskill_spec_error[$id] = 1;
 				}
 			}
+			$xp_spent += calc_submitted_spend('newskill');
 			if (count($newskill_spec_error))
-				$output .= "<p>Please fix mising or invalid specialisations</p>";
+				$outputError .= "<li>Please fix missing or invalid <a href='#gvid_xpst_newskill'>New Ability</a> specialisations</li>";
 				
 			foreach ($newskilltraining as $id => $trainingnote) {
 				if ($newskilllevels[$id] &&
@@ -742,7 +206,7 @@ function print_xp_spend_table($atts, $content=null) {
 				}
 			}
 			if (count($newskill_train_error))
-				$output .= "<p>Please fix mising training notes</p>";
+				$outputError .= "<li>Please fix missing <a href='#gvid_xpst_newskill'>New Ability</a> training notes</li>";
 	
 		}
 		if (isset($_REQUEST['disc_level'])) {
@@ -755,8 +219,9 @@ function print_xp_spend_table($atts, $content=null) {
 					$disc_train_error[$id] = 1;
 				}
 			}
+			$xp_spent += calc_submitted_spend('disc');
 			if (count($disc_train_error))
-				$output .= "<p>Please fix mising training notes</p>";
+				$outputError .= "<li>Please fix missing <a href='#gvid_xpst_disc'>Discipline</a> training notes</li>";
 	
 		}
 		if (isset($_REQUEST['newdisc_level'])) {
@@ -769,8 +234,9 @@ function print_xp_spend_table($atts, $content=null) {
 					$newdisc_train_error[$id] = 1;
 				}
 			}
+			$xp_spent += calc_submitted_spend('newdisc');
 			if (count($newdisc_train_error))
-				$output .= "<p>Please fix mising training notes</p>";
+				$outputError .= "<li>Please fix missing <a href='#gvid_xpst_newdisc'>New Discipline</a> training notes</li>";
 	
 		}
 		if (isset($_REQUEST['path_level'])) {
@@ -783,26 +249,95 @@ function print_xp_spend_table($atts, $content=null) {
 					$path_train_error[$id] = 1;
 				}
 			}
+			$xp_spent += calc_submitted_spend('path');
 			if (count($path_train_error))
-				$output .= "<p>Please fix mising training notes</p>";
+				$outputError .= "<li>Please fix missing <a href='#gvid_xpst_path'>Path</a> training notes</li>";
 	
 		}
-		
-		if ($output == "") {
-		
-			/* if (!isST()) { */
-				$output = "<p>" . doPendingXPSpend($postedCharacter) . "</p>";
-			/* }
-			else {
-				$output = "<p>" . doXPSpend($postedCharacter, $_POST['xp_spend'], 0, $specialisation) . "</p>";
-			} */
+		if (isset($_REQUEST['newpath_level'])) {
+			$newpathlevels = $_REQUEST['newpath_level'];
+			$newpathtraining = $_REQUEST['newpath_training'];
+				
+			foreach ($newpathtraining as $id => $trainingnote) {
+				if ($newpathlevels[$id] &&
+					($trainingnote == "" || $trainingnote == $defaultTrainingString)) {
+					$newpath_train_error[$id] = 1;
+				}
+			}
+			$xp_spent += calc_submitted_spend('newpath');
+			if (count($newpath_train_error))
+				$outputError .= "<li>Please fix missing <a href='#gvid_xpst_newpath'>New Path</a> training notes</li>";
+	
 		}
+		if (isset($_REQUEST['ritual_level'])) {
+			$rituallevels = $_REQUEST['ritual_level'];
+			$ritualtraining = $_REQUEST['ritual_training'];
+				
+			foreach ($ritualtraining as $id => $trainingnote) {
+				if ($rituallevels[$id] &&
+					($trainingnote == "" || $trainingnote == $defaultTrainingString)) {
+					$ritual_train_error[$id] = 1;
+				}
+			}
+			$xp_spent += calc_submitted_spend('ritual');
+			if (count($ritual_train_error))
+				$outputError .= "<li>Please fix missing <a href='#gvid_xpst_ritual'>Ritual</a> training notes</li>";
+		}
+		if (isset($_REQUEST['merit_level'])) {
+			$meritlevels = $_REQUEST['merit_level'];
+			$merittraining = $_REQUEST['merit_training'];
+				
+			foreach ($merittraining as $id => $trainingnote) {
+				if ($meritlevels[$id] &&
+					($trainingnote == "" || $trainingnote == $defaultTrainingString)) {
+					$merit_train_error[$id] = 1;
+				}
+			}
+			$xp_spent += calc_submitted_merit_spend('merit');
+			if (count($merit_train_error))
+				$outputError .= "<p>Please fix missing <a href='#gvid_xpst_merit'>Flaw</a> training notes</p>";
+		}
+		if (isset($_REQUEST['newmerit_level'])) {
+			$newmeritlevels = $_REQUEST['newmerit_level'];
+			$newmerittraining = $_REQUEST['newmerit_training'];
+				
+			foreach ($newmerittraining as $id => $trainingnote) {
+				if ($newmeritlevels[$id] &&
+					($trainingnote == "" || $trainingnote == $defaultTrainingString)) {
+					$newmerit_train_error[$id] = 1;
+				}
+			}
+			$xp_spent += calc_submitted_merit_spend('newmerit');
+			if (count($newmerit_train_error))
+				$outputError .= "<p>Please fix missing <a href='#gvid_xpst_newmerit'>Merit</a> training notes</p>";
+		}
+		
+		/* check you have enough XP left */
+		if ($xp_spent > ($xp_total - $xp_pending)) {
+			$outputError .= "<li>You don't have enough experience left</li>";
+		}
+		
+		
+		if ($outputError == "") {
+		
+			$output = "<p>" . doPendingXPSpend($postedCharacter) . "</p>";
+			
+			/* clear new spends */
+			$newskilllevels  = array();
+			$newdisclevels   = array();
+			$newpathlevels   = array();
+			$newmeritlevels  = array();
+			
+			$output .= "<p>$xp_spent experience spent</p>";
+			
+		}
+		
+		$output .= "<div class='gvxp_error'>$outputError</div>";
 
 	}
-
-	/* how much XP is available to spend */
-	$attributes = array ("character" => $character, "group" => "TOTAL", "maxrecords" => "1");
-	$xp_total = print_character_xp_table($attributes, null);
+	$xp_pending = get_pending_xp($characterID); /* update pending after spend */
+	$outputXP = "<p class='gvxp_xpstatus'>You have $xp_total experience in total with $xp_pending points currently pending</p>";
+	$output .= $outputXP;
 
 	/* work out the maximum ratings for this character based on generation */
 	$maxRating     = 5;
@@ -822,7 +357,7 @@ function print_xp_spend_table($atts, $content=null) {
 
 	/* Attributes 
 	------------------------------------------------------------------------*/
-	
+	$sectiontitle['stat'] = "Attributes";
 	/* get current stat levels */
 	$sqlOutput = "";
 	$sql = "SELECT stat.name, cha_stat.comment, cha_stat.level, cha_stat.id, 
@@ -836,6 +371,7 @@ function print_xp_spend_table($atts, $content=null) {
 
 	/* get the dot maximum to display: 5 or 10 */
 	$max2display = get_max_dots($character_stats_xp, $maxRating);
+	$sectioncols['stat'] = $max2display;
 	
 	/* get pending stat levels */
 	$stat_spends = get_pending($characterID, 'CHARACTER_STAT');
@@ -854,23 +390,21 @@ function print_xp_spend_table($atts, $content=null) {
 		
 		
 	}
+	
+	$sectioncontent['stat'] = $sqlOutput;
 
-	$output .= "<form name=\"SPEND_XP_FORM\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">";
-	$output .= "<table class='gvplugin' id=\"gvid_xpst\">";
-
-	if ($sqlOutput != "") {
-		$output .= "<tr><th class=\"gvthead gvcol_1\">Name</th><th class='gvthead gvcol_2'>Specialisation</th>";
-		for($i=1;$i<=$max2display;$i++) {
-			$output .= "<th colspan=2 class='gvthead gvcol_radiohead gvcol_" . ($i + 2) . "'>" . $i . "</th>";
-		}
-		$output .= "<th class=\"gvthead gvcol_radiohead gvcol_7\">N/A</th>";
-		$output .= "<th class=\"gvthead gvcol_7\">Training Notes</th></tr>";
-		$output .= $sqlOutput;
+	$sqlOutput = "<tr><th class=\"gvthead gvcol_1\">Name</th><th class='gvthead gvcol_2'>Specialisation</th>";
+	for($i=1;$i<=$max2display;$i++) {
+		$sqlOutput .= "<th colspan=2 class='gvthead gvcol_radiohead gvcol_" . ($i + 2) . "'>" . $i . "</th>";
 	}
+	$sqlOutput .= "<th class=\"gvthead gvcol_radiohead gvcol_7\">N/A</th>";
+	$sqlOutput .= "<th class=\"gvthead gvcol_7\">Training Notes</th></tr>";
+	$sectionheading['stat'] = $sqlOutput;
 			
 	
 	/* Abilities - current
 	------------------------------------------------------------*/
+	$sectiontitle['skill'] = "Current Abilities";
 	/* current skills */
 	$sql = "SELECT skill.name, cha_skill.comment, cha_skill.level, cha_skill.id,
 				skill.specialisation_at spec_at, skill.ID as item_id
@@ -886,6 +420,7 @@ function print_xp_spend_table($atts, $content=null) {
 			
 	/* get the dot maximum to display: 5 or 10 */
 	$max2display = get_max_dots($character_skills_xp, $maxRating);
+	$sectioncols['skill'] = $max2display;
 	
 	/* get pending levels */
 	$skill_spends = get_pending($characterID, 'CHARACTER_SKILL');
@@ -906,19 +441,19 @@ function print_xp_spend_table($atts, $content=null) {
 		
 	}
 	
-	if ($sqlOutput != "") {
-		$output .= "<tr><td>&nbsp;</td></tr>\n";
-		$output .= "<tr><th class=\"gvthead gvcol_1\">Name</th><th class='gvthead gvcol_2'>Specialisation</th>";
-		for($i=1;$i<=$max2display;$i++) {
-			$output .= "<th colspan=2 class='gvthead gvcol_radiohead gvcol_" . ($i + 2) . "'>" . $i . "</th>";
-		}
-		$output .= "<th class=\"gvthead gvcol_radiohead gvcol_7\">N/A</th>";
-		$output .= "<th class=\"gvthead gvcol_7\">Training Notes</th></tr>";
-		$output .= $sqlOutput;
+	$sectioncontent['skill'] = $sqlOutput;
+	
+	$sqlOutput = "<tr><th class=\"gvthead gvcol_1\">Name</th><th class='gvthead gvcol_2'>Specialisation</th>";
+	for($i=1;$i<=$max2display;$i++) {
+		$sqlOutput .= "<th colspan=2 class='gvthead gvcol_radiohead gvcol_" . ($i + 2) . "'>" . $i . "</th>";
 	}
+	$sqlOutput .= "<th class=\"gvthead gvcol_radiohead gvcol_7\">N/A</th>";
+	$sqlOutput .= "<th class=\"gvthead gvcol_7\">Training Notes</th></tr>";
+	$sectionheading['skill'] = $sqlOutput;
 	
 	/* Abilities - new / multiple
 	------------------------------------------------------------*/
+	$sectiontitle['newskill'] = "New Abilities";
 	/* new skills */
 	$sql = "SELECT skill.name, \"\" as comment, 0 as level, 0 as id,
 				skill.specialisation_at spec_at, skill.ID as item_id
@@ -948,6 +483,7 @@ function print_xp_spend_table($atts, $content=null) {
 
 	/* get the dot maximum to display: 5 or 10 */
 	$max2display = get_max_dots($character_newskills_xp, $maxRating);
+	$sectioncols['newskill'] = $max2display;
 
 	$sqlOutput = "";
 	foreach ($character_newskills_xp as $skillxp) {
@@ -962,27 +498,33 @@ function print_xp_spend_table($atts, $content=null) {
 						$pendingdoturl);
 		
 	}
-	if ($sqlOutput != "") {
-		$output .= "<tr><td>&nbsp;</td></tr>\n";
-		$output .= $sqlOutput;
-	}
+	$sectioncontent['newskill'] = $sqlOutput;
+	$sectionheading['newskill'] = $sectionheading['skill'];
 	
 	/* Disciplines - current
 	------------------------------------------------------------*/
+	$sectiontitle['disc'] = "Current Disciplines";
 	$sql = "SELECT discipline.name, cha_dis.comment, cha_dis.level, cha_dis.id,
-				discipline.ID as item_id
+				discipline.ID as item_id, characters.PRIVATE_CLAN_ID as clanid
 			FROM
 				" . $table_prefix . "CHARACTER_DISCIPLINE cha_dis,
-				" . $table_prefix . "DISCIPLINE discipline
+				" . $table_prefix . "DISCIPLINE discipline,
+				" . $table_prefix . "CHARACTER characters
 			WHERE
 				cha_dis.DISCIPLINE_ID = discipline.ID
+				AND characters.ID = cha_dis.CHARACTER_ID
 				AND cha_dis.CHARACTER_ID = %s
 			ORDER BY discipline.name ASC";
 	$sql = $wpdb->prepare($sql, $characterID);
+	
 	$character_discipline_xp = $wpdb->get_results($sql);
+	/* echo "<pre>SQL: $sql\n";
+	print_r($character_discipline_xp);
+	echo "</pre>"; */
 			
 	/* get the dot maximum to display: 5 or 10 */
-	$max2display = get_max_dots($character_discipline_xp, $maxRating);
+	$max2display = get_max_dots($character_discipline_xp, $maxDiscipline);
+	$sectioncols['disc'] = $max2display;
 	
 	/* get pending levels */
 	$disc_spends = get_pending($characterID, 'CHARACTER_DISCIPLINE');
@@ -991,7 +533,7 @@ function print_xp_spend_table($atts, $content=null) {
 	foreach ($character_discipline_xp as $discxp) {
 
 		/* get costs per level */
-		$disc_costs = get_xp_costs_per_level("DISCIPLINE", $discxp->item_id, $discxp->level);
+		$disc_costs = get_discipline_xp_costs_per_level($discxp->item_id, $discxp->level, $discxp->clanid);
 		
 		$sqlOutput .= render_spend_row("disc", $discxp, $disc_specialisations,
 						$disc_spec_error, $disc_spends, $max2display, $maxRating,
@@ -1000,19 +542,19 @@ function print_xp_spend_table($atts, $content=null) {
 						$pendingdoturl, 1);
 	}
 	
-	if ($sqlOutput != "") {
-		$output .= "<tr><td>&nbsp;</td></tr>\n";
-		$output .= "<tr><th colspan=2 class=\"gvthead gvcol_1\">Name</th>";
-		for($i=1;$i<=$max2display;$i++) {
-			$output .= "<th colspan=2 class='gvthead gvcol_radiohead gvcol_" . ($i + 2) . "'>" . $i . "</th>";
-		}
-		$output .= "<th class=\"gvthead gvcol_radiohead gvcol_7\">N/A</th>";
-		$output .= "<th class=\"gvthead gvcol_7\">Training Notes</th></tr>";
-		$output .= $sqlOutput;
+	$sectioncontent['disc'] = $sqlOutput;
+	
+	$sqlOutput = "<tr><th colspan=2 class=\"gvthead gvcol_1\">Name</th>";
+	for($i=1;$i<=$max2display;$i++) {
+		$sqlOutput .= "<th colspan=2 class='gvthead gvcol_radiohead gvcol_" . ($i + 2) . "'>" . $i . "</th>";
 	}
+	$sqlOutput .= "<th class=\"gvthead gvcol_radiohead gvcol_7\">N/A</th>";
+	$sqlOutput .= "<th class=\"gvthead gvcol_7\">Training Notes</th></tr>";
+	$sectionheading['disc'] = $sqlOutput;
 
 	/* Disciplines - new
 	------------------------------------------------------------*/
+	$sectiontitle['newdisc'] = "New Disciplines";
 	$sql = "SELECT discipline.name, \"\" as comment, 0 as level, 0 as id,
 				discipline.ID as item_id
 			FROM
@@ -1040,13 +582,16 @@ function print_xp_spend_table($atts, $content=null) {
 	$newdisc_spends = get_pending($characterID, 'CHARACTER_DISCIPLINE');
 
 	/* get the dot maximum to display: 5 or 10 */
-	$max2display = get_max_dots($character_newdiscs_xp, $maxRating);
+	$max2display = get_max_dots($character_newdiscs_xp, $maxDiscipline);
+	$sectioncols['newdisc'] = $max2display;
 
+	$clanid = establishPrivateClanID($characterID);
+	
 	$sqlOutput = "";
 	foreach ($character_newdisc_xp as $discxp) {
 
 		/* get costs per level */
-		$newdisc_costs = get_xp_costs_per_level("DISCIPLINE", $discxp->item_id, $discxp->level);
+		$newdisc_costs = get_discipline_xp_costs_per_level($discxp->item_id, $discxp->level, $clanid);
 					
 		$sqlOutput .= render_spend_row("newdisc", $discxp, $newdisc_specialisations,
 						$newdisc_spec_error, $newdisc_spends, $max2display, $maxRating,
@@ -1055,13 +600,13 @@ function print_xp_spend_table($atts, $content=null) {
 						$pendingdoturl, 1);
 		
 	}
-	if ($sqlOutput != "") {
-		$output .= "<tr><td>&nbsp;</td></tr>\n";
-		$output .= $sqlOutput;
-	}
+	$sectioncontent['newdisc'] = $sqlOutput;
+	$sectionheading['newdisc'] = $sectionheading['disc'];
+
 
 	/* Magik Paths
 	------------------------------------------------------------*/
+	$sectiontitle['path'] = "Current Paths";
 	$sql = "SELECT path.name, cha_path.comment, cha_path.level, cha_path.id,
 				path.ID as item_id
 			FROM
@@ -1072,10 +617,12 @@ function print_xp_spend_table($atts, $content=null) {
 				AND cha_path.CHARACTER_ID = %s
 			ORDER BY path.name ASC";
 	$sql = $wpdb->prepare($sql, $characterID);
+	/* echo "<pre>$sql</pre>"; */
 	$character_path_xp = $wpdb->get_results($sql);
 			
 	/* get the dot maximum to display: 5 or 10 */
 	$max2display = get_max_dots($character_path_xp, $maxRating);
+	$sectioncols['path'] = $max2display;
 	
 	/* get pending levels */
 	$path_spends = get_pending($characterID, 'CHARACTER_PATH');
@@ -1092,305 +639,266 @@ function print_xp_spend_table($atts, $content=null) {
 						$defaultTrainingString, $fulldoturl, $emptydoturl, 
 						$pendingdoturl, 1);
 	}
-	
-	if ($sqlOutput != "") {
-		$output .= "<tr><td>&nbsp;</td></tr>\n";
-		$output .= "<tr><th colspan=2 class=\"gvthead gvcol_1\">Name</th>";
-		for($i=1;$i<=$max2display;$i++) {
-			$output .= "<th colspan=2 class='gvthead gvcol_radiohead gvcol_" . ($i + 2) . "'>" . $i . "</th>";
-		}
-		$output .= "<th class=\"gvthead gvcol_radiohead gvcol_7\">N/A</th>";
-		$output .= "<th class=\"gvthead gvcol_7\">Training Notes</th></tr>";
-		$output .= $sqlOutput;
-	}
-
+	$sectioncontent['path'] = $sqlOutput;
 
 	
-	/*******************************************************************************************/
-
-	/*
-	$visibleSector = "";
-	if ($visible == 'N') {
-		$visibleSector = " AND path.visible = 'Y' ";
+	$sqlOutput = "<tr><th colspan=2 class=\"gvthead gvcol_1\">Name</th>";
+	for($i=1;$i<=$max2display;$i++) {
+		$sqlOutput .= "<th colspan=2 class='gvthead gvcol_radiohead gvcol_" . ($i + 2) . "'>" . $i . "</th>";
 	}
+	$sqlOutput .= "<th class=\"gvthead gvcol_radiohead gvcol_7\">N/A</th>";
+	$sqlOutput .= "<th class=\"gvthead gvcol_7\">Training Notes</th></tr>";
+	$sectionheading['path'] = $sqlOutput;
 
-	$sql = "SELECT path.name path_name, dis.name dis_name, cha_path.level, cha_path.id, cmstep.xp_cost, cmstep.next_value, cha_dis.level cha_dis_level, 1 ordering
-					FROM " . $table_prefix . "CHARACTER_PATH cha_path,
-						 " . $table_prefix . "PATH path,
-						 " . $table_prefix . "DISCIPLINE dis,
-						 " . $table_prefix . "CHARACTER chara,
-						 " . $table_prefix . "CHARACTER_DISCIPLINE cha_dis,
-						 " . $table_prefix . "COST_MODEL_STEP cmstep
-					WHERE cha_path.PATH_ID       = path.ID
-					  AND path.DISCIPLINE_ID     = dis.ID
-					  AND cha_path.CHARACTER_ID  = chara.ID
-					  AND path.COST_MODEL_ID     = cmstep.COST_MODEL_ID
-					  AND cmstep.current_value   = cha_path.level
-					  AND cha_dis.CHARACTER_ID   = chara.ID
-					  AND cha_dis.DISCIPLINE_ID  = dis.ID
-					  AND chara.DELETED != 'Y'
-					  AND chara.WORDPRESS_ID = %s
-					union
-					SELECT path.name path_name, dis.name dis_name, 0 level, path.id, cmstep.xp_cost, cmstep.next_value, cha_dis.level cha_dis_level, 2 ordering
-					FROM " . $table_prefix . "PATH path,
-						 " . $table_prefix . "CHARACTER chara,
-						 " . $table_prefix . "DISCIPLINE dis,
-						 " . $table_prefix . "CHARACTER_DISCIPLINE cha_dis,
-						 " . $table_prefix . "COST_MODEL_STEP cmstep
-					WHERE path.COST_MODEL_ID    = cmstep.COST_MODEL_ID
-					  AND cmstep.current_value  = 0
-					  AND cha_dis.CHARACTER_ID  = chara.ID
-					  AND cha_dis.DISCIPLINE_ID = path.DISCIPLINE_ID
-					  AND path.DISCIPLINE_ID    = dis.ID
-					  AND cha_dis.level        >= cmstep.next_value
-					  AND chara.WORDPRESS_ID = %s
-					  AND chara.DELETED != 'Y' "
-		. $visibleSector . "
-					  AND path.id NOT IN (SELECT path_id
-										  FROM " . $table_prefix . "CHARACTER_PATH cha_path,
-											   " . $table_prefix . "CHARACTER chara
-										  WHERE chara.ID = cha_path.CHARACTER_ID
-											AND chara.WORDPRESS_ID = %s)
-					ORDER BY dis_name, ordering, path_name";
+	/* Magik Paths - new
+	------------------------------------------------------------*/
+	$sectiontitle['newpath'] = "New Paths";
+	$sql = "SELECT path.name, \"\" as comment, 0 as level, 0 as id,
+				path.ID as item_id
+			FROM
+				" . $table_prefix . "CHARACTER_DISCIPLINE char_disc,
+				" . $table_prefix . "DISCIPLINE discipline,
+				" . $table_prefix . "PATH path
+				LEFT JOIN
+					(
+					SELECT DISTINCT PATH_ID 
+					FROM 
+						" . $table_prefix . "CHARACTER_PATH
+					WHERE
+						CHARACTER_ID = %d
+					) as char_path
+				ON
+					path.ID = char_path.PATH_ID
+			WHERE
+				path.DISCIPLINE_ID = discipline.ID
+				AND char_disc.DISCIPLINE_ID = discipline.ID
+				AND char_disc.CHARACTER_ID = %s
+				AND ISNULL(char_path.PATH_ID) ";
+	if (!isST())
+		$sql .= "AND path.VISIBLE = 'Y' ";
+	$sql .= "ORDER BY path.name ASC";
+	
+	$sql = $wpdb->prepare($sql, $characterID, $characterID);
+	$character_newpath_xp = $wpdb->get_results($sql);
 
-	$character_path_xp = $wpdb->get_results($wpdb->prepare($sql, $character, $character, $character));
+	/* get pending levels */
+	$newpath_spends = get_pending($characterID, 'CHARACTER_PATH');
+
+	/* get the dot maximum to display: 5 or 10 */
+	$max2display = get_max_dots($character_newpath_xp, $maxRating);
+	$sectioncols['newpath'] = $max2display;
 
 	$sqlOutput = "";
-	foreach ($character_path_xp as $path_xp) {
-		$sqlOutput .= "<tr><th class='gvthleft'>" . $path_xp->path_name
-			. "</th><td class='gvcol_2 gvcol_val'>" . $path_xp->dis_name
-			. "</td><td class=\"gvcol_3 gvcol_val\">" . $path_xp->level
-			. "</td><td class='gvcol_4 gvcol_val'>=></td>";
+	foreach ($character_newpath_xp as $pathxp) {
 
-		if (((int)$path_xp->next_value) >  ((int) $path_xp->level)
-			&& ((int)$path_xp->next_value) <= ((int) $path_xp->cha_dis_level)
-			&& ((int)$path_xp->next_value) <= $maxDiscipline) {
-			$sqlOutput .= "<td class='gvcol_5 gvcol_val'>" . $path_xp->next_value
-				.  "</td><td class='gvcol_6 gvcol_val'>" . $path_xp->xp_cost . "</td>";
-			if (((int) $xp_total) >= ((int)$path_xp->xp_cost)) {
-				$sqlOutput .= "<td class=\"gvcol_7 gvcol_val\"><input type='RADIO' name=\"xp_spend\" value=\"path_";
-				if ((int)$path_xp->level == 0) {
-					$sqlOutput .= "new_";
-				}
-				$sqlOutput .= $path_xp->id . "\" /></td>";
-			}
-			else {
-				$sqlOutput .= "<td class=\"gvcol_7 gvcol_val\"></td>";
-			}
-			$sqlOutput .= "</tr>";
-		}
-		else {
-			$sqlOutput .= "<td class='gvcol_5 gvcol_val' colspan=3>No xp spend available</td>";
-		}
+		/* get costs per level */
+		$newpath_costs = get_xp_costs_per_level("PATH", $pathxp->item_id, $pathxp->level);
+					
+		$sqlOutput .= render_spend_row("newpath", $pathxp, $newpath_specialisations,
+						$newpath_spec_error, $newpath_spends, $max2display, $maxRating,
+						$newpath_costs, $newpathlevels, $newpathtraining, $newpath_train_error,
+						$defaultTrainingString, $fulldoturl, $emptydoturl, 
+						$pendingdoturl, 1);
+		
 	}
+	$sectioncontent['newpath'] = $sqlOutput;
+	$sectionheading['newpath'] = $sectionheading['path'];
 
-	if ($sqlOutput != "") {
-		$output .= "<tr><th class=\"gvthead gvcol_1\">Path</th>
-							<th class=\"gvthead gvcol_2\">Discipline</th>
-							<th class=\"gvthead gvcol_3\">Current</th>
-							<th class=\"gvthead gvcol_4\"></th>
-							<th class=\"gvthead gvcol_5\">New</th>
-							<th class=\"gvthead gvcol_6\">Cost</th>
-							<th class=\"gvthead gvcol_7\"></th></tr>"
-			. $sqlOutput;
-	}
 
-	*/
-	/*******************************************************************************************/
+	/* Rituals
+	------------------------------------------------------------*/
+	$sectiontitle['ritual'] = "Rituals";
+	$sql = "SELECT ritual.name, \"\" as comment, ritual.level, 0 as id,
+				ritual.ID as item_id, ritual.cost
+			FROM
+				" . $table_prefix . "CHARACTER_DISCIPLINE char_disc,
+				" . $table_prefix . "DISCIPLINE discipline,
+				" . $table_prefix . "RITUAL ritual
+				LEFT JOIN
+					(
+					SELECT DISTINCT RITUAL_ID 
+					FROM 
+						" . $table_prefix . "CHARACTER_RITUAL
+					WHERE
+						CHARACTER_ID = %d
+					) as char_ritual
+				ON
+					ritual.ID = char_ritual.RITUAL_ID
+			WHERE
+				ritual.DISCIPLINE_ID = discipline.ID
+				AND char_disc.DISCIPLINE_ID = discipline.ID
+				AND char_disc.CHARACTER_ID = %s
+				AND ritual.level <= char_disc.level
+				AND ISNULL(char_ritual.RITUAL_ID) ";
+	if (!isST())
+		$sql .= "AND ritual.VISIBLE = 'Y' ";
+	$sql .= "ORDER BY ritual.level ASC, ritual.name ASC";
+	
+	$sql = $wpdb->prepare($sql, $characterID, $characterID);
+	/* echo "<pre>SQL: $sql</pre>"; */
+	$character_ritual_xp = $wpdb->get_results($sql);
+	
+	$sectioncols['ritual'] = 5;
 
-	/*
-	$visibleSector = "";
-	if ($visible == 'N') {
-		$visibleSector = " AND rit.visible = 'Y' ";
-	}
-
-	$sql = "SELECT rit.name rit_name, dis.name dis_name, rit.level, rit.id, rit.cost, 1 ordering
-					FROM " . $table_prefix . "CHARACTER_RITUAL cha_rit,
-						 " . $table_prefix . "RITUAL rit,
-						 " . $table_prefix . "CHARACTER chara,
-						 " . $table_prefix . "DISCIPLINE dis
-					WHERE cha_rit.RITUAL_ID     = rit.ID
-					  AND cha_rit.CHARACTER_ID  = chara.ID
-					  AND rit.DISCIPLINE_ID     = dis.ID
-					  AND chara.DELETED != 'Y'
-					  AND chara.WORDPRESS_ID = %s
-					union
-					SELECT rit.name rit_name, dis.name dis_name, rit.level, rit.id, rit.cost, 2 ordering
-					FROM " . $table_prefix . "RITUAL rit,
-						 " . $table_prefix . "DISCIPLINE dis,
-						 " . $table_prefix . "CHARACTER chara,
-						 " . $table_prefix . "CHARACTER_DISCIPLINE cha_dis
-					WHERE cha_dis.CHARACTER_ID = chara.ID
-					  AND cha_dis.DISCIPLINE_ID = rit.DISCIPLINE_ID
-					  AND rit.DISCIPLINE_ID = dis.ID
-					  AND cha_dis.level >= rit.level
-					  AND chara.WORDPRESS_ID = %s
-					  AND chara.DELETED != 'Y' "
-		. $visibleSector . "
-					  AND rit.id NOT IN (SELECT ritual_id
-										   FROM " . $table_prefix . "CHARACTER_RITUAL cha_rit,
-												" . $table_prefix . "CHARACTER chara
-										   WHERE chara.ID = cha_rit.CHARACTER_ID
-											 AND chara.WORDPRESS_ID = %s)
-					ORDER BY dis_name, ordering, level, rit_name";
-
-	$character_ritual_xp = $wpdb->get_results($wpdb->prepare($sql, $character, $character, $character));
+	/* print_r($character_ritual_xp); */
+	/* get pending levels */
+	$ritual_spends = get_pending($characterID, 'CHARACTER_RITUAL');
 
 	$sqlOutput = "";
-	foreach ($character_ritual_xp as $ritual_xp) {
-		$sqlOutput .= "<tr><th class='gvthleft'>" . $ritual_xp->rit_name
-			. "</th><td class='gvcol_2 gvcol_val'>" . $ritual_xp->dis_name
-			. "</td><td class=\"gvcol_3 gvcol_val\">" . $ritual_xp->level
-			. "</td>";
+	foreach ($character_ritual_xp as $ritualxp) {
 
-		if ($ritual_xp->ordering == 2
-			&& ((int)$ritual_xp->level) <= $maxDiscipline) {
-			$sqlOutput .= "<td class='gvcol_4 gvcol_val' colspan=2>&nbsp;</td><td class='gvcol_6 gvcol_val'>" . $ritual_xp->cost . "</td>";
-			if (((int) $xp_total) >= ((int)$ritual_xp->cost)) {
-				$sqlOutput .= "<td class=\"gvcol_7 gvcol_val\"><input type='RADIO' name=\"xp_spend\" value=\"ritual_new_";
-				$sqlOutput .= $ritual_xp->id . "\" /></td>";
-			}
-			else {
-				$sqlOutput .= "<td class=\"gvcol_7 gvcol_val\"></td>";
-			}
-			$sqlOutput .= "</tr>";
-		}
-		else {
-			$sqlOutput .= "<td class='gvcol_4 gvcol_val' colspan=4>Ritual known</td>";
-		}
+		$sqlOutput .= render_ritual_row($ritualxp, $ritual_spends,
+						$rituallevels, $ritualtraining, $ritual_train_error,
+						$defaultTrainingString, 5, $pendingdoturl);
+		
 	}
+	$sectioncontent['ritual'] = $sqlOutput;
 
-	if ($sqlOutput != "") {
-		$output .= "<tr><th class=\"gvthead gvcol_1\">Ritual</th>
-							<th class=\"gvthead gvcol_2\">Discipline</th>
-							<th class=\"gvthead gvcol_3\">Level</th>
-							<th class=\"gvthead gvcol_4\"></th>
-							<th class=\"gvthead gvcol_5\"></th>
-							<th class=\"gvthead gvcol_6\">Cost</th>
-							<th class=\"gvthead gvcol_7\"></th></tr>"
-			. $sqlOutput;
+	$sqlOutput = "<tr><th colspan=2 class=\"gvthead gvcol_1\">Name</th>";
+	for($i=1;$i<=$max2display;$i++) {
+		$sqlOutput .= "<th colspan=2 class='gvthead gvcol_radiohead gvcol_" . ($i + 2) . "'>" . $i . "</th>";
 	}
+	$sqlOutput .= "<th class=\"gvthead gvcol_radiohead gvcol_7\">N/A</th>";
+	$sqlOutput .= "<th class=\"gvthead gvcol_7\">Training Notes</th></tr>";
+	$sectionheading['ritual'] = $sqlOutput;
 
-	*/
-	/*****************************************************************/
-
-	/*
-	$visibleSector = "";
-	if ($visible == 'N') {
-		$visibleSector = " AND merit.visible = 'Y' ";
-	}
-
-	$sql = "SELECT merit.name merit_name, merit.id, merit.value, merit.xp_cost, cha_merit.id cha_merit_id, 1 ordering
-				FROM " . $table_prefix . "CHARACTER_MERIT cha_merit,
-					 " . $table_prefix . "MERIT merit,
-					 " . $table_prefix . "CHARACTER chara
-				WHERE cha_merit.MERIT_ID     = merit.ID
-				  AND cha_merit.CHARACTER_ID = chara.ID
-				  AND chara.DELETED != 'Y'
-				  AND chara.WORDPRESS_ID = %s
-				  AND merit.value > 0
-				union
-				SELECT merit.name merit_name, merit.id, merit.value, merit.xp_cost, cha_merit.id cha_merit_id, 2 ordering
-				FROM " . $table_prefix . "CHARACTER_MERIT cha_merit,
-					 " . $table_prefix . "MERIT merit,
-					 " . $table_prefix . "CHARACTER chara
-				WHERE cha_merit.MERIT_ID     = merit.ID
-				  AND cha_merit.CHARACTER_ID = chara.ID
-				  AND chara.DELETED != 'Y'
-				  AND chara.WORDPRESS_ID = %s
-				  AND merit.value < 0
-				  AND merit.xp_cost = 0
-				union
-				SELECT merit.name merit_name, merit.id, merit.value, merit.xp_cost, cha_merit.id cha_merit_id, 3 ordering
-				FROM " . $table_prefix . "CHARACTER_MERIT cha_merit,
-					 " . $table_prefix . "MERIT merit,
-					 " . $table_prefix . "CHARACTER chara
-				WHERE cha_merit.MERIT_ID     = merit.ID
-				  AND cha_merit.CHARACTER_ID = chara.ID
-				  AND chara.DELETED != 'Y'
-				  AND chara.WORDPRESS_ID = %s
-				  AND merit.value < 0
-				  AND merit.xp_cost != 0
-				union
-				SELECT merit.name merit_name, merit.id, merit.value, merit.xp_cost, 0 cha_merit_id, 4 ordering
-				FROM " . $table_prefix . "MERIT merit
-				WHERE merit.xp_cost != 0
-				  AND merit.value > 0 "
-		. $visibleSector . "
-				  AND (merit.id NOT IN (SELECT merit_id
-										FROM " . $table_prefix . "CHARACTER_MERIT cha_merit,
-											 " . $table_prefix . "CHARACTER chara
-										WHERE chara.ID = cha_merit.CHARACTER_ID
-										  AND chara.WORDPRESS_ID = %s)
-					   OR merit.id IN (SELECT id
-									   FROM " . $table_prefix . "MERIT
-									   WHERE multiple = 'Y'))
-				  ORDER BY ordering, merit_name";
-
-	$sql = $wpdb->prepare($sql, $character, $character, $character, $character);
+	/* Flaws - current that can be bought off (can't buy off current merits)
+	------------------------------------------------------------------------*/
+	$sectiontitle['merit'] = "Flaws";
+	$sql = "SELECT merit.name, cha_merit.comment, cha_merit.level, cha_merit.id,
+				merit.ID as item_id, merit.xp_cost
+			FROM
+				" . $table_prefix . "CHARACTER_MERIT cha_merit,
+				" . $table_prefix . "MERIT merit
+			WHERE
+				cha_merit.MERIT_ID = merit.ID
+				AND merit.XP_COST > 0
+				AND cha_merit.level < 0
+				AND cha_merit.CHARACTER_ID = %s
+			ORDER BY merit.name ASC";
+	
+	$sql = $wpdb->prepare($sql, $characterID, $characterID);
+	/* echo "<pre>SQL: $sql</pre>";  */
 	$character_merit_xp = $wpdb->get_results($sql);
 
+	$sectioncols['merit'] = 10;
+	
+	/* echo "<pre>";
+	print_r($character_merit_xp);
+	echo "</pre>"; */
+	
+	/* get pending levels */
+	$merit_spends = get_pending($characterID, 'CHARACTER_MERIT');
+
 	$sqlOutput = "";
-	foreach ($character_merit_xp as $merit_xp) {
-		$sqlOutput .= "<tr><th class='gvthleft' colspan=2>" . $merit_xp->merit_name
-			. "</th><td class=\"gvcol_3 gvcol_val\">" . $merit_xp->value
-			. "</td>";
-
-		if ($merit_xp->ordering == 3) {
-			$sqlOutput .= "<td class='gvcol_4 gvcol_val' colspan=2>&nbsp;</td><td class='gvcol_6 gvcol_val'>" . $merit_xp->xp_cost . "</td>";
-			if (((int) $xp_total) >= ((int) $merit_xp->xp_cost)) {
-				$sqlOutput .= "<td class=\"gvcol_7 gvcol_val\"><input type='RADIO' name=\"xp_spend\" value=\"merit_";
-				$sqlOutput .= $merit_xp->cha_merit_id . "\" /></td>";
-			}
-			else {
-				$sqlOutput .= "<td class=\"gvcol_7 gvcol_val\"></td>";
-			}
-		}
-		else if ($merit_xp->ordering == 4) {
-			$sqlOutput .= "<td class='gvcol_4 gvcol_val' colspan=2>&nbsp;</td><td class='gvcol_6 gvcol_val'>" . $merit_xp->xp_cost . "</td>";
-			if (((int) $xp_total) >= ((int) $merit_xp->xp_cost)) {
-				$sqlOutput .= "<td class=\"gvcol_7 gvcol_val\"><input type='RADIO' name=\"xp_spend\" value=\"merit_new_";
-				$sqlOutput .= $merit_xp->id . "\" /></td>";
-			}
-			else {
-				$sqlOutput .= "<td class=\"gvcol_7 gvcol_val\"></td>";
-			}
-		}
-		else {
-			$meritFlaw = "Merit already acquired";
-			if ($merit_xp->ordering == 2) {
-				$meritFlaw = "Flaw cannot be bought off";
-			}
-			$sqlOutput .= "<td class='gvcol_4 gvcol_val' colspan=4>" . $meritFlaw . "</td>";
-		}
-		$sqlOutput .= "</tr>";
+	foreach ($character_merit_xp as $meritxp) {
+		$sqlOutput .= render_merit_row('merit', $meritxp, $merit_spends, 
+						$meritlevels, $merittraining, $merit_train_error,
+						$defaultTrainingString, 10, $pendingdoturl);
+		
 	}
+	$sectioncontent['merit'] = $sqlOutput;
 
-	if ($sqlOutput != "") {
-		$output .= "<tr><th class=\"gvthead gvcol_1\" colspan=2>Merit</th>
-							<th class=\"gvthead gvcol_3\">Value</th>
-							<th class=\"gvthead gvcol_4\"></th>
-							<th class=\"gvthead gvcol_5\"></th>
-							<th class=\"gvthead gvcol_6\">Cost</th>
-							<th class=\"gvthead gvcol_7\"></th></tr>"
-			. $sqlOutput;
+	$sqlOutput = "<tr><th colspan=2 class=\"gvthead gvcol_1\">Name</th>"; /* name & spec cols */
+	
+	$sqlOutput .= "<th colspan=4 class=\"gvthead\">Level</th>"; /* dot cols: dot1 & dot2 */
+	$sqlOutput .= "<th colspan=3 class=\"gvthead\">Cost</th>";   /* dot cols: dot3 & 1/2 of dot4 */
+	
+	$sqlOutput .= "<th colspan=" . ($max2display * 2 - 7) . " class=\"gvthead\">&nbsp;</th>";   /* dot cols: dot5+ */
+	
+	$sqlOutput .= "<th class=\"gvthead gvcol_radiohead\">N/A</th>";
+	$sqlOutput .= "<th class=\"gvthead\">Training Notes</th></tr>";
+	$sectionheading['merit'] = $sqlOutput;
+	
+	
+	/* Merits - new ones that can be bought (can't buy flaws)
+	------------------------------------------------------------------------*/
+	$sectiontitle['newmerit'] = "Merits";
+	$sql = "SELECT merit.name, \"\" as comment, merit.value as level, 0 as id,
+				merit.ID as item_id, merit.xp_cost
+			FROM
+				" . $table_prefix . "MERIT merit
+				LEFT JOIN
+					(
+					SELECT DISTINCT MERIT_ID 
+					FROM 
+						" . $table_prefix . "CHARACTER_MERIT
+					WHERE
+						CHARACTER_ID = %d
+					) as char_merit
+				ON
+					merit.ID = char_merit.MERIT_ID
+			WHERE
+				merit.XP_COST > 0
+				AND merit.value >= 0
+				AND ISNULL(char_merit.MERIT_ID) ";
+	if (!isST())
+		$sql .= "AND merit.VISIBLE = 'Y' ";
+	$sql .= "ORDER BY merit.name ASC";
+	
+	$sql = $wpdb->prepare($sql, $characterID, $characterID);
+	$character_newmerit_xp = $wpdb->get_results($sql);
+
+	/* echo "<pre>SQL: $sql</pre>"; 
+	echo "<pre>";
+	print_r($character_merit_xp);
+	echo "</pre>"; */
+	
+	/* get pending levels */
+	$newmerit_spends = get_pending($characterID, 'CHARACTER_MERIT');
+
+	$sqlOutput = "";
+	foreach ($character_newmerit_xp as $newmeritxp) {
+	
+		$sqlOutput .= render_merit_row('newmerit', $newmeritxp, $newmerit_spends, 
+						$newmeritlevels, $newmerittraining, $newmerit_train_error,
+						$defaultTrainingString, $max2display, $pendingdoturl);
+		
 	}
+	$sectioncontent['newmerit'] = $sqlOutput;
+	$sectionheading['newmerit'] = $sectionheading['merit'];
 
-	*/
-	/*****************************************************************/
+	/* DISPLAY TABLES */
+	$jumpto = array();
+	$i = 0;
+	foreach ($sectionorder as $section) {
+		if ($sectiontitle[$section] && $sectioncontent[$section]) {
+			$jumpto[$i++] .= "<a href='#gvid_xpst_$section' class='gvxp_jump'>" . $sectiontitle[$section] . "</a>";
+		}
+	}
+	$outputJump = "<p>Jump to section: " . implode(" | ", $jumpto) . "</p>";
+	
+	$output .= "<div class='gvplugin' id=\"gvid_xpst\">\n";
+	$output .= "<form name=\"SPEND_XP_FORM\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">\n";
+	
+	foreach ($sectionorder as $section) {
+	
+		$output .= "<h4 class='gvxp_head' id='gvid_xpst_$section'>" . $sectiontitle[$section] . "</h4>\n";
+			
+		if ($sectioncontent[$section]) {
+			$output .= "$outputJump\n";
+			$output .= "<table class='gvplugin'>\n";
+			$output .= $sectionheading[$section];
+			$output .= $sectioncontent[$section];
+			$output .= "</table>\n";
+			$output .= "<input class='gvxp_submit' type='submit' name=\"xSubmit\" value=\"Spend XP\">\n";
+		} else {
+			$output .= "<p>None available</p>\n";
+		}
+		
+	}
 
 
 	if ($_POST['GVLARP_CHARACTER'] != "") {
-		$output .= "<tr style='display:none'><td colspan=7><input type='HIDDEN' name=\"GVLARP_CHARACTER\" value=\"" . $_POST['GVLARP_CHARACTER'] . "\" /></td></tr>\n";
+		$output .= "<input type='HIDDEN' name=\"GVLARP_CHARACTER\" value=\"" . $_POST['GVLARP_CHARACTER'] . "\" />\n";
 	}
 
-	$output .= "<tr style='display:none'><td colspan=7><input type='HIDDEN' name=\"character\" value=\"" . $character . "\"></td></tr>\n";
-	$output .= "<tr style='display:none'><td colspan=7><input type='HIDDEN' name=\"GVLARP_FORM\" value=\"applyXPSpend\" /></td></tr>\n";
-	$output .= "<tr><td colspan=7><input type='submit' name=\"xSubmit\" value=\"Spend XP\"></td></tr></table></form>\n";
+	$output .= "<input type='HIDDEN' name=\"character\" value=\"" . $character . "\">\n";
+	$output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"applyXPSpend\" />\n";
+	$output .= "</form></div>\n";
 
 	return $output;
 }
-add_shortcode('xp_spend_table', 'print_xp_spend_table');
 
 
 function get_xp_cost($dbdata, $current, $new) {
@@ -1457,6 +965,75 @@ function get_xp_costs_per_level($table, $tableid, $level) {
 	return $wpdb->get_results($sql);
 
 }
+function get_discipline_xp_costs_per_level($disciplineid, $level, $clanid) {
+	global $wpdb;
+
+	/* clan cost model */
+	$clansql = "SELECT steps.CURRENT_VALUE, steps.NEXT_VALUE, steps.XP_COST
+				FROM 
+					" . GVLARP_TABLE_PREFIX . "COST_MODEL_STEP steps,
+					" . GVLARP_TABLE_PREFIX . "COST_MODEL cmodels,
+					" . GVLARP_TABLE_PREFIX . "CLAN cclans,
+					" . GVLARP_TABLE_PREFIX . "CLAN_DISCIPLINE cclandisciplines,
+					" . GVLARP_TABLE_PREFIX . "DISCIPLINE cdisciplines
+				WHERE
+					cclans.CLAN_COST_MODEL_ID = cmodels.ID
+					AND steps.COST_MODEL_ID = cmodels.ID
+					AND cclans.ID = %s	
+					AND cclans.ID = cclandisciplines.CLAN_ID
+					AND cdisciplines.ID = cclandisciplines.DISCIPLINE_ID
+					AND cdisciplines.ID = %s
+					AND steps.NEXT_VALUE > %s";
+	$clansql = $wpdb->prepare($clansql, $clanid, $disciplineid, $level);
+	$result = $wpdb->get_results($clansql);
+	/* echo "<pre>\nSQL2: $clansql\n";
+	print_r($result);
+	echo "</pre>"; */
+	
+	/* non-clan cost model */
+	if (!$result) {
+		$nonsql = "SELECT steps.CURRENT_VALUE, steps.NEXT_VALUE, steps.XP_COST
+					FROM 
+						" . GVLARP_TABLE_PREFIX . "COST_MODEL_STEP steps,
+						" . GVLARP_TABLE_PREFIX . "COST_MODEL ncmodels,
+						" . GVLARP_TABLE_PREFIX . "CLAN ncclans
+					WHERE
+						ncclans.NONCLAN_COST_MODEL_ID = ncmodels.ID
+						AND steps.COST_MODEL_ID = ncmodels.ID
+						AND ncclans.ID = %s
+						AND steps.NEXT_VALUE > %s";
+		$nonsql = $wpdb->prepare($nonsql, $clanid, $level);
+		$result = $wpdb->get_results($nonsql);
+		/* echo "<pre>SQL1: $nonsql\n";
+		print_r($result);
+		echo "</pre>";  */
+	}			
+		
+	/* 		
+	$sql = "SELECT steps.CURRENT_VALUE, steps.NEXT_VALUE, steps.XP_COST
+		FROM
+			" . GVLARP_TABLE_PREFIX . "COST_MODEL_STEP steps,
+			" . GVLARP_TABLE_PREFIX . "COST_MODEL clanmodels
+			LEFT JOIN
+				($clansql) 
+			" . GVLARP_TABLE_PREFIX . "DISCIPLINE discipline,
+			" . GVLARP_TABLE_PREFIX . "CLAN clans,
+			" . GVLARP_TABLE_PREFIX . "CLAN_DISCIPLINE clandisciplines
+		WHERE
+			steps.COST_MODEL_ID = models.ID
+			AND discipline.COST_MODEL_ID = models.ID
+			AND clans.ID = clandisciplines.CLAN_ID
+			AND discipline.ID = %s
+			AND steps.NEXT_VALUE > %s
+		ORDER BY steps.CURRENT_VALUE ASC";
+
+	$sql = $wpdb->prepare($sql, $tableid, $level);
+	
+	return $wpdb->get_results($sql); */
+	
+	return $result;
+
+}
 
 function get_max_dots($data, $maxRating) {
 	$max2display = 5;
@@ -1465,10 +1042,11 @@ function get_max_dots($data, $maxRating) {
 	else {
 		/* check what the character has, in case they have the merit that increases
 		something above max */
-		foreach ($data as $row) {
-			if ($row->level > $max2display)
-				$max2display = 10;
-		}
+		if (count($data)) 
+			foreach ($data as $row) {
+				if ($row->level > $max2display)
+					$max2display = 10;
+			}
 	}
 	return $max2display;
 }
@@ -1519,31 +1097,53 @@ function pending_training ($pendingdata, $chartableid, $itemid) {
 
 }
 
+function calc_submitted_spend($type) {
+	$spend = 0;
+
+	for ($i=1;$i<=10;$i++) $costlvls[$i] = $_REQUEST[$type . '_cost_' . $i];
+	foreach ($_REQUEST[$type . '_level'] as $id => $level) {
+		$spend .= $costlvls[$level][$id];
+	}
+	return $spend;
+	
+}
+function calc_submitted_merit_spend($type) {
+	$spend = 0;
+
+	foreach ($_REQUEST[$type . '_level'] as $id => $level) {
+		$spend .= $_REQUEST[$type . '_cost'][$id];
+	}
+	return $spend;
+	
+}
 
 function render_spend_row($type, $xpdata, $specdata, $specerrors, $pending, 
 						$max2display, $maxRating, $typecosts, $levelsdata,
 						$training, $trainerrors, $traindefault,
 						$fulldoturl, $emptydoturl, $pendingdoturl, $nospec = 0) {
 
+	if ($xpdata->id == 0)
+		$id = $xpdata->item_id;
+	else
+		$id = $xpdata->id;
+
 	$output = "";
+    $output .= "<tr style='display:none'><td>\n";
+	$output .= "<input type='hidden' name='{$type}_spec_at[" . $id . "]' value='" . $xpdata->spec_at . "' >";
+	$output .= "<input type='hidden' name='{$type}_curr[" . $id . "]' value='" . $xpdata->level . "' >\n";
+	$output .= "<input type='hidden' name='{$type}_itemid[" . $id . "]' value='" . $xpdata->item_id . "' >\n";
+	$output .= "<input type='hidden' name='{$type}_new[" . $id . "]' value='" . ($xpdata->id == 0) . "' >\n";
+    $output .= "</td></tr>\n";
     $output .= "<tr>\n";
 	/* Name */
 	$output .= "<th ";
 	if ($nospec)
 		$output .= "colspan=2 ";
 	$output .= " class='gvthleft'>" . $xpdata->name . "\n";
-	$output .= "<input type='hidden' name='{$type}_spec_at[" . $id . "]' value='" . $xpdata->spec_at . "' >";
-	$output .= "<input type='hidden' name='{$type}_curr[" . $id . "]' value='" . $xpdata->level . "' >\n";
-	$output .= "<input type='hidden' name='{$type}_itemid[" . $id . "]' value='" . $xpdata->item_id . "' >\n";
-	$output .= "<input type='hidden' name='{$type}_new[" . $id . "]' value='" . ($xpdata->id == 0) . "' >\n";
 	$output .= " </th>\n";
 
 	$pendinglvl = pending_level($pending, $xpdata->id, $xpdata->item_id);
 	
-	if ($xpdata->id == 0)
-		$id = $xpdata->item_id;
-	else
-		$id = $xpdata->id;
 
 	/* Specialisation */
 	if (!$nospec) {
@@ -1584,7 +1184,8 @@ function render_spend_row($type, $xpdata, $specdata, $specerrors, $pending,
 					$output .= "checked";
 				$output .= ">";
 				$output .= "<input type='hidden' name='${type}_cost_" . $i . "[" . $id . "]' value='" . $xpcost . "' >";
-				$output .= "<input type='hidden' name='${type}_comment_" . $i . "[" . $id . "]' value='" . $xpdata->name . " " . $xpdata->level . " > " . $i . "' ></td>";
+				$comment = $xpdata->name . " " . $xpdata->level . " > " . $i;
+				$output .= "<input type='hidden' name='${type}_comment_" . $i . "[" . $id . "]' value='$comment' ></td>";
 				$output .= "</td>";
 			}
 			$output .= "<td>" . ($xpcost ? $xpcost : "&nbsp;");"</td>";
@@ -1605,6 +1206,72 @@ function render_spend_row($type, $xpdata, $specdata, $specerrors, $pending,
 		$output .= ">" . pending_training($pending, $xpdata->id, $xpdata->item_id) . "</td></tr></td>";
 	else
 		$output .= "><input type='text'  name='{$type}_training[" . $id . "]' value='" . $trainingString ."' size=30 maxlength=160 /></td></tr></td>";
+
+
+	
+	return $output;
+}
+
+function render_ritual_row($xpdata, $pending, $levelsdata,
+						$training, $trainerrors, $traindefault, $max2display,
+						$pendingdoturl) {
+
+	$id = $xpdata->item_id;
+
+	$output = "";
+    $output .= "<tr style='display:none'><td>\n";
+	$output .= "<input type='hidden' name='ritual_curr[" . $id . "]' value='" . $xpdata->level . "' >\n";
+	$output .= "<input type='hidden' name='ritual_itemid[" . $id . "]' value='" . $xpdata->item_id . "' >\n";
+	$output .= "<input type='hidden' name='ritual_new[" . $id . "]' value='" . ($xpdata->id == 0) . "' >\n";
+    $output .= "</td></tr>\n";
+    $output .= "<tr>\n";
+	/* Name */
+	$output .= "<th colspan=2 class='gvthleft'>" . $xpdata->name . "\n";
+	$output .= " </th>\n";
+
+	$pendinglvl = pending_level($pending, $xpdata->id, $xpdata->item_id);
+
+	$radiogroup = "ritual_level[" . $id . "]";
+	$radiovalue = $xpdata->level;
+	
+	/* echo "<p>id: $id<p>";
+	print_r($levelsdata); */
+
+	for ($i=1;$i<=$max2display;$i++){
+		if ($i == $xpdata->level) {
+			if ($pendinglvl) {
+				$output .= "<td class='gvxp_dot'><img src='$pendingdoturl'></td><td>&nbsp;</td>";
+			} else {
+				$output .= "<td class='gvxp_radio'><input type='RADIO' name='$radiogroup' value='$radiovalue' ";
+				if (isset($levelsdata[$id]))
+					$output .= "checked";
+				$output .= ">";
+				
+				$output .= "<input type='hidden' name='ritual_cost_" . $i . "[" . $id . "]' value='" . $xpdata->cost . "' >";
+				$output .= "<input type='hidden' name='ritual_comment_" . $i . "[" . $id . "]' value='Learn Ritual " . $xpdata->name . "' ></td>";
+				$output .= "</td>";
+
+				$output .= "<td>" . $xpdata->cost . "</td>";
+			}
+		} else {
+			$output .= "<td>&nbsp;</td><td>&nbsp;</td>";
+		}
+	}
+
+	if ($pendinglvl)
+		$output .= "<td class='gvxp_radio'>&nbsp;</td>"; /* no change dot */
+	else
+		$output .= "<td class='gvxp_radio'><input type='RADIO' name='ritual_level[{$id}]' value='0' selected='selected'></td>"; /* no change dot */
+	
+	/* no training note if you cannot buy */
+	$trainingString = isset($training[$id]) ? $training[$id] : $traindefault;
+	$output .= "<td";
+	if ($trainerrors[$id])
+		$output .= " class='gvcol_error'";
+	if ($pendinglvl)
+		$output .= ">" . pending_training($pending, $xpdata->id, $xpdata->item_id) . "</td></tr></td>";
+	else
+		$output .= "><input type='text'  name='ritual_training[" . $id . "]' value='" . $trainingString ."' size=30 maxlength=160 /></td></tr></td>";
 
 
 	
@@ -1677,4 +1344,166 @@ function save_to_pending ($type, $table, $itemtable, $itemidname, $playerID, $ch
 							
 }
 
+function save_merit_to_pending ($type, $table, $itemtable, $itemidname, $playerID, $characterID) {
+	global $wpdb;
+
+	$newid = "";
+
+	$levels     = $_REQUEST[$type . '_level'];
+	$training   = $_REQUEST[$type . '_training'];
+	$itemid     = $_REQUEST[$type . '_itemid'];
+	$isnew      = $_REQUEST[$type . '_new'];
+	$costs      = $_REQUEST[$type . '_cost' . $i];
+	$comments   = $_REQUEST[$type . '_comment' . $i];
+			
+	foreach ($levels as $id => $level) {
+		
+		if ($level) {
+			$dataarray = array (
+				'PLAYER_ID'       => $playerID,
+				'CHARACTER_ID'    => $characterID,
+				'CHARTABLE'       => $table,
+				'CHARTABLE_ID'    => ($isnew[$id] ? 0 : $id),
+				'CHARTABLE_LEVEL' => $level,
+				'AWARDED'         => Date('Y-m-d'),
+				'AMOUNT'          => $costs[$id] * -1,
+				'COMMENT'         => $comments[$id],
+				'SPECIALISATION'  => "",
+				'TRAINING_NOTE'   => $training[$id],
+				'ITEMTABLE'       => $itemtable,
+				'ITEMNAME'        => $itemidname,
+				'ITEMTABLE_ID'    => $itemid[$id]
+			);
+			
+			$wpdb->insert(GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND",
+						$dataarray,
+						array (
+							'%d',
+							'%d',
+							'%s',
+							'%d',
+							'%d',
+							'%s',
+							'%d',
+							'%s',
+							'%s',
+							'%s',
+							'%s',
+							'%s',
+							'%d'
+						)
+					);
+			
+			$newid = $wpdb->insert_id;
+			if ($newid  == 0) {
+				echo "<p style='color:red'><b>Error:</b> XP (";
+				$wpdb->print_error();
+				echo ")</p>";
+			} 
+		}
+	
+	}	
+	
+	return $newid;
+							
+}
+
+
+function render_merit_row($type, $xpdata, $pending, $levelsdata, $training, $trainerrors, 
+						$traindefault, $max2display, $pendingdoturl) {
+
+	if ($xpdata->id == 0)
+		$id = $xpdata->item_id;
+	else
+		$id = $xpdata->id;
+
+	$output = "";
+    $output .= "<tr style='display:none'><td>\n";
+	$output .= "<input type='hidden' name='{$type}_itemid[" . $id . "]' value='" . $xpdata->item_id . "' >\n";
+	$output .= "<input type='hidden' name='{$type}_new[" . $id . "]' value='" . ($xpdata->id == 0) . "' >\n";
+    $output .= "</td></tr>\n";
+    $output .= "<tr>\n";
+	/* Name */
+	$output .= "<th colspan=2 class='gvthleft'>" . $xpdata->name . "\n";
+	$output .= " </th>\n";
+
+	$pendinglvl = pending_level($pending, $xpdata->id, $xpdata->item_id);
+	
+	$radiogroup = "{$type}_level[" . $id . "]";
+	$radiovalue = $xpdata->level;
+	$output .= "<td colspan=4 class='gvxp_value'>$radiovalue</td>";
+	
+	if ($pendinglvl) {
+		$output .= "<td class='gvxp_dot'><img src='$pendingdoturl'></td><td>&nbsp;</td>";
+	} else {
+		$output .= "<td class='gvxp_radio'><input type='RADIO' name='$radiogroup' value='$radiovalue' ";
+		if (isset($levelsdata[$id]))
+			$output .= "checked";
+		$output .= ">";
+		$output .= "<input type='hidden' name='{$type}_cost[" . $id . "]' value='" . $xpdata->xp_cost . "' >";
+		$output .= "<input type='hidden' name='{$type}_comment[" . $id . "]' value='";
+		if ($xpdata->level < 0)
+			$output .= "Remove level " . $xpdata->level . " Flaw ";
+		else
+			$output .= "Add level " . $xpdata->level . " Merit ";
+		$output .= $xpdata->name . "' ></td>";
+		$output .= "<td>" . $xpdata->xp_cost . "</td>";
+	}
+
+	for ($i=4;$i<=$max2display;$i++)
+		$output .= "<td colspan=2 class='gvxp_radio'>&nbsp;</td>";
+	
+	if ($pendinglvl)
+		$output .= "<td class='gvxp_radio'>&nbsp;</td>"; /* no change dot */
+	else
+		$output .= "<td class='gvxp_radio'><input type='RADIO' name='{$type}_level[{$id}]' value='0' selected-'selected'></td>"; /* no change dot */
+	
+	/* no training note if you cannot buy */
+	$trainingString = isset($training[$id]) ? $training[$id] : $traindefault;
+	$output .= "<td";
+	if ($trainerrors[$id])
+		$output .= " class='gvcol_error'";
+	if ($pendinglvl)
+		$output .= ">" . pending_training($pending, $xpdata->id, $xpdata->item_id) . "</td></tr></td>";
+	else
+		$output .= "><input type='text'  name='{$type}_training[" . $id . "]' value='" . $trainingString ."' size=30 maxlength=160 /></td></tr></td>";
+
+
+	
+	return $output;
+}
+
+function get_total_xp($characterID) {
+	global $wpdb;
+	
+	$sql = "SELECT SUM(AMOUNT) as COST FROM " . GVLARP_TABLE_PREFIX . "PLAYER_XP WHERE CHARACTER_ID = %s";
+
+	$sql = $wpdb->prepare($sql, $characterID);
+	$result = $wpdb->get_results($sql);
+	$xptotal = $result[0]->COST;
+	
+	return $xptotal;
+}
+function get_pending_xp($characterID) {
+	global $wpdb;
+	
+	$sql = "SELECT SUM(AMOUNT) as COST FROM " . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND
+			WHERE CHARACTER_ID = %s";
+	$sql = $wpdb->prepare($sql, $characterID);
+	$result = $wpdb->get_results($sql);
+	$xp_pending = $result[0]->COST * -1;
+	
+	return $xp_pending;
+}
+
+function establishPrivateClanID($characterID) {
+	global $wpdb;
+	
+	$sql = "SELECT PRIVATE_CLAN_ID FROM " . GVLARP_TABLE_PREFIX . "CHARACTER WHERE ID = %s";
+	$sql = $wpdb->prepare($sql, $characterID);
+	/* echo "<pre>$sql</pre>"; */
+	$result = $wpdb->get_results($sql);
+	
+	return $result[0]->PRIVATE_CLAN_ID;
+}
 ?>
