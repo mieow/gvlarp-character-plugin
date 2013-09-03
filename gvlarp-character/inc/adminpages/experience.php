@@ -134,10 +134,10 @@ function render_costmodel_page($type){
 				}
 			} 
 			elseif (isset($_REQUEST['do_delete_' . $type])) {
-				if ($_REQUEST['costmodel_id'] == 0) {
+				if ($_REQUEST['costmodel'] == 0) {
 					echo "<p style='color:red'>Select cost model before deleting</p>";
 				} else {
-					$id = $_REQUEST['costmodel_id'];
+					$id = $_REQUEST['costmodel'];
 					/* delete */
 					
 					/* Check if model in use, clans, stats, skills, backgrounds
@@ -227,7 +227,7 @@ function render_costmodel_page($type){
 			}
 			else {
 				/* update */
-				$id = $_REQUEST['costmodel_id'];
+				$id = $_REQUEST['costmodel'];
 				
 				$updates = 0;
 				$fail    = 0;
@@ -245,8 +245,7 @@ function render_costmodel_page($type){
 					$result = $wpdb->update(GVLARP_TABLE_PREFIX . "COST_MODEL_STEP",
 						$dataarray,
 						array ('ID' => $_REQUEST["rowids"][$i])
-					);
-					
+					);					
 					if ($result) $updates++;
 					else if ($result !== 0) $fail = 1;
 				}
@@ -285,7 +284,7 @@ function render_costmodel_page($type){
 		$sql = "SELECT * FROM " . GVLARP_TABLE_PREFIX . "COST_MODEL_STEP WHERE COST_MODEL_ID = %s ORDER BY SEQUENCE ASC";
 		$sql = $wpdb->prepare($sql, $id);
 		$result = $wpdb->get_results($sql);
-	
+			
 	} else {
 		$result = array();
 		$name   = "";
@@ -304,7 +303,7 @@ function render_costmodel_page($type){
 
 	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
 	<input type="hidden" name="tab" value="<?php print $type; ?>" />
-	<input type="hidden" name="costmodel_id" value="<?php print $_REQUEST['costmodel']; ?>" />
+	<input type="hidden" name="costmodel" value="<?php print $_REQUEST['costmodel']; ?>" />
 	<input type="hidden" name="action" value="save" />
 	<p>Cost Model Name:
 	<input type="text"   name="costmodel_name" value="<?php print $name; ?>"></p>
@@ -404,6 +403,15 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
 		case 'CHARACTER_DISCIPLINE':
 			$result = $this->approve_standard($data[0]);
 			break;
+		case 'CHARACTER_PATH':
+			$result = $this->approve_standard($data[0]);
+			break;
+		case 'CHARACTER_RITUAL':
+			$result = $this->approve_standard($data[0]);
+			break;
+		case 'CHARACTER_MERIT':
+			$result = $this->approve_merit($data[0]);
+			break;
 		}
 		if ($result) echo "<p style='color:green'>Approved spend</p>";
 		else echo "<p style='color:red'>Could not approve spend</p>";
@@ -412,13 +420,15 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
 		$sql = "SELECT ID FROM " . GVLARP_TABLE_PREFIX . "XP_REASON WHERE NAME = 'XP Spend'";
 		$result = $wpdb->get_results($sql);
 		
+		$specialisation = $data[0]->SPECIALISATION ? ("(" . $data[0]->SPECIALISATION . ") ") : "";
+		
 		$data = array (
 			'PLAYER_ID'    => $data[0]->PLAYER_ID,
 			'CHARACTER_ID' => $data[0]->CHARACTER_ID,
 			'XP_REASON_ID' => $result[0]->ID,
 			'AWARDED'      => $data[0]->AWARDED,
 			'AMOUNT'       => $data[0]->AMOUNT,
-			'COMMENT'	   => $data[0]->COMMENT
+			'COMMENT'	   => $specialisation . $data[0]->COMMENT
 		);
 		$wpdb->insert(GVLARP_TABLE_PREFIX . "PLAYER_XP",
 						$data,
@@ -468,6 +478,43 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
 					'%d', '%d', '%d', '%s'
 				)
 			);
+		}
+	
+		return $result;
+	}
+	
+	
+	function approve_merit ($data2update) {
+		global $wpdb;
+	
+		$wpdb->show_errors();
+		
+		/*
+		If it is a flaw that you already have (i.e. CHARTABLE_ID is not 0) then remove it
+		If it is a merit that you don't have then add it
+		*/
+		
+		if ($data2update->CHARTABLE_ID == 0 && $data2update->CHARTABLE_LEVEL >= 0) { /* add merit */
+			$data = array (
+				'CHARACTER_ID'         => $data2update->CHARACTER_ID,
+				$data2update->ITEMNAME => $data2update->ITEMTABLE_ID,
+				'LEVEL'                => $data2update->CHARTABLE_LEVEL,
+				'COMMENT'              => $data2update->SPECIALISATION,
+			);
+			$result = $wpdb->insert(GVLARP_TABLE_PREFIX . $data2update->CHARTABLE,
+				$data,
+				array (
+					'%d', '%d', '%d', '%s'
+				)
+			);
+		}
+		elseif ($data2update->CHARTABLE_ID != 0 && $data2update->CHARTABLE_LEVEL < 0) { /* remove flaw */
+			$sql = "DELETE FROM " . GVLARP_TABLE_PREFIX . "CHARACTER_MERIT where ID = %d;";
+			$result = $wpdb->get_results($wpdb->prepare($sql, $data2update->CHARTABLE_ID));
+			$result = 1;
+		} 
+		else {
+			$result = null;
 		}
 	
 		return $result;
