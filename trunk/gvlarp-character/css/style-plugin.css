@@ -424,7 +424,7 @@ td.chsheetcol3 {
     text-align: left;
     background-color: #000000;
     padding: 0px;
-	width: 30px;
+	width: auto;
 }
 #gvid_xpst .gvcol_val {
 	width: 40px;
@@ -437,6 +437,29 @@ td.chsheetcol3 {
 }
 #gvid_xpst td.gvxp_dot img{
 	width:12px;
+}
+
+input[type="submit"].gvxp_submit {
+	float:right;
+	margin: 5px;
+}
+
+div.gvxp_error {
+	border: 2px solid red;
+	padding: 10px;
+}
+.gvxp_error li {
+	list-style: none;
+}
+
+p.gvxp_xpstatus {
+	padding-top: 10px !important;
+	margin: 0px;
+}
+
+h4.gvxp_head  {
+	padding-top:15px;
+	
 }
 
 .gvcol_error {
