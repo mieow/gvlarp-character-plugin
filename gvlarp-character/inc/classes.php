@@ -654,37 +654,41 @@ class GVReport_ListTable extends WP_List_Table {
 		$pdf->SetFillColor(200);
 		$pdf->SetFont('Arial','',9);
 		$row = 0;
-		foreach ($this->items as $datarow) {
-			$rowheight = 0;
-			
-			/* get row height */
-			foreach ($columns as $columnname => $columndesc) {
-				$text = $pdf->PrepareText($datarow->$columnname);
-				$cellheight = $pdf->GetCellHeight($text, $colwidths[$columnname], $lineheight);
-				if ($cellheight > $rowheight) $rowheight = $cellheight;
-			}
 		
-			foreach ($columns as $columnname => $columndesc) {
-				$x = $pdf->GetX();
-				$y = $pdf->GetY();
+		if (count($this->items) > 0) {
+		
+			foreach ($this->items as $datarow) {
+				$rowheight = 0;
 				
-				$text = $pdf->PrepareText($datarow->$columnname);
-				
-				$cellheight = $pdf->GetCellHeight($text, $colwidths[$columnname], $lineheight);
-				
-				if ($cellheight == $rowheight)
-					$h = $lineheight;
-				elseif ($cellheight = $lineheight)
-					$h = $rowheight;
-				else
-					$h = $rowheight / $cellheight;
-				
-				$pdf->MultiCell($colwidths[$columnname],$h,$text,1,$colalign[$columnname], $row % 2);
-				$pdf->SetXY($x + $colwidths[$columnname], $y);
-			}
-			$pdf->SetY($y + $rowheight);
+				/* get row height */
+				foreach ($columns as $columnname => $columndesc) {
+					$text = $pdf->PrepareText($datarow->$columnname);
+					$cellheight = $pdf->GetCellHeight($text, $colwidths[$columnname], $lineheight);
+					if ($cellheight > $rowheight) $rowheight = $cellheight;
+				}
 			
-			$row++;
+				foreach ($columns as $columnname => $columndesc) {
+					$x = $pdf->GetX();
+					$y = $pdf->GetY();
+					
+					$text = $pdf->PrepareText($datarow->$columnname);
+					
+					$cellheight = $pdf->GetCellHeight($text, $colwidths[$columnname], $lineheight);
+					
+					if ($cellheight == $rowheight)
+						$h = $lineheight;
+					elseif ($cellheight = $lineheight)
+						$h = $rowheight;
+					else
+						$h = $rowheight / $cellheight;
+					
+					$pdf->MultiCell($colwidths[$columnname],$h,$text,1,$colalign[$columnname], $row % 2);
+					$pdf->SetXY($x + $colwidths[$columnname], $y);
+				}
+				$pdf->SetY($y + $rowheight);
+				
+				$row++;
+			}
 		}
 		
 		$pdf->Output(GVLARP_CHARACTER_URL . 'tmp/report.pdf', 'F');
