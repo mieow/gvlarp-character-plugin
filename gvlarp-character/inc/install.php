@@ -4,7 +4,7 @@ register_activation_hook(__FILE__, "gvlarp_character_install");
 register_activation_hook( __FILE__, 'gvlarp_character_install_data' );
 
 global $gvlarp_character_db_version;
-$gvlarp_character_db_version = "1.8.6"; /* 1.8.0 */
+$gvlarp_character_db_version = "1.8.12"; /* 1.8.0 */
 
 function gvlarp_update_db_check() {
     global $gvlarp_character_db_version;
@@ -12,6 +12,8 @@ function gvlarp_update_db_check() {
     if (get_site_option( 'gvlarp_character_db_version' ) != $gvlarp_character_db_version) {
         gvlarp_character_install();
 		gvlarp_character_install_data();
+		
+		update_option( "gvlarp_character_db_version", $gvlarp_character_db_version );
     }
 }
 add_action( 'plugins_loaded', 'gvlarp_update_db_check' );
@@ -52,8 +54,8 @@ function gvlarp_character_install() {
 					PLAYER_TYPE_ID     MEDIUMINT(9) NOT NULL,
 					PLAYER_STATUS_ID   MEDIUMINT(9) NOT NULL,
 					PRIMARY KEY  (ID),
-					FOREIGN KEY (PLAYER_TYPE_ID)   REFERENCES " . $table_prefix . "PLAYER_TYPE(ID),
-					FOREIGN KEY (PLAYER_STATUS_ID) REFERENCES " . $table_prefix . "PLAYER_STATUS(ID)
+					CONSTRAINT `" . $table_prefix . "player_constraint_1` FOREIGN KEY (PLAYER_TYPE_ID)   REFERENCES " . $table_prefix . "PLAYER_TYPE(ID),
+					CONSTRAINT `" . $table_prefix . "player_constraint_2` FOREIGN KEY (PLAYER_STATUS_ID) REFERENCES " . $table_prefix . "PLAYER_STATUS(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 
@@ -128,7 +130,7 @@ function gvlarp_character_install() {
 		$current_table_name = $table_prefix . "CLAN";
 		$sql = "CREATE TABLE " . $current_table_name . " (
 					ID           	MEDIUMINT(9)  NOT NULL AUTO_INCREMENT,
-					NAME         	VARCHAR(16)   NOT NULL,
+					NAME         	VARCHAR(30)   NOT NULL,
 					DESCRIPTION  	TINYTEXT      NOT NULL,
 					ICON_LINK    	TINYTEXT      NOT NULL,
 					CLAN_PAGE_LINK	TINYTEXT      NOT NULL,
@@ -137,8 +139,8 @@ function gvlarp_character_install() {
 					NONCLAN_COST_MODEL_ID   MEDIUMINT(9) NOT NULL,
 					VISIBLE      	VARCHAR(1)    NOT NULL,
 					PRIMARY KEY  (ID)
-					FOREIGN KEY (CLAN_COST_MODEL_ID) REFERENCES " . $table_prefix . "COST_MODEL(ID)
-					FOREIGN KEY (NONCLAN_COST_MODEL_ID) REFERENCES " . $table_prefix . "COST_MODEL(ID)
+					CONSTRAINT `" . $table_prefix . "clan_constraint_1` FOREIGN KEY (CLAN_COST_MODEL_ID)    REFERENCES " . $table_prefix . "COST_MODEL(ID),
+					CONSTRAINT `" . $table_prefix . "clan_constraint_2` FOREIGN KEY (NONCLAN_COST_MODEL_ID) REFERENCES " . $table_prefix . "COST_MODEL(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 
@@ -181,7 +183,7 @@ function gvlarp_character_install() {
 					FREEBIE_COST    SMALLINT(3)  NOT NULL,
 					XP_COST         SMALLINT(3)  NOT NULL,
 					PRIMARY KEY  (ID),
-					FOREIGN KEY (COST_MODEL_ID) REFERENCES " . $table_prefix . "COST_MODEL(ID)
+					CONSTRAINT `" . $table_prefix . "cost_model_step_constraint_1` FOREIGN KEY (COST_MODEL_ID) REFERENCES " . $table_prefix . "COST_MODEL(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 
@@ -209,7 +211,7 @@ function gvlarp_character_install() {
 					COST_MODEL_ID   	MEDIUMINT(9)  NOT NULL,
 					SPECIALISATION_AT	SMALLINT(2)	  NOT NULL,
 					PRIMARY KEY  (ID),
-					FOREIGN KEY (COST_MODEL_ID) REFERENCES " . $table_prefix . "COST_MODEL(ID)
+					CONSTRAINT `" . $table_prefix . "stat_constraint_1` FOREIGN KEY (COST_MODEL_ID) REFERENCES " . $table_prefix . "COST_MODEL(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 
@@ -224,9 +226,9 @@ function gvlarp_character_install() {
 					PAGE_NUMBER     SMALLINT(4)   NOT NULL,
 					VISIBLE         VARCHAR(1)    NOT NULL,
 					PRIMARY KEY  (ID),
-					FOREIGN KEY (STAT1_ID) REFERENCES " . $table_prefix . "STAT(ID),
-					FOREIGN KEY (STAT2_ID) REFERENCES " . $table_prefix . "STAT(ID),
-					FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
+					CONSTRAINT `" . $table_prefix . "road_constraint_1` FOREIGN KEY (STAT1_ID) REFERENCES " . $table_prefix . "STAT(ID),
+					CONSTRAINT `" . $table_prefix . "road_constraint_2` FOREIGN KEY (STAT2_ID) REFERENCES " . $table_prefix . "STAT(ID),
+					CONSTRAINT `" . $table_prefix . "road_constraint_3` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 
@@ -250,14 +252,14 @@ function gvlarp_character_install() {
 					WORDPRESS_ID              VARCHAR(32)   NOT NULL,
 					DELETED                   VARCHAR(1)    NOT NULL,
 					PRIMARY KEY  (ID),
-					FOREIGN KEY (PUBLIC_CLAN_ID)       REFERENCES " . $table_prefix . "CLAN(ID),
-					FOREIGN KEY (PRIVATE_CLAN_ID)      REFERENCES " . $table_prefix . "CLAN(ID),
-					FOREIGN KEY (GENERATION_ID)        REFERENCES " . $table_prefix . "GENERATION(ID),
-					FOREIGN KEY (PLAYER_ID)            REFERENCES " . $table_prefix . "PLAYER(ID),
-					FOREIGN KEY (CHARACTER_TYPE_ID)    REFERENCES " . $table_prefix . "CHARACTER_TYPE(ID),
-					FOREIGN KEY (CHARACTER_STATUS_ID)  REFERENCES " . $table_prefix . "CHARACTER_STATUS(ID),
-					FOREIGN KEY (ROAD_OR_PATH_ID)      REFERENCES " . $table_prefix . "ROAD_OR_PATH(ID),
-					FOREIGN KEY (COURT_ID)             REFERENCES " . $table_prefix . "COURT(ID)
+					CONSTRAINT `" . $table_prefix . "char_constraint_1` FFOREIGN KEY (PUBLIC_CLAN_ID)       REFERENCES " . $table_prefix . "CLAN(ID),
+					CONSTRAINT `" . $table_prefix . "char_constraint_2` FFOREIGN KEY (PRIVATE_CLAN_ID)      REFERENCES " . $table_prefix . "CLAN(ID),
+					CONSTRAINT `" . $table_prefix . "char_constraint_3` FFOREIGN KEY (GENERATION_ID)        REFERENCES " . $table_prefix . "GENERATION(ID),
+					CONSTRAINT `" . $table_prefix . "char_constraint_4` FFOREIGN KEY (PLAYER_ID)            REFERENCES " . $table_prefix . "PLAYER(ID),
+					CONSTRAINT `" . $table_prefix . "char_constraint_5` FFOREIGN KEY (CHARACTER_TYPE_ID)    REFERENCES " . $table_prefix . "CHARACTER_TYPE(ID),
+					CONSTRAINT `" . $table_prefix . "char_constraint_6` FFOREIGN KEY (CHARACTER_STATUS_ID)  REFERENCES " . $table_prefix . "CHARACTER_STATUS(ID),
+					CONSTRAINT `" . $table_prefix . "char_constraint_7` FFOREIGN KEY (ROAD_OR_PATH_ID)      REFERENCES " . $table_prefix . "ROAD_OR_PATH(ID),
+					CONSTRAINT `" . $table_prefix . "char_constraint_8` FFOREIGN KEY (COURT_ID)             REFERENCES " . $table_prefix . "COURT(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 
@@ -270,9 +272,9 @@ function gvlarp_character_install() {
 					CHARACTER_ID  MEDIUMINT(9) NOT NULL,
 					COMMENT       VARCHAR(60),
 					PRIMARY KEY  (ID),
-					FOREIGN KEY (OFFICE_ID)    REFERENCES " . $table_prefix . "OFFICE(ID),
-					FOREIGN KEY (COURT_ID)     REFERENCES " . $table_prefix . "COURT(ID),
-					FOREIGN KEY (CHARACTER_ID) REFERENCES " . $table_prefix . "CHARACTER(ID)
+					CONSTRAINT `" . $table_prefix . "office_constraint_1` FOREIGN KEY (OFFICE_ID)    REFERENCES " . $table_prefix . "OFFICE(ID),
+					CONSTRAINT `" . $table_prefix . "office_constraint_2` FOREIGN KEY (COURT_ID)     REFERENCES " . $table_prefix . "COURT(ID),
+					CONSTRAINT `" . $table_prefix . "office_constraint_3` FOREIGN KEY (CHARACTER_ID) REFERENCES " . $table_prefix . "CHARACTER(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 
@@ -286,9 +288,9 @@ function gvlarp_character_install() {
 					AMOUNT         SMALLINT(3)   NOT NULL,
 					COMMENT        VARCHAR(120)  NOT NULL,
 					PRIMARY KEY  (ID),
-					FOREIGN KEY (PLAYER_ID)    REFERENCES " . $table_prefix . "PLAYER(ID),
-					FOREIGN KEY (CHARACTER_ID) REFERENCES " . $table_prefix . "CHARACTER(ID),
-					FOREIGN KEY (XP_REASON_ID) REFERENCES " . $table_prefix . "XP_REASON(ID)
+					CONSTRAINT `" . $table_prefix . "player_xp_constraint_1` FOREIGN KEY (PLAYER_ID)    REFERENCES " . $table_prefix . "PLAYER(ID),
+					CONSTRAINT `" . $table_prefix . "player_xp_constraint_2` FOREIGN KEY (CHARACTER_ID) REFERENCES " . $table_prefix . "CHARACTER(ID),
+					CONSTRAINT `" . $table_prefix . "player_xp_constraint_3` FOREIGN KEY (XP_REASON_ID) REFERENCES " . $table_prefix . "XP_REASON(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 
@@ -306,7 +308,6 @@ function gvlarp_character_install() {
 					ID             MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
 					PLAYER_ID      MEDIUMINT(9)  NOT NULL,
 					CHARACTER_ID   MEDIUMINT(9)  NOT NULL,
-					CODE           VARCHAR(20)   NOT NULL,
 					CHARTABLE      TINYTEXT      NOT NULL,
 					CHARTABLE_ID   MEDIUMINT(9)  NOT NULL,
 					CHARTABLE_LEVEL  TINYTEXT    NOT NULL,
@@ -319,10 +320,12 @@ function gvlarp_character_install() {
 					ITEMNAME       TINYTEXT      NOT NULL,
 					ITEMTABLE_ID   MEDIUMINT(9)  NOT NULL,
 					PRIMARY KEY  (ID),
-					FOREIGN KEY (PLAYER_ID)    REFERENCES " . $table_prefix . "PLAYER(ID),
-					FOREIGN KEY (CHARACTER_ID) REFERENCES " . $table_prefix . "CHARACTER(ID)
+					CONSTRAINT `" . $table_prefix . "pending_xp_constraint_1` FOREIGN KEY (PLAYER_ID)    REFERENCES " . $table_prefix . "PLAYER(ID),
+					CONSTRAINT `" . $table_prefix . "pending_xp_constraint_2` FOREIGN KEY (CHARACTER_ID) REFERENCES " . $table_prefix . "CHARACTER(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
+		$remove = array( 'CODE' => '');
+		remove_columns($current_table_name, $remove);
 
 		$current_table_name = $table_prefix . "CHARACTER_ROAD_OR_PATH";
 		$sql = "CREATE TABLE " . $current_table_name . " (
@@ -333,8 +336,8 @@ function gvlarp_character_install() {
 					AMOUNT           SMALLINT(3)   NOT NULL,
 					COMMENT          VARCHAR(120)  NOT NULL,
 					PRIMARY KEY  (ID),
-					FOREIGN KEY (CHARACTER_ID) REFERENCES " . $table_prefix . "CHARACTER(ID),
-					FOREIGN KEY (PATH_REASON_ID) REFERENCES " . $table_prefix . "PATH_REASON(ID)
+					CONSTRAINT `" . $table_prefix . "char_road_constraint_1` FOREIGN KEY (CHARACTER_ID) REFERENCES " . $table_prefix . "CHARACTER(ID),
+					CONSTRAINT `" . $table_prefix . "char_road_constraint_2` FOREIGN KEY (PATH_REASON_ID) REFERENCES " . $table_prefix . "PATH_REASON(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 
@@ -360,9 +363,9 @@ function gvlarp_character_install() {
 						AMOUNT                    SMALLINT(3)   NOT NULL,
 						COMMENT                   VARCHAR(120)  NOT NULL,
 						PRIMARY KEY  (ID),
-						FOREIGN KEY (CHARACTER_ID) REFERENCES " . $table_prefix . "CHARACTER(ID),
-						FOREIGN KEY (TEMPORARY_STAT_ID) REFERENCES " . $table_prefix . "TEMPORARY_STAT(ID),
-						FOREIGN KEY (TEMPORARY_STAT_REASON_ID) REFERENCES " . $table_prefix . "TEMPORARY_STAT_REASON(ID)
+						CONSTRAINT `" . $table_prefix . "char_temp_constraint_1` FOREIGN KEY (CHARACTER_ID) REFERENCES " . $table_prefix . "CHARACTER(ID),
+						CONSTRAINT `" . $table_prefix . "char_temp_constraint_2` FOREIGN KEY (TEMPORARY_STAT_ID) REFERENCES " . $table_prefix . "TEMPORARY_STAT(ID),
+						CONSTRAINT `" . $table_prefix . "char_temp_constraint_3` FOREIGN KEY (TEMPORARY_STAT_REASON_ID) REFERENCES " . $table_prefix . "TEMPORARY_STAT_REASON(ID)
 						) ENGINE=INNODB;";
 
 			
@@ -379,7 +382,7 @@ function gvlarp_character_install() {
 						SPECIALISATION_AT	SMALLINT(2)	  NOT NULL,
 						VISIBLE         	VARCHAR(1)    NOT NULL,
 						PRIMARY KEY  (ID),
-						FOREIGN KEY (COST_MODEL_ID) REFERENCES " . $table_prefix . "COST_MODEL(ID)
+						CONSTRAINT `" . $table_prefix . "skill_constraint_1` FOREIGN KEY (COST_MODEL_ID) REFERENCES " . $table_prefix . "COST_MODEL(ID)
 						) ENGINE=INNODB;";
 
 			
@@ -396,7 +399,7 @@ function gvlarp_character_install() {
 					VISIBLE         VARCHAR(1)    NOT NULL,
 					BACKGROUND_QUESTION TEXT,
 					PRIMARY KEY  (ID),
-					FOREIGN KEY (COST_MODEL_ID) REFERENCES " . $table_prefix . "COST_MODEL(ID)
+					CONSTRAINT `" . $table_prefix . "background_constraint_1` FOREIGN KEY (COST_MODEL_ID) REFERENCES " . $table_prefix . "COST_MODEL(ID)
 					) ENGINE=INNODB;";
 
 		
@@ -414,40 +417,48 @@ function gvlarp_character_install() {
 
 		$current_table_name = $table_prefix . "MERIT";
 			$sql = "CREATE TABLE " . $current_table_name . " (
-						ID              MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
-						NAME            VARCHAR(32)   NOT NULL,
-						DESCRIPTION     TINYTEXT      NOT NULL,
-						VALUE           SMALLINT(3)   NOT NULL,
-						GROUPING        VARCHAR(30)   NOT NULL,
-						COST            SMALLINT(3)   NOT NULL,
-						XP_COST         SMALLINT(3)   NOT NULL,
-						MULTIPLE        VARCHAR(1)    NOT NULL,
-						SOURCE_BOOK_ID  MEDIUMINT(9)  NOT NULL,
-						PAGE_NUMBER     SMALLINT(4)   NOT NULL,
-						VISIBLE         VARCHAR(1)    NOT NULL,
+						ID                  MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
+						NAME                VARCHAR(32)   NOT NULL,
+						DESCRIPTION         TINYTEXT      NOT NULL,
+						VALUE               SMALLINT(3)   NOT NULL,
+						GROUPING            VARCHAR(30)   NOT NULL,
+						COST                SMALLINT(3)   NOT NULL,
+						XP_COST             SMALLINT(3)   NOT NULL,
+						MULTIPLE            VARCHAR(1)    NOT NULL,
+						HAS_SPECIALISATION  VARCHAR(1)    NOT NULL,
+						SOURCE_BOOK_ID      MEDIUMINT(9)  NOT NULL,
+						PAGE_NUMBER         SMALLINT(4)   NOT NULL,
+						VISIBLE             VARCHAR(1)    NOT NULL,
 						BACKGROUND_QUESTION VARCHAR(255),
 						PRIMARY KEY  (ID),
-						FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
+						CONSTRAINT `" . $table_prefix . "merit_constraint_1` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
 						) ENGINE=INNODB;";
 
 			
 			dbDelta($sql);
 
 		$current_table_name = $table_prefix . "DISCIPLINE";
-			$sql = "CREATE TABLE " . $current_table_name . " (
+		$sql = "CREATE TABLE " . $current_table_name . " (
 						ID              MEDIUMINT(9)  NOT NULL   AUTO_INCREMENT,
 						NAME            VARCHAR(32)   NOT NULL,
 						DESCRIPTION     TINYTEXT      NOT NULL,
-						SOURCE_BOOK_ID  MEDIUMINT(9)   NOT NULL,
+						SOURCE_BOOK_ID  MEDIUMINT(9)  NOT NULL,
 						PAGE_NUMBER     SMALLINT(4)   NOT NULL,
 						VISIBLE         VARCHAR(1)    NOT NULL,
 						PRIMARY KEY  (ID),
-						FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
+						CONSTRAINT `" . $table_prefix . "discipline_constraint_1` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
 						) ENGINE=INNODB;";
 
 			
 			dbDelta($sql);
-
+		
+		/* remove COST_MODEL_ID if it exists */
+		$remove = array (
+			'COST_MODEL_ID' => $table_prefix . 'ibfk_1' 
+		);
+		remove_columns($current_table_name, $remove);
+		
+		
 		$current_table_name = $table_prefix . "PATH";
 			$sql = "CREATE TABLE " . $current_table_name . " (
 						ID              MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
@@ -459,9 +470,9 @@ function gvlarp_character_install() {
 						PAGE_NUMBER     SMALLINT(4)   NOT NULL,
 						VISIBLE         VARCHAR(1)    NOT NULL,
 						PRIMARY KEY  (ID),
-						FOREIGN KEY (DISCIPLINE_ID)  REFERENCES " . $table_prefix . "DISCIPLINE(ID),
-						FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID),
-						FOREIGN KEY (COST_MODEL_ID)  REFERENCES " . $table_prefix . "COST_MODEL(ID)
+						CONSTRAINT `" . $table_prefix . "path_constraint_1` FOREIGN KEY (DISCIPLINE_ID)  REFERENCES " . $table_prefix . "DISCIPLINE(ID),
+						CONSTRAINT `" . $table_prefix . "path_constraint_2` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID),
+						CONSTRAINT `" . $table_prefix . "path_constraint_3` FOREIGN KEY (COST_MODEL_ID)  REFERENCES " . $table_prefix . "COST_MODEL(ID)
 						) ENGINE=INNODB;";
 
 			
@@ -481,8 +492,8 @@ function gvlarp_character_install() {
 						PAGE_NUMBER smallint(4) NOT NULL,
 						VISIBLE varchar(1) NOT NULL,
 						PRIMARY KEY  (ID),
-						FOREIGN KEY (DISCIPLINE_ID) REFERENCES " . $table_prefix . "DISCIPLINE(ID),
-						FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
+						CONSTRAINT `" . $table_prefix . "disc_power_constraint_1` FOREIGN KEY (DISCIPLINE_ID) REFERENCES " . $table_prefix . "DISCIPLINE(ID),
+						CONSTRAINT `" . $table_prefix . "disc_power_constraint_2` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
 						) ENGINE=INNODB;";
 
 			
@@ -502,8 +513,8 @@ function gvlarp_character_install() {
 						PAGE_NUMBER     SMALLINT(4)   NOT NULL,
 						VISIBLE         VARCHAR(1)    NOT NULL,
 						PRIMARY KEY  (ID),
-						FOREIGN KEY (PATH_ID) REFERENCES " . $table_prefix . "PATH(ID),
-						FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
+						CONSTRAINT `" . $table_prefix . "path_power_constraint_1` FOREIGN KEY (PATH_ID) REFERENCES " . $table_prefix . "PATH(ID),
+						CONSTRAINT `" . $table_prefix . "path_power_constraint_2` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
 						) ENGINE=INNODB;";
 
 			
@@ -523,8 +534,8 @@ function gvlarp_character_install() {
 						PAGE_NUMBER     SMALLINT(4)   NOT NULL,
 						VISIBLE         VARCHAR(1)    NOT NULL,
 						PRIMARY KEY  (ID),
-						FOREIGN KEY (DISCIPLINE_ID) REFERENCES " . $table_prefix . "DISCIPLINE(ID),
-						FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
+						CONSTRAINT `" . $table_prefix . "ritual_constraint_1` FOREIGN KEY (DISCIPLINE_ID) REFERENCES " . $table_prefix . "DISCIPLINE(ID),
+						CONSTRAINT `" . $table_prefix . "ritual_constraint_2` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
 						) ENGINE=INNODB;";
 			dbDelta($sql);
 
@@ -534,8 +545,8 @@ function gvlarp_character_install() {
 						CLAN_ID        MEDIUMINT(9) NOT NULL,
 						DISCIPLINE_ID  MEDIUMINT(9) NOT NULL,
 						PRIMARY KEY  (ID),
-						FOREIGN KEY (CLAN_ID)       REFERENCES " . $table_prefix . "CLAN(ID),
-						FOREIGN KEY (DISCIPLINE_ID) REFERENCES " . $table_prefix . "DISCIPLINE(ID)
+						CONSTRAINT `" . $table_prefix . "clan_disc_constraint_1` FOREIGN KEY (CLAN_ID)       REFERENCES " . $table_prefix . "CLAN(ID),
+						CONSTRAINT `" . $table_prefix . "clan_disc_constraint_2` FOREIGN KEY (DISCIPLINE_ID) REFERENCES " . $table_prefix . "DISCIPLINE(ID)
 						) ENGINE=INNODB;";
 			dbDelta($sql);
 
@@ -547,8 +558,8 @@ function gvlarp_character_install() {
 						LEVEL         SMALLINT(3)   NOT NULL,
 						COMMENT       VARCHAR(60),
 						PRIMARY KEY  (ID),
-						FOREIGN KEY (CHARACTER_ID) REFERENCES " . $table_prefix . "CHARACTER(ID),
-						FOREIGN KEY (STAT_ID)      REFERENCES " . $table_prefix . "STAT(ID)
+						CONSTRAINT `" . $table_prefix . "char_stat_constraint_1` FOREIGN KEY (CHARACTER_ID) REFERENCES " . $table_prefix . "CHARACTER(ID),
+						CONSTRAINT `" . $table_prefix . "char_stat_constraint_2` FOREIGN KEY (STAT_ID)      REFERENCES " . $table_prefix . "STAT(ID)
 						) ENGINE=INNODB;";
 			dbDelta($sql);
 
@@ -560,8 +571,8 @@ function gvlarp_character_install() {
 						LEVEL         SMALLINT(3)   NOT NULL,
 						COMMENT       VARCHAR(60),
 						PRIMARY KEY  (ID),
-						FOREIGN KEY (CHARACTER_ID) REFERENCES " . $table_prefix . "CHARACTER(ID),
-						FOREIGN KEY (RITUAL_ID)    REFERENCES " . $table_prefix . "RITUAL(ID)
+						CONSTRAINT `" . $table_prefix . "char_ritual_constraint_1` FOREIGN KEY (CHARACTER_ID) REFERENCES " . $table_prefix . "CHARACTER(ID),
+						CONSTRAINT `" . $table_prefix . "char_ritual_constraint_2` FOREIGN KEY (RITUAL_ID)    REFERENCES " . $table_prefix . "RITUAL(ID)
 						) ENGINE=INNODB;";
 			dbDelta($sql);
 
@@ -573,8 +584,8 @@ function gvlarp_character_install() {
 						LEVEL          SMALLINT(3)   NOT NULL,
 						COMMENT        VARCHAR(60),
 						PRIMARY KEY  (ID),
-						FOREIGN KEY (CHARACTER_ID)  REFERENCES " . $table_prefix . "CHARACTER(ID),
-						FOREIGN KEY (DISCIPLINE_ID) REFERENCES " . $table_prefix . "DISCIPLINE(ID)
+						CONSTRAINT `" . $table_prefix . "char_disc_constraint_1` FOREIGN KEY (CHARACTER_ID)  REFERENCES " . $table_prefix . "CHARACTER(ID),
+						CONSTRAINT `" . $table_prefix . "char_disc_constraint_2` FOREIGN KEY (DISCIPLINE_ID) REFERENCES " . $table_prefix . "DISCIPLINE(ID)
 						) ENGINE=INNODB;";
 			dbDelta($sql);
 
@@ -586,8 +597,8 @@ function gvlarp_character_install() {
 						LEVEL          SMALLINT(3)   NOT NULL,
 						COMMENT        VARCHAR(60),
 						PRIMARY KEY  (ID),
-						FOREIGN KEY (CHARACTER_ID)  REFERENCES " . $table_prefix . "CHARACTER(ID),
-						FOREIGN KEY (PATH_ID) REFERENCES " . $table_prefix . "PATH(ID)
+						CONSTRAINT `" . $table_prefix . "char_path_constraint_1` FOREIGN KEY (CHARACTER_ID)  REFERENCES " . $table_prefix . "CHARACTER(ID),
+						CONSTRAINT `" . $table_prefix . "char_path_constraint_2` FOREIGN KEY (PATH_ID) REFERENCES " . $table_prefix . "PATH(ID)
 						) ENGINE=INNODB;";
 			dbDelta($sql);
 
@@ -599,8 +610,8 @@ function gvlarp_character_install() {
 						LEVEL                   SMALLINT(3)   NOT NULL,
 						COMMENT                 VARCHAR(60),
 						PRIMARY KEY  (ID),
-						FOREIGN KEY (CHARACTER_ID)    REFERENCES " . $table_prefix . "CHARACTER(ID),
-						FOREIGN KEY (PATH_POWER_ID)   REFERENCES " . $table_prefix . "PATH_POWER(ID)
+						CONSTRAINT `" . $table_prefix . "char_path_power_constraint_1` FOREIGN KEY (CHARACTER_ID)    REFERENCES " . $table_prefix . "CHARACTER(ID),
+						CONSTRAINT `" . $table_prefix . "char_path_power_constraint_2` FOREIGN KEY (PATH_POWER_ID)   REFERENCES " . $table_prefix . "PATH_POWER(ID)
 						) ENGINE=INNODB;";
 			dbDelta($sql);
 
@@ -612,8 +623,8 @@ function gvlarp_character_install() {
 						LEVEL                   SMALLINT(3)   NOT NULL,
 						COMMENT                 VARCHAR(60),
 						PRIMARY KEY  (ID),
-						FOREIGN KEY (CHARACTER_ID)        REFERENCES " . $table_prefix . "CHARACTER(ID),
-						FOREIGN KEY (DISCIPLINE_POWER_ID) REFERENCES " . $table_prefix . "DISCIPLINE_POWER(ID)
+						CONSTRAINT `" . $table_prefix . "char_disc_power_constraint_1` FOREIGN KEY (CHARACTER_ID)        REFERENCES " . $table_prefix . "CHARACTER(ID),
+						CONSTRAINT `" . $table_prefix . "char_disc_power_constraint_2` FOREIGN KEY (DISCIPLINE_POWER_ID) REFERENCES " . $table_prefix . "DISCIPLINE_POWER(ID)
 						) ENGINE=INNODB;";
 			dbDelta($sql);
 
@@ -628,8 +639,8 @@ function gvlarp_character_install() {
 						PENDING_DETAIL  TEXT,
 						DENIED_DETAIL   TEXT,
 						PRIMARY KEY  (ID),
-						FOREIGN KEY (CHARACTER_ID) REFERENCES " . $table_prefix . "CHARACTER(ID),
-						FOREIGN KEY (MERIT_ID)     REFERENCES " . $table_prefix . "MERIT(ID)
+						CONSTRAINT `" . $table_prefix . "char_merit_constraint_1` FOREIGN KEY (CHARACTER_ID) REFERENCES " . $table_prefix . "CHARACTER(ID),
+						CONSTRAINT `" . $table_prefix . "char_merit_constraint_2` FOREIGN KEY (MERIT_ID)     REFERENCES " . $table_prefix . "MERIT(ID)
 						) ENGINE=INNODB;";
 			dbDelta($sql);
 
@@ -641,8 +652,8 @@ function gvlarp_character_install() {
 						LEVEL         SMALLINT(3)   NOT NULL,
 						COMMENT       VARCHAR(60),
 						PRIMARY KEY  (ID),
-						FOREIGN KEY (CHARACTER_ID) REFERENCES " . $table_prefix . "CHARACTER(ID),
-						FOREIGN KEY (SKILL_ID)     REFERENCES " . $table_prefix . "SKILL(ID)
+						CONSTRAINT `" . $table_prefix . "char_skill_constraint_1` FOREIGN KEY (CHARACTER_ID) REFERENCES " . $table_prefix . "CHARACTER(ID),
+						CONSTRAINT `" . $table_prefix . "char_skill_constraint_2` FOREIGN KEY (SKILL_ID)     REFERENCES " . $table_prefix . "SKILL(ID)
 						) ENGINE=INNODB;";
 			dbDelta($sql);
 
@@ -658,9 +669,9 @@ function gvlarp_character_install() {
 						PENDING_DETAIL    TEXT,
 						DENIED_DETAIL     TEXT,
 						PRIMARY KEY  (ID),
-						FOREIGN KEY (CHARACTER_ID)  REFERENCES " . $table_prefix . "CHARACTER(ID),
-						FOREIGN KEY (BACKGROUND_ID) REFERENCES " . $table_prefix . "BACKGROUND(ID),
-						FOREIGN KEY (SECTOR_ID) REFERENCES " . $table_prefix . "SECTOR(ID)
+						CONSTRAINT `" . $table_prefix . "char_bg_constraint_1` FOREIGN KEY (CHARACTER_ID)  REFERENCES " . $table_prefix . "CHARACTER(ID),
+						CONSTRAINT `" . $table_prefix . "char_bg_constraint_2` FOREIGN KEY (BACKGROUND_ID) REFERENCES " . $table_prefix . "BACKGROUND(ID),
+						CONSTRAINT `" . $table_prefix . "char_bg_constraint_3` FOREIGN KEY (SECTOR_ID) REFERENCES " . $table_prefix . "SECTOR(ID)
 						) ENGINE=INNODB;";
 			dbDelta($sql);
 		
@@ -674,7 +685,7 @@ function gvlarp_character_install() {
 						PAGE_NUMBER     SMALLINT(4)   NOT NULL,
 						VISIBLE         VARCHAR(1)    NOT NULL,
 						PRIMARY KEY  (ID),
-						FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
+						CONSTRAINT `" . $table_prefix . "combo_disc_constraint_1` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
 						) ENGINE=INNODB;";
 			dbDelta($sql);
 
@@ -686,8 +697,8 @@ function gvlarp_character_install() {
 						COMBO_DISCIPLINE_ID  MEDIUMINT(9)  NOT NULL,
 						COMMENT              VARCHAR(60),
 						PRIMARY KEY  (ID),
-						FOREIGN KEY (CHARACTER_ID)        REFERENCES " . $table_prefix . "CHARACTER(ID),
-						FOREIGN KEY (COMBO_DISCIPLINE_ID) REFERENCES " . $table_prefix . "COMBO_DISCIPLINE(ID)
+						CONSTRAINT `" . $table_prefix . "char_combo_constraint_1` FOREIGN KEY (CHARACTER_ID)        REFERENCES " . $table_prefix . "CHARACTER(ID),
+						CONSTRAINT `" . $table_prefix . "char_combo_constraint_2` FOREIGN KEY (COMBO_DISCIPLINE_ID) REFERENCES " . $table_prefix . "COMBO_DISCIPLINE(ID)
 						) ENGINE=INNODB;";
 			dbDelta($sql);
 
@@ -698,8 +709,8 @@ function gvlarp_character_install() {
 						DISCIPLINE_ID        MEDIUMINT(9)  NOT NULL,
 						DISCIPLINE_LEVEL     SMALLINT(3)   NOT NULL,
 						PRIMARY KEY  (ID),
-						FOREIGN KEY (COMBO_DISCIPLINE_ID) REFERENCES " . $table_prefix . "COMBO_DISCIPLINE(ID),
-						FOREIGN KEY (DISCIPLINE_ID)       REFERENCES " . $table_prefix . "DISCIPLINE(ID)
+						CONSTRAINT `" . $table_prefix . "char_combo_pre_constraint_1` FOREIGN KEY (COMBO_DISCIPLINE_ID) REFERENCES " . $table_prefix . "COMBO_DISCIPLINE(ID),
+						CONSTRAINT `" . $table_prefix . "char_combo_pre_constraint_2` FOREIGN KEY (DISCIPLINE_ID)       REFERENCES " . $table_prefix . "DISCIPLINE(ID)
 						) ENGINE=INNODB;";
 			dbDelta($sql);
 
@@ -710,7 +721,7 @@ function gvlarp_character_install() {
 						QUOTE             TEXT			 NOT NULL,
 						PORTRAIT          TINYTEXT       NOT NULL,
 						PRIMARY KEY  (ID),
-						FOREIGN KEY (CHARACTER_ID)  REFERENCES " . $table_prefix . "CHARACTER(ID)
+						CONSTRAINT `" . $table_prefix . "char_profile_constraint_1` FOREIGN KEY (CHARACTER_ID)  REFERENCES " . $table_prefix . "CHARACTER(ID)
 						) ENGINE=INNODB;";
 			dbDelta($sql);
 
@@ -746,12 +757,12 @@ function gvlarp_character_install() {
 					PENDING_DETAIL        TEXT   		NOT NULL,
 					DENIED_DETAIL         TEXT   		NOT NULL,
 					PRIMARY KEY  (ID),
-					FOREIGN KEY (CHARACTER_ID)  REFERENCES " . $table_prefix . "CHARACTER(ID),
-					FOREIGN KEY (QUESTION_ID)  REFERENCES " . $table_prefix . "EXTENDED_BACKGROUND(ID)
+					CONSTRAINT `" . $table_prefix . "char_ext_bg_constraint_1` FOREIGN KEY (CHARACTER_ID)  REFERENCES " . $table_prefix . "CHARACTER(ID),
+					CONSTRAINT `" . $table_prefix . "char_ext_bg_constraint_2` FOREIGN KEY (QUESTION_ID)  REFERENCES " . $table_prefix . "EXTENDED_BACKGROUND(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 		
-		
+
 	
 	}
 	
@@ -841,6 +852,42 @@ function gvlarp_character_install_data() {
 	}
 
 	
+}
+
+function remove_columns($table, $columninfo) {
+	global $wpdb;
+
+	/* echo "</p>columninfo:";
+	print_r($columninfo);
+	echo "</p>"; */
+	
+	$existing_keys = $wpdb->get_col("SHOW INDEX FROM $table WHERE Key_name != 'PRIMARY';",2);
+	$existing_columns = $wpdb->get_col("DESC $table", 0);
+	
+	/* which constraints/foreign keys to remove */
+	$remove_constraints = array_intersect(array_values($columninfo), $existing_keys);
+	$sql = "ALTER TABLE $table DROP FOREIGN KEY ".implode(', DROP INDEX ',$remove_constraints).';';
+	
+	/* do remove */
+	/* if( !empty($remove_constraints) ) {
+		echo "</p>constraints:";
+		print_r($remove_constraints);
+		echo "</p>SQL: $sql</p>";
+	} */
+	if( !empty($remove_constraints) ) $wpdb->query($sql);			
+
+	/* which columns to remove */
+	$remove_columns = array_intersect(array_keys($columninfo), $existing_columns);
+	$sql = "ALTER TABLE $table DROP COLUMN ".implode(', DROP COLUMN ',$remove_columns).';';
+	
+	/* do remove */
+	/* if( !empty($remove_columns) ) {
+		echo "</p>columns:";
+		print_r($remove_columns);
+		echo "</p>SQL: $sql</p>";
+	} */
+	if( !empty($remove_columns) ) $wpdb->query($sql); 
+
 }
 
 ?>
