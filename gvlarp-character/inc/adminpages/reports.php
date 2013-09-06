@@ -22,6 +22,9 @@ function character_reports () {
 		case 'prestige_report':
 			render_report(new gvreport_prestige());
 			break;
+		case 'signin_report':
+			render_report(new gvreport_signin());
+			break;
 	
 	}
 	
@@ -50,6 +53,10 @@ function render_select_report() {
 	echo "<option value='prestige_report' ";
 	selected($_REQUEST['report'],'prestige_report');
 	echo ">Clan Prestige</option>\n";
+	
+	echo "<option value='signin_report' ";
+	selected($_REQUEST['report'],'signin_report');
+	echo ">Signin Sheet</option>\n";
 	
 	echo "</select>\n";
 	echo "<input type='submit' name='submit_report' class='button-primary' value='Display Report' />\n";
