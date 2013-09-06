@@ -284,9 +284,7 @@ function render_bgdata_add_form($addaction) {
 							echo ">{$costmodel->NAME}</option>";
 						}
 					?>
-				</select></td>
-			
-			
+				</select>
 			</td>
 			<td>Visible to Players: </td><td>
 				<select name="<?php print $type; ?>_visible">
