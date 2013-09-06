@@ -27,7 +27,6 @@ function character_datatables() {
 				<li><?php echo get_tabanchor('flaw', 'Flaws', 'merit'); ?></li>
 				<li><?php echo get_tabanchor('ritual', 'Rituals', 'merit'); ?></li>
 				<li><?php echo get_tabanchor('book', 'Sourcebooks', 'merit'); ?></li>
-				<li>
 			</ul>
 		</div>
 		<div class="gvadmin_content">
@@ -65,13 +64,13 @@ function render_meritflaw_page($type){
 		$testListTable[$type]->add_merit($_REQUEST[$type . '_name'], $_REQUEST[$type . '_group'], $_REQUEST[$type . '_sourcebook'], 
 									$_REQUEST[$type . '_page_number'], $_REQUEST[$type . '_cost'], $_REQUEST[$type . '_xp_cost'], 
 									$_REQUEST[$type . '_multiple'], $_REQUEST[$type . '_visible'], $_REQUEST[$type . '_desc'],
-									$_REQUEST[$type . '_question']);
+									$_REQUEST[$type . '_question'], $_REQUEST[$type . '_has_specialisation']);
 	}
 	if ($doaction == "save-$type") { 
 		$testListTable[$type]->edit_merit($_REQUEST[$type . '_id'], $_REQUEST[$type . '_name'], $_REQUEST[$type . '_group'], 
 									$_REQUEST[$type . '_sourcebook'], $_REQUEST[$type . '_page_number'], $_REQUEST[$type . '_cost'], 
 									$_REQUEST[$type . '_xp_cost'], $_REQUEST[$type . '_multiple'], $_REQUEST[$type . '_visible'],
-									$_REQUEST[$type . '_desc'], $_REQUEST[$type . '_question']);
+									$_REQUEST[$type . '_desc'], $_REQUEST[$type . '_question'], $_REQUEST[$type . '_has_specialisation']);
 	} 
 	
 	render_meritflaw_add_form($type, $doaction);
@@ -172,6 +171,7 @@ function render_meritflaw_add_form($type, $addaction) {
 		$visible = $_REQUEST[$type . '_visible'];
 		$desc = $_REQUEST[$type . '_desc'];
 		$question = $_REQUEST[$type . '_question'];
+		$spec = $_REQUEST[$type . '_has_specialisation'];
 		
 		$nextaction = $_REQUEST['action'];
 		
@@ -182,7 +182,7 @@ function render_meritflaw_add_form($type, $addaction) {
 		$sql = "select merit.ID, merit.NAME as NAME, merit.DESCRIPTION as DESCRIPTION, merit.GROUPING as GROUPING,
 						merit.COST as COST, merit.XP_COST as XP_COST, merit.MULTIPLE as MULTIPLE,
 						books.ID as SOURCEBOOK, merit.PAGE_NUMBER as PAGE_NUMBER,
-						merit.VISIBLE as VISIBLE, merit.BACKGROUND_QUESTION
+						merit.VISIBLE as VISIBLE, merit.BACKGROUND_QUESTION, merit.HAS_SPECIALISATION
 						from " . GVLARP_TABLE_PREFIX . "MERIT merit, " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books 
 						where merit.ID = %d and books.ID = merit.SOURCE_BOOK_ID;";
 		
@@ -202,6 +202,7 @@ function render_meritflaw_add_form($type, $addaction) {
 		$visible = $data[0]->VISIBLE;
 		$desc = $data[0]->DESCRIPTION;
 		$question = $data[0]->BACKGROUND_QUESTION;
+		$spec = $data[0]->HAS_SPECIALISATION;
 		
 		$nextaction = "save";
 		
@@ -219,6 +220,7 @@ function render_meritflaw_add_form($type, $addaction) {
 		$visible = "Y";
 		$desc = "";
 		$question = "";
+		$spec = "N";
 		
 		$nextaction = "add";
 	}
@@ -251,7 +253,6 @@ function render_meritflaw_add_form($type, $addaction) {
 		</tr>
 		<tr>
 			<td>Freebie Point Cost: </td><td><input type="number" name="<?php print $type; ?>_cost" value="<?php print $cost; ?>" /></td>
-			<td>Experience Cost: </td><td><input type="number" name="<?php print $type; ?>_xp_cost" value="<?php print $xpcost; ?>" /></td>
 			<td>Multiple?: </td><td>
 				<select name="<?php print $type; ?>_multiple">
 					<option value="N" <?php echo selected($multiple, "N"); ?>>No</option>
@@ -262,7 +263,20 @@ function render_meritflaw_add_form($type, $addaction) {
 				<select name="<?php print $type; ?>_visible">
 					<option value="N" <?php echo selected($visible, "N"); ?>>No</option>
 					<option value="Y" <?php echo selected($visible, "Y"); ?>>Yes</option>
-				</select></td>
+				</select>
+			</td>
+			<td></td>
+		</tr>
+		<tr>
+			<td>Experience Cost: </td><td><input type="number" name="<?php print $type; ?>_xp_cost" value="<?php print $xpcost; ?>" /></td>
+			<td>Has Specialisation?: </td><td>
+				<select name="<?php print $type; ?>_has_specialisation">
+					<option value="N" <?php echo selected($spec, "N"); ?>>No</option>
+					<option value="Y" <?php echo selected($spec, "Y"); ?>>Yes</option>
+				</select>
+			</td>
+			<td></td>
+			<td></td>
 		</tr>
 		<tr>
 			<td>Description: </td><td colspan=3><input type="text" name="<?php print $type; ?>_desc" value="<?php print $desc; ?>" size=50 /></td>
@@ -715,7 +729,7 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 	}
 	
  	function add_merit($meritname, $meritgroup, $sourcebookid, $pagenum,
-						$cost, $xp_cost, $multiple, $visible, $description, $question) {
+						$cost, $xp_cost, $multiple, $visible, $description, $question, $hasspec) {
 		global $wpdb;
 		
 		$wpdb->show_errors();
@@ -731,7 +745,8 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 						'XP_COST' => $xp_cost,
 						'MULTIPLE' => $multiple,
 						'VISIBLE' => $visible,
-						'BACKGROUND_QUESTION' => $question
+						'BACKGROUND_QUESTION' => $question,
+						'HAS_SPECIALISATION' => $hasspec
 					);
 		
 		/* print_r($dataarray); */
@@ -749,6 +764,7 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 						'%d',
 						'%s',
 						'%s',
+						'%s',
 						'%s'
 					)
 				);
@@ -762,7 +778,7 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 		}
 	}
  	function edit_merit($meritid, $meritname, $meritgroup, $sourcebookid, $pagenum,
-						$cost, $xp_cost, $multiple, $visible, $description, $question) {
+						$cost, $xp_cost, $multiple, $visible, $description, $question, $hasspec) {
 		global $wpdb;
 		
 		$wpdb->show_errors();
@@ -778,7 +794,8 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 						'XP_COST' => $xp_cost,
 						'MULTIPLE' => $multiple,
 						'VISIBLE' => $visible,
-						'BACKGROUND_QUESTION' => $question
+						'BACKGROUND_QUESTION' => $question,
+						'HAS_SPECIALISATION' => $hasspec
 					);
 		
 		/* print_r($dataarray); */
@@ -840,6 +857,9 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 	function column_multiple($item){
 		return ($item->MULTIPLE == "Y") ? "Yes" : "No";
     }
+	function column_has_specialisation($item){
+		return ($item->HAS_SPECIALISATION == "Y") ? "Yes" : "No";
+    }
 	
 	function column_has_bg_q($item) {
 		if ($item->BACKGROUND_QUESTION == "")
@@ -859,7 +879,8 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
             'COST'         => 'Freebie Cost',
             'XP_COST'      => 'Experience Cost',
             'MULTIPLE'     => 'Can be bought multiple times?',
-            'SOURCEBOOK'   => 'Source Book',
+            'HAS_SPECIALISATION' => 'Need specialisation?',
+			'SOURCEBOOK'   => 'Source Book',
             'PAGE_NUMBER'  => 'Source Page',
             'VISIBLE'      => 'Visible to Players',
             'HAS_BG_Q'     => 'Extended Background'
@@ -976,8 +997,8 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 		/* setup filters here */
 		$this->filter_visible = array(
 				'all' => 'Both',
-				'y' => 'Visible',
-				'n'  => 'Not Visible',
+				'y'   => 'Visible',
+				'n'   => 'Not Visible',
 			);
 		$this->filter_multiple = array(
 				'all' => 'All',
@@ -1016,7 +1037,7 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 		$sql = "select merit.ID, merit.NAME as NAME, merit.DESCRIPTION as DESCRIPTION, merit.GROUPING as GROUPING,
 						merit.COST as COST, merit.XP_COST as XP_COST, merit.MULTIPLE as MULTIPLE,
 						books.NAME as SOURCEBOOK, merit.PAGE_NUMBER as 	PAGE_NUMBER,
-						merit.VISIBLE as VISIBLE, merit.BACKGROUND_QUESTION
+						merit.VISIBLE as VISIBLE, merit.BACKGROUND_QUESTION, merit.HAS_SPECIALISATION
 						from " . GVLARP_TABLE_PREFIX. "MERIT merit, " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books where ";
 		if ($type == "merit") {
 			$sql .= "merit.value >= 0";
