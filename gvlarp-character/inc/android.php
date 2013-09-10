@@ -138,6 +138,30 @@ function gv_android_redirect () {
 		}
 		echo "\t</VIRTUES>\n";
 		
+		/* Rituals */
+		$rituals = $mycharacter->rituals;
+		echo "\t<RITUALS>\n";
+		foreach ($rituals as $majikdiscipline => $rituallist) {
+			foreach ($rituallist as $ritual) {
+				echo "\t\t<RITUAL>\n";
+				echo output_xlmtag("NAME",       $ritual[name]);
+				echo output_xlmtag("LEVEL",      $ritual[level]);
+				echo output_xlmtag("DISCIPLINE", $majikdiscipline);
+				echo "\t\t</RITUAL>\n";
+			} 
+		}
+		echo "\t</RITUALS>\n";
+		
+		
+		/* Combo Disciplines */
+		$combodisciplines = $mycharacter->combo_disciplines;
+		echo "\t<COMBODISCIPLINES>\n";
+		if (count($combodisciplines) > 0) {
+			foreach ($combodisciplines as $discipline) {
+				echo output_xlmtag("DISCIPLINE", $discipline);
+			}
+		}
+		echo "\t</COMBODISCIPLINES>\n";
 		
 		
 		echo "</CHARACTER>\n";
