@@ -127,7 +127,8 @@ class gvreport_flaws extends GVReport_ListTable {
 					players.ID = characters.PLAYER_ID
 					AND characters.ID = charmerit.CHARACTER_ID
 					AND merits.ID = charmerit.MERIT_ID
-					AND sourcebooks.ID = merits.SOURCE_BOOK_ID";
+					AND sourcebooks.ID = merits.SOURCE_BOOK_ID
+					AND characters.DELETED = 'N'";
 		
 		switch ($this->active_filter_merit_or_flaw) {
 			case "merit":
@@ -159,6 +160,7 @@ class gvreport_flaws extends GVReport_ListTable {
         $this->items = $data;
 		
 		$this->output_report("Merits and Flaws Report");
+		$this->output_csv();
         
         $this->set_pagination_args( array(
             'total_items' => $total_items,                  
@@ -244,7 +246,8 @@ class gvreport_quotes extends GVReport_ListTable {
 				WHERE
 					players.ID = characters.PLAYER_ID
 					AND characters.ID = profiles.CHARACTER_ID
-					AND clans.ID = characters.PUBLIC_CLAN_ID ";
+					AND clans.ID = characters.PUBLIC_CLAN_ID
+					AND characters.DELETED = 'N'";
 		
 		$filterinfo = $this->get_filter_sql();
 		$sql .= $filterinfo[0];
@@ -267,6 +270,7 @@ class gvreport_quotes extends GVReport_ListTable {
         $this->items = $data;
 		
 		$this->output_report("Profile Quotes Report");
+		$this->output_csv();
         
         $this->set_pagination_args( array(
             'total_items' => $total_items,                  
@@ -424,6 +428,105 @@ class gvreport_prestige extends GVReport_ListTable {
         $this->items = $data;
 		
 		$this->output_report("Clan Prestige Report");
+		$this->output_csv();
+        
+        $this->set_pagination_args( array(
+            'total_items' => $total_items,                  
+            'per_page'    => $total_items,                  
+            'total_pages' => 1
+        ) );
+	}
+}
+
+class gvreport_signin extends GVReport_ListTable {
+
+    function column_default($item, $column_name){
+        switch($column_name){
+            case 'PLAYERNAME':
+                return $item->$column_name;
+            case 'CHARACTERNAME':
+                return $item->$column_name;
+            case 'SIGNATURE':
+                return $item->$column_name;
+            default:
+                return print_r($item,true); 
+        }
+    }
+
+    function get_columns(){
+        $columns = array(
+            'PLAYERNAME'    => 'Player',
+            'CHARACTERNAME' => 'Character',
+            'SIGNATURE'     => 'Signature',
+        );
+        return $columns;
+	}
+	
+	function set_column_widths($columns = "") {
+	
+		/* total 297-10, avg width 42 */
+		$colwidths = array(
+            'CHARACTERNAME' => 40,
+            'PLAYERNAME'    => 40,
+            'SIGNATURE'     => 120
+		);
+
+		return $colwidths;
+	}		
+   function get_sortable_columns() {
+        $sortable_columns = array(
+            'PLAYERNAME'    => array('PLAYERNAME',true),
+            'CHARACTERNAME' => array('CHARACTERNAME',false)
+        );
+        return $sortable_columns;
+    }
+	
+	/* function set_line_height() {
+		return 10;
+	} */
+
+	function prepare_items() {
+        global $wpdb; 
+        
+        $columns = $this->get_columns();
+        $hidden = array();
+        $sortable = $this->get_sortable_columns();
+
+		/* filters */
+		$this->load_filters();
+		
+		$filterinfo = $this->get_filter_sql();
+		
+		$sql = "SELECT characters.NAME as CHARACTERNAME, players.NAME as PLAYERNAME, \"\" as SIGNATURE
+				FROM 
+					" . GVLARP_TABLE_PREFIX. "PLAYER players, 
+					" . GVLARP_TABLE_PREFIX. "CHARACTER characters
+				WHERE 
+					players.ID = characters.PLAYER_ID
+					AND characters.DELETED = 'N'";
+		$sql .= $filterinfo[0];
+		
+		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']))
+			$sql .= " ORDER BY {$_REQUEST['orderby']} {$_REQUEST['order']}";
+
+		$this->_column_headers = array($columns, $hidden, $sortable);
+        $this->process_bulk_action();
+		
+		/* run query */
+		$sql = $wpdb->prepare($sql,$filterinfo[1]);
+		/* echo "<p>SQL: $sql (";
+		print_r($filterinfo[1]);
+		echo ")</p>"; */
+		$data =$wpdb->get_results($sql);
+ 		
+        $current_page = $this->get_pagenum();
+        $total_items = count($data);
+
+        $this->items = $data;
+		
+		$this->lineheight = 10;
+		$this->output_report("Signin Sheet " . Date('F Y'), 'P');
+		$this->output_csv();
         
         $this->set_pagination_args( array(
             'total_items' => $total_items,                  
