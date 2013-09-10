@@ -83,6 +83,8 @@ function addPlayerXP($player, $character, $xpReason, $value, $comment) {
 	$sql = "INSERT INTO " . $table_prefix . "PLAYER_XP (player_id, amount, character_id, xp_reason_id, comment, awarded)
 					VALUES (%d, %d, %d, %d, %s, SYSDATE())";
 	$wpdb->query($wpdb->prepare($sql, $player, ((int) $value), $character, $xpReason, $comment));
+	
+	touch_last_updated($character);
 }
 
 /* shortcode */
@@ -161,8 +163,8 @@ function print_xp_spend_table() {
 		if (isset($_REQUEST['skill_level'])) {
 			$spec_at = $_REQUEST['skill_spec_at'];
 			$skilllevels = $_REQUEST['skill_level'];
-			$skill_specialisations = $_REQUEST['skill_spec'];
 			$skilltraining = $_REQUEST['skill_training'];
+			$skill_specialisations = $_REQUEST['skill_spec'];
 			foreach ($skill_specialisations as $id => $specialisation) {
 				if ($spec_at[$id] <= $skilllevels[$id] &&
 					($specialisation == "" || $specialisation == $defaultSpecialisation)) {
@@ -183,7 +185,6 @@ function print_xp_spend_table() {
 				$outputError .= "<li>Please fix missing <a href='#gvid_xpst_skill'>Ability</a> training notes</li>";
 	
 		}
-
 		if (isset($_REQUEST['newskill_level'])) {
 			$spec_at = $_REQUEST['newskill_spec_at'];
 			$newskilllevels = $_REQUEST['newskill_level'];
@@ -300,6 +301,17 @@ function print_xp_spend_table() {
 		if (isset($_REQUEST['newmerit_level'])) {
 			$newmeritlevels = $_REQUEST['newmerit_level'];
 			$newmerittraining = $_REQUEST['newmerit_training'];
+			$newmerit_specialisations = $_REQUEST['newmerit_spec'];
+			$newmerit_hasspec = $_REQUEST['newmerit_hasspec'];
+			
+			foreach ($newmerit_specialisations as $id => $specialisation) {
+				if ($newmeritlevels[$id] && $newmerit_hasspec[$id] && ($specialisation == "" || $specialisation == $defaultSpecialisation)) {
+					$newmerit_spec_error[$id] = 1;
+				}
+			}
+			if (count($newmerit_spec_error))
+				$outputError .= "<li>Please fix missing or invalid <a href='#gvid_xpst_newmerit'>Merit</a> specialisations</li>";
+				
 				
 			foreach ($newmerittraining as $id => $trainingnote) {
 				if ($newmeritlevels[$id] &&
@@ -311,6 +323,17 @@ function print_xp_spend_table() {
 			if (count($newmerit_train_error))
 				$outputError .= "<p>Please fix missing <a href='#gvid_xpst_newmerit'>Merit</a> training notes</p>";
 		}
+		
+		if (isset($_REQUEST['stat_cancel']))     cancel_pending($_REQUEST['stat_cancel']);
+		if (isset($_REQUEST['skill_cancel']))    cancel_pending($_REQUEST['skill_cancel']);
+		if (isset($_REQUEST['newskill_cancel'])) cancel_pending($_REQUEST['newskill_cancel']);
+		if (isset($_REQUEST['disc_cancel']))     cancel_pending($_REQUEST['disc_cancel']);
+		if (isset($_REQUEST['newdisc_cancel']))  cancel_pending($_REQUEST['newdisc_cancel']);
+		if (isset($_REQUEST['path_cancel']))     cancel_pending($_REQUEST['path_cancel']);
+		if (isset($_REQUEST['newpath_cancel']))  cancel_pending($_REQUEST['newpath_cancel']);
+		if (isset($_REQUEST['ritual_cancel']))   cancel_pending($_REQUEST['ritual_cancel']);
+		if (isset($_REQUEST['merit_cancel']))    cancel_pending($_REQUEST['merit_cancel']);
+		if (isset($_REQUEST['newmerit_cancel'])) cancel_pending($_REQUEST['newmerit_cancel']);
 		
 		/* check you have enough XP left */
 		if ($xp_spent > ($xp_total - $xp_pending)) {
@@ -330,9 +353,8 @@ function print_xp_spend_table() {
 			
 			$output .= "<p>$xp_spent experience spent</p>";
 			
-		}
-		
-		$output .= "<div class='gvxp_error'>$outputError</div>";
+		} else 
+			$output .= "<div class='gvxp_error'>$outputError</div>";
 
 	}
 	$xp_pending = get_pending_xp($characterID); /* update pending after spend */
@@ -397,7 +419,7 @@ function print_xp_spend_table() {
 	for($i=1;$i<=$max2display;$i++) {
 		$sqlOutput .= "<th colspan=2 class='gvthead gvcol_radiohead gvcol_" . ($i + 2) . "'>" . $i . "</th>";
 	}
-	$sqlOutput .= "<th class=\"gvthead gvcol_radiohead gvcol_7\">N/A</th>";
+	$sqlOutput .= "<th class=\"gvthead gvcol_radiohead gvcol_7\">Clear</th>";
 	$sqlOutput .= "<th class=\"gvthead gvcol_7\">Training Notes</th></tr>";
 	$sectionheading['stat'] = $sqlOutput;
 			
@@ -447,7 +469,7 @@ function print_xp_spend_table() {
 	for($i=1;$i<=$max2display;$i++) {
 		$sqlOutput .= "<th colspan=2 class='gvthead gvcol_radiohead gvcol_" . ($i + 2) . "'>" . $i . "</th>";
 	}
-	$sqlOutput .= "<th class=\"gvthead gvcol_radiohead gvcol_7\">N/A</th>";
+	$sqlOutput .= "<th class=\"gvthead gvcol_radiohead gvcol_7\">Clear</th>";
 	$sqlOutput .= "<th class=\"gvthead gvcol_7\">Training Notes</th></tr>";
 	$sectionheading['skill'] = $sqlOutput;
 	
@@ -548,7 +570,7 @@ function print_xp_spend_table() {
 	for($i=1;$i<=$max2display;$i++) {
 		$sqlOutput .= "<th colspan=2 class='gvthead gvcol_radiohead gvcol_" . ($i + 2) . "'>" . $i . "</th>";
 	}
-	$sqlOutput .= "<th class=\"gvthead gvcol_radiohead gvcol_7\">N/A</th>";
+	$sqlOutput .= "<th class=\"gvthead gvcol_radiohead gvcol_7\">Clear</th>";
 	$sqlOutput .= "<th class=\"gvthead gvcol_7\">Training Notes</th></tr>";
 	$sectionheading['disc'] = $sqlOutput;
 
@@ -646,7 +668,7 @@ function print_xp_spend_table() {
 	for($i=1;$i<=$max2display;$i++) {
 		$sqlOutput .= "<th colspan=2 class='gvthead gvcol_radiohead gvcol_" . ($i + 2) . "'>" . $i . "</th>";
 	}
-	$sqlOutput .= "<th class=\"gvthead gvcol_radiohead gvcol_7\">N/A</th>";
+	$sqlOutput .= "<th class=\"gvthead gvcol_radiohead gvcol_7\">Clear</th>";
 	$sqlOutput .= "<th class=\"gvthead gvcol_7\">Training Notes</th></tr>";
 	$sectionheading['path'] = $sqlOutput;
 
@@ -755,10 +777,10 @@ function print_xp_spend_table() {
 	$sectioncontent['ritual'] = $sqlOutput;
 
 	$sqlOutput = "<tr><th colspan=2 class=\"gvthead gvcol_1\">Name</th>";
-	for($i=1;$i<=$max2display;$i++) {
+	for($i=1;$i<=5;$i++) {
 		$sqlOutput .= "<th colspan=2 class='gvthead gvcol_radiohead gvcol_" . ($i + 2) . "'>" . $i . "</th>";
 	}
-	$sqlOutput .= "<th class=\"gvthead gvcol_radiohead gvcol_7\">N/A</th>";
+	$sqlOutput .= "<th class=\"gvthead gvcol_radiohead gvcol_7\">Clear</th>";
 	$sqlOutput .= "<th class=\"gvthead gvcol_7\">Training Notes</th></tr>";
 	$sectionheading['ritual'] = $sqlOutput;
 
@@ -799,14 +821,15 @@ function print_xp_spend_table() {
 	}
 	$sectioncontent['merit'] = $sqlOutput;
 
-	$sqlOutput = "<tr><th colspan=2 class=\"gvthead gvcol_1\">Name</th>"; /* name & spec cols */
+	$sqlOutput = "<tr><th class=\"gvthead gvcol_1\">Name</th>"; 
+	$sqlOutput .= "<th class=\"gvthead gvcol_2\">Specialisation</th>"; 
 	
 	$sqlOutput .= "<th colspan=4 class=\"gvthead\">Level</th>"; /* dot cols: dot1 & dot2 */
 	$sqlOutput .= "<th colspan=3 class=\"gvthead\">Cost</th>";   /* dot cols: dot3 & 1/2 of dot4 */
 	
 	$sqlOutput .= "<th colspan=" . ($max2display * 2 - 7) . " class=\"gvthead\">&nbsp;</th>";   /* dot cols: dot5+ */
 	
-	$sqlOutput .= "<th class=\"gvthead gvcol_radiohead\">N/A</th>";
+	$sqlOutput .= "<th class=\"gvthead gvcol_radiohead\">Clear</th>";
 	$sqlOutput .= "<th class=\"gvthead\">Training Notes</th></tr>";
 	$sectionheading['merit'] = $sqlOutput;
 	
@@ -815,7 +838,7 @@ function print_xp_spend_table() {
 	------------------------------------------------------------------------*/
 	$sectiontitle['newmerit'] = "Merits";
 	$sql = "SELECT merit.name, \"\" as comment, merit.value as level, 0 as id,
-				merit.ID as item_id, merit.xp_cost
+				merit.ID as item_id, merit.xp_cost, merit.has_specialisation
 			FROM
 				" . $table_prefix . "MERIT merit
 				LEFT JOIN
@@ -831,7 +854,7 @@ function print_xp_spend_table() {
 			WHERE
 				merit.XP_COST > 0
 				AND merit.value >= 0
-				AND ISNULL(char_merit.MERIT_ID) ";
+				AND (ISNULL(char_merit.MERIT_ID) OR merit.MULTIPLE = 'Y') ";
 	if (!isST())
 		$sql .= "AND merit.VISIBLE = 'Y' ";
 	$sql .= "ORDER BY merit.name ASC";
@@ -852,7 +875,8 @@ function print_xp_spend_table() {
 	
 		$sqlOutput .= render_merit_row('newmerit', $newmeritxp, $newmerit_spends, 
 						$newmeritlevels, $newmerittraining, $newmerit_train_error,
-						$defaultTrainingString, $max2display, $pendingdoturl);
+						$defaultTrainingString, $max2display, $pendingdoturl, $newmerit_specialisations,
+						$newmerit_spec_error);
 		
 	}
 	$sectioncontent['newmerit'] = $sqlOutput;
@@ -928,7 +952,7 @@ function get_xp_cost($dbdata, $current, $new) {
 function get_pending($characterID, $table) {
 	global $wpdb;
 
-	$sql = "SELECT CHARTABLE_ID, CHARTABLE_LEVEL, ITEMTABLE, ITEMTABLE_ID, TRAINING_NOTE
+	$sql = "SELECT ID, CHARTABLE_ID, CHARTABLE_LEVEL, ITEMTABLE, ITEMTABLE_ID, TRAINING_NOTE
 			FROM " . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND
 			WHERE
 				CHARACTER_ID = %s
@@ -1073,6 +1097,28 @@ function pending_level ($pendingdata, $chartableid, $itemid) {
 	return $result;
 
 }
+function pending_id ($pendingdata, $chartableid, $itemid) {
+
+	$result = 0;
+		
+	if ($chartableid != 0) {
+		foreach ($pendingdata as $row)
+			if ($row->CHARTABLE_ID == $chartableid) {
+				$result = $row->ID;
+				break;
+			}
+	} else {
+		foreach ($pendingdata as $row)
+			if ($row->ITEMTABLE_ID == $itemid && $row->CHARTABLE_ID == 0) {
+				$result = $row->ID;
+				break;
+			}
+	}
+	
+	/* echo "<p>charid: $chartableid, itemid: $itemid, result: $result</p>"; */
+	return $result;
+
+}
 
 function pending_training ($pendingdata, $chartableid, $itemid) {
 
@@ -1102,7 +1148,8 @@ function calc_submitted_spend($type) {
 
 	for ($i=1;$i<=10;$i++) $costlvls[$i] = $_REQUEST[$type . '_cost_' . $i];
 	foreach ($_REQUEST[$type . '_level'] as $id => $level) {
-		$spend .= $costlvls[$level][$id];
+		if ($level)
+			$spend .= $costlvls[$level][$id];
 	}
 	return $spend;
 	
@@ -1111,7 +1158,8 @@ function calc_submitted_merit_spend($type) {
 	$spend = 0;
 
 	foreach ($_REQUEST[$type . '_level'] as $id => $level) {
-		$spend .= $_REQUEST[$type . '_cost'][$id];
+		if ($level)
+			$spend .= $_REQUEST[$type . '_cost'][$id];
 	}
 	return $spend;
 	
@@ -1137,7 +1185,7 @@ function render_spend_row($type, $xpdata, $specdata, $specerrors, $pending,
     $output .= "<tr>\n";
 	/* Name */
 	$output .= "<th ";
-	if ($nospec)
+	if ($nospec || $xpdata->spec_at == 0)
 		$output .= "colspan=2 ";
 	$output .= " class='gvthleft'>" . $xpdata->name . "\n";
 	$output .= " </th>\n";
@@ -1146,7 +1194,7 @@ function render_spend_row($type, $xpdata, $specdata, $specerrors, $pending,
 	
 
 	/* Specialisation */
-	if (!$nospec) {
+	if (!$nospec && $xpdata->spec_at > 0) {
 		$output .= "<td class='gvcol_2 gvcol_val";
 		$spec = isset($specdata[$id]) ? $specdata[$id] : stripslashes($xpdata->comment);
 		if ($specerrors[$id])
@@ -1193,7 +1241,7 @@ function render_spend_row($type, $xpdata, $specdata, $specerrors, $pending,
 	}
 	
 	if ($pendinglvl)
-		$output .= "<td class='gvxp_radio'>&nbsp;</td>"; /* no change dot */
+		$output .= "<td class='gvxp_checkbox'><input type='CHECKBOX' name='{$type}_cancel[{$id}]' value='" . pending_id($pending, $xpdata->id, $xpdata->item_id) . "'></td>"; /* cancel spend */
 	else
 		$output .= "<td class='gvxp_radio'><input type='RADIO' name='{$type}_level[{$id}]' value='0' selected-'selected'></td>"; /* no change dot */
 	
@@ -1259,7 +1307,7 @@ function render_ritual_row($xpdata, $pending, $levelsdata,
 	}
 
 	if ($pendinglvl)
-		$output .= "<td class='gvxp_radio'>&nbsp;</td>"; /* no change dot */
+		$output .= "<td class='gvxp_checkbox'><input type='CHECKBOX' name='ritual_cancel[{$id}]' value='" . pending_id($pending, $xpdata->id, $xpdata->item_id) . "'></td>"; /* cancel spend */
 	else
 		$output .= "<td class='gvxp_radio'><input type='RADIO' name='ritual_level[{$id}]' value='0' selected='selected'></td>"; /* no change dot */
 	
@@ -1355,6 +1403,7 @@ function save_merit_to_pending ($type, $table, $itemtable, $itemidname, $playerI
 	$isnew      = $_REQUEST[$type . '_new'];
 	$costs      = $_REQUEST[$type . '_cost' . $i];
 	$comments   = $_REQUEST[$type . '_comment' . $i];
+	$specs      = $_REQUEST[$type . '_spec' . $i];
 			
 	foreach ($levels as $id => $level) {
 		
@@ -1368,7 +1417,7 @@ function save_merit_to_pending ($type, $table, $itemtable, $itemidname, $playerI
 				'AWARDED'         => Date('Y-m-d'),
 				'AMOUNT'          => $costs[$id] * -1,
 				'COMMENT'         => $comments[$id],
-				'SPECIALISATION'  => "",
+				'SPECIALISATION'  => $specs[$id],
 				'TRAINING_NOTE'   => $training[$id],
 				'ITEMTABLE'       => $itemtable,
 				'ITEMNAME'        => $itemidname,
@@ -1410,7 +1459,7 @@ function save_merit_to_pending ($type, $table, $itemtable, $itemidname, $playerI
 
 
 function render_merit_row($type, $xpdata, $pending, $levelsdata, $training, $trainerrors, 
-						$traindefault, $max2display, $pendingdoturl) {
+						$traindefault, $max2display, $pendingdoturl, $specdata = array(), $specerrors = array()) {
 
 	if ($xpdata->id == 0)
 		$id = $xpdata->item_id;
@@ -1421,11 +1470,25 @@ function render_merit_row($type, $xpdata, $pending, $levelsdata, $training, $tra
     $output .= "<tr style='display:none'><td>\n";
 	$output .= "<input type='hidden' name='{$type}_itemid[" . $id . "]' value='" . $xpdata->item_id . "' >\n";
 	$output .= "<input type='hidden' name='{$type}_new[" . $id . "]' value='" . ($xpdata->id == 0) . "' >\n";
+	$output .= "<input type='hidden' name='{$type}_hasspec[" . $id . "]' value='" . $xpdata->has_specialisation . "' >\n";
     $output .= "</td></tr>\n";
     $output .= "<tr>\n";
 	/* Name */
-	$output .= "<th colspan=2 class='gvthleft'>" . $xpdata->name . "\n";
-	$output .= " </th>\n";
+	$output .= "<th class='gvthleft'>" . $xpdata->name . "</th>\n";
+
+	if ($xpdata->has_specialisation == 'Y') {
+		$output .= "<td class='gvcol_2 gvcol_val";
+		$spec = isset($specdata[$id]) ? $specdata[$id] : stripslashes($xpdata->comment);
+		if ($specerrors[$id])
+			$output .= " gvcol_error";
+		if ($pendinglvl)
+			$output .= "'>$spec";
+		else
+			$output .= "'><input type='text' name='${type}_spec[" . $id . "]' value='" . $spec . "' size=15 maxlength=60>";
+		$output .= "</td>";
+	} else {
+		$output .= "<td>{$xpdata->comment}</td>";
+	}
 
 	$pendinglvl = pending_level($pending, $xpdata->id, $xpdata->item_id);
 	
@@ -1454,7 +1517,7 @@ function render_merit_row($type, $xpdata, $pending, $levelsdata, $training, $tra
 		$output .= "<td colspan=2 class='gvxp_radio'>&nbsp;</td>";
 	
 	if ($pendinglvl)
-		$output .= "<td class='gvxp_radio'>&nbsp;</td>"; /* no change dot */
+		$output .= "<td class='gvxp_checkbox'><input type='CHECKBOX' name='{$type}_cancel[{$id}]' value='" . pending_id($pending, $xpdata->id, $xpdata->item_id) . "'></td>"; /* cancel spend */
 	else
 		$output .= "<td class='gvxp_radio'><input type='RADIO' name='{$type}_level[{$id}]' value='0' selected-'selected'></td>"; /* no change dot */
 	
@@ -1505,5 +1568,17 @@ function establishPrivateClanID($characterID) {
 	$result = $wpdb->get_results($sql);
 	
 	return $result[0]->PRIVATE_CLAN_ID;
+}
+
+function cancel_pending($data) {
+	global $wpdb;
+	
+	foreach ($data as $item => $pendingid) {
+		$sql = "DELETE FROM " . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND
+				WHERE ID = %d";
+		$sql = $wpdb->prepare($sql, $pendingid);
+		/* echo "<p>SQL: $sql</p>"; */
+		$result = $wpdb->get_results($sql);
+	}
 }
 ?>
