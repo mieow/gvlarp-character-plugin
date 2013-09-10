@@ -5,6 +5,7 @@ require_once GVLARP_CHARACTER_URL . 'inc/adminpages/reportclasses.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/backgrounds.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/clans.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/data.php';
+require_once GVLARP_CHARACTER_URL . 'inc/adminpages/moredata.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/toolbar.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/config.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/experience.php';
@@ -81,12 +82,13 @@ function gvcharacter_options_validate($input) {
 
 function register_character_menu() {
 	add_menu_page( "Character Plugin Options", "Characters", "manage_options", "gvcharacter-plugin", "character_options");
-	add_submenu_page( "gvcharacter-plugin", "Database Tables",     "Data",          "manage_options", "gvcharacter-data",   "character_datatables" );  
-	add_submenu_page( "gvcharacter-plugin", "Clans & Disciplines", "Clans",         "manage_options", "gvcharacter-clans",  "character_clans" );  
-	add_submenu_page( "gvcharacter-plugin", "Backgrounds",         "Backgrounds",   "manage_options", "gvcharacter-bg",     "character_backgrounds" );  
-	add_submenu_page( "gvcharacter-plugin", "Reports",             "Reports",       "manage_options", "gvcharacter-report", "character_reports" );  
-	add_submenu_page( "gvcharacter-plugin", "Experience",          "Experience",    "manage_options", "gvcharacter-xp",     "character_experience" );  
-	add_submenu_page( "gvcharacter-plugin", "Configuration",       "Configuration", "manage_options", "gvcharacter-config", "character_config" );  
+	add_submenu_page( "gvcharacter-plugin", "Database Tables",      "Data",                "manage_options", "gvcharacter-data",   "character_datatables" );  
+	add_submenu_page( "gvcharacter-plugin", "Stats & Skills",       "Stats / Skills",      "manage_options", "gvcharacter-data2",  "character_datatables2" );  
+	add_submenu_page( "gvcharacter-plugin", "Clans & Disciplines",  "Clans / Disciplines", "manage_options", "gvcharacter-clans",  "character_clans" );  
+	add_submenu_page( "gvcharacter-plugin", "Backgrounds",          "Backgrounds",   "manage_options", "gvcharacter-bg",     "character_backgrounds" );  
+	add_submenu_page( "gvcharacter-plugin", "Reports",              "Reports",       "manage_options", "gvcharacter-report", "character_reports" );  
+	add_submenu_page( "gvcharacter-plugin", "Experience",           "Experience",    "manage_options", "gvcharacter-xp",     "character_experience" );  
+	add_submenu_page( "gvcharacter-plugin", "Configuration",        "Configuration", "manage_options", "gvcharacter-config", "character_config" );  
 }
 
 function character_options() {
