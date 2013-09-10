@@ -4,7 +4,7 @@ register_activation_hook(__FILE__, "gvlarp_character_install");
 register_activation_hook( __FILE__, 'gvlarp_character_install_data' );
 
 global $gvlarp_character_db_version;
-$gvlarp_character_db_version = "1.8.12"; /* 1.8.0 */
+$gvlarp_character_db_version = "1.8.13"; /* 1.8.0 */
 
 function gvlarp_update_db_check() {
     global $gvlarp_character_db_version;
@@ -231,7 +231,7 @@ function gvlarp_character_install() {
 					CONSTRAINT `" . $table_prefix . "road_constraint_3` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
-
+		
 		$current_table_name = $table_prefix . "CHARACTER";
 		$sql = "CREATE TABLE " . $current_table_name . " (
 					ID                        MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
@@ -250,16 +250,17 @@ function gvlarp_character_install() {
 					ROAD_OR_PATH_RATING       SMALLINT(3)   NOT NULL,
 					COURT_ID                  MEDIUMINT(9)  NOT NULL,
 					WORDPRESS_ID              VARCHAR(32)   NOT NULL,
+					LAST_UPDATED              DATE          NOT NULL,
 					DELETED                   VARCHAR(1)    NOT NULL,
 					PRIMARY KEY  (ID),
-					CONSTRAINT `" . $table_prefix . "char_constraint_1` FFOREIGN KEY (PUBLIC_CLAN_ID)       REFERENCES " . $table_prefix . "CLAN(ID),
-					CONSTRAINT `" . $table_prefix . "char_constraint_2` FFOREIGN KEY (PRIVATE_CLAN_ID)      REFERENCES " . $table_prefix . "CLAN(ID),
-					CONSTRAINT `" . $table_prefix . "char_constraint_3` FFOREIGN KEY (GENERATION_ID)        REFERENCES " . $table_prefix . "GENERATION(ID),
-					CONSTRAINT `" . $table_prefix . "char_constraint_4` FFOREIGN KEY (PLAYER_ID)            REFERENCES " . $table_prefix . "PLAYER(ID),
-					CONSTRAINT `" . $table_prefix . "char_constraint_5` FFOREIGN KEY (CHARACTER_TYPE_ID)    REFERENCES " . $table_prefix . "CHARACTER_TYPE(ID),
-					CONSTRAINT `" . $table_prefix . "char_constraint_6` FFOREIGN KEY (CHARACTER_STATUS_ID)  REFERENCES " . $table_prefix . "CHARACTER_STATUS(ID),
-					CONSTRAINT `" . $table_prefix . "char_constraint_7` FFOREIGN KEY (ROAD_OR_PATH_ID)      REFERENCES " . $table_prefix . "ROAD_OR_PATH(ID),
-					CONSTRAINT `" . $table_prefix . "char_constraint_8` FFOREIGN KEY (COURT_ID)             REFERENCES " . $table_prefix . "COURT(ID)
+					CONSTRAINT `" . $table_prefix . "char_constraint_1` FOREIGN KEY (PUBLIC_CLAN_ID)       REFERENCES " . $table_prefix . "CLAN(ID),
+					CONSTRAINT `" . $table_prefix . "char_constraint_2` FOREIGN KEY (PRIVATE_CLAN_ID)      REFERENCES " . $table_prefix . "CLAN(ID),
+					CONSTRAINT `" . $table_prefix . "char_constraint_3` FOREIGN KEY (GENERATION_ID)        REFERENCES " . $table_prefix . "GENERATION(ID),
+					CONSTRAINT `" . $table_prefix . "char_constraint_4` FOREIGN KEY (PLAYER_ID)            REFERENCES " . $table_prefix . "PLAYER(ID),
+					CONSTRAINT `" . $table_prefix . "char_constraint_5` FOREIGN KEY (CHARACTER_TYPE_ID)    REFERENCES " . $table_prefix . "CHARACTER_TYPE(ID),
+					CONSTRAINT `" . $table_prefix . "char_constraint_6` FOREIGN KEY (CHARACTER_STATUS_ID)  REFERENCES " . $table_prefix . "CHARACTER_STATUS(ID),
+					CONSTRAINT `" . $table_prefix . "char_constraint_7` FOREIGN KEY (ROAD_OR_PATH_ID)      REFERENCES " . $table_prefix . "ROAD_OR_PATH(ID),
+					CONSTRAINT `" . $table_prefix . "char_constraint_8` FOREIGN KEY (COURT_ID)             REFERENCES " . $table_prefix . "COURT(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 
