@@ -421,6 +421,7 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
 		$result = $wpdb->get_results($sql);
 		
 		$specialisation = $data[0]->SPECIALISATION ? ("(" . $data[0]->SPECIALISATION . ") ") : "";
+		touch_last_updated($data[0]->CHARACTER_ID);
 		
 		$data = array (
 			'PLAYER_ID'    => $data[0]->PLAYER_ID,
@@ -448,7 +449,6 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
 		/* then delete from pending */
 		$this->delete_pending($selectedID);
 		
-				
 	}
 	
 	function approve_standard ($data2update) {
