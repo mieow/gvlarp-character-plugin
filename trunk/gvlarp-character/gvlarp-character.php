@@ -1335,6 +1335,8 @@ function get_clans() {
                                     VALUES (%s, %s, SYSDATE(), %d, %s )";
                     $wpdb->query($wpdb->prepare($sql, $characterID, $_POST[$characterID . '_path_reason'], $current_path_value, $_POST[$characterID . '_path_comment']));
 
+					touch_last_updated($characterID);
+					
                     $characterCounter++;
                 }
                 $counter++;
@@ -1481,7 +1483,10 @@ function get_clans() {
                     else if (((int) $current_value) + ((int) $current_temp_stat_value) < 0) {
                         $current_temp_stat_value = ((int) $current_value) * -1;
                         $output .= "Change for " . $character . " capped at 0<br />";
-                    }
+						
+                    } else {
+						touch_last_updated($characterID);
+					}
 
                     $sql = "INSERT INTO " . $table_prefix . "CHARACTER_TEMPORARY_STAT (character_id,
                                                                                        temporary_stat_id,
@@ -1492,7 +1497,8 @@ function get_clans() {
                             VALUES (%d, (SELECT id FROM " . $table_prefix . "TEMPORARY_STAT WHERE name = %s), %d, SYSDATE(), %d, %s )";
                     $sql = $wpdb->prepare($sql, $characterID, $stat, $_POST[$characterID . '_temp_stat_reason'], $current_temp_stat_value, $_POST[$characterID . '_temp_stat_comment']);
 
-                    $wpdb->query($sql);
+                    $result = $wpdb->query($sql);
+					
 
                     $characterCounter++;
                 }
@@ -3445,6 +3451,9 @@ function get_clans() {
         $output .= "<br /><form name=\"CD_Form\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">";
         $output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"displayUpdateCharacter\" />";        $output .= "<table class='gvplugin' id=\"gvid_dcf\"><tr><td class=\"gvcol_1 gvcol_val\">";
         $output .= "<input type='submit' name=\"cSubmit\" value=\"Back to the character list\" /></td></tr></table></form>";
+		
+		touch_last_updated($characterID);
+		
         return $output;
     }
 
@@ -3850,6 +3859,8 @@ function get_clans() {
             }
             $officeCounter++;
         }
+		
+		touch_last_updated($characterID);
 
         return $characterID;
     }
@@ -4576,6 +4587,15 @@ function get_clans() {
         }
     }
 
+	function touch_last_updated($characterID) {
+		global $wpdb;
+
+		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "CHARACTER",
+				array ('LAST_UPDATED' => Date('Y-m-d')),
+				array ('ID' => $characterID)
+			);
+	}
+	
     function handleGVLarpForm() {
         switch($_POST['GVLARP_FORM']) {
             case "new_player":
