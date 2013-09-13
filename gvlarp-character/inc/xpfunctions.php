@@ -451,11 +451,6 @@ function render_stat_details() {
 function render_stats($characterID, $maxRating, $pendingSpends) {
 	global $wpdb;
 	
-	$fulldoturl    = plugins_url( 'gvlarp-character/images/xpdot.jpg' );
-	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
-	$pendingdoturl = plugins_url( 'gvlarp-character/images/pendingdot.jpg' );
-	$levelsdata    = $_REQUEST['stat_level'];
-
 	$sql = "SELECT 
 				stat.name, 
 				cha_stat.level,
@@ -504,49 +499,68 @@ function render_stats($characterID, $maxRating, $pendingSpends) {
 								$characterID,$characterID);
 	//echo "<p>SQL: $sql</p>";
 	$character_stats_xp = $wpdb->get_results($sql);
-		
-	$max2display = get_max_dots($character_stats_xp, $maxRating);
 	
+	$rowoutput = render_spend_table('stat', $character_stats_xp, $maxRating, 3);
 	
+	if (!empty($rowoutput)) {
+		$output .= "<table>\n";
+		$output .= "$rowoutput\n";
+		$output .= "</table>\n";
+	} 
+
+	return $output;
+
+}
+
+function render_spend_table($type, $allxpdata, $maxRating, $columns) {
+
+	$fulldoturl    = plugins_url( 'gvlarp-character/images/xpdot.jpg' );
+	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
+	$pendingdoturl = plugins_url( 'gvlarp-character/images/pendingdot.jpg' );
+	$levelsdata    = $_REQUEST['stat_level'];
+
+	$max2display = get_max_dots($xpdata, $maxRating);
 	$colspan = 2 + $max2display;
 	$grp = "";
 	$col = 0;
 	$rowoutput = "";
-	foreach ($character_stats_xp as $stat_xp) {
-		$id = $stat_xp->id;
+	foreach ($allxpdata as $xpdata) {
+		$id = $xpdata->id;
 		
 		// Hidden fields
 		$rowoutput .= "<tr style='display:none'><td>\n";
-		$rowoutput .= "<input type='hidden' name='stat_spec_at[" . $id . "]' value='" . $stat_xp->spec_at . "' >";
-		$rowoutput .= "<input type='hidden' name='stat_spec[" . $id . "]'    value='" . $stat_xp->comment . "' >";
-		$rowoutput .= "<input type='hidden' name='stat_curr[" . $id . "]'    value='" . $stat_xp->level . "' >\n";
-		$rowoutput .= "<input type='hidden' name='stat_itemid[" . $id . "]'  value='" . $stat_xp->item_id . "' >\n";
-		$rowoutput .= "<input type='hidden' name='stat_new[" . $id . "]'     value='" . ($stat_xp->id == 0) . "' >\n";
-		$rowoutput .= "<input type='hidden' name='stat_name[" . $id . "]'    value='" . $stat_xp->name . "' >\n";
+		$rowoutput .= "<input type='hidden' name='{$type}_spec_at[" . $id . "]' value='" . $xpdata->spec_at . "' >";
+		$rowoutput .= "<input type='hidden' name='{$type}_spec[" . $id . "]'    value='" . $xpdata->comment . "' >";
+		$rowoutput .= "<input type='hidden' name='{$type}_curr[" . $id . "]'    value='" . $xpdata->level . "' >\n";
+		$rowoutput .= "<input type='hidden' name='{$type}_itemid[" . $id . "]'  value='" . $xpdata->item_id . "' >\n";
+		$rowoutput .= "<input type='hidden' name='{$type}_new[" . $id . "]'     value='" . ($xpdata->id == 0) . "' >\n";
+		$rowoutput .= "<input type='hidden' name='{$type}_name[" . $id . "]'    value='" . $xpdata->name . "' >\n";
 		$rowoutput .= "</td></tr>\n";
 		
 		// start column / new column
-		if ($grp != $stat_xp->grp) {
-			if (empty($grp)) {
-				$rowoutput .= "<tr><td class='gvxp_col'><table><tr><th colspan=$colspan>{$stat_xp->grp}</th></tr>";
-				$col++;
-			} 
-			elseif ($col == 3) {
-				$rowoutput .= "</table></td></tr><tr><td class='gvxp_col'><table><tr><th colspan=$colspan>{$stat_xp->grp}</th></tr>";
-				$col = 1;
+		if (isset($xpdata->grp)) {
+			if ($grp != $xpdata->grp) {
+				if (empty($grp)) {
+					$rowoutput .= "<tr><td class='gvxp_col'><table><tr><th colspan=$colspan>{$xpdata->grp}</th></tr>";
+					$col++;
+				} 
+				elseif ($col == $columns) {
+					$rowoutput .= "</table></td></tr><tr><td class='gvxp_col'><table><tr><th colspan=$colspan>{$xpdata->grp}</th></tr>";
+					$col = 1;
+				}
+				else {
+					$rowoutput .= "</table></td><td class='gvxp_col'><table><tr><th colspan=$colspan>{$xpdata->grp}</th></tr>";
+					$col++;
+				}
+				$grp = $xpdata->grp;
 			}
-			else {
-				$rowoutput .= "</table></td><td class='gvxp_col'><table><tr><th colspan=$colspan>{$stat_xp->grp}</th></tr>";
-				$col++;
-			}
-			$grp = $stat_xp->grp;
 		}
 		
 		//dots row
-		$rowoutput .= "<tr><th class='gvthleft'>{$stat_xp->name}</th>";
+		$rowoutput .= "<tr><th class='gvthleft'>{$xpdata->name}</th>";
 		for ($i=1;$i<=$max2display;$i++) {
 			$dot = "dot" . $i;
-			switch($stat_xp->$dot) {
+			switch($xpdata->$dot) {
 				case 'X':
 					$rowoutput .= "<td class='gvxp_dot'><img src='$fulldoturl'></td>";
 					break;
@@ -557,12 +571,12 @@ function render_stats($characterID, $maxRating, $pendingSpends) {
 					$rowoutput .= "<td class='gvxp_dot'><img src='$emptydoturl'></td>";
 					break;
 				default:
-					$comment    = $stat_xp->name . " " . $stat_xp->level . " > " . $i;
+					$comment    = $xpdata->name . " " . $xpdata->level . " > " . $i;
 				
 					$rowoutput .= "<td class='gvxp_checkbox'>";
-					$rowoutput .= "<input type='hidden'   name='stat_cost[" . $id . "]'    value='" . $stat_xp->$dot . "' >";
-					$rowoutput .= "<input type='hidden'   name='stat_comment[" . $id . "]' value='$comment' >";
-					$rowoutput .= "<input type='CHECKBOX' name='stat_level[" . $id . "]'   value='$i' ";
+					$rowoutput .= "<input type='hidden'   name='{$type}_cost[" . $id . "]'    value='" . $xpdata->$dot . "' >";
+					$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $id . "]' value='$comment' >";
+					$rowoutput .= "<input type='CHECKBOX' name='{$type}_level[" . $id . "]'   value='$i' ";
 					if (isset($levelsdata[$id]) && $i == $levelsdata[$id])
 						$rowoutput .= "checked";
 					$rowoutput .= ">";
@@ -570,13 +584,13 @@ function render_stats($characterID, $maxRating, $pendingSpends) {
 			}
 
 		}
-		if ($stat_xp->NEXT_VALUE == $stat_xp->level)
-			$dot = "dot" . ($stat_xp->NEXT_VALUE + 1);
+		if ($xpdata->NEXT_VALUE == $xpdata->level)
+			$dot = "dot" . ($xpdata->NEXT_VALUE + 1);
 		else
-			$dot = "dot" . $stat_xp->NEXT_VALUE;
-		$xpcost = $stat_xp->$dot ? "(" . $stat_xp->$dot . " XP)" : "";
-		if ($stat_xp->has_pending)
-			$rowoutput .= "<td class='gvxp_checkbox'><input type='CHECKBOX' name='stat_cancel[$id]' value='{$stat_xp->pending_id}'><label>clear</label></td>";
+			$dot = "dot" . $xpdata->NEXT_VALUE;
+		$xpcost = $xpdata->$dot ? "(" . $xpdata->$dot . " XP)" : "";
+		if ($xpdata->has_pending)
+			$rowoutput .= "<td class='gvxp_checkbox'><input type='CHECKBOX' name='{$type}_cancel[$id]' value='{$xpdata->pending_id}'><label>clear</label></td>";
 		else
 			$rowoutput .= "<td class=''>$xpcost</td>";
 		$rowoutput .= "</tr>\n";
@@ -584,14 +598,7 @@ function render_stats($characterID, $maxRating, $pendingSpends) {
 	}
 	$rowoutput .= "</table></td></tr>\n";
 
-	if (!empty($rowoutput)) {
-		$output .= "<table>\n";
-		$output .= "$rowoutput\n";
-		$output .= "</table>\n";
-	} 
-
-	return $output;
-
+	return $rowoutput;
 }
 
 function get_max_dots($data, $maxRating) {
