@@ -48,6 +48,9 @@ function register_gvlarp_character_settings() {
 	register_setting( 'gvcharacter_options_group', 'gvcharacter_pend_bgcolour' );
 	register_setting( 'gvcharacter_options_group', 'gvcharacter_pend_dotcolour' );
 	register_setting( 'gvcharacter_options_group', 'gvcharacter_pend_dotlinewidth' );
+	register_setting( 'gvcharacter_options_group', 'gvcharacter_xp_bgcolour' );
+	register_setting( 'gvcharacter_options_group', 'gvcharacter_xp_dotcolour' );
+	register_setting( 'gvcharacter_options_group', 'gvcharacter_xp_dotlinewidth' );
 
 	/* add_settings_section('gv_options_section_pdf', 'PDF Character Sheet', 'gv_options_section_pdf_text', 'gvcharacter-config');
 	add_settings_field('gv_pdf_title',     'Character Sheet Title',      'gvcharacter_pdf_input_title',  'gvcharacter-config',    'gv_options_section_pdf');
