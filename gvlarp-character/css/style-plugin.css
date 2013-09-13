@@ -413,25 +413,32 @@ td.chsheetcol3 {
 #gvid_xpst td {
     padding: 0px;
 	text-align: center;
+	border: none;
 }
 #gvid_xpst th {
     font-weight: bold;
     background-color: #222;
     padding: 3px;
+	margin: 5px 1px 0px 0px;
 }
 
+#gvid_xpst .gvxp_col {
+	padding: 5px;
+}
 #gvid_xpst .gvthleft {
     text-align: left;
     background-color: #000000;
-    padding: 0px;
+    padding: 0px 3px 0px 3px;
 	width: auto;
 }
+
 #gvid_xpst .gvcol_val {
 	width: 40px;
 	padding: 0px 5px 0px 5px;
 }
 .gvxp_dot {
-    width:16px;
+    width:18px;
+	font-size: 0.7em;
 	margin: 0px;
 	padding: 0px;
 }
