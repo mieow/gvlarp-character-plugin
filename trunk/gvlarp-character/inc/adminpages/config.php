@@ -222,6 +222,16 @@ function character_config() {
 			</tr>
 		</table>
 		
+		<h4>Experience Spend Graphics</h4>
+		<table>
+			<tr>
+				<td>XP Spend Background Colour (#RRGGBB)</td><td><input type="color" name="gvcharacter_xp_bgcolour" value="<?php echo get_option('gvcharacter_xp_bgcolour'); ?>" /></td>
+				<td>XP Spend Dot/Box Colour (#RRGGBB)</td><td><input type="color" name="gvcharacter_xp_dotcolour" value="<?php echo get_option('gvcharacter_xp_dotcolour'); ?>" /></td>
+				<td>XP Spend Dot/Box Line Width (mm)</td><td><input type="text" name="gvcharacter_xp_dotlinewidth" value="<?php echo get_option('gvcharacter_xp_dotlinewidth'); ?>" size=4 /></td>
+				<td ><img width=16 src='<?php echo plugins_url( 'gvlarp-character/images/xpdot.jpg' ); ?>'></td>
+			</tr>
+		</table>
+
 		<h4>Pending Experience Spend Graphics</h4>
 		<table>
 			<tr>
@@ -333,6 +343,23 @@ function character_config() {
 			$image->drawImage($draw);
 			$image->writeImage(GVLARP_CHARACTER_URL . 'images/pendingdot.' . $imagetype);
 			
+			/* Spend XP Dots */
+			$drawbgcolour = get_option('gvcharacter_xp_bgcolour');
+			$drawcolour   = get_option('gvcharacter_xp_dotcolour');
+			$drawborder   = get_option('gvcharacter_xp_dotlinewidth');
+			
+			if (!$drawcolour)   $drawcolour = '#BB0506';
+			if (!$drawborder)   $drawborder = 2;
+			if (!$drawbgcolour) $drawbgcolour = '#000000';
+			
+			$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
+			$draw = new ImagickDraw();
+			$draw->setStrokeColor($drawcolour);
+			$draw->setStrokeWidth($drawborder);
+			$draw->setFillColor($drawcolour);
+			$draw->circle( ceil($drawwidth / 2), ceil($drawheight / 2), ceil($drawwidth / 2), $drawborder + $drawmargin);
+			$image->drawImage($draw);
+			$image->writeImage(GVLARP_CHARACTER_URL . 'images/xpdot.' . $imagetype);
 
 			/* PDF Dots */
 			$drawbgcolour = '#FFFFFF';
