@@ -64,7 +64,7 @@ function render_clan_page(){
 
 	<form id="clans-filter" method="get" action='<?php print $current_url; ?>'>
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
-		<input type="hidden" name="tab" value="clan" />
+		<input type="hidden" name="tab" value="clans" />
  		<?php $testListTable["clans"]->display() ?>
 	</form>
 
@@ -77,7 +77,7 @@ function render_clan_add_form($addaction) {
 	
 	$type = "clan";
 	
-	/* echo "<p>Creating clan form based on action $addaction</p>"; */
+	//echo "<p>Creating clan form based on action $addaction</p>";
 
 	if ('fix-' . $type == $addaction) {
 		$id = $_REQUEST['clan'];
@@ -105,11 +105,11 @@ function render_clan_add_form($addaction) {
 				from " . GVLARP_TABLE_PREFIX . "CLAN clan
 				where clan.ID = %d;";
 		
-		/* echo "<p>$sql</p>"; */
+		//echo "<p>$sql</p>"; 
 		
 		$data =$wpdb->get_results($wpdb->prepare($sql, $id));
 		
-		/* print_r($data); */
+		//print_r($data); 
 		
 		$name = $data[0]->NAME;
 		$description = $data[0]->DESCRIPTION;
@@ -128,7 +128,7 @@ function render_clan_add_form($addaction) {
 					AND clandisc.CLAN_ID = %d;";
 		$data =$wpdb->get_results($wpdb->prepare($sql, $id));
 		
-		/* print_r($data); */
+		//print_r($data);
 		
 		$clan_discipline1_id = $data[0]->ID;
 		$clan_discipline2_id = $data[1]->ID;
@@ -161,7 +161,7 @@ function render_clan_add_form($addaction) {
 	?>
 	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
 		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
-		<input type="hidden" name="tab" value="<?php print $type; ?>" />
+		<input type="hidden" name="tab" value="clans" />
 		<input type="hidden" name="action" value="<?php print $nextaction; ?>" />
 		<table>
 		<tr>
@@ -265,10 +265,10 @@ function clan_input_validation() {
 
 	$type = "clan";
 
-	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == $type)
+	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == 'clans')
 		$doaction = "edit-$type"; 
 		
-	/* echo "<p>Requested action: " . $_REQUEST['action'] . ", " . $type . "_name: " . $_REQUEST[$type . '_name'];  */
+	//echo "<p>Requested action: " . $_REQUEST['action'] . ", " . $type . "_name: " . $_REQUEST[$type . '_name'];
 	
 	if (!empty($_REQUEST[$type . '_name'])){
 			
@@ -290,7 +290,7 @@ function clan_input_validation() {
 				
 	}
 	
-	/* echo " action: $doaction</p>"; */
+	//echo " action: $doaction</p>";
 
 	return $doaction;
 }
