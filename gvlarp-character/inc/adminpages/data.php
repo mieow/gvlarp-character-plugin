@@ -1,57 +1,7 @@
 <?php
 
 
-function character_datatables() {
-	if ( !current_user_can( 'manage_options' ) )  {
-		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
-	}
-	?>
-	<div class="wrap">
-		<h2>Database Tables</h2>
-		<script type="text/javascript">
-			function tabSwitch(tab) {
-				setSwitchState('merit', tab == 'merit');
-				setSwitchState('flaw', tab == 'flaw');
-				setSwitchState('ritual', tab == 'ritual');
-				setSwitchState('book', tab == 'book');
-				return false;
-			}
-			function setSwitchState(tab, show) {
-				document.getElementById('gv-'+tab).style.display = show ? 'block' : 'none';
-				document.getElementById('gvm-'+tab).className = show ? 'shown' : '';
-			}
-		</script>
-		<div class="gvadmin_nav">
-			<ul>
-				<li><?php echo get_tabanchor('merit', 'Merits', 'merit'); ?></li>
-				<li><?php echo get_tabanchor('flaw', 'Flaws', 'merit'); ?></li>
-				<li><?php echo get_tabanchor('ritual', 'Rituals', 'merit'); ?></li>
-				<li><?php echo get_tabanchor('book', 'Sourcebooks', 'merit'); ?></li>
-			</ul>
-		</div>
-		<div class="gvadmin_content">
-			<div id="gv-merit" <?php echo get_tabdisplay('merit', 'merit'); ?>>
-				<h1>Merits</h1>
-				<?php render_meritflaw_page("merit"); ?>
-			</div>
-			<div id="gv-flaw" <?php echo get_tabdisplay("flaw", 'merit'); ?>>
-				<h1>Flaws</h1>
-				<?php render_meritflaw_page("flaw"); ?>
-			</div>
-			<div id="gv-ritual" <?php echo get_tabdisplay("ritual", 'merit'); ?>>
-				<h1>Rituals</h1>
-				<?php render_rituals_page(); ?>
-			</div>
-			<div id="gv-book" <?php echo get_tabdisplay("book", 'merit'); ?>>
-				<h1>Sourcebooks</h1>
-				<?php render_sourcebook_page(); ?>
-			</div>
-		</div>
 
-	</div>
-	
-	<?php
-}
 
 function render_meritflaw_page($type){
 

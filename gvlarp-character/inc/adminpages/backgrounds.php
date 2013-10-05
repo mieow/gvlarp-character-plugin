@@ -786,8 +786,11 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
 					and charbgs.DENIED_DETAIL = ''
 					and	(backgrounds.BACKGROUND_QUESTION != '' OR charbgs.SECTOR_ID > 0);";
 				
-		
 		$tempdata =$wpdb->get_results($wpdb->prepare($sql,''));
+		//echo "<p>SQL: $sql</p>";
+		//print_r($tempdata);
+		
+		
 		$row = 0;
 		foreach ($tempdata as $tablerow) {
 			$description = "<strong>{$tablerow->background} {$tablerow->LEVEL}";
@@ -824,6 +827,8 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
 				
 		
 		$tempdata =$wpdb->get_results($wpdb->prepare($sql,''));
+		//echo "<p>SQL: $sql</p>";
+		//print_r($tempdata);
 		foreach ($tempdata as $tablerow) {
 			$description = "<strong>{$tablerow->merit}";
 			$description .= ($tablerow->COMMENT) ? " ({$tablerow->COMMENT})" : "";
@@ -856,6 +861,8 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
 					and answers.DENIED_DETAIL = '';";
 					
 		$tempdata =$wpdb->get_results($wpdb->prepare($sql,''));
+		//echo "<p>SQL: $sql</p>";
+		//print_r($tempdata);
 		foreach ($tempdata as $tablerow) {
 			$description = "<strong>{$tablerow->TITLE} ({$tablerow->GROUPING})</strong><br />
 				<span>" . stripslashes($tablerow->PENDING_DETAIL) . "</span>";

@@ -1,6 +1,6 @@
 <?php
 
-
+/*
 function character_datatables2() {
 	if ( !current_user_can( 'manage_options' ) )  {
 		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
@@ -41,7 +41,7 @@ function character_datatables2() {
 	</div>
 	
 	<?php
-}
+} */
 
 function render_stat_page($type){
 
