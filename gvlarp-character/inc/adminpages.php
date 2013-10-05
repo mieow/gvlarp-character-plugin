@@ -85,9 +85,7 @@ function gvcharacter_options_validate($input) {
 
 function register_character_menu() {
 	add_menu_page( "Character Plugin Options", "Characters", "manage_options", "gvcharacter-plugin", "character_options");
-	add_submenu_page( "gvcharacter-plugin", "Database Tables",      "Data",                "manage_options", "gvcharacter-data",   "character_datatables" );  
-	add_submenu_page( "gvcharacter-plugin", "Stats & Skills",       "Stats / Skills",      "manage_options", "gvcharacter-data2",  "character_datatables2" );  
-	add_submenu_page( "gvcharacter-plugin", "Clans & Disciplines",  "Clans / Disciplines", "manage_options", "gvcharacter-clans",  "character_clans" );  
+	add_submenu_page( "gvcharacter-plugin", "Database Tables",      "Data Tables",         "manage_options", "gvcharacter-data",   "character_datatables" );  
 	add_submenu_page( "gvcharacter-plugin", "Backgrounds",          "Backgrounds",   "manage_options", "gvcharacter-bg",     "character_backgrounds" );  
 	add_submenu_page( "gvcharacter-plugin", "Reports",              "Reports",       "manage_options", "gvcharacter-report", "character_reports" );  
 	add_submenu_page( "gvcharacter-plugin", "Experience",           "Experience",    "manage_options", "gvcharacter-xp",     "character_experience" );  
@@ -116,11 +114,6 @@ function tabdisplay($tab, $default="merit") {
 		
 }
 
-
-/* DISPLAY TABLES 
--------------------------------------------------- */
-
-
 function gvmake_filter($sqlresult) {
 	
 	$keys = array('all');
@@ -144,5 +137,81 @@ function gvmake_filter($sqlresult) {
 	return $outarray;
 }
 
+function get_tabhighlight($tab){
+	if ((isset($_REQUEST['tab']) && $_REQUEST['tab'] == $tab))
+		return "class='shown'";
+	return "";
+}
 
+function get_tablink($tab, $text){
+	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+	$current_url = remove_query_arg( 'tab', $current_url );
+	$current_url = add_query_arg('tab', $tab);
+	$markup = '<a id="gvm-@TAB@" href="@HREF@" @SHOWN@>@TEXT@</a>';
+	return str_replace(
+		Array('@TAB@','@TEXT@','@SHOWN@', '@HREF@'),
+			Array($tab, $text, get_tabhighlight($tab, $default),$current_url),
+			$markup
+		);
+}
+
+/* DISPLAY TABS
+-------------------------------------------------- */
+function character_datatables() {
+	if ( !current_user_can( 'manage_options' ) )  {
+		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
+	}
+	?>
+	<div class="wrap">
+		<h2>Database Tables</h2>
+		<div class="gvadmin_nav">
+			<ul>
+				<li><?php echo get_tablink('stat', 'Attributes and Stats'); ?></li>
+				<li><?php echo get_tablink('skill', 'Abilities'); ?></li>
+				<li><?php echo get_tablink('merit', 'Merits'); ?></li>
+				<li><?php echo get_tablink('flaw', 'Flaws'); ?></li>
+				<li><?php echo get_tablink('ritual', 'Rituals'); ?></li>
+				<li><?php echo get_tablink('book', 'Sourcebooks'); ?></li>
+				<li><?php echo get_tablink('clans', 'Clans'); ?></li>
+				<li><?php echo get_tablink('disc', 'Disciplines'); ?></li>
+			</ul>
+		</div>
+		<div class="gvadmin_content">
+		<?php
+		
+		switch ($_REQUEST['tab']) {
+			case 'stat':
+				render_stat_page("stat");
+				break;
+			case 'skill':
+				render_skill_page("skill");
+				break;
+			case 'merit':
+				render_meritflaw_page("merit");
+				break;
+			case 'flaw':
+				render_meritflaw_page("flaw");
+				break;
+			case 'ritual':
+				render_rituals_page(); 
+				break;
+			case 'book':
+				render_sourcebook_page();
+				break;
+			case 'clans':
+				render_clan_page(); 
+				break;
+			case 'disc':
+				render_discipline_page();
+				break;
+			default:
+				render_stat_page("stat");
+		}
+		
+		?>
+		</div>
+	</div>
+	
+	<?php
+}
 ?>
