@@ -4,7 +4,7 @@ register_activation_hook(__FILE__, "gvlarp_character_install");
 register_activation_hook( __FILE__, 'gvlarp_character_install_data' );
 
 global $gvlarp_character_db_version;
-$gvlarp_character_db_version = "1.8.13"; /* 1.8.0 */
+$gvlarp_character_db_version = "1.8.15"; /* 1.8.0 */
 
 function gvlarp_update_db_check() {
     global $gvlarp_character_db_version;
@@ -325,7 +325,7 @@ function gvlarp_character_install() {
 					CONSTRAINT `" . $table_prefix . "pending_xp_constraint_2` FOREIGN KEY (CHARACTER_ID) REFERENCES " . $table_prefix . "CHARACTER(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
-		$remove = array( 'CODE' => '');
+		$remove = array( 'CODE' => '', 'ITEM_ID' => '');
 		remove_columns($current_table_name, $remove);
 
 		$current_table_name = $table_prefix . "CHARACTER_ROAD_OR_PATH";
@@ -733,9 +733,17 @@ function gvlarp_character_install() {
 					PLACEHOLDER_IMAGE          TINYTEXT       NOT NULL,
 					CLAN_DISCIPLINE_DISCOUNT   VARCHAR(10)    NOT NULL,
 					ANDROID_LINK               TINYTEXT       NOT NULL,
+					HOME_COURT_ID              MEDIUMINT(9)   NOT NULL,
 					PRIMARY KEY  (ID)
+					CONSTRAINT `" . $table_prefix . "config_constraint_1` FOREIGN KEY (HOME_COURT_ID)  REFERENCES " . $table_prefix . "COURT(ID)
 					) ENGINE=INNODB;";
+		//echo "<p>SQL: $sql</p>";
 		dbDelta($sql);
+		/* remove COLUMNS if it exists */
+		$remove = array (
+			'CLAN_DISCIPLINE_DISCOUNT' => '' 
+		);
+		remove_columns($current_table_name, $remove);
 		
 		$current_table_name = $table_prefix . "EXTENDED_BACKGROUND";
 		$sql = "CREATE TABLE " . $current_table_name . " (
