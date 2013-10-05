@@ -5,6 +5,10 @@ nav {
 	display:block;
 }
 
+.gvadmin_content{
+	clear:both;
+}
+
 .gvadmin_nav{
 	clear: both;
 	display: block;
