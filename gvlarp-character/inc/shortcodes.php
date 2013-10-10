@@ -282,6 +282,67 @@ function print_background_shortcode($atts, $content = null) {
 add_shortcode('background_table', 'print_background_shortcode');
 
 
+add_shortcode('integration_alo_easymail', 'get_character_from_email');
+function get_character_from_email ($email, $setting = 'name') {
+	global $wpdb;
+
+	$sqlCharID = "SELECT chara.id, chara.name, paths.name as pathname, chara.player_id
+			FROM	
+				" . $wpdb->prefix . "GVLARP_CHARACTER chara,
+				" . $wpdb->prefix . "users wpusers,
+				" . $wpdb->prefix . "GVLARP_ROAD_OR_PATH paths
+			WHERE
+				wpusers.user_email = %s
+				AND chara.WORDPRESS_ID = wpusers.user_login
+				AND chara.DELETED = 'N'
+				AND chara.VISIBLE = 'Y'
+				AND paths.ID = chara.ROAD_OR_PATH_ID
+			ORDER BY chara.CHARACTER_STATUS_ID ASC, chara.LAST_UPDATED DESC, chara.name
+			LIMIT 1";
+	$result = $wpdb->get_results($wpdb->prepare($sqlCharID, $email));
+	$id   = $result[0]->id;
+	$name = $result[0]->name;
+	$path = $result[0]->pathname;
+	$playerid = $result[0]->player_id;
+		
+	if ($setting == 'xptotal') {
+		$sql = "SELECT SUM(xpspends.amount) as total
+				FROM
+					" . $wpdb->prefix . "GVLARP_PLAYER_XP as xpspends
+				WHERE
+					xpspends.PLAYER_ID = '%s'";
+		$result = $wpdb->get_results($wpdb->prepare($sql, $playerid));
+		$xp = $result[0]->total;
+	}
+	
+	if ($setting == 'rating') {
+
+		$sql = "SELECT
+					SUM(cha_path.AMOUNT) as rating
+				FROM
+					" . $wpdb->prefix . "GVLARP_CHARACTER_ROAD_OR_PATH cha_path
+				WHERE
+					cha_path.CHARACTER_ID = %s";
+		$result = $wpdb->get_results($wpdb->prepare($sql, $id));
+		$rating = $result[0]->rating;
+		
+	}
+
+	switch ($setting) {
+		case 'name':    $output = $name; break;
+		case 'path':    $output = $path; break;
+		case 'rating':  $output = $rating; break;
+		case 'xptotal': $output = $xp; break;
+		default:
+			$output = $setting;
+	}
+		
+	return $output;
+
+}
+
+
+
     function print_prestige_character_list($atts, $content=null) {
         extract(shortcode_atts(array ("character" => "null", "clan" => ""), $atts));
         $character = establishCharacter($character);
@@ -523,4 +584,6 @@ add_shortcode('background_table', 'print_background_shortcode');
     }
     add_shortcode('prestige_list_block', 'print_prestige_character_list');
 
+	
+	
 ?>
