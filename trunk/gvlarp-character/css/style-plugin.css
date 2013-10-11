@@ -504,11 +504,22 @@ h4.gvxp_head  {
     background-color: #222;
 } */
 
-/* =Status List Block
+/* =Background List Block
 -------------------------------------------------------------- */
-/*#gvid_slb .gvcol_key {
-	width: auto;
-}*/
+#gvid_blb th {
+    font-weight: bold;
+    background-color: #222;
+    padding: 3px;
+	margin: 5px 1px 0px 0px;
+}
+/* =Merit List Block
+-------------------------------------------------------------- */
+#gvid_mlb th {
+    font-weight: bold;
+    background-color: #222;
+    padding: 3px;
+	margin: 5px 1px 0px 0px;
+}
 
 /* =Pending XP Spend
 -------------------------------------------------------------- */
