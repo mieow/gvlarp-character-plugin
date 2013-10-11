@@ -1,13 +1,13 @@
 <?php
-function get_homecourt() {
+function get_homedomain() {
 
 	global $wpdb;
 	
 	$config = getConfig();
 
-	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "COURT
+	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "DOMAIN
 			WHERE ID = %s;";
-	$list = $wpdb->get_results($wpdb->prepare($sql, $config->HOME_COURT_ID));
+	$list = $wpdb->get_results($wpdb->prepare($sql, $config->HOME_DOMAIN_ID));
 	
 	return $list[0]->NAME;
 }
@@ -27,19 +27,19 @@ function  get_loggedinclan($characterID) {
 	
 	return $result;
 }
-function  get_loggedincourt($characterID) {
+function  get_loggedindomain($characterID) {
 	global $wpdb;
 
-	$sql = "SELECT courts.name as court
+	$sql = "SELECT domains.name as domain
 			FROM 
 				" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
-				" . GVLARP_TABLE_PREFIX . "COURT courts
+				" . GVLARP_TABLE_PREFIX . "DOMAIN domains
 			WHERE 
 				chara.ID = %s
-				AND courts.ID = chara.COURT_ID";
+				AND domains.ID = chara.DOMAIN_ID";
 	$result = $wpdb->get_results($wpdb->prepare($sql, $characterID));
 	
-	return $result[0]->court;
+	return $result[0]->domain;
 }
 
 function get_profilelink($profilelink, $wordpressid, $character) {
@@ -62,10 +62,10 @@ function print_background_shortcode($atts, $content = null) {
 		"background" => "Status",
 		"matchtype"  => "",
 		"match"      => "",
-		"court"      => "home",
+		"domain"     => "home",
 		"liststatus" => "Alive",
 		"level"      => "all",
-		"columns"    => "level,character,player,clan,court,background,sector,comment,level",
+		"columns"    => "level,character,player,clan,domain,background,sector,comment,level",
 		"heading"    => 1
 		), $atts)
 	);
@@ -76,7 +76,7 @@ function print_background_shortcode($atts, $content = null) {
 		
 		match = <value> or loggedinclan
 		
-		court = "" or <value> or loggedin or home
+		domain = "" or <value> or loggedin or home
 		
 		level = "all" or "displayzeros" or <number>
 	*/
@@ -95,7 +95,7 @@ function print_background_shortcode($atts, $content = null) {
 				background.name as bgname,
 				char_bg.level as level,
 				char_bg.comment as comment,
-				courts.name as court,
+				domains.name as domain,
 				sector.name as sectorname
 			FROM
 				" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
@@ -111,7 +111,7 @@ function print_background_shortcode($atts, $content = null) {
 				ON
 					char_bg.SECTOR_ID = sector.ID
 				,
-				" . GVLARP_TABLE_PREFIX . "COURT courts
+				" . GVLARP_TABLE_PREFIX . "DOMAIN domains
 			WHERE
 				chara.PLAYER_ID = player.ID
 				AND chara.ID = char_bg.CHARACTER_ID
@@ -121,7 +121,7 @@ function print_background_shortcode($atts, $content = null) {
 				AND chara.PUBLIC_CLAN_ID = pubclan.ID
 				AND chara.PRIVATE_CLAN_ID = privclan.ID
 				AND background.ID = char_bg.BACKGROUND_ID
-				AND courts.ID = chara.COURT_ID
+				AND domains.ID = chara.DOMAIN_ID
 				AND chara.VISIBLE = 'Y'
 				AND chara.DELETED = 'N'
 				AND background.name = %s";
@@ -138,7 +138,7 @@ function print_background_shortcode($atts, $content = null) {
 				%s as bgname,
 				0 as level,
 				\"\" as comment,
-				courts.name as court,
+				domains.name as domain,
 				\"\" as sectorname
 			FROM
 				" . GVLARP_TABLE_PREFIX . "CHARACTER chara
@@ -159,7 +159,7 @@ function print_background_shortcode($atts, $content = null) {
 				" . GVLARP_TABLE_PREFIX . "CHARACTER_STATUS cstatus,
 				" . GVLARP_TABLE_PREFIX . "CLAN pubclan,
 				" . GVLARP_TABLE_PREFIX . "CLAN privclan,
-				" . GVLARP_TABLE_PREFIX . "COURT courts
+				" . GVLARP_TABLE_PREFIX . "DOMAIN domains
 			WHERE
 				chara.PLAYER_ID = player.ID
                 AND player.PLAYER_STATUS_ID = pstatus.ID
@@ -167,7 +167,7 @@ function print_background_shortcode($atts, $content = null) {
 				AND chara.CHARACTER_STATUS_ID = cstatus.ID
 				AND chara.PUBLIC_CLAN_ID = pubclan.ID
 				AND chara.PRIVATE_CLAN_ID = privclan.ID
-				AND courts.ID = chara.COURT_ID
+				AND domains.ID = chara.DOMAIN_ID
 				AND chara.VISIBLE = 'Y'
 				AND chara.DELETED = 'N'
 				AND ISNULL(char_bg.ID)
@@ -199,18 +199,18 @@ function print_background_shortcode($atts, $content = null) {
 		array_push($sqlmainargs, $match);
 	}
 	
-	if ($court) {
-		$sqlfilter = " AND courts.name = %s";
+	if ($domain) {
+		$sqlfilter = " AND domains.name = %s";
 		$sqlmain .= $sqlfilter;
 		$sqlzero .= $sqlfilter;
 		
-		if ($court == 'loggedin')
-			$court = get_loggedincourt($characterID);
-		if ($court == 'home')
-			$court = get_homecourt();
+		if ($domain == 'loggedin')
+			$domain = get_loggedindomain($characterID);
+		if ($domain == 'home')
+			$domain = get_homedomain();
 		
-		array_push($sqlmainargs, $court);
-		array_push($sqlzeroargs, $court);
+		array_push($sqlmainargs, $domain);
+		array_push($sqlzeroargs, $domain);
 	}
 	
 	if ($level != "all" && $level != 'displayzeros') {
@@ -247,7 +247,7 @@ function print_background_shortcode($atts, $content = null) {
 				if ($name == 'player') $output .= "<th>Player</th>";
 				if ($name == 'clan')   $output .= "<th>Clan</th>";
 				if ($name == 'status') $output .= "<th>Character Status</th>";
-				if ($name == 'court')  $output .= "<th>Court</th>";
+				if ($name == 'domain')  $output .= "<th>Domain</th>";
 				if ($name == 'background')   $output .= "<th>Background</th>";
 				if ($name == 'comment')   $output .= "<th>Comment</th>";
 				if ($name == 'sector')   $output .= "<th>Sector</th>";
@@ -266,7 +266,7 @@ function print_background_shortcode($atts, $content = null) {
 				if ($name == 'player') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->playername}</td>";
 				if ($name == 'clan')   $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->publicclan}</td>";
 				if ($name == 'status') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->cstat}</td>";
-				if ($name == 'court')  $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->court}</td>";
+				if ($name == 'domain')  $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->domain}</td>";
 				if ($name == 'background') $output .= "<td class='gvcol_$col gvcol_val'>$background</td>";
 				if ($name == 'comment') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->comment}</td>";
 				if ($name == 'sector') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->sectorname}</td>";
@@ -355,9 +355,9 @@ function print_merit_shortcode($atts, $content = null) {
 		"merit"      => "Clan Friendship",
 		"matchtype"  => "",
 		"match"      => "",
-		"court"      => "home",
+		"domain"     => "home",
 		"liststatus" => "Alive",
-		"columns"    => "character,player,clan,court,merit,comment,level",
+		"columns"    => "character,player,clan,domain,merit,comment,level",
 		"heading"    => 1
 		), $atts)
 	);
@@ -365,7 +365,7 @@ function print_merit_shortcode($atts, $content = null) {
 	/* 
 		match = <value> or loggedinclan
 		
-		court = "" or <value> or loggedin or home
+		domain = "" or <value> or loggedin or home
 		
 		level = "all" or "displayzeros" or <number>
 	*/
@@ -384,7 +384,7 @@ function print_merit_shortcode($atts, $content = null) {
 				merit.name as meritname,
 				char_merit.level as level,
 				char_merit.comment as comment,
-				courts.name as court
+				domains.name as domain
 			FROM
 				" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
 				" . GVLARP_TABLE_PREFIX . "PLAYER player,
@@ -394,7 +394,7 @@ function print_merit_shortcode($atts, $content = null) {
 				" . GVLARP_TABLE_PREFIX . "CLAN privclan,
 				" . GVLARP_TABLE_PREFIX . "MERIT merit,
 				" . GVLARP_TABLE_PREFIX . "CHARACTER_MERIT char_merit,
-				" . GVLARP_TABLE_PREFIX . "COURT courts
+				" . GVLARP_TABLE_PREFIX . "DOMAIN domains
 			WHERE
 				chara.PLAYER_ID = player.ID
 				AND chara.ID = char_merit.CHARACTER_ID
@@ -404,7 +404,7 @@ function print_merit_shortcode($atts, $content = null) {
 				AND chara.PUBLIC_CLAN_ID = pubclan.ID
 				AND chara.PRIVATE_CLAN_ID = privclan.ID
 				AND merit.ID = char_merit.MERIT_ID
-				AND courts.ID = chara.COURT_ID
+				AND domains.ID = chara.DOMAIN_ID
 				AND chara.VISIBLE = 'Y'
 				AND chara.DELETED = 'N'
 				AND merit.name = %s";
@@ -430,16 +430,16 @@ function print_merit_shortcode($atts, $content = null) {
 		}
 	}
 	
-	if ($court) {
-		$sqlfilter = " AND courts.name = %s";
+	if ($domain) {
+		$sqlfilter = " AND domains.name = %s";
 		$sqlmain .= $sqlfilter;
 		
-		if ($court == 'loggedin')
-			$court = get_loggedincourt($characterID);
-		if ($court == 'home')
-			$court = get_homecourt();
+		if ($domain == 'loggedin')
+			$domain = get_loggedindomain($characterID);
+		if ($domain == 'home')
+			$domain = get_homedomain();
 		
-		array_push($sqlmainargs, $court);
+		array_push($sqlmainargs, $domain);
 	}
 		
 	$sql = $sqlmain;
@@ -463,7 +463,7 @@ function print_merit_shortcode($atts, $content = null) {
 				if ($name == 'player') $output .= "<th>Player</th>";
 				if ($name == 'clan')   $output .= "<th>Clan</th>";
 				if ($name == 'status') $output .= "<th>Character Status</th>";
-				if ($name == 'court')  $output .= "<th>Court</th>";
+				if ($name == 'domain')  $output .= "<th>Domain</th>";
 				if ($name == 'merit')   $output .= "<th>Merit</th>";
 				if ($name == 'comment')   $output .= "<th>Comment</th>";
 				if ($name == 'level')  $output .= "<th>Level</th>";
@@ -481,7 +481,7 @@ function print_merit_shortcode($atts, $content = null) {
 				if ($name == 'player') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->playername}</td>";
 				if ($name == 'clan')   $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->publicclan}</td>";
 				if ($name == 'status') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->cstat}</td>";
-				if ($name == 'court')  $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->court}</td>";
+				if ($name == 'domain')  $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->domain}</td>";
 				if ($name == 'merit') $output .= "<td class='gvcol_$col gvcol_val'>$merit</td>";
 				if ($name == 'comment') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->comment}</td>";
 				if ($name == 'level')  $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->level}</td>";
