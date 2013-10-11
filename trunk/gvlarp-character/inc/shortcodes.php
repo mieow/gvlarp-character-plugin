@@ -65,7 +65,8 @@ function print_background_shortcode($atts, $content = null) {
 		"court"      => "home",
 		"liststatus" => "Alive",
 		"level"      => "all",
-		"columns"    => "level,character,player,clan,court,background,sector,comment,level"
+		"columns"    => "level,character,player,clan,court,background,sector,comment,level",
+		"heading"    => 1
 		), $atts)
 	);
 	
@@ -238,19 +239,22 @@ function print_background_shortcode($atts, $content = null) {
 	
 	if (count($result)) {
 		$columnlist = explode(',',$columns);
-		$output = "<table class='gvplugin' id=\"gvid_slb\">\n<tr>";
-		foreach ($columnlist as $name) {
-			if ($name == 'character') $output .= "<th>Character</th>";
-			if ($name == 'player') $output .= "<th>Player</th>";
-			if ($name == 'clan')   $output .= "<th>Clan</th>";
-			if ($name == 'status') $output .= "<th>Character Status</th>";
-			if ($name == 'court')  $output .= "<th>Court</th>";
-			if ($name == 'background')   $output .= "<th>Background</th>";
-			if ($name == 'comment')   $output .= "<th>Comment</th>";
-			if ($name == 'sector')   $output .= "<th>Sector</th>";
-			if ($name == 'level')  $output .= "<th>Level</th>";
+		$output = "<table class='gvplugin' id=\"gvid_blb\">\n";
+		if ($heading) {
+			$output .= "<tr>";
+			foreach ($columnlist as $name) {
+				if ($name == 'character') $output .= "<th>Character</th>";
+				if ($name == 'player') $output .= "<th>Player</th>";
+				if ($name == 'clan')   $output .= "<th>Clan</th>";
+				if ($name == 'status') $output .= "<th>Character Status</th>";
+				if ($name == 'court')  $output .= "<th>Court</th>";
+				if ($name == 'background')   $output .= "<th>Background</th>";
+				if ($name == 'comment')   $output .= "<th>Comment</th>";
+				if ($name == 'sector')   $output .= "<th>Sector</th>";
+				if ($name == 'level')  $output .= "<th>Level</th>";
+			}
+			$output .= "</tr>\n";
 		}
-		$output .= "</tr>\n";
 		
 		$config = getConfig();
 
@@ -341,249 +345,159 @@ function get_character_from_email ($email, $setting = 'name') {
 
 }
 
-
-
-    function print_prestige_character_list($atts, $content=null) {
-        extract(shortcode_atts(array ("character" => "null", "clan" => ""), $atts));
-        $character = establishCharacter($character);
-
-        global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
-        $output    = "";
-        $sqlOutput = "";
-
-        $leftQuery = "";
-        if ($clan != "" && isST()) {
-            $leftQuery = "SELECT target_char.id chara_id,
-                                     target_char.name chara_name,
-                                     target_char.wordpress_id wordpress_id,
-                                     clan.name clan_name,
-                                     court.name court_name
-                              FROM " . $table_prefix . "CHARACTER target_char,
-                                   " . $table_prefix . "PLAYER player,
-                                   " . $table_prefix . "PLAYER_STATUS pstatus,
-                                   " . $table_prefix . "COURT court,
-                                   " . $table_prefix . "CLAN clan,
-								   " . $table_prefix . "CHARACTER_STATUS cstatus
-                              WHERE target_char.PUBLIC_CLAN_ID = clan.ID
-                                AND target_char.player_id = player.id
-                                AND player.player_status_id = pstatus.id
-                                AND target_char.court_id = court.id
-                                AND pstatus.name = 'Active'
-								AND target_char.character_status_id = cstatus.id
-								AND cstatus.name = 'Alive'
-                                AND clan.name = %s";
-
-            $rightQuery = "SELECT target_char.id chara2_id,
-                                      target_char.name chara2_name,
-                                      target_char.wordpress_id chara2_wordpress_id,
-                                      target_clan.name target_clan_name,
-                                      target_court.name target_court_name,
-                                      cha_back.level
-                               FROM " . $table_prefix . "CHARACTER target_char,
-                                    " . $table_prefix . "CHARACTER source_char,
-                                    " . $table_prefix . "PLAYER player,
-                                    " . $table_prefix . "PLAYER_STATUS pstatus,
-                                    " . $table_prefix . "CLAN source_clan,
-                                    " . $table_prefix . "CLAN target_clan,
-                                    " . $table_prefix . "COURT target_court,
-                                    " . $table_prefix . "BACKGROUND back,
-                                    " . $table_prefix . "CHARACTER_BACKGROUND cha_back,
- 								    " . $table_prefix . "CHARACTER_STATUS cstatus
-                              WHERE source_clan.name = %s
-                                 AND target_char.ID = cha_back.CHARACTER_ID
-                                 AND cha_back.BACKGROUND_ID = back.id
-                                 AND back.NAME = 'Clan Prestige'
-                                 AND cha_back.comment = source_clan.name
-                                 AND target_char.DELETED != 'Y'
-                                 AND target_char.player_id = player.id
-                                 AND target_char.court_id = target_court.id
-								 AND target_char.character_status_id = cstatus.id
-								 AND cstatus.name = 'Alive'
-                                 AND player.player_status_id = pstatus.id
-                                 AND pstatus.name = 'Active'
-                                 AND source_char.DELETED != 'Y'
-                                 AND target_char.PUBLIC_CLAN_ID = target_clan.ID";
-        }
-        else {
-            $leftQuery = "SELECT target_char.id chara_id,
-                                     target_char.name chara_name,
-                                     target_char.wordpress_id wordpress_id,
-                                     clan.name clan_name,
-                                     court.name court_name
-                              FROM " . $table_prefix . "CHARACTER target_char,
-                                   " . $table_prefix . "CHARACTER source_char,
-                                   " . $table_prefix . "PLAYER player,
-                                   " . $table_prefix . "PLAYER_STATUS pstatus,
-                                   " . $table_prefix . "COURT court,
-                                   " . $table_prefix . "CLAN clan,
- 								   " . $table_prefix . "CHARACTER_STATUS cstatus
-                              WHERE target_char.PUBLIC_CLAN_ID = source_char.PUBLIC_CLAN_ID
-                                AND target_char.PUBLIC_CLAN_ID = clan.id
-                                AND (target_char.VISIBLE = 'Y' OR target_char.id = source_char.id)
-                                AND target_char.DELETED != 'Y'
-                                AND target_char.player_id = player.id
-                                AND target_char.court_id = court.id
-								AND target_char.character_status_id = cstatus.id
-                                AND player.player_status_id = pstatus.id
-                                AND pstatus.name = 'Active'
-                                AND source_char.DELETED != 'Y'
-								AND cstatus.name = 'Alive'
-                                AND source_char.WORDPRESS_ID = %s";
-
-            $rightQuery = "SELECT target_char.id chara2_id,
-                                      target_char.name chara2_name,
-                                      target_char.wordpress_id chara2_wordpress_id,
-                                      target_clan.name target_clan_name,
-                                      target_court.name target_court_name,
-                                      cha_back.level
-                               FROM " . $table_prefix . "CHARACTER target_char,
-                                    " . $table_prefix . "CHARACTER source_char,
-                                    " . $table_prefix . "PLAYER player,
-                                    " . $table_prefix . "PLAYER_STATUS pstatus,
-                                    " . $table_prefix . "CLAN source_clan,
-                                    " . $table_prefix . "CLAN target_clan,
-                                    " . $table_prefix . "COURT target_court,
-                                    " . $table_prefix . "BACKGROUND back,
-                                    " . $table_prefix . "CHARACTER_BACKGROUND cha_back,
- 								    " . $table_prefix . "CHARACTER_STATUS cstatus
-                               WHERE source_char.PUBLIC_CLAN_ID = source_clan.id
-                                 AND target_char.ID = cha_back.CHARACTER_ID
-                                 AND cha_back.BACKGROUND_ID = back.id
-                                 AND (target_char.VISIBLE = 'Y' OR target_char.id = source_char.id)
-                                 AND back.NAME = 'Clan Prestige'
-                                 AND cha_back.comment = source_clan.name
-                                 AND target_char.PUBLIC_CLAN_ID = target_clan.ID
-                                 AND target_char.DELETED != 'Y'
-                                 AND target_char.player_id = player.id
-                                 AND target_char.court_id = target_court.id
-								 AND target_char.character_status_id = cstatus.id
-                                 AND player.player_status_id = pstatus.id
-                                 AND pstatus.name = 'Active'
-								 AND cstatus.name = 'Alive'
-                                 AND source_char.DELETED != 'Y'
-                                 AND source_char.WORDPRESS_ID = %s";
-        }
-
-        $sql = "SELECT chara_name Character_Name,
-                           clan_name Character_Clan,
-                           ifnull(level, 0) Prestige,
-                           court_name Court,
-                           wordpress_id Wordpress_Id
-                    FROM (" . $leftQuery . ") as clan_list
-                          LEFT JOIN (" . $rightQuery . ") as prestige_list
-                          on (clan_list.chara_id = prestige_list.chara2_id)
-                    union
-                    SELECT chara2_name Character_Name,
-                           target_clan_name Character_Clan,
-                           ifnull(level, 0) Prestige,
-                           target_court_name Court,
-                           chara2_wordpress_id Wordpress_Id
-                    FROM (" . $leftQuery . ") as clan_list
-                          RIGHT JOIN (" . $rightQuery . ") as prestige_list
-                          on (clan_list.chara_id = prestige_list.chara2_id)
-                    ORDER BY prestige DESC";
-
-        if ($clan != "" && isST()) {
-            $sql = $wpdb->prepare($sql, $clan, $clan, $clan, $clan);
-        }
-        else {
-            $sql = $wpdb->prepare($sql, $character, $character, $character, $character);
-        }
-
-        $prestige_characters = $wpdb->get_results($sql);
-
-        $config = getConfig();
-
-        foreach ($prestige_characters as $current_character) {
-            $sqlOutput .="<tr><td class=\"gvcol_1 gvcol_key\">
-                                  <a href=\"" . $config->PROFILE_LINK . "?CHARACTER=" . urlencode($current_character->Wordpress_Id) . "\">"
-                . $current_character->Character_Name . "</a></td>
-                                  <td class=\"gvcol_2 gvcol_val\">" . $current_character->Character_Clan . "</td>
-                                  <td class=\"gvcol_3 gvcol_val\">" . $current_character->Court          . "</td>
-                                  <td class='gvcol_4 gvcol_val'>" . $current_character->Prestige       . "</td></tr>";
-        }
-
-        if ($clan != "" && isST()) {
-            $sql = "SELECT chara.name character_name,
-                               chara.wordpress_id wordpress_id,
-                               merit.name merit_name,
-                               cmerit.comment,
-                               court.name court_name
-                            FROM " . $table_prefix . "CHARACTER chara,
-                                 " . $table_prefix . "COURT court,
-                                 " . $table_prefix . "PLAYER player,
-                                 " . $table_prefix . "PLAYER_STATUS pstatus,
-                                 " . $table_prefix . "CHARACTER_MERIT cmerit,
-                                 " . $table_prefix . "MERIT merit
-                            WHERE chara.id = cmerit.character_id
-                              AND merit.id = cmerit.merit_id
-                              AND chara.deleted != 'Y'
-                              AND chara.player_id = player.id
-                              AND chara.court_id = court.id
-                              AND player.player_status_id = pstatus.id
-                              AND pstatus.name = 'Active'
-                              AND merit.name IN ('Clan Enmity', 'Clan Friendship')
-                              AND cmerit.comment = %s
-                            ORDER BY merit.name DESC, chara.name";
-            $sql = $wpdb->prepare($sql, $clan);
-        }
-        else {
-            $sql = "SELECT target_char.name character_name,
-                               chara.wordpress_id wordpress_id,
-                               merit.name merit_name,
-                               cmerit.comment,
-                               court.name court_name
-                            FROM " . $table_prefix . "CHARACTER source_char,
-                                 " . $table_prefix . "CHARACTER target_char,
-                                 " . $table_prefix . "COURT court
-                                 " . $table_prefix . "PLAYER player,
-                                 " . $table_prefix . "PLAYER_STATUS pstatus,
-                                 " . $table_prefix . "CHARACTER_MERIT cmerit,
-                                 " . $table_prefix . "MERIT merit,
-                                 " . $table_prefix . "CLAN source_clan
-                            WHERE target_char.id = cmerit.character_id
-                              AND merit.id = cmerit.merit_id
-                              AND source_char.public_clan_id = source_clan.id
-                              AND target_char.PUBLIC_CLAN_ID = target_clan.ID
-                              AND target_char.DELETED != 'Y'
-                              AND target_char.player_id = player.id
-                              AND target_char.deleted != 'Y'
-                              AND target_char.court_id = court.id
-                              AND (target_char.VISIBLE = 'Y' OR target_char.id = source_char.id)
-                              AND merit.name IN ('Clan Enmity', 'Clan Friendship')
-                              AND cmerit.comment = source_clan.name
-                              AND source_char.WORDPRESS_ID = %s
-                            ORDER BY merit.name DESC, target_char.name";
-            $sql = $wpdb->prepare($sql, $character);
-        }
-
-        $characters = $wpdb->get_results($sql);
-
-        foreach ($characters as $currentCharacter) {
-            $sqlOutput .= "<tr><td class=\"gvcol_1 gvcol_key\">
-                                       <a href=\"" . $config->PROFILE_LINK . "?CHARACTER=" . urlencode($current_character->Wordpress_Id) . "\">"
-                . $currentCharacter->character_name . "</a></td>
-                                   <td class=\"gvcol_2 gvcol_key\">" . $currentCharacter->court_name . "</td>
-                                   <td colspan=2 class=\"gvcol_3 gvcol_val\">" . $currentCharacter->merit_name . " " . stripslashes($currentCharacter->comment) . "</td></tr>";
-        }
-
-        if ($sqlOutput != "") {
-            $output .= "<table class='gvplugin' id=\"gvid_plb\">" . $sqlOutput . "</table>";
-        }
-        else {
-            if ($clan != "" && isST()) {
-                $output .= "No information found for clan (" . $clan . ")";
-            }
-            else {
-                $output .= "No information found for character (" . $character . ")";
-            }
-        }
-
-        return $output;
-    }
-    add_shortcode('prestige_list_block', 'print_prestige_character_list');
-
+function print_merit_shortcode($atts, $content = null) {
+	global $wpdb;
 	
+	$output = "";
+
+	extract(shortcode_atts(array (
+		"character" => "null",
+		"merit"      => "Clan Friendship",
+		"matchtype"  => "",
+		"match"      => "",
+		"court"      => "home",
+		"liststatus" => "Alive",
+		"columns"    => "character,player,clan,court,merit,comment,level",
+		"heading"    => 1
+		), $atts)
+	);
+	
+	/* 
+		match = <value> or loggedinclan
+		
+		court = "" or <value> or loggedin or home
+		
+		level = "all" or "displayzeros" or <number>
+	*/
+
+	$character = establishCharacter($character);
+	$characterID = establishCharacterID($character);
+		
+	$sqlmain = "SELECT chara.id,
+				chara.wordpress_id,
+				chara.name as charname,
+				pubclan.name as publicclan,
+				privclan.name as privateclan,
+				player.name as playername,
+				pstatus.name as pstat,
+				cstatus.name as cstat,
+				merit.name as meritname,
+				char_merit.level as level,
+				char_merit.comment as comment,
+				courts.name as court
+			FROM
+				" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
+				" . GVLARP_TABLE_PREFIX . "PLAYER player,
+				" . GVLARP_TABLE_PREFIX . "PLAYER_STATUS pstatus,
+				" . GVLARP_TABLE_PREFIX . "CHARACTER_STATUS cstatus,
+				" . GVLARP_TABLE_PREFIX . "CLAN pubclan,
+				" . GVLARP_TABLE_PREFIX . "CLAN privclan,
+				" . GVLARP_TABLE_PREFIX . "MERIT merit,
+				" . GVLARP_TABLE_PREFIX . "CHARACTER_MERIT char_merit,
+				" . GVLARP_TABLE_PREFIX . "COURT courts
+			WHERE
+				chara.PLAYER_ID = player.ID
+				AND chara.ID = char_merit.CHARACTER_ID
+                AND player.PLAYER_STATUS_ID = pstatus.ID
+				AND pstatus.NAME = 'Active'
+				AND chara.CHARACTER_STATUS_ID = cstatus.ID
+				AND chara.PUBLIC_CLAN_ID = pubclan.ID
+				AND chara.PRIVATE_CLAN_ID = privclan.ID
+				AND merit.ID = char_merit.MERIT_ID
+				AND courts.ID = chara.COURT_ID
+				AND chara.VISIBLE = 'Y'
+				AND chara.DELETED = 'N'
+				AND merit.name = %s";
+	$sqlmainargs = array($merit);
+	
+	if ($liststatus) {
+		$list = explode(',',$liststatus);
+		$sqlfilter = " AND ( cstatus.name = '";
+		$sqlfilter .= implode("' OR cstatus.name = '",$list);
+		$sqlfilter .= "')";
+		
+		$sqlmain .= $sqlfilter;
+	}
+	
+	if ($match) {
+		if ($match == 'loggedinclan') {
+			$clans = get_loggedinclan($characterID);
+			$sqlmain .= " AND (char_merit.comment = %s OR char_merit.comment = %s)";
+			array_push($sqlmainargs, $clans[0]->priv, $clans[0]->pub);
+		} else {
+			$sqlmain .= " AND char_merit.comment = %s";
+			array_push($sqlmainargs, $match);
+		}
+	}
+	
+	if ($court) {
+		$sqlfilter = " AND courts.name = %s";
+		$sqlmain .= $sqlfilter;
+		
+		if ($court == 'loggedin')
+			$court = get_loggedincourt($characterID);
+		if ($court == 'home')
+			$court = get_homecourt();
+		
+		array_push($sqlmainargs, $court);
+	}
+		
+	$sql = $sqlmain;
+	$sqlargs = $sqlmainargs;
+	
+	$sql .= " ORDER BY level DESC, charname";
+
+	$sql = $wpdb->prepare($sql, $sqlargs);
+	$result = $wpdb->get_results($sql);
+	
+	//echo "<p>SQL: $sql<p>";
+	//print_r($result);
+	
+	if (count($result)) {
+		$columnlist = explode(',',$columns);
+		$output = "<table class='gvplugin' id=\"gvid_mlb\">\n";
+		if ($heading) {
+			$output .= "<tr>";
+			foreach ($columnlist as $name) {
+				if ($name == 'character') $output .= "<th>Character</th>";
+				if ($name == 'player') $output .= "<th>Player</th>";
+				if ($name == 'clan')   $output .= "<th>Clan</th>";
+				if ($name == 'status') $output .= "<th>Character Status</th>";
+				if ($name == 'court')  $output .= "<th>Court</th>";
+				if ($name == 'merit')   $output .= "<th>Merit</th>";
+				if ($name == 'comment')   $output .= "<th>Comment</th>";
+				if ($name == 'level')  $output .= "<th>Level</th>";
+			}
+			$output .= "</tr>\n";
+		}
+		
+		$config = getConfig();
+
+		foreach ($result as $tablerow) {
+			$col = 1;
+			$output .= "<tr>";
+			foreach ($columnlist as $name) {
+				if ($name == 'character') $output .= "<td class='gvcol_$col gvcol_key'>" . get_profilelink($config->PROFILE_LINK, $tablerow->wordpress_id, $tablerow->charname) . "</td>";
+				if ($name == 'player') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->playername}</td>";
+				if ($name == 'clan')   $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->publicclan}</td>";
+				if ($name == 'status') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->cstat}</td>";
+				if ($name == 'court')  $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->court}</td>";
+				if ($name == 'merit') $output .= "<td class='gvcol_$col gvcol_val'>$merit</td>";
+				if ($name == 'comment') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->comment}</td>";
+				if ($name == 'level')  $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->level}</td>";
+				$col++;
+			}
+			$output .= "</tr>\n";
+		}
+		
+		$output .= "</table>";
+	} else {
+		$output = "<p>No characters with the matching merit '$merit'</p>";
+	}
+	
+	return $output;
+}
+add_shortcode('merit_table', 'print_merit_shortcode');
+
 	
 ?>
