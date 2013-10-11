@@ -48,7 +48,6 @@ add_filter ( 'alo_easymail_newsletter_placeholders_table', 'custom_easymail_plac
 
 
 
-
 /**
  * Replace the placeholder when the newsletter is sending 
  * @param	str		the newsletter text
@@ -66,21 +65,14 @@ function custom_easymail_placeholders_get_gvlarp_calendar ( $content, $newslette
    
 	return $content;	
 }
-add_filter ( 'alo_easymail_newsletter_content',  'custom_easymail_placeholders_get_gvlarp_calendar', 10, 4 );
+/*add_filter ( 'alo_easymail_newsletter_content',  'custom_easymail_placeholders_get_gvlarp_calendar', 10, 4 ); */
 
 
 function custom_easymail_placeholders_get_gvlarp_charactername ( $content, $newsletter, $recipient, $stop_recursive_the_content=false ) {  
 	if ( !is_object( $recipient ) ) $recipient = new stdClass();
 	if ( empty( $recipient->lang ) ) $recipient->lang = alo_em_short_langcode ( get_locale() );
 
-
-	$user_info = get_userdata($recipient->user_id);
-	$atts = array('character' => $user_info->user_login, 'group' => 'char_name');
-
-	$gvtext = print_character_details($atts, null);
-	
-	if (empty($gvtext)) $gvtext = $user_info->user_login;
-
+	$gvtext = get_character_from_email($recipient->email, 'name');
 	$content = str_replace("[GV_CHARNAME]", $gvtext , $content);
 
 	return $content;	
@@ -91,12 +83,7 @@ function custom_easymail_placeholders_get_gvlarp_pathname ( $content, $newslette
 	if ( !is_object( $recipient ) ) $recipient = new stdClass();
 	if ( empty( $recipient->lang ) ) $recipient->lang = alo_em_short_langcode ( get_locale() );
 
-
-	$user_info = get_userdata($recipient->user_id);
-	$atts = array('character' => $user_info->user_login, 'group' => 'path_name');
-
-	$gvtext = print_character_details($atts, null);
-	
+	$gvtext = get_character_from_email($recipient->email, 'path');
 	if ($gvtext == "") $gvtext = "Humanity";
 
 	$content = str_replace("[GV_PATHNAME]", $gvtext , $content);
@@ -109,11 +96,7 @@ function custom_easymail_placeholders_get_gvlarp_pathvalue ( $content, $newslett
 	if ( !is_object( $recipient ) ) $recipient = new stdClass();
 	if ( empty( $recipient->lang ) ) $recipient->lang = alo_em_short_langcode ( get_locale() );
 
-
-	$user_info = get_userdata($recipient->user_id);
-	$atts = array('character' => $user_info->user_login, 'group' => 'path_value');
-
-	$gvtext = print_character_details($atts, null);
+	$gvtext = get_character_from_email($recipient->email, 'rating');
 	
 	if (empty($gvtext)) $gvtext = "50";
 
@@ -121,18 +104,13 @@ function custom_easymail_placeholders_get_gvlarp_pathvalue ( $content, $newslett
 
 	return $content;	
 }
-add_filter ( 'alo_easymail_newsletter_content',  'custom_easymail_placeholders_get_gvlarp_pathvalue', 10, 4 );
+add_filter ( 'alo_easymail_newsletter_content',  'custom_easymail_placeholders_get_gvlarp_pathvalue', 10, 4 ); 
 
 function custom_easymail_placeholders_get_gvlarp_xptotal ( $content, $newsletter, $recipient, $stop_recursive_the_content=false ) {  
 	if ( !is_object( $recipient ) ) $recipient = new stdClass();
 	if ( empty( $recipient->lang ) ) $recipient->lang = alo_em_short_langcode ( get_locale() );
 
-
-	$user_info = get_userdata($recipient->user_id);
-	$atts = array('character' => $user_info->user_login, 'group' => 'total');
-
-	$gvtext = print_character_xp_table($atts, null);
-	
+	$gvtext = get_character_from_email($recipient->email, 'xptotal');
 	if (empty($gvtext)) $gvtext = "0";
 
 	$content = str_replace("[GV_XPTOTAL]", $gvtext , $content);
