@@ -85,11 +85,11 @@ function gvcharacter_options_validate($input) {
 
 function register_character_menu() {
 	add_menu_page( "Character Plugin Options", "Characters", "manage_options", "gvcharacter-plugin", "character_options");
-	add_submenu_page( "gvcharacter-plugin", "Database Tables",      "Data Tables",         "manage_options", "gvcharacter-data",   "character_datatables" );  
-	add_submenu_page( "gvcharacter-plugin", "Backgrounds",          "Backgrounds",   "manage_options", "gvcharacter-bg",     "character_backgrounds" );  
-	add_submenu_page( "gvcharacter-plugin", "Reports",              "Reports",       "manage_options", "gvcharacter-report", "character_reports" );  
-	add_submenu_page( "gvcharacter-plugin", "Experience",           "Experience",    "manage_options", "gvcharacter-xp",     "character_experience" );  
-	add_submenu_page( "gvcharacter-plugin", "Configuration",        "Configuration", "manage_options", "gvcharacter-config", "character_config" );  
+	add_submenu_page( "gvcharacter-plugin", "Database Tables",    "Data Tables",   "manage_options", "gvcharacter-data",   "character_datatables" );  
+	add_submenu_page( "gvcharacter-plugin", "Backgrounds",        "Backgrounds",   "manage_options", "gvcharacter-bg",     "character_backgrounds" );  
+	add_submenu_page( "gvcharacter-plugin", "Reports",            "Reports",       "manage_options", "gvcharacter-report", "character_reports" );  
+	add_submenu_page( "gvcharacter-plugin", "XP Approval",        "XP Approval",   "manage_options", "gvcharacter-xp",     "character_experience" );  
+	add_submenu_page( "gvcharacter-plugin", "Configuration",      "Configuration", "manage_options", "gvcharacter-config", "character_config" );  
 }
 
 function character_options() {
@@ -166,14 +166,18 @@ function character_datatables() {
 		<h2>Database Tables</h2>
 		<div class="gvadmin_nav">
 			<ul>
-				<li><?php echo get_tablink('stat', 'Attributes and Stats'); ?></li>
-				<li><?php echo get_tablink('skill', 'Abilities'); ?></li>
-				<li><?php echo get_tablink('merit', 'Merits'); ?></li>
-				<li><?php echo get_tablink('flaw', 'Flaws'); ?></li>
+				<li><?php echo get_tablink('stat',   'Attributes and Stats'); ?></li>
+				<li><?php echo get_tablink('skill',  'Abilities'); ?></li>
+				<li><?php echo get_tablink('merit',  'Merits'); ?></li>
+				<li><?php echo get_tablink('flaw',   'Flaws'); ?></li>
 				<li><?php echo get_tablink('ritual', 'Rituals'); ?></li>
-				<li><?php echo get_tablink('book', 'Sourcebooks'); ?></li>
-				<li><?php echo get_tablink('clans', 'Clans'); ?></li>
-				<li><?php echo get_tablink('disc', 'Disciplines'); ?></li>
+				<li><?php echo get_tablink('book',   'Sourcebooks'); ?></li>
+				<li><?php echo get_tablink('clans',  'Clans'); ?></li>
+				<li><?php echo get_tablink('disc',   'Disciplines'); ?></li>
+				<li><?php echo get_tablink('bgdata', 'Backgrounds'); ?></li>
+				<li><?php echo get_tablink('sector', 'Sectors'); ?></li>
+				<li><?php echo get_tablink('question', 'Background Questions'); ?></li>
+				<li><?php echo get_tablink('costmodel', 'Cost Models'); ?></li>
 			</ul>
 		</div>
 		<div class="gvadmin_content">
@@ -203,6 +207,18 @@ function character_datatables() {
 				break;
 			case 'disc':
 				render_discipline_page();
+				break;
+			case 'bgdata':
+				render_background_data();
+				break;
+			case 'sector':
+				render_sector_data();
+				break;
+			case 'question':
+				render_question_data();
+				break;
+			case 'costmodel':
+				render_costmodel_page("costmodel");
 				break;
 			default:
 				render_stat_page("stat");
