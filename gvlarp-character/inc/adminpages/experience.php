@@ -6,36 +6,8 @@ function character_experience() {
 	}
 	?>
 	<div class="wrap">
-		<h2>Database Tables</h2>
-		<script type="text/javascript">
-			function tabSwitch(tab) {
-				setSwitchState('xpapprove', tab == 'xpapprove');
-				setSwitchState('costmodel', tab == 'costmodel');
-				return false;
-			}
-			function setSwitchState(tab, show) {
-				document.getElementById('gv-'+tab).style.display = show ? 'block' : 'none';
-				document.getElementById('gvm-'+tab).className = show ? 'shown' : '';
-			}
-		</script>
-		<div class="gvadmin_nav">
-			<ul>
-				<li><?php echo get_tabanchor('xpapprove', 'Approve Spends', 'xpapprove'); ?></li>
-				<li><?php echo get_tabanchor('costmodel', 'Cost Models', 'costmodel'); ?></li>
-				<li>
-			</ul>
-		</div>
-		<div class="gvadmin_content">
-			<div id="gv-xpapprove" <?php echo get_tabdisplay('xpapprove', 'xpapprove'); ?>>
-				<h1>Experience Approvals</h1>
-				<?php render_xp_approvals_page("xpapprove"); ?>
-			</div>
-			<div id="gv-costmodel" <?php echo get_tabdisplay("costmodel", 'xpapprove'); ?>>
-				<h1>Cost Models</h1>
-				<?php render_costmodel_page("costmodel"); ?>
-			</div>
-		</div>
-
+		<h2>Experience Approvals</h2>
+		<?php render_xp_approvals_page("xpapprove"); ?>
 	</div>
 	
 	<?php
