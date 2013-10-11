@@ -35,10 +35,7 @@ function doPendingXPSpend($character) {
 		$newid = save_to_pending('ritual', 'CHARACTER_RITUAL', 'RITUAL', 'RITUAL_ID', $playerID, $characterID);
 	}
 	if (isset($_REQUEST['merit_level'])) {
-		$newid = save_merit_to_pending('merit', 'CHARACTER_MERIT', 'MERIT', 'MERIT_ID', $playerID, $characterID);
-	}
-	if (isset($_REQUEST['newmerit_level'])) {
-		$newid = save_merit_to_pending('newmerit', 'CHARACTER_MERIT', 'MERIT', 'MERIT_ID', $playerID, $characterID);
+		$newid = save_to_pending('merit', 'CHARACTER_MERIT', 'MERIT', 'MERIT_ID', $playerID, $characterID);
 	}
 }
 	
@@ -92,12 +89,14 @@ function print_xp_spend_table() {
 				|| isset($_REQUEST['disc_cancel'])
 				|| isset($_REQUEST['path_cancel'])
 				|| isset($_REQUEST['ritual_cancel'])
+				|| isset($_REQUEST['merit_cancel'])
 				);
-	if (isset($_REQUEST['stat_cancel']))     cancel_pending($_REQUEST['stat_cancel']);
-	if (isset($_REQUEST['skill_cancel']))    cancel_pending($_REQUEST['skill_cancel']);
-	if (isset($_REQUEST['disc_cancel']))     cancel_pending($_REQUEST['disc_cancel']);
-	if (isset($_REQUEST['path_cancel']))     cancel_pending($_REQUEST['path_cancel']);
-	if (isset($_REQUEST['ritual_cancel']))   cancel_pending($_REQUEST['ritual_cancel']);
+	if (isset($_REQUEST['stat_cancel']))    cancel_pending($_REQUEST['stat_cancel']);
+	if (isset($_REQUEST['skill_cancel']))   cancel_pending($_REQUEST['skill_cancel']);
+	if (isset($_REQUEST['disc_cancel']))    cancel_pending($_REQUEST['disc_cancel']);
+	if (isset($_REQUEST['path_cancel']))    cancel_pending($_REQUEST['path_cancel']);
+	if (isset($_REQUEST['ritual_cancel']))  cancel_pending($_REQUEST['ritual_cancel']);
+	if (isset($_REQUEST['merit_cancel']))   cancel_pending($_REQUEST['merit_cancel']);
 	
 	// Back button
 	if (isset($_REQUEST['xCancel'])) $step = "";
@@ -146,6 +145,7 @@ function render_supply_details($character) {
 	if (isset($_REQUEST['disc_level'])) $spent += calc_submitted_spend('disc');
 	if (isset($_REQUEST['path_level'])) $spent += calc_submitted_spend('path');
 	if (isset($_REQUEST['ritual_level'])) $spent += calc_submitted_spend('ritual');
+	if (isset($_REQUEST['merit_level'])) $spent += calc_submitted_spend('merit');
 	
 	$output .= "<p>Spending $spent experience points.</p>\n";
 	$output .= "<p>Please enter specialisations, if available, and describe how you are learning the selected items</p>";
@@ -167,6 +167,9 @@ function render_supply_details($character) {
 	}
 	if (isset($_REQUEST['ritual_level'])) {
 		$output .= render_details_section('ritual');
+	}
+	if (isset($_REQUEST['merit_level'])) {
+		$output .= render_details_section('merit');
 	}
 	$output .= "<input class='gvxp_submit' type='submit' name=\"xSubmit\" value=\"Spend XP\">\n";
 	$output .= "<input class='gvxp_submit' type='submit' name=\"xCancel\" value=\"Back\">\n";
@@ -427,7 +430,7 @@ function render_details_section($type) {
 	
 	foreach ($levels as $index => $level ) {
 	
-		if ($level > 0) {
+		if ($level != 0) {
 			
 			// Hidden fields
 			$rowoutput .= "<tr style='display:none'><td colspan=4>";
@@ -445,7 +448,7 @@ function render_details_section($type) {
 			$rowoutput .= "<tr><th class='gvthleft'>{$names[$index]}</th>";
 			
 			// specialisation
-			if ($specats[$index] > 0) {
+			if ($specats[$index] > 0 || $specats[$index] == 'Y') {
 				if (empty($specs[$index]) && $specats[$index] <= $level)
 					$rowoutput .= "<td><input type='text' name='{$type}_spec[" . $index . "]' value='' size=15 maxlength=60></td>";
 				else
@@ -529,54 +532,81 @@ function render_stats($characterID, $maxRating, $pendingSpends) {
 function render_skills($characterID, $maxRating, $pendingSpends) {
 	global $wpdb;
 	
-	$sql = "SELECT 
-				skill.name, 
-				cha_skill.level,
-				cha_skill.comment,
-				cha_skill.id, 
-				skill.specialisation_at spec_at,
-				skill.ID as item_id, 
-				skill.GROUPING as grp,
-				CASE skill.GROUPING WHEN 'Talents' THEN 0 WHEN 'Skills' THEN 1 WHEN 'Knowledges' THEN 2 ELSE 3 END as ordering,
-				pendingspend.CHARTABLE_LEVEL,
+	/* $sqlCharacterSkill = "SELECT
+					skill.name as name, skill.specialisation_at as spec_at, skill.id as item_id,
+					skill.grouping as grp, skill.COST_MODEL_ID as COST_MODEL_ID,
+					cha_skill.level as level, cha_skill.comment as comment, cha_skill.id as id,
+					null as next_value, null as pending_id
+				FROM
+					" . GVLARP_TABLE_PREFIX . "CHARACTER_SKILL cha_skill,
+					" . GVLARP_TABLE_PREFIX . "SKILL skill
+				WHERE
+					cha_skill.CHARACTER_ID = %s
+					AND cha_skill.SKILL_ID = skill.ID";
+
+	$sqlPendingSpend = "SELECT
+					skill.name as name, skill.specialisation_at as spec_at, skill.id as item_id,
+					skill.grouping as grp, skill.COST_MODEL_ID as COST_MODEL_ID,
+					null as level, pending.specialisation as comment, pending.CHARTABLE_ID as id,
+					pending.CHARTABLE_LEVEL as next_value, pending.ID as pending_id
+				FROM
+					" . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND pending,
+					" . GVLARP_TABLE_PREFIX . "SKILL skill
+				WHERE
+					pending.CHARACTER_ID = %s
+					AND pending.ITEMTABLE_ID = skill.ID
+					AND pending.CHARTABLE = 'CHARACTER_SKILL'";
+	*/
+	
+	$sqlSkill = "SELECT
+					skill.name as name, skill.specialisation_at as spec_at, skill.id as item_id,
+					skill.grouping as grp, skill.COST_MODEL_ID as COST_MODEL_ID,
+					cha_skill.level as level, cha_skill.comment, cha_skill.id,
+					null as next_value, 0 as pending_id
+				FROM
+					" . GVLARP_TABLE_PREFIX . "SKILL skill
+					LEFT JOIN 
+						(SELECT *
+						FROM " . GVLARP_TABLE_PREFIX . "CHARACTER_SKILL
+						WHERE
+							CHARACTER_ID = %s
+						) cha_skill
+					ON
+						cha_skill.SKILL_ID = skill.ID
+				WHERE
+					skill.VISIBLE = 'Y'
+					";
+					
+	$sql = "SELECT
+				list.name,
+				list.level as level,
+				list.comment,
+				list.id,
+				list.spec_at,
+				list.item_id,
+				list.grp,
+				0 as CHARTABLE_LEVEL,
 				steps.XP_COST,
 				steps.NEXT_VALUE,
-				NOT(ISNULL(CHARTABLE_LEVEL)) as has_pending, 
-				pendingspend.ID as pending_id
+				NOT(ISNULL(list.next_value)) as has_pending,
+				list.pending_id
 			FROM
-				" . GVLARP_TABLE_PREFIX . "SKILL skill
-				LEFT JOIN
-					(SELECT ID, LEVEL, COMMENT, CHARACTER_ID, SKILL_ID
-					FROM
-						" . GVLARP_TABLE_PREFIX . "CHARACTER_SKILL
-					WHERE
-						CHARACTER_ID = %s
-					) cha_skill
-				ON
-					cha_skill.SKILL_ID = skill.ID
-				LEFT JOIN 
-					(SELECT ID, CHARTABLE_LEVEL, CHARTABLE_ID, ITEMTABLE_ID
-					FROM
-						" . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND pending
-					WHERE 
-						pending.CHARACTER_ID = %s
-						AND pending.CHARTABLE = 'CHARACTER_SKILL'
-					) as pendingspend
-				ON
-					pendingspend.ITEMTABLE_ID = skill.id,
-				 " . GVLARP_TABLE_PREFIX . "COST_MODEL_STEP steps,
-				 " . GVLARP_TABLE_PREFIX . "COST_MODEL models
-			WHERE 
-				steps.COST_MODEL_ID = models.ID
-				AND skill.COST_MODEL_ID = models.ID
-				AND skill.VISIBLE = 'Y'
+				($sqlSkill) list,
+				" . GVLARP_TABLE_PREFIX . "COST_MODEL_STEP steps,
+				" . GVLARP_TABLE_PREFIX . "COST_MODEL models
+			WHERE
+				steps.COST_MODEL_ID     = models.ID
+				AND list.COST_MODEL_ID  = models.ID
 				AND (
-					(ISNULL(cha_skill.LEVEL) AND steps.CURRENT_VALUE = 0)
-					OR steps.CURRENT_VALUE = cha_skill.level
+					(NOT(ISNULL(list.level)) AND steps.CURRENT_VALUE = list.level)
+					OR
+					(ISNULL(list.level) AND steps.CURRENT_VALUE = 0)
 				)
-		   ORDER BY ordering, skill.GROUPING, skill.name";
-	$sql = $wpdb->prepare($sql, $characterID,$characterID);
-    //echo "<p>SQL: $sql</p>";
+			ORDER BY list.grp, list.name, list.comment";
+	
+	
+	$sql = $wpdb->prepare($sql, $characterID, $characterID, $characterID, $characterID, $characterID);
+    echo "<p>SQL: $sql</p>";
 	$character_skills_xp = $wpdb->get_results($sql);
 	
 	$rowoutput = render_spend_table('skill', $character_skills_xp, $maxRating, 3);
@@ -827,29 +857,22 @@ function render_merits($characterID, $pendingSpends) {
 	$sql = "SELECT 
 				merit.name, 
 				cha_merit.level,
-				merit.value as meritlevel,
 				cha_merit.comment,
-				cha_merit.id, 
+				cha_merit.id,
+				merit.has_specialisation,
 				merit.ID as item_id, 
-				IF(cha_merit.level < 0 OR merit.value < 0,'Buy off Flaws','Buy Merits') as grp,
-				pendingspend.CHARTABLE_LEVEL,
+				IF(cha_merit.level < 0,'Remove Flaws','Buy Merits') as grp,
+				pendingspend.CHARTABLE_LEVEL as CHARTABLE_LEVEL,
 				merit.XP_COST,
-				NOT(ISNULL(cha_merit.level)) as has_merit,
-				NOT(ISNULL(CHARTABLE_LEVEL)) as has_pending, 
-				pendingspend.ID as pending_id
+				1 as has_level,
+				(NOT(ISNULL(pendingspend.ID)) AND cha_merit.level < 0 AND cha_merit.comment = pendingspend.SPECIALISATION) as has_pending,
+				pendingspend.ID as pending_id,
+				pendingspend.SPECIALISATION as pending_spec
 			FROM
-				" . GVLARP_TABLE_PREFIX . "MERIT merit
-				LEFT JOIN
-					(SELECT ID, LEVEL, COMMENT, CHARACTER_ID, MERIT_ID
-					FROM
-						" . GVLARP_TABLE_PREFIX . "CHARACTER_MERIT
-					WHERE
-						CHARACTER_ID = %s
-					) cha_merit
-				ON
-					cha_merit.MERIT_ID = merit.ID
+				" . GVLARP_TABLE_PREFIX . "MERIT merit,
+				" . GVLARP_TABLE_PREFIX . "CHARACTER_MERIT cha_merit
 				LEFT JOIN 
-					(SELECT ID, CHARTABLE_LEVEL, CHARTABLE_ID, ITEMTABLE_ID
+					(SELECT ID, CHARTABLE_LEVEL, CHARTABLE_ID, ITEMTABLE_ID, SPECIALISATION
 					FROM
 						" . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND pending
 					WHERE 
@@ -857,22 +880,56 @@ function render_merits($characterID, $pendingSpends) {
 						AND pending.CHARTABLE = 'CHARACTER_MERIT'
 					) as pendingspend
 				ON
-					pendingspend.ITEMTABLE_ID = merit.id
-			WHERE 
-				merit.VISIBLE = 'Y'
-				AND merit.XP_COST > 0
-				AND 
-					(
-						(ISNULL(cha_merit.level) AND merit.value < 0)
-					OR
-						(NOT(ISNULL(cha_merit.level)) AND merit.value >= 0)
-					)
-		   ORDER BY grp, merit.value, merit.name";
-	$sql = $wpdb->prepare($sql, $characterID,$characterID);
-    echo "<p>SQL: $sql</p>";
+					pendingspend.ITEMTABLE_ID = cha_merit.MERIT_ID
+			WHERE	
+				cha_merit.MERIT_ID = merit.ID
+				AND cha_merit.CHARACTER_ID = %s
+			UNION
+			SELECT
+				merit.name, 
+				merit.value as level,
+				\"\" as comment,
+				0 as id, 
+				merit.has_specialisation,
+				merit.ID as item_id, 
+				IF(merit.value < 0,'Remove Flaws','Buy Merits') as grp,
+				pendingspend.CHARTABLE_LEVEL,
+				merit.XP_COST,
+				0 as has_level,
+				NOT(ISNULL(pendingspend.ID)) as has_pending, 
+				pendingspend.ID as pending_id,
+				pendingspend.SPECIALISATION as pending_spec
+			FROM
+				" . GVLARP_TABLE_PREFIX . "MERIT merit
+				LEFT JOIN
+					(SELECT * 
+					FROM " . GVLARP_TABLE_PREFIX . "CHARACTER_MERIT
+					WHERE CHARACTER_ID = %s) cha_merit2
+				ON
+					cha_merit2.MERIT_ID = merit.ID
+				LEFT JOIN 
+					(SELECT ID, CHARTABLE_LEVEL, CHARTABLE_ID, ITEMTABLE_ID, SPECIALISATION
+					FROM
+						" . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND pending
+					WHERE 
+						pending.CHARACTER_ID = %s
+						AND pending.CHARTABLE = 'CHARACTER_MERIT'
+					) as pendingspend
+				ON
+					pendingspend.ITEMTABLE_ID = merit.ID
+			WHERE
+				merit.XP_COST > 0
+				AND merit.value >= 0 
+				AND (
+					ISNULL(cha_merit2.ID) OR (NOT(ISNULL(cha_merit2.ID)) AND merit.MULTIPLE = 'Y')
+				)
+				AND merit.VISIBLE = 'Y'
+			ORDER BY grp DESC, has_level DESC, name";
+	$sql = $wpdb->prepare($sql, $characterID,$characterID,$characterID,$characterID);
+    //echo "<p>SQL: $sql</p>";
 	$character_skills_xp = $wpdb->get_results($sql);
 	
-	$rowoutput = render_spend_table('merit', $character_skills_xp, 10, 2);
+	$rowoutput = render_merit_spend_table('merit', $character_skills_xp, 2);
 	
 	if (!empty($rowoutput)) {
 		$output .= "<table>\n";
@@ -1068,6 +1125,104 @@ function render_ritual_spend_table($type, $allxpdata, $columns) {
 
 	return $rowoutput;
 }
+function render_merit_spend_table($type, $allxpdata, $columns) {
+
+	$fulldoturl    = plugins_url( 'gvlarp-character/images/xpdot.jpg' );
+	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
+	$pendingdoturl = plugins_url( 'gvlarp-character/images/pendingdot.jpg' );
+	$levelsdata    = $_REQUEST[$type . '_level'];
+
+	$colspan = 3;
+	$grp = "";
+	$col = 0;
+	$rowoutput = "";
+	if (count($allxpdata)>0) {
+		$id = 0;
+		foreach ($allxpdata as $xpdata) {
+			//$id = $xpdata->id;
+			
+			// Hidden fields
+			$rowoutput .= "<tr style='display:none'><td>\n";
+			$rowoutput .= "<input type='hidden' name='{$type}_curr[" . $id . "]'    value='" . $xpdata->level . "' >\n";
+			$rowoutput .= "<input type='hidden' name='{$type}_itemid[" . $id . "]'  value='" . $xpdata->item_id . "' >\n";
+			$rowoutput .= "<input type='hidden' name='{$type}_id[" . $id . "]'      value='" . $xpdata->id . "' >\n";
+			$rowoutput .= "<input type='hidden' name='{$type}_name[" . $id . "]'    value='" . $xpdata->name . "' >\n";
+			$rowoutput .= "<input type='hidden' name='{$type}_spec_at[" . $id . "]' value='" . $xpdata->has_specialisation . "' >\n";
+			$rowoutput .= "<input type='hidden' name='{$type}_spec[" . $id . "]'    value='" . $xpdata->comment . "' >";
+			$rowoutput .= "</td></tr>\n";
+			
+			// start column / new column
+			if (isset($xpdata->grp)) {
+				if ($grp != $xpdata->grp) {
+					if (empty($grp)) {
+						$rowoutput .= "<tr><td class='gvxp_col'><table><tr><th colspan=$colspan>{$xpdata->grp}</th></tr>";
+						$col++;
+					} 
+					elseif ($col == $columns) {
+						$rowoutput .= "</table></td></tr><tr><td class='gvxp_col'><table><tr><th colspan=$colspan>{$xpdata->grp}</th></tr>";
+						$col = 1;
+					}
+					else {
+						$rowoutput .= "</table></td><td class='gvxp_col'><table><tr><th colspan=$colspan>{$xpdata->grp}</th></tr>";
+						$col++;
+					}
+					$grp = $xpdata->grp;
+				}
+			}
+			
+			//dots row
+			$xpcost = $xpdata->XP_COST;
+			$rowoutput .= "<tr><th class='gvthleft'><span>(Level {$xpdata->level}) {$xpdata->name}";
+			if ($xpdata->comment)
+				$rowoutput .= " - {$xpdata->comment}";
+			$rowoutput .= "</span></th>";
+			
+			if ($xpdata->has_pending)
+				$rowoutput .= "<td class='gvxp_dot'><img src='$pendingdoturl'></td>";
+			elseif ($xpdata->level < 0)  // flaw
+				if($xpcost) {
+					$comment    = "Buy off level " . ($xpdata->level * -1) . " Flaw {$xpdata->name}";
+					$rowoutput .= "<td class='gvxp_checkbox'>";
+					$rowoutput .= "<input type='hidden'   name='{$type}_cost[" . $id . "]'    value='" . $xpcost . "' >";
+					$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $id . "]' value='$comment' >";
+					$rowoutput .= "<input type='CHECKBOX' name='{$type}_level[" . $id . "]'   value='{$xpdata->level}' ";
+					if (isset($levelsdata[$id]))
+						$rowoutput .= "checked";
+					$rowoutput .= ">";
+					$rowoutput .= "</td>";
+				} else
+					$rowoutput .= "<td></td>";
+			else
+				if ($xpdata->id)
+					$rowoutput .= "<td></td>";
+				else {
+					$comment    = "Buy level {$xpdata->level} Merit {$xpdata->name}";
+					$rowoutput .= "<td class='gvxp_checkbox'>";
+					$rowoutput .= "<input type='hidden'   name='{$type}_cost[" . $id . "]'    value='" . $xpcost . "' >";
+					$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $id . "]' value='$comment' >";
+					$rowoutput .= "<input type='CHECKBOX' name='{$type}_level[" . $id . "]'   value='{$xpdata->level}' ";
+					if (isset($levelsdata[$id]))
+						$rowoutput .= "checked";
+					$rowoutput .= ">";
+					$rowoutput .= "</td>";
+				} 
+				
+			$xpcost = $xpdata->XP_COST ? "(" . $xpdata->XP_COST . " XP)" : "";
+			if ($xpdata->has_pending)
+				$rowoutput .= "<td class='gvcol_cost'><input class='gvxp_clear' type='submit' name=\"{$type}_cancel[{$xpdata->pending_id}]\" value=\"Clear\"></td>";
+			elseif ($xpdata->id && $xpdata->level >= 0)
+				$rowoutput .= "<td class='gvcol_cost'></td>";
+			else
+				$rowoutput .= "<td class='gvcol_cost'>$xpcost</td>";
+			$rowoutput .= "</tr>\n";
+			
+			$id++;
+		}
+	}
+	$rowoutput .= "</table></td></tr>\n";
+
+	return $rowoutput;
+}
 
 function get_max_dots($data, $maxRating) {
 	$max2display = 5;
@@ -1159,11 +1314,11 @@ function calc_submitted_spend($type) {
 	$costs =  $_REQUEST[$type . '_cost'];
 
 	foreach ($_REQUEST[$type . '_level'] as $id => $level) {
-		if ($level)
+		if (!empty($level))
 			$spend += $costs[$id];
 	}
-	//print_r($costs);
-	//print_r($_REQUEST[$type . '_level']);
+	print_r($costs);
+	print_r($_REQUEST[$type . '_level']);
 	
 	return $spend;
 	
@@ -1306,6 +1461,77 @@ function save_to_pending ($type, $table, $itemtable, $itemidname, $playerID, $ch
 							
 }
 
+function save_merit_to_pending ($type, $table, $itemtable, $itemidname, $playerID, $characterID) {
+	global $wpdb;
+
+	$newid = "";
+
+	$ids             = $_REQUEST[$type . '_id'];
+	$levels          = $_REQUEST[$type . '_level'];
+	$specialisations = $_REQUEST[$type . '_spec'];
+	$training        = $_REQUEST[$type . '_training'];
+	$itemid          = $_REQUEST[$type . '_itemid'];
+	$costlvls        = $_REQUEST[$type . '_cost'];
+	$comments        = $_REQUEST[$type . '_comment'];
+	
+	//print_r($_REQUEST);
+	//echo "<pre>";
+	//print_r($itemid);
+	//echo "</pre>";
+	
+	foreach ($levels as $index => $level) {
+		
+		if ($level) {
+			$dataarray = array (
+				'PLAYER_ID'       => $playerID,
+				'CHARACTER_ID'    => $characterID,
+				'CHARTABLE'       => $table,
+				'CHARTABLE_ID'    => $ids[$index],
+				'CHARTABLE_LEVEL' => $level,
+				'AWARDED'         => Date('Y-m-d'),
+				'AMOUNT'          => $costlvls[$index] * -1,
+				'COMMENT'         => $comments[$index],
+				'SPECIALISATION'  => $specialisations[$index],
+				'TRAINING_NOTE'   => $training[$index],
+				'ITEMTABLE'       => $itemtable,
+				'ITEMNAME'        => $itemidname,
+				'ITEMTABLE_ID'    => $itemid[$index]
+			);
+			
+			$wpdb->insert(GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND",
+						$dataarray,
+						array (
+							'%d',
+							'%d',
+							'%s',
+							'%d',
+							'%d',
+							'%s',
+							'%d',
+							'%s',
+							'%s',
+							'%s',
+							'%s',
+							'%s',
+							'%d'
+						)
+					);
+			
+			$newid = $wpdb->insert_id;
+			if ($newid  == 0) {
+				echo "<p style='color:red'><b>Error:</b> XP Spend failed for data (";
+				print_r($dataarray);
+				$wpdb->print_error();
+				echo ")</p>";
+			} 
+		}
+	
+	}	
+	
+	return $newid;
+							
+}
+
 
 function get_total_xp($characterID) {
 	global $wpdb;
@@ -1365,6 +1591,7 @@ function validate_spends($characterID, $docancel) {
 	if (isset($_REQUEST['disc_level'])) $xp_spent += calc_submitted_spend('disc');
 	if (isset($_REQUEST['path_level'])) $xp_spent += calc_submitted_spend('path');
 	if (isset($_REQUEST['ritual_level'])) $xp_spent += calc_submitted_spend('ritual');
+	if (isset($_REQUEST['merit_level'])) $xp_spent += calc_submitted_spend('merit');
 	
 	if ($xp_spent > ($xp_total - $xp_pending)) {
 		$outputError .= "<p>You don't have enough experience left</p>";
@@ -1478,6 +1705,33 @@ function validate_details($characterID) {
 		}
 		if (count($ritual_train_error))
 			$outputError .= "<p>Please fix missing <a href='#gvid_xpst_ritual'>Ritual</a> training notes</p>";
+
+	}
+	if (isset($_REQUEST['merit_level'])) {
+		$levels   = $_REQUEST['merit_level'];
+		$training = $_REQUEST['merit_training'];
+		$has_spec = $_REQUEST['merit_spec_at'];
+		$specialisations = $_REQUEST['merit_spec'];
+					
+		if (isset($specialisations))
+			foreach ($specialisations as $id => $specialisation) {
+				if ($has_spec[$id] &&
+					($specialisation == "" || $specialisation == $defaultSpecialisation)) {
+					$merit_spec_error[$id] = 1;
+				}
+			}
+		
+		if (count($merit_spec_error))
+			$outputError .= "<p>Please fix missing or invalid <a href='#gvid_xpst_merit'>Merit of Flaw</a> specialisations</p>";
+
+		foreach ($training as $id => $trainingnote) {
+			if ($levels[$id] &&
+				($trainingnote == "" || $trainingnote == $defaultTrainingString)) {
+				$merit_train_error[$id] = 1;
+			}
+		}
+		if (count($merit_train_error))
+			$outputError .= "<p>Please fix missing <a href='#gvid_xpst_ritual'>Merit or Flaw</a> training notes</p>";
 
 	}
 
