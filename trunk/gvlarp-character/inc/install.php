@@ -4,7 +4,7 @@ register_activation_hook(__FILE__, "gvlarp_character_install");
 register_activation_hook( __FILE__, 'gvlarp_character_install_data' );
 
 global $gvlarp_character_db_version;
-$gvlarp_character_db_version = "1.8.15"; /* 1.8.0 */
+$gvlarp_character_db_version = "1.8.16"; /* 1.8.16 */
 
 function gvlarp_update_db_check() {
     global $gvlarp_character_db_version;
@@ -144,7 +144,7 @@ function gvlarp_character_install() {
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 
-		$current_table_name = $table_prefix . "COURT";
+		/* $current_table_name = $table_prefix . "COURT";
 		$sql = "CREATE TABLE " . $current_table_name . " (
 					ID           MEDIUMINT(9) NOT NULL AUTO_INCREMENT,
 					NAME         VARCHAR(16)  NOT NULL,
@@ -152,8 +152,21 @@ function gvlarp_character_install() {
 					VISIBLE      VARCHAR(1)   NOT NULL,
 					PRIMARY KEY  (ID)
 					) ENGINE=INNODB;";
-		dbDelta($sql);
-
+		dbDelta($sql); */
+		if (table_exists('COURT')) {
+			rename_table("COURT", "DOMAIN");
+		} else {		
+			$current_table_name = $table_prefix . "DOMAIN";
+			$sql = "CREATE TABLE " . $current_table_name . " (
+						ID           MEDIUMINT(9) NOT NULL AUTO_INCREMENT,
+						NAME         VARCHAR(16)  NOT NULL,
+						DESCRIPTION  TINYTEXT     NOT NULL,
+						VISIBLE      VARCHAR(1)   NOT NULL,
+						PRIMARY KEY  (ID)
+						) ENGINE=INNODB;";
+			dbDelta($sql);
+		}
+		
 		$current_table_name = $table_prefix . "SOURCE_BOOK";
 		$sql = "CREATE TABLE " . $current_table_name . " (
 					ID           MEDIUMINT(9)  NOT NULL   AUTO_INCREMENT,
@@ -233,6 +246,15 @@ function gvlarp_character_install() {
 		dbDelta($sql);
 		
 		$current_table_name = $table_prefix . "CHARACTER";
+		$rename = array (
+			'from' => 'COURT_ID',
+			'to'   => 'DOMAIN_ID',
+			'table' => $current_table_name,
+			'definition' => 'MEDIUMINT(9)  NOT NULL',
+			'constraint' => $current_table_name . "_ibfk_8",
+			'reference'  => $table_prefix . "DOMAIN(ID)"
+		);
+		rename_column($rename);
 		$sql = "CREATE TABLE " . $current_table_name . " (
 					ID                        MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
 					NAME                      VARCHAR(60)   NOT NULL,
@@ -248,7 +270,7 @@ function gvlarp_character_install() {
 					CHARACTER_STATUS_COMMENT  VARCHAR(120),
 					ROAD_OR_PATH_ID           MEDIUMINT(9)  NOT NULL,
 					ROAD_OR_PATH_RATING       SMALLINT(3)   NOT NULL,
-					COURT_ID                  MEDIUMINT(9)  NOT NULL,
+					DOMAIN_ID                 MEDIUMINT(9)  NOT NULL,
 					WORDPRESS_ID              VARCHAR(32)   NOT NULL,
 					LAST_UPDATED              DATE          NOT NULL,
 					DELETED                   VARCHAR(1)    NOT NULL,
@@ -260,21 +282,29 @@ function gvlarp_character_install() {
 					CONSTRAINT `" . $table_prefix . "char_constraint_5` FOREIGN KEY (CHARACTER_TYPE_ID)    REFERENCES " . $table_prefix . "CHARACTER_TYPE(ID),
 					CONSTRAINT `" . $table_prefix . "char_constraint_6` FOREIGN KEY (CHARACTER_STATUS_ID)  REFERENCES " . $table_prefix . "CHARACTER_STATUS(ID),
 					CONSTRAINT `" . $table_prefix . "char_constraint_7` FOREIGN KEY (ROAD_OR_PATH_ID)      REFERENCES " . $table_prefix . "ROAD_OR_PATH(ID),
-					CONSTRAINT `" . $table_prefix . "char_constraint_8` FOREIGN KEY (COURT_ID)             REFERENCES " . $table_prefix . "COURT(ID)
+					CONSTRAINT `" . $table_prefix . "char_constraint_8` FOREIGN KEY (DOMAIN_ID)            REFERENCES " . $table_prefix . "DOMAIN(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 
 		$current_table_name = $table_prefix . "CHARACTER_OFFICE";
-		
+		$rename = array (
+			'from' => 'COURT_ID',
+			'to'   => 'DOMAIN_ID',
+			'table' => $current_table_name,
+			'definition' => 'MEDIUMINT(9)  NOT NULL',
+			'constraint' => $current_table_name . "_ibfk_2",
+			'reference'  => $table_prefix . "DOMAIN(ID)"
+		);
+		rename_column($rename);
 		$sql = "CREATE TABLE " . $current_table_name . " (
 					ID            MEDIUMINT(9) NOT NULL  AUTO_INCREMENT,
 					OFFICE_ID     MEDIUMINT(9) NOT NULL,
-					COURT_ID      MEDIUMINT(9) NOT NULL,
+					DOMAIN_ID     MEDIUMINT(9) NOT NULL,
 					CHARACTER_ID  MEDIUMINT(9) NOT NULL,
 					COMMENT       VARCHAR(60),
 					PRIMARY KEY  (ID),
 					CONSTRAINT `" . $table_prefix . "office_constraint_1` FOREIGN KEY (OFFICE_ID)    REFERENCES " . $table_prefix . "OFFICE(ID),
-					CONSTRAINT `" . $table_prefix . "office_constraint_2` FOREIGN KEY (COURT_ID)     REFERENCES " . $table_prefix . "COURT(ID),
+					CONSTRAINT `" . $table_prefix . "office_constraint_2` FOREIGN KEY (DOMAIN_ID)    REFERENCES " . $table_prefix . "DOMAIN(ID),
 					CONSTRAINT `" . $table_prefix . "office_constraint_3` FOREIGN KEY (CHARACTER_ID) REFERENCES " . $table_prefix . "CHARACTER(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
@@ -727,15 +757,25 @@ function gvlarp_character_install() {
 			dbDelta($sql);
 
 		$current_table_name = $table_prefix . "CONFIG";
+		//rename_column("CONFIG", "HOME_COURT_ID", "HOME_DOMAIN_ID", "MEDIUMINT(9)");
+		$rename = array (
+			'from' => 'HOME_COURT_ID',
+			'to'   => 'HOME_DOMAIN_ID',
+			'table' => $current_table_name,
+			'definition' => 'MEDIUMINT(9)  NOT NULL',
+			'constraint' => $table_prefix . "config_constraint_1",
+			'reference'  => $table_prefix . "DOMAIN(ID)"
+		);
+		rename_column($rename);
 		$sql = "CREATE TABLE " . $current_table_name . " (
 					ID                         MEDIUMINT(9)   NOT NULL  AUTO_INCREMENT,
 					PROFILE_LINK               TINYTEXT       NOT NULL,
 					PLACEHOLDER_IMAGE          TINYTEXT       NOT NULL,
 					CLAN_DISCIPLINE_DISCOUNT   VARCHAR(10)    NOT NULL,
 					ANDROID_LINK               TINYTEXT       NOT NULL,
-					HOME_COURT_ID              MEDIUMINT(9)   NOT NULL,
+					HOME_DOMAIN_ID             MEDIUMINT(9)   NOT NULL,
 					PRIMARY KEY  (ID)
-					CONSTRAINT `" . $table_prefix . "config_constraint_1` FOREIGN KEY (HOME_COURT_ID)  REFERENCES " . $table_prefix . "COURT(ID)
+					CONSTRAINT `" . $table_prefix . "config_constraint_1` FOREIGN KEY (HOME_DOMAIN_ID)  REFERENCES " . $table_prefix . "DOMAIN(ID)
 					) ENGINE=INNODB;";
 		//echo "<p>SQL: $sql</p>";
 		dbDelta($sql);
@@ -866,6 +906,9 @@ function gvlarp_character_install_data() {
 function remove_columns($table, $columninfo) {
 	global $wpdb;
 
+	//SHOW CREATE TABLE gvpluginwp_GVLARP_CHARACTER
+	// gvpluginwp_GVLARP_CHARACTER_ibfk_8
+	
 	/* echo "</p>columninfo:";
 	print_r($columninfo);
 	echo "</p>"; */
@@ -899,4 +942,53 @@ function remove_columns($table, $columninfo) {
 
 }
 
+function table_exists($table) {
+	global $wpdb;
+
+	$sql = "SHOW TABLES LIKE " . GVLARP_TABLE_PREFIX . $table;
+	$result = $wpdb->get_results($sql);
+	$tableExists = count($result) > 0;
+	
+	//echo "<p>Table $table exists: $tableExists</p>";
+	
+	return $tableExists;
+}
+
+function rename_column($columninfo) {
+	global $wpdb;
+
+	//print_r($columninfo);
+	
+	$table = $columninfo['table'];
+	
+	$sql = "SHOW INDEX FROM $table WHERE Key_name != 'PRIMARY';";
+	//echo "<p>indexes: $sql</p>";
+	$existing_keys = $wpdb->get_col("SHOW INDEX FROM $table WHERE Key_name != 'PRIMARY';",2);
+	$existing_columns = $wpdb->get_col("DESC $table", 0);
+	
+	$remove_constraints = array_intersect(array($columninfo['from']), $existing_keys);
+	$sql = "ALTER TABLE $table DROP FOREIGN KEY {$columninfo['constraint']};";
+	//echo "<p>rem constraint: $sql</p>";
+	if( !empty($remove_constraints) ) $wpdb->query($sql);	
+	
+	$rename_columns = array_intersect(array($columninfo['from']), $existing_columns);
+	$sql = "ALTER TABLE $table CHANGE {$columninfo['from']} {$columninfo['to']} {$columninfo['definition']};";
+	//echo "<p>rename col: $sql</p>";
+	if (!empty($rename_columns)) $wpdb->query($sql);
+
+	$sql = "ALTER TABLE $table ADD CONSTRAINT {$columninfo['constraint']} FOREIGN KEY ({$columninfo['to']}) REFERENCES {$columninfo['reference']};";
+	//echo "<p>add constraint: $sql</p>";
+	if( !empty($remove_constraints) ) $wpdb->query($sql);	
+	
+
+}
+
+function rename_table($from, $to) {
+	global $wpdb;
+
+	$sql = "RENAME TABLE " . GVLARP_TABLE_PREFIX . $from . " TO " . GVLARP_TABLE_PREFIX . $to;
+	//echo "<p>rename sql: $sql</p>";
+	$result = $wpdb->get_results($sql);
+
+}
 ?>

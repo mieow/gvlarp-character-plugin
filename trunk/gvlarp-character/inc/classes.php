@@ -9,7 +9,7 @@ class larpcharacter {
 	var $name; 
 	var $clan;
 	var $private_clan;
-	var $court;
+	var $domain;
 	var $player;
 	var $player_id;
 	var $wordpress_id;
@@ -39,7 +39,7 @@ class larpcharacter {
 					   chara.wordpress_id              wpid,
 					   player.name                     pname,
 					   player.id                       player_id,
-					   court.name                      court,
+					   domains.name                    domain,
 					   pub_clan.name                   public_clan,
 					   priv_clan.name                  private_clan,
 					   paths.name					   path,
@@ -53,14 +53,14 @@ class larpcharacter {
 					   priv_clan.clan_flaw
                     FROM " . GVLARP_TABLE_PREFIX . "CHARACTER chara,
                          " . GVLARP_TABLE_PREFIX . "PLAYER player,
-                         " . GVLARP_TABLE_PREFIX . "COURT court,
+                         " . GVLARP_TABLE_PREFIX . "DOMAIN domains,
                          " . GVLARP_TABLE_PREFIX . "CLAN pub_clan,
                          " . GVLARP_TABLE_PREFIX . "CLAN priv_clan,
 						 " . GVLARP_TABLE_PREFIX . "GENERATION gen,
 						 " . GVLARP_TABLE_PREFIX . "ROAD_OR_PATH paths
                     WHERE chara.PUBLIC_CLAN_ID = pub_clan.ID
                       AND chara.PRIVATE_CLAN_ID = priv_clan.ID
-                      AND chara.COURT_ID = court.ID
+                      AND chara.DOMAIN_ID = domains.ID
                       AND chara.PLAYER_ID = player.ID
 					  AND chara.GENERATION_ID = gen.ID
 					  AND chara.ROAD_OR_PATH_ID = paths.ID
@@ -74,7 +74,7 @@ class larpcharacter {
 		$this->name         = $result[0]->cname;
 		$this->clan         = $result[0]->public_clan;
 		$this->private_clan = $result[0]->private_clan;
-		$this->court        = $result[0]->court;
+		$this->domain       = $result[0]->domain;
 		$this->player       = $result[0]->pname;
 		$this->wordpress_id = $result[0]->wpid;
 		$this->generation   = $result[0]->generation;

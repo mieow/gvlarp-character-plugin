@@ -30,7 +30,7 @@ function character_config() {
 						'PLACEHOLDER_IMAGE' => $_REQUEST['placeholder'],
 						//'CLAN_DISCIPLINE_DISCOUNT' => $_REQUEST['discount'],
 						'ANDROID_LINK' => $_REQUEST['androidlink'],
-						'HOME_COURT_ID' => $_REQUEST['homecourt'],
+						'HOME_DOMAIN_ID' => $_REQUEST['homedomain'],
 					);
 					
 					$result = $wpdb->update(GVLARP_TABLE_PREFIX . "CONFIG",
@@ -58,7 +58,7 @@ function character_config() {
 				$options[0]->PLACEHOLDER_IMAGE = $_REQUEST['placeholder'];
 				$options[0]->CLAN_DISCIPLINE_DISCOUNT = $_REQUEST['discount'];
 				$options[0]->ANDROID_LINK = $_REQUEST['androidlink'];
-				$options[0]->HOME_COURT_ID = $_REQUEST['homecourt'];
+				$options[0]->HOME_DOMAIN_ID = $_REQUEST['homedomain'];
 			}
 		?>
 
@@ -77,19 +77,19 @@ function character_config() {
 				<td><input type="text" name="placeholder" value="<?php print $options[0]->PLACEHOLDER_IMAGE; ?>" size=60 /></td>
 				<td>This image is used in place of a character portait on the profile page.</td>
 			</tr><tr>
-				<td>Home Court</td>
+				<td>Home Domain</td>
 				<td>
-				<select name="homecourt">
+				<select name="homedomain">
 					<?php
-					foreach (get_courts() as $court) {
-						echo '<option value="' . $court->ID . '" ';
-						selected( $options[0]->HOME_COURT_ID, $court->ID );
-						echo '>' . $court->NAME , '</option>';
+					foreach (get_domains() as $domain) {
+						echo '<option value="' . $domain->ID . '" ';
+						selected( $options[0]->HOME_DOMAIN_ID, $domain->ID );
+						echo '>' . $domain->NAME , '</option>';
 					}
 					?>
 				</select>
 				</td>
-				<td>Select which court your game is based in</td>
+				<td>Select which in-character domain your game is based in</td>
 			</tr>
 			</table>
 			<input type="submit" name="save_options" class="button-primary" value="Save Options" />

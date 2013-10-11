@@ -217,11 +217,11 @@ function get_clans() {
 	
 	return $list;
 }
-function get_courts() {
+function get_domains() {
 
 	global $wpdb;
 
-	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "COURT;";
+	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "DOMAIN;";
 	$list = $wpdb->get_results($sql);
 	
 	return $list;
@@ -361,7 +361,7 @@ function get_courts() {
                                chara.sire,
                                status.name status,
                                chara.character_status_comment status_comment,
-                               court.name court,
+                               domains.name domain,
                                path.name path_name,
                                path_totals.path_value
                         FROM " . $table_prefix . "CHARACTER chara,
@@ -369,7 +369,7 @@ function get_courts() {
                              " . $table_prefix . "CLAN priv_clan,
                              " . $table_prefix . "GENERATION gen,
                              " . $table_prefix . "CHARACTER_STATUS status,
-                             " . $table_prefix . "COURT court,
+                             " . $table_prefix . "DOMAIN domains,
                              " . $table_prefix . "ROAD_OR_PATH path,
                              (SELECT character_path.character_id, SUM(character_path.amount) path_value
                               FROM " . $table_prefix . "CHARACTER_ROAD_OR_PATH character_path
@@ -380,7 +380,7 @@ function get_courts() {
                           AND chara.generation_id       = gen.id
                           AND chara.DELETED != 'Y'
                           AND chara.character_status_id = status.id
-                          AND chara.court_id            = court.id
+                          AND chara.domain_id           = domains.id
                           AND chara.road_or_path_id     = path.id
                           AND chara.id                  = path_totals.character_id";
 
@@ -398,7 +398,7 @@ function get_courts() {
             $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Sire's Name</td><td class=\"gvcol_2 gvcol_val\">"           . $character_details->sire            . "</td></tr>";
             $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Character Status</td><td class=\"gvcol_2 gvcol_val\">"      . $character_details->status          . "</td></tr>";
             $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Status Comment</td><td class=\"gvcol_2 gvcol_val\">"        . $character_details->status_comment  . "</td></tr>";
-            $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Current Court</td><td class=\"gvcol_2 gvcol_val\">"         . $character_details->court           . "</td></tr>";
+            $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Current Domain</td><td class=\"gvcol_2 gvcol_val\">"         . $character_details->domain           . "</td></tr>";
             $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Road or Path name</td><td class=\"gvcol_2 gvcol_val\">"     . $character_details->path_name       . "</td></tr>";
             $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Road or Path rating</td><td class=\"gvcol_2 gvcol_val\">"   . $character_details->path_value      . "</td></tr>";
             $output .= "</table>";
@@ -597,23 +597,23 @@ function get_courts() {
         $table_prefix = GVLARP_TABLE_PREFIX;
         $output    = "";
         $sqlOutput = "";
-        $sql = "SELECT office.name office_name, court.name court_name, coffice.comment
+        $sql = "SELECT office.name office_name, domain.name domain_name, coffice.comment
                         FROM " . $table_prefix . "CHARACTER_OFFICE coffice,
                              " . $table_prefix . "OFFICE office,
-                             " . $table_prefix . "COURT court,
+                             " . $table_prefix . "DOMAIN domain,
                              " . $table_prefix . "CHARACTER chara
                         WHERE coffice.OFFICE_ID    = office.ID
                           AND coffice.CHARACTER_ID = chara.ID
-                          AND coffice.COURT_ID     = court.ID
+                          AND coffice.DOMAIN_ID     = domain.ID
                           AND chara.DELETED != 'Y'
                           AND chara.WORDPRESS_ID = %s
-                       ORDER BY office.ordering, office.name, court.name";
+                       ORDER BY office.ordering, office.name, domain.name";
 
         $character_offices = $wpdb->get_results($wpdb->prepare($sql, $character));
 
         foreach ($character_offices as $current_office) {
             $sqlOutput .="<tr><td class=\"gvcol_1 gvcol_key\">"  . $current_office->office_name . "</td>
-                                      <td class=\"gvcol_2 gvcol_val\">"  . $current_office->court_name  . "</td>
+                                      <td class=\"gvcol_2 gvcol_val\">"  . $current_office->domain_name  . "</td>
                                       <td class=\"gvcol_3 gvcol_spec\">" . stripslashes($current_office->comment)     . "</td></tr>";
         }
 
@@ -707,36 +707,36 @@ function get_courts() {
     add_shortcode('character_temp_stats', 'print_character_temp_stats');
 
     function print_office_block($atts, $content=null) {
-        extract(shortcode_atts(array ("court" => "Glasgow", "office" => ""), $atts));
+        extract(shortcode_atts(array ("domain" => "Glasgow", "office" => ""), $atts));
 
         global $wpdb;
         $table_prefix = GVLARP_TABLE_PREFIX;
         $output    = "";
         $sqlOutput = "";
 
-        $sql = "SELECT chara.name charname, office.name oname, court.name courtname, office.ordering, coffice.comment
+        $sql = "SELECT chara.name charname, office.name oname, domain.name domainname, office.ordering, coffice.comment
                         FROM " . $table_prefix . "CHARACTER chara,
                              " . $table_prefix . "CHARACTER_OFFICE coffice,
                              " . $table_prefix . "OFFICE office,
-                             " . $table_prefix . "COURT court
+                             " . $table_prefix . "DOMAIN domain
                         WHERE coffice.character_id = chara.id
                           AND coffice.office_id    = office.id
-                          AND coffice.court_id     = court.id
+                          AND coffice.domain_id     = domain.id
                           AND chara.deleted        = 'N'
-                          AND court.name = %s ";
+                          AND domain.name = %s ";
         if (!isSt()) {
             $sql .= " AND office.visible = 'Y' AND chara.visible = 'Y' ";
         }
         if ($office != null && $office != "") {
             $sql .= " AND office.name = %s ";
         }
-        $sql .= "ORDER BY courtname, office.ordering, charname";
+        $sql .= "ORDER BY domainname, office.ordering, charname";
 
         if ($office != null && $office != "") {
-            $characterOffices = $wpdb->get_results($wpdb->prepare($sql, $court, $office));
+            $characterOffices = $wpdb->get_results($wpdb->prepare($sql, $domain, $office));
         }
         else {
-            $characterOffices = $wpdb->get_results($wpdb->prepare($sql, $court));
+            $characterOffices = $wpdb->get_results($wpdb->prepare($sql, $domain));
         }
 
         if ($office == null || $office == "") {
@@ -759,7 +759,7 @@ function get_courts() {
                 $output = "<table class='gvplugin' id=\"gvid_cob\">" . $sqlOutput . "</table>";
             }
             else {
-                $output = "No office holders found for the court of " . $court;
+                $output = "No office holders found for the domain of " . $domain;
             }
         }
         else {
@@ -770,7 +770,7 @@ function get_courts() {
                 $output .= $characterOffice->charname;
             }
             if ($output == "") {
-                $output = "No current holder of " . $office . " in " . $court . " found.";
+                $output = "No current holder of " . $office . " in " . $domain . " found.";
             }
         }
         return $output;
@@ -895,101 +895,7 @@ function get_courts() {
     }
     add_shortcode('master_xp_table', 'print_master_xp_table');
 
-	/* 
-    function print_dead_character_table() {
-        extract(shortcode_atts(array ("court" => "Glasgow", "group" => "PC", "active" => "Y", "invisibles" => "N"), $atts));
 
-        global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
-        $output    = "";
-
-        $activeSector = "";
-        if ($active == "Y") {
-            $activeSector = " AND pstatus.name = 'Active' ";
-        }
-
-        $visibleSector = "";
-        if ($invisibles != "Y") {
-            $visibleSector = " AND chara.VISIBLE = 'Y' ";
-        }
-
-        $sql = "SELECT chara.id              character_id,
-                           chara.name            character_name,
-                           status_values.status  status_value,
-                           chara.wordpress_id,
-                           public_clan.name      clan_name
-                    FROM " . $table_prefix . "CHARACTER chara,
-                         " . $table_prefix . "CHARACTER_TYPE ctype,
-                         " . $table_prefix . "CHARACTER_STATUS cstatus,
-                         " . $table_prefix . "COURT court,
-                         " . $table_prefix . "PLAYER player,
-                         " . $table_prefix . "PLAYER_STATUS pstatus,
-                         " . $table_prefix . "CLAN public_clan,
-                         (SELECT chara.id character_id, cback.level status, chara.name character_name
-                          FROM " . $table_prefix . "CHARACTER chara,
-                               " . $table_prefix . "CHARACTER_BACKGROUND cback,
-                               " . $table_prefix . "BACKGROUND back
-                          WHERE chara.id = cback.character_id
-                            AND cback.BACKGROUND_ID = back.id
-                            AND back.name = 'Status'
-                          union SELECT chara.id character_id, 0 status, chara.name character_name
-                                FROM " . $table_prefix . "CHARACTER chara
-                                WHERE id NOT IN (SELECT chara.id character_id
-                                                 FROM " . $table_prefix . "CHARACTER chara,
-                                                      " . $table_prefix . "CHARACTER_BACKGROUND cback,
-                                                      " . $table_prefix . "BACKGROUND back
-                                                 WHERE chara.id = cback.character_id
-                                                   AND cback.BACKGROUND_ID = back.id
-                                                   AND back.name = 'Status')) status_values
-                    WHERE chara.CHARACTER_TYPE_ID   = ctype.id
-                      AND chara.CHARACTER_STATUS_ID = cstatus.id
-                      AND chara.PLAYER_ID           = player.id
-                      AND chara.ID                  = status_values.character_id
-                      AND chara.PUBLIC_CLAN_ID      = public_clan.ID
-                      AND player.PLAYER_STATUS_ID   = pstatus.id
-                      AND chara.COURT_ID            = court.id
-                      AND cstatus.name  IN ('Dead', 'Missing', 'Imprisoned')
-                      " . $activeSector . $visibleSector;
-
-        $queryEnd = "  AND chara.DELETED = 'N'
-                         ORDER BY status_value DESC, character_name";
-
-        if ($group == "All" && $court == "All") {
-            $sql .= $queryEnd;
-        }
-        else if ($group == "All") {
-            $sql .= "  AND court.name = %s " . $queryEnd;
-            $sql = $wpdb->prepare($sql, $court);
-        }
-        else if ($court == "All") {
-            $sql .= "  AND ctype.name = %s " . $queryEnd;
-            $sql = $wpdb->prepare($sql, $group);
-        }
-        else {
-            $sql .= "AND court.name = %s AND ctype.name = %s " . $queryEnd;
-            $sql = $wpdb->prepare($sql, $court, $group);
-        }
-
-        $deadCharacters = $wpdb->get_results($sql);
-
-        $config = getConfig();
-
-        $sqlOutput = "";
-        foreach ($deadCharacters as $deadCharacter) {
-            $sqlOutput .= "<tr><td class=\"gvcol_1 gvcol_val\">" . $deadCharacter->status_value . "</td>
-                               <td class=\"gvcol_2 gvcol_key\"><a href=\"" . $config->PROFILE_LINK . "?CHARACTER=" . urlencode($deadCharacter->wordpress_id) . "\">" . $deadCharacter->character_name . "</a></td>
-                               <td class=\"gvcol_3 gvcol_val\">" . $deadCharacter->clan_name . "</td></tr>";
-        }
-
-        if ($sqlOutput != "") {
-            $output = "<table class='gvplugin' id=\"gvid_dct\"><tr><th class=\"gvthead gvcol_1\">Status</th>
-                                                                         <th class=\"gvthead gvcol_2\">Character</th>
-                                                                         <th class=\"gvthead gvcol_3\">Clan</th></tr>" . $sqlOutput . "</table>";
-        }
-        return $output;
-    }
-    add_shortcode('dead_character_table', 'print_dead_character_table');
-	*/
     function print_master_path_table($atts, $content=null) {
         extract(shortcode_atts(array ("group" => ""), $atts));
 
@@ -1881,7 +1787,7 @@ function get_courts() {
                            chara.wordpress_id              wpid,
                            cstat.name                      cstat_name,
                            player.name                     pname,
-                           court.name                      court,
+                           domain.name                      domain,
                            pub_clan.name                   public_clan,
                            pub_clan.icon_link              public_icon,
                            priv_clan.name                  private_clan,
@@ -1889,12 +1795,12 @@ function get_courts() {
                     FROM " . $table_prefix . "CHARACTER chara,
                          " . $table_prefix . "CHARACTER_STATUS cstat,
                          " . $table_prefix . "PLAYER player,
-                         " . $table_prefix . "COURT court,
+                         " . $table_prefix . "DOMAIN domain,
                          " . $table_prefix . "CLAN pub_clan,
                          " . $table_prefix . "CLAN priv_clan
                     WHERE chara.PUBLIC_CLAN_ID = pub_clan.ID
                       AND chara.PRIVATE_CLAN_ID = priv_clan.ID
-                      AND chara.COURT_ID = court.ID
+                      AND chara.DOMAIN_ID = domain.ID
                       AND chara.PLAYER_ID = player.ID
                       AND chara.CHARACTER_STATUS_ID = cstat.ID
                       AND chara.DELETED = 'N'
@@ -1906,7 +1812,7 @@ function get_courts() {
         $characterID               = -1;
         $characterName             = "";
         $playerName                = "";
-        $courtName                 = "";
+        $domainName                 = "";
         $publicClan                = "";
         $privateClan               = "";
         $publicIcon                = "";
@@ -1929,7 +1835,7 @@ function get_courts() {
             $characterCondition        = $character_detail->cstat_name;
             $characterConditionComment = $character_detail->cstat_comment;
             $playerName                = $character_detail->pname;
-            $courtName                 = $character_detail->court;
+            $domainName                 = $character_detail->domain;
             $publicClan                = $character_detail->public_clan;
             $privateClan               = $character_detail->private_clan;
             $publicIcon                = $character_detail->public_icon;
@@ -2025,13 +1931,13 @@ function get_courts() {
             }
         }
 
-        $sql = "SELECT office.name office_name, court.name court_name
+        $sql = "SELECT office.name office_name, domain.name domain_name
                         FROM " . $table_prefix . "CHARACTER_OFFICE coffice,
                              " . $table_prefix . "OFFICE office,
-                             " . $table_prefix . "COURT court
+                             " . $table_prefix . "DOMAIN domain
                         WHERE coffice.character_id = %d
                           AND coffice.office_id    = office.id
-                          AND coffice.court_id     = court.id
+                          AND coffice.domain_id     = domain.id
                         ORDER BY office.ordering";
 
         $sql = $wpdb->prepare($sql, $characterID);
@@ -2043,8 +1949,8 @@ function get_courts() {
                 $positions .= "<br />";
             }
             $positions .= $currentOffice->office_name;
-            if ($courtName != $currentOffice->court_name) {
-                $positions .= " (" . $currentOffice->court_name . ")";
+            if ($domainName != $currentOffice->domain_name) {
+                $positions .= " (" . $currentOffice->domain_name . ")";
             }
         }
 
@@ -2115,7 +2021,7 @@ function get_courts() {
             $output .= $publicClan;
         }
         $output .= "</td></tr>";
-        $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Resides:</td><td class=\"gvcol_2 gvcol_val\">" . $courtName . "</td></tr>";
+        $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Resides:</td><td class=\"gvcol_2 gvcol_val\">" . $domainName . "</td></tr>";
         $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Status:</td><td class=\"gvcol_2 gvcol_val\">" . $status . "</td></tr>";
         $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Condition:</td><td class=\"gvcol_2 gvcol_val\">" . $characterCondition;
         if ($characterConditionComment != "") {
@@ -2179,7 +2085,12 @@ function get_courts() {
         if (isST()) {
             $output .= "<table>";
             foreach($_POST as $key=>$value) {
-                $output .= "<tr><td>" . $key . "</td><td>" . $value . "</td></tr>";
+				$output .= "<tr><td>" . $key . "</td><td>";
+				if (is_array($value))
+					foreach($value as $key2 => $val2) {
+						$output .= "$key2 = $val2,";
+					}
+				$output .= "</td></tr>";
             }
             $output .= "</table>";
         }
@@ -2303,7 +2214,7 @@ function get_courts() {
             $players           = listPlayers("", "");       // ID, name
             $clans             = listClans();               // ID, name
             $generations       = listGenerations();         // ID, name
-            $courts            = listCourts();              // ID, name
+            $domains            = listDomains();              // ID, name
             $characterTypes    = listCharacterTypes();      // ID, name
             $characterStatuses = listCharacterStatuses();   // ID, name
             $roadsOrPaths      = listRoadsOrPaths();        // ID, name
@@ -2321,7 +2232,7 @@ function get_courts() {
             $characterStatusComment    = "";
             $characterRoadOrPathId     = "";
             $characterRoadOrPathRating = "";
-            $characterCourtId          = "";
+            $characterDomainId          = "";
             $characterWordpressName    = "";
             $characterVisible          = "Y";
 
@@ -2343,7 +2254,7 @@ function get_courts() {
                                        CHARACTER_STATUS_COMMENT,
                                        ROAD_OR_PATH_ID,
                                        ROAD_OR_PATH_RATING,
-                                       COURT_ID,
+                                       DOMAIN_ID,
                                        WORDPRESS_ID,
                                        VISIBLE
                                 FROM " . $table_prefix . "CHARACTER
@@ -2365,7 +2276,7 @@ function get_courts() {
                     $characterStatusComment    = $characterDetail->CHARACTER_STATUS_COMMENT;
                     $characterRoadOrPathId     = $characterDetail->ROAD_OR_PATH_ID;
                     $characterRoadOrPathRating = $characterDetail->ROAD_OR_PATH_RATING;
-                    $characterCourtId          = $characterDetail->COURT_ID;
+                    $characterDomainId          = $characterDetail->DOMAIN_ID;
                     $characterWordpressName    = $characterDetail->WORDPRESS_ID;
                     $characterVisible          = $characterDetail->VISIBLE;
                 }
@@ -2447,14 +2358,14 @@ function get_courts() {
                 $output .= ">" . $roadOrPath->name . "</option>";
             }
             $output .= "</select></td><td class=\"gvcol_3 gvcol_val\"><input type='text' maxlength=3 name=\"charRoadOrPathRating\" value=\"" . $characterRoadOrPathRating . "\" /></td>";
-            $output .= "<td class=\"gvcol_4 gvcol_key\">Court</td>
-                            <td class='gvcol_5 gvcol_val' colspan=2><select name=\"charCourt\">";
-            foreach ($courts as $court) {
-                $output .= "<option value=\"" . $court->ID . "\" ";
-                if ($court->ID == $characterCourtId || ($characterID == 0 && $court->name == 'Glasgow')) {
+            $output .= "<td class=\"gvcol_4 gvcol_key\">Domain</td>
+                            <td class='gvcol_5 gvcol_val' colspan=2><select name=\"charDomain\">";
+            foreach ($domains as $domain) {
+                $output .= "<option value=\"" . $domain->ID . "\" ";
+                if ($domain->ID == $characterDomainId || ($characterID == 0 && $domain->name == 'Glasgow')) {
                     $output .= "SELECTED";
                 }
-                $output .= ">" . $court->name . "</option>";
+                $output .= ">" . $domain->name . "</option>";
             }
             $output .= "</select></td></tr>";
             $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Character Type</td>
@@ -3002,21 +2913,21 @@ function get_courts() {
 
             $sql = "SELECT office.name,
                                    office.id disid,
-                                   court.name courtname,
+                                   domain.name domainname,
                                    coffice.comment,
                                    coffice.id cofficeid
                             FROM " . $table_prefix . "CHARACTER_OFFICE coffice,
                                  " . $table_prefix . "OFFICE office,
-                                 " . $table_prefix . "COURT court
+                                 " . $table_prefix . "DOMAIN domain
                             WHERE coffice.office_id = office.id
-                              AND coffice.court_id  = court.id
+                              AND coffice.domain_id  = domain.id
                               AND character_id = %d
-                            ORDER BY office.ordering, office.name, court.name";
+                            ORDER BY office.ordering, office.name, domain.name";
 
             $characterOffices = $wpdb->get_results($wpdb->prepare($sql, $characterID));
 
             $output .= "<table class='gvplugin' id=\"gvid_uctof\"><tr><th class=\"gvthead gvcol_1\">Office name</th>
-                                                                            <th class=\"gvthead gvcol_2\">Court</th>
+                                                                            <th class=\"gvthead gvcol_2\">Domain</th>
                                                                             <th class=\"gvthead gvcol_3\">Status</th>
                                                                             <th class=\"gvthead gvcol_4\">Comment</th>
                                                                             <th class=\"gvthead gvcol_5\">Delete</th></tr>";
@@ -3026,7 +2937,7 @@ function get_courts() {
             foreach($characterOffices as $characterOffice) {
                 $officeName = "office" . $officeCount;
                 $output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $characterOffice->name . "</td>"
-                    . "<td class=\"gvcol_2 gvcol_val\">" . $characterOffice->courtname . "</td>"
+                    . "<td class=\"gvcol_2 gvcol_val\">" . $characterOffice->domainname . "</td>"
                     . "<td class=\"gvcol_3 gvcol_val\">In office<input type='HIDDEN' name=\"" . $officeName . "\" value=\"0\" /></td>"
                     . "<td class='gvcol_4 gvcol_val'><input type='text' name=\""     . $officeName . "Comment\" value=\"" . stripslashes($characterOffice->comment)  . "\" /></td>"
                     . "<td class='gvcol_5 gvcol_val'><input type=\"checkbox\" name=\"" . $officeName . "Delete\" value=\""  . $characterOffice->cofficeid . "\" />"
@@ -3043,16 +2954,16 @@ function get_courts() {
                 $officeBlock .= "<option value=\"" . $office->ID . "\">" . $office->name . "</option>";
             }
 
-            $courtBlock = "";
-            $courts = listCourts();
-            foreach ($courts as $court) {
-                $courtBlock .= "<option value=\"" . $court->ID ."\">" . $court->name . "</option>";
+            $domainBlock = "";
+            $domains = listDomains();
+            foreach ($domains as $domain) {
+                $domainBlock .= "<option value=\"" . $domain->ID ."\">" . $domain->name . "</option>";
             }
 
             for ($i = 0; $i < 2; $i++) {
                 $officeName = "office" . $officeCount;
                 $output .= "<tr><td class=\"gvcol_1 gvcol_key\"><select name=\"" . $officeName . "OID\">" . $officeBlock . "</select></td>"
-                    . "<td class=\"gvcol_2 gvcol_val\"><select name=\"" . $officeName . "CID\">" . $courtBlock . "</select></td>"
+                    . "<td class=\"gvcol_2 gvcol_val\"><select name=\"" . $officeName . "CID\">" . $domainBlock . "</select></td>"
                     . "<td class=\"gvcol_3 gvcol_val\"><select name=\"" . $officeName . "\"><option value=\"-100\">Not in office</option><option value=\"1\">In office</option></select></td>"
                     . "<td class='gvcol_4 gvcol_val'><input type='text' name=\""     . $officeName . "Comment\" /></td>"
                     . "<td class='gvcol_5 gvcol_val'></td></tr>";
@@ -3155,7 +3066,7 @@ function get_courts() {
         $characterDateOfEmbrace    = $_POST['charDoE'];
         $characterRoadOrPath       = $_POST['charRoadOrPath'];
         $characterRoadOrPathRating = $_POST['charRoadOrPathRating'];
-        $characterCourt            = $_POST['charCourt'];
+        $characterDomain            = $_POST['charDomain'];
         $characterType             = $_POST['charType'];
         $characterStatus           = $_POST['charStatus'];
         $characterStatusComment    = $_POST['charStatusComment'];
@@ -3185,26 +3096,26 @@ function get_courts() {
                                 character_status_comment = %s,
                                 road_or_path_id          = %d,
                                 road_or_path_rating      = %d,
-                                court_id                 = %d,
+                                domain_id                 = %d,
                                 wordpress_id             = %s,
                                 visible                  = %s
                             WHERE ID = " . $characterID;
             $sql = $wpdb->prepare($sql, $characterName,             $characterPublicClan,    $characterPrivateClan,   $characterGeneration,
                 $characterDateOfBirth,      $characterDateOfEmbrace, $characterSire,          $characterPlayer,
                 $characterType,             $characterStatus,        $characterStatusComment, $characterRoadOrPath,
-                $characterRoadOrPathRating, $characterCourt,         $characterWordPress,     $characterVisible);
+                $characterRoadOrPathRating, $characterDomain,         $characterWordPress,     $characterVisible);
         }
         else {
             $sql = "INSERT INTO " . $table_prefix . "CHARACTER (name,                public_clan_id,      private_clan_id,          generation_id,
                                                                 date_of_birth,       date_of_embrace,     sire,                     player_id,
                                                                 character_type_id,   character_status_id, character_status_comment, road_or_path_id,
-                                                                road_or_path_rating, court_id,            wordpress_id,             visible,
+                                                                road_or_path_rating, domain_id,            wordpress_id,             visible,
                                                                 deleted)
                             VALUES (%s, %d, %d, %d, %s, %s, %s, %d, %d, %d, %s, %d, %d, %d, %s, %s, 'N')";
             $sql = $wpdb->prepare($sql, $characterName,             $characterPublicClan,    $characterPrivateClan,   $characterGeneration,
                 $characterDateOfBirth,      $characterDateOfEmbrace, $characterSire,          $characterPlayer,
                 $characterType,             $characterStatus,        $characterStatusComment, $characterRoadOrPath,
-                $characterRoadOrPathRating, $characterCourt,         $characterWordPress,     $characterVisible);
+                $characterRoadOrPathRating, $characterDomain,         $characterWordPress,     $characterVisible);
         }
         $wpdb->query($sql);
 
@@ -3535,7 +3446,7 @@ function get_courts() {
                     }
                 }
                 else {
-                    $sql = "INSERT INTO " . $table_prefix . "CHARACTER_OFFICE (character_id, office_id, court_id, comment)
+                    $sql = "INSERT INTO " . $table_prefix . "CHARACTER_OFFICE (character_id, office_id, domain_id, comment)
                                     VALUES (%d, %d, %d, %s)";
                     $sql = $wpdb->prepare($sql, $characterID, $_POST[$currentOffice . "OID"], $_POST[$currentOffice . "CID"], $_POST[$currentOffice . "Comment"]);
                 }
@@ -3746,15 +3657,15 @@ function get_courts() {
         return $roadsOrPaths;
     }
 
-    function listCourts() {
+    function listDomains() {
         global $wpdb;
         $table_prefix = GVLARP_TABLE_PREFIX;
         $sql = "SELECT ID, name
-                        FROM " . $table_prefix . "COURT
+                        FROM " . $table_prefix . "DOMAIN
                         ORDER BY name";
 
-        $courts = $wpdb->get_results($sql);
-        return $courts;
+        $domains = $wpdb->get_results($sql);
+        return $domains;
     }
 
     function listOffices($showNotVisible) {

@@ -62,7 +62,7 @@ function gv_print_redirect()
 			$pdf->BasicInfoTableRow(array(
 					'Player Name:', $mycharacter->player,
 					'Public Clan:', $mycharacter->clan,
-					'Court:', $mycharacter->court,
+					'Domain:', $mycharacter->domain,
 					)
 			);
 			
