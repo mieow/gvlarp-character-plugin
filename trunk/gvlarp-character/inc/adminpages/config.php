@@ -31,6 +31,7 @@ function character_config() {
 						//'CLAN_DISCIPLINE_DISCOUNT' => $_REQUEST['discount'],
 						'ANDROID_LINK' => $_REQUEST['androidlink'],
 						'HOME_DOMAIN_ID' => $_REQUEST['homedomain'],
+						'HOME_SECT_ID'   => $_REQUEST['homesect'],
 					);
 					
 					$result = $wpdb->update(GVLARP_TABLE_PREFIX . "CONFIG",
@@ -59,6 +60,7 @@ function character_config() {
 				$options[0]->CLAN_DISCIPLINE_DISCOUNT = $_REQUEST['discount'];
 				$options[0]->ANDROID_LINK = $_REQUEST['androidlink'];
 				$options[0]->HOME_DOMAIN_ID = $_REQUEST['homedomain'];
+				$options[0]->HOME_SECT_ID = $_REQUEST['homesect'];
 			}
 		?>
 
@@ -90,6 +92,20 @@ function character_config() {
 				</select>
 				</td>
 				<td>Select which in-character domain your game is based in</td>
+			</tr><tr>
+				<td>Default Sect</td>
+				<td>
+				<select name="homesect">
+					<?php
+					foreach (get_sects() as $sect) {
+						echo '<option value="' . $sect->ID . '" ';
+						selected( $options[0]->HOME_SECT_ID, $sect->ID );
+						echo '>' . $sect->NAME , '</option>';
+					}
+					?>
+				</select>
+				</td>
+				<td>Select what is the default sect for new character</td>
 			</tr>
 			</table>
 			<input type="submit" name="save_options" class="button-primary" value="Save Options" />
