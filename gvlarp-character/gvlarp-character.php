@@ -226,7 +226,15 @@ function get_domains() {
 	
 	return $list;
 }
+function get_sects() {
 
+	global $wpdb;
+
+	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "SECT;";
+	$list = $wpdb->get_results($sql);
+	
+	return $list;
+}
     function print_character_stats($atts, $content=null) {
         extract(shortcode_atts(array ("character" => "null", "group" => ""), $atts));
         $character = establishCharacter($character);
@@ -2214,11 +2222,14 @@ function get_domains() {
             $players           = listPlayers("", "");       // ID, name
             $clans             = listClans();               // ID, name
             $generations       = listGenerations();         // ID, name
-            $domains            = listDomains();              // ID, name
+            $domains           = listDomains();             // ID, name
+            $sects             = get_Sects();               // ID, name
             $characterTypes    = listCharacterTypes();      // ID, name
             $characterStatuses = listCharacterStatuses();   // ID, name
             $roadsOrPaths      = listRoadsOrPaths();        // ID, name
 
+			$config = getConfig();
+						
             $characterName             = "New Name";
             $characterPublicClanId     = "";
             $characterPrivateClanId    = "";
@@ -2232,7 +2243,8 @@ function get_domains() {
             $characterStatusComment    = "";
             $characterRoadOrPathId     = "";
             $characterRoadOrPathRating = "";
-            $characterDomainId          = "";
+            $characterDomainId         = $config->HOME_DOMAIN_ID;
+            $characterSectId           = $config->HOME_SECT_ID;
             $characterWordpressName    = "";
             $characterVisible          = "Y";
 
@@ -2255,6 +2267,7 @@ function get_domains() {
                                        ROAD_OR_PATH_ID,
                                        ROAD_OR_PATH_RATING,
                                        DOMAIN_ID,
+									   SECT_ID,
                                        WORDPRESS_ID,
                                        VISIBLE
                                 FROM " . $table_prefix . "CHARACTER
@@ -2276,7 +2289,8 @@ function get_domains() {
                     $characterStatusComment    = $characterDetail->CHARACTER_STATUS_COMMENT;
                     $characterRoadOrPathId     = $characterDetail->ROAD_OR_PATH_ID;
                     $characterRoadOrPathRating = $characterDetail->ROAD_OR_PATH_RATING;
-                    $characterDomainId          = $characterDetail->DOMAIN_ID;
+                    $characterDomainId         = $characterDetail->DOMAIN_ID;
+                    $characterSectId           = $characterDetail->SECT_ID;
                     $characterWordpressName    = $characterDetail->WORDPRESS_ID;
                     $characterVisible          = $characterDetail->VISIBLE;
                 }
@@ -2362,7 +2376,7 @@ function get_domains() {
                             <td class='gvcol_5 gvcol_val' colspan=2><select name=\"charDomain\">";
             foreach ($domains as $domain) {
                 $output .= "<option value=\"" . $domain->ID . "\" ";
-                if ($domain->ID == $characterDomainId || ($characterID == 0 && $domain->name == 'Glasgow')) {
+                if ($domain->ID == $characterDomainId) {
                     $output .= "SELECTED";
                 }
                 $output .= ">" . $domain->name . "</option>";
@@ -2401,7 +2415,19 @@ function get_domains() {
             }
             $output .= ">No</option></select></td><td class=\"gvcol_4 gvcol_key\">WordPress Account</td>
                                                       <td class='gvcol_5 gvcol_val' colspan=2><input type='text' maxlength=30 name=\"charWordPress\" value=\"" . $characterWordpressName . "\" /></td></tr>";
-            $output .= "</table>";
+            
+			$output .= "<tr><td class='gvcol_key'>Sect</td><td class='gvcol_val'>\n";
+			$output .= "<select name = \"charSect\">";
+            foreach ($sects as $sect) {
+                $output .= "<option value=\"" . $sect->ID . "\" ";
+                if ($sect->ID == $characterSectId || ($characterID == 0 && $sect->NAME == 'Camarilla')) {
+                    $output .= "SELECTED";
+                }
+                $output .= ">" . $sect->NAME . "</option>";
+            }
+			$output .= "</select></td><td></td></tr>";
+			
+			$output .= "</table>";
 
             $sql = "SELECT stat.name,
                                    stat.grouping,
@@ -3066,13 +3092,14 @@ function get_domains() {
         $characterDateOfEmbrace    = $_POST['charDoE'];
         $characterRoadOrPath       = $_POST['charRoadOrPath'];
         $characterRoadOrPathRating = $_POST['charRoadOrPathRating'];
-        $characterDomain            = $_POST['charDomain'];
+        $characterDomain           = $_POST['charDomain'];
+        $characterSect             = $_POST['charSect'];
         $characterType             = $_POST['charType'];
         $characterStatus           = $_POST['charStatus'];
         $characterStatusComment    = $_POST['charStatusComment'];
         $characterVisible          = $_POST['charVisible'];
         $characterWordPress        = $_POST['charWordPress'];
-
+				
         if (get_magic_quotes_gpc()) {
             $characterHarpyQuote = stripslashes($_POST['charHarpyQuote']);
         }
@@ -3096,26 +3123,29 @@ function get_domains() {
                                 character_status_comment = %s,
                                 road_or_path_id          = %d,
                                 road_or_path_rating      = %d,
-                                domain_id                 = %d,
+                                domain_id                = %d,
+								sect_id                  = %d,
                                 wordpress_id             = %s,
                                 visible                  = %s
                             WHERE ID = " . $characterID;
             $sql = $wpdb->prepare($sql, $characterName,             $characterPublicClan,    $characterPrivateClan,   $characterGeneration,
                 $characterDateOfBirth,      $characterDateOfEmbrace, $characterSire,          $characterPlayer,
                 $characterType,             $characterStatus,        $characterStatusComment, $characterRoadOrPath,
-                $characterRoadOrPathRating, $characterDomain,         $characterWordPress,     $characterVisible);
-        }
+                $characterRoadOrPathRating, $characterDomain,        $characterSect,
+				$characterWordPress,     $characterVisible);
+				        }
         else {
             $sql = "INSERT INTO " . $table_prefix . "CHARACTER (name,                public_clan_id,      private_clan_id,          generation_id,
                                                                 date_of_birth,       date_of_embrace,     sire,                     player_id,
                                                                 character_type_id,   character_status_id, character_status_comment, road_or_path_id,
                                                                 road_or_path_rating, domain_id,            wordpress_id,             visible,
                                                                 deleted)
-                            VALUES (%s, %d, %d, %d, %s, %s, %s, %d, %d, %d, %s, %d, %d, %d, %s, %s, 'N')";
+                            VALUES (%s, %d, %d, %d, %s, %s, %s, %d, %d, %d, %s, %d, %d, %d, %d, %s, %s, 'N')";
             $sql = $wpdb->prepare($sql, $characterName,             $characterPublicClan,    $characterPrivateClan,   $characterGeneration,
                 $characterDateOfBirth,      $characterDateOfEmbrace, $characterSire,          $characterPlayer,
                 $characterType,             $characterStatus,        $characterStatusComment, $characterRoadOrPath,
-                $characterRoadOrPathRating, $characterDomain,         $characterWordPress,     $characterVisible);
+                $characterRoadOrPathRating, $characterDomain,        $characterSect,
+				$characterWordPress,     $characterVisible);
         }
         $wpdb->query($sql);
 
