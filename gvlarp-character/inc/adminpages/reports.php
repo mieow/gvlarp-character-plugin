@@ -25,6 +25,9 @@ function character_reports () {
 		case 'signin_report':
 			render_report(new gvreport_signin());
 			break;
+		case 'sect_report':
+			render_report(new gvreport_sect());
+			break;
 	
 	}
 	
@@ -58,6 +61,10 @@ function render_select_report() {
 	selected($_REQUEST['report'],'signin_report');
 	echo ">Signin Sheet</option>\n";
 	
+	echo "<option value='sect_report' ";
+	selected($_REQUEST['report'],'sect_report');
+	echo ">Sect List</option>\n";
+
 	echo "</select>\n";
 	echo "<input type='submit' name='submit_report' class='button-primary' value='Display Report' />\n";
 	echo "</form>\n";

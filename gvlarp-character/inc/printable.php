@@ -223,7 +223,7 @@ function gv_print_redirect()
 			$pdf->BasicInfoTableRow( array(
 					'Clan Flaw',     $mycharacter->clan_flaw,
 					'Site Login',    $mycharacter->wordpress_id,
-					'', ''
+					'Sect',          $mycharacter->sect
 				)
 			);
 			$pdf->Ln();

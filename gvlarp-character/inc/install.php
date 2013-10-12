@@ -4,7 +4,7 @@ register_activation_hook(__FILE__, "gvlarp_character_install");
 register_activation_hook( __FILE__, 'gvlarp_character_install_data' );
 
 global $gvlarp_character_db_version;
-$gvlarp_character_db_version = "1.8.16"; /* 1.8.16 */
+$gvlarp_character_db_version = "1.8.22"; /* 1.8.16 */
 
 function gvlarp_update_db_check() {
     global $gvlarp_character_db_version;
@@ -166,6 +166,16 @@ function gvlarp_character_install() {
 						) ENGINE=INNODB;";
 			dbDelta($sql);
 		}
+
+		$current_table_name = $table_prefix . "SECT";
+		$sql = "CREATE TABLE " . $current_table_name . " (
+					ID           MEDIUMINT(9) NOT NULL AUTO_INCREMENT,
+					NAME         VARCHAR(16)  NOT NULL,
+					DESCRIPTION  TINYTEXT     NOT NULL,
+					VISIBLE      VARCHAR(1)   NOT NULL,
+					PRIMARY KEY  (ID)
+					) ENGINE=INNODB;";
+		dbDelta($sql);
 		
 		$current_table_name = $table_prefix . "SOURCE_BOOK";
 		$sql = "CREATE TABLE " . $current_table_name . " (
@@ -272,6 +282,7 @@ function gvlarp_character_install() {
 					ROAD_OR_PATH_RATING       SMALLINT(3)   NOT NULL,
 					DOMAIN_ID                 MEDIUMINT(9)  NOT NULL,
 					WORDPRESS_ID              VARCHAR(32)   NOT NULL,
+					SECT_ID                   MEDIUMINT(9)  NOT NULL,
 					LAST_UPDATED              DATE          NOT NULL,
 					DELETED                   VARCHAR(1)    NOT NULL,
 					PRIMARY KEY  (ID),
@@ -283,6 +294,7 @@ function gvlarp_character_install() {
 					CONSTRAINT `" . $table_prefix . "char_constraint_6` FOREIGN KEY (CHARACTER_STATUS_ID)  REFERENCES " . $table_prefix . "CHARACTER_STATUS(ID),
 					CONSTRAINT `" . $table_prefix . "char_constraint_7` FOREIGN KEY (ROAD_OR_PATH_ID)      REFERENCES " . $table_prefix . "ROAD_OR_PATH(ID),
 					CONSTRAINT `" . $table_prefix . "char_constraint_8` FOREIGN KEY (DOMAIN_ID)            REFERENCES " . $table_prefix . "DOMAIN(ID)
+					CONSTRAINT `" . $table_prefix . "char_constraint_9` FOREIGN KEY (SECT_ID)              REFERENCES " . $table_prefix . "SECT(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 
@@ -774,8 +786,10 @@ function gvlarp_character_install() {
 					CLAN_DISCIPLINE_DISCOUNT   VARCHAR(10)    NOT NULL,
 					ANDROID_LINK               TINYTEXT       NOT NULL,
 					HOME_DOMAIN_ID             MEDIUMINT(9)   NOT NULL,
+					HOME_SECT_ID               MEDIUMINT(9)   NOT NULL,
 					PRIMARY KEY  (ID)
 					CONSTRAINT `" . $table_prefix . "config_constraint_1` FOREIGN KEY (HOME_DOMAIN_ID)  REFERENCES " . $table_prefix . "DOMAIN(ID)
+					CONSTRAINT `" . $table_prefix . "config_constraint_2` FOREIGN KEY (HOME_SECT_ID)    REFERENCES " . $table_prefix . "SECT(ID)
 					) ENGINE=INNODB;";
 		//echo "<p>SQL: $sql</p>";
 		dbDelta($sql);
@@ -859,6 +873,18 @@ function gvlarp_character_install_data() {
 			$rowsadded = $wpdb->insert( GVLARP_TABLE_PREFIX . "ST_LINK", $entry);
 	}
 
+
+	// Does the sect ID need to be added to the characters
+	$sql = "SELECT ID FROM " . GVLARP_TABLE_PREFIX . "CHARACTER WHERE SECT_ID = 0";
+	$results = $wpdb->get_results($sql);
+		
+	if (count($results) > 0) {
+		foreach ($results as $row) {
+			$data = array ('SECT_ID' => '1');
+			$results = $wpdb->update(GVLARP_TABLE_PREFIX . "CHARACTER",$data,array ('ID' => $row->ID));		
+		}
+	}
+	
 	$datalist = glob(GVLARP_CHARACTER_URL . "init/*.csv");
 	
 	foreach ($datalist as $datafile) {

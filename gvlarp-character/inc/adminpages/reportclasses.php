@@ -535,4 +535,127 @@ class gvreport_signin extends GVReport_ListTable {
         ) );
 	}
 }
+
+
+class gvreport_sect extends GVReport_ListTable {
+
+    function column_default($item, $column_name){
+        switch($column_name){
+            case 'PLAYERNAME':
+                return $item->$column_name;
+            case 'CHARACTERNAME':
+                return $item->$column_name;
+            case 'SECT':
+                return $item->$column_name;
+            default:
+                return print_r($item,true); 
+        }
+    }
+
+    function get_columns(){
+        $columns = array(
+            'PLAYERNAME'    => 'Player',
+            'CHARACTERNAME' => 'Character',
+            'SECT'     => 'Sect',
+        );
+        return $columns;
+	}
+		
+   function get_sortable_columns() {
+        $sortable_columns = array(
+            'CHARACTERNAME' => array('CHARACTERNAME',true),
+            'PLAYERNAME'    => array('PLAYERNAME',false),
+            'SECT'          => array('SECT',false)
+        );
+        return $sortable_columns;
+    }
+
+	function extra_tablenav($which) {
+		if ($which == 'top')  {
+			echo "<div class='gvfilter'>";
+			
+			echo "<span>Sect: </span>";
+			echo "<select name='selectsect'>";
+			echo '<option value="all" '    . selected( $this->active_filter_selectsect, 'all' )  . '>All</option>';
+			foreach (get_sects() as $sect) {
+				echo '<option value="' . $sect->ID . '" ';
+				echo selected( $this->active_filter_selectsect, $sect->ID );
+				echo '>' . $sect->NAME . '</option>';
+			}
+			echo '</select>';
+			
+			$this->filter_tablenav();
+		
+			echo "</div>";
+		}
+	}
+
+	function prepare_items() {
+        global $wpdb; 
+        
+        $columns = $this->get_columns();
+        $hidden = array();
+        $sortable = $this->get_sortable_columns();
+
+		/* filters */
+		$this->load_filters();
+		/* SEct */
+		if ( isset( $_REQUEST['selectsect'] )) {
+			$this->active_filter_selectsect = sanitize_key( $_REQUEST['selectsect'] );
+		} else {
+			$this->active_filter_selectsect = 'all';
+		}
+		
+		$sql = "SELECT characters.NAME as CHARACTERNAME, players.NAME as PLAYERNAME, sects.NAME as SECT
+				FROM 
+					" . GVLARP_TABLE_PREFIX. "PLAYER players, 
+					" . GVLARP_TABLE_PREFIX. "CHARACTER characters,
+					" . GVLARP_TABLE_PREFIX. "SECT sects
+				WHERE 
+					players.ID = characters.PLAYER_ID
+					AND sects.ID = characters.SECT_ID
+					AND characters.DELETED = 'N'";
+					
+		$filterinfo = $this->get_filter_sql();
+		$args = array();
+		if (isset($this->active_filter_selectsect) && $this->active_filter_selectsect != 'all') {
+			$sectfilter = " AND sects.id = %d";
+			$args = array($this->active_filter_selectsect);
+		}
+		$args = array_merge($args, $filterinfo[1]);
+		
+					
+		$sql .= $sectfilter;
+		$sql .= $filterinfo[0];
+		
+		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']))
+			$sql .= " ORDER BY {$_REQUEST['orderby']} {$_REQUEST['order']}";
+
+		$this->_column_headers = array($columns, $hidden, $sortable);
+        $this->process_bulk_action();
+		
+		/* run query */
+		$sql = $wpdb->prepare($sql,$args);
+		/* echo "<p>SQL: $sql (";
+		print_r($filterinfo[1]);
+		echo ")</p>"; */
+		$data =$wpdb->get_results($sql);
+ 		
+        $current_page = $this->get_pagenum();
+        $total_items = count($data);
+
+        $this->items = $data;
+		
+		$this->output_report("Character Sects List", 'P');
+		$this->output_csv();
+        
+        $this->set_pagination_args( array(
+            'total_items' => $total_items,                  
+            'per_page'    => $total_items,                  
+            'total_pages' => 1
+        ) );
+	}
+}
+
+
 ?>

@@ -8,6 +8,7 @@ class larpcharacter {
 
 	var $name; 
 	var $clan;
+	var $sect;
 	var $private_clan;
 	var $domain;
 	var $player;
@@ -50,20 +51,23 @@ class larpcharacter {
 					   chara.date_of_birth,
 					   chara.date_of_embrace,
 					   chara.sire,
-					   priv_clan.clan_flaw
+					   priv_clan.clan_flaw,
+					   sects.name                      sect
                     FROM " . GVLARP_TABLE_PREFIX . "CHARACTER chara,
                          " . GVLARP_TABLE_PREFIX . "PLAYER player,
                          " . GVLARP_TABLE_PREFIX . "DOMAIN domains,
                          " . GVLARP_TABLE_PREFIX . "CLAN pub_clan,
                          " . GVLARP_TABLE_PREFIX . "CLAN priv_clan,
 						 " . GVLARP_TABLE_PREFIX . "GENERATION gen,
-						 " . GVLARP_TABLE_PREFIX . "ROAD_OR_PATH paths
+						 " . GVLARP_TABLE_PREFIX . "ROAD_OR_PATH paths,
+						 " . GVLARP_TABLE_PREFIX . "SECT sects
                     WHERE chara.PUBLIC_CLAN_ID = pub_clan.ID
                       AND chara.PRIVATE_CLAN_ID = priv_clan.ID
                       AND chara.DOMAIN_ID = domains.ID
                       AND chara.PLAYER_ID = player.ID
 					  AND chara.GENERATION_ID = gen.ID
 					  AND chara.ROAD_OR_PATH_ID = paths.ID
+					  AND chara.SECT_ID = sects.ID
                       AND chara.ID = '%s';";
 		$sql = $wpdb->prepare($sql, $characterID);
 		/* echo "<p>SQL: $sql</p>"; */
@@ -86,6 +90,7 @@ class larpcharacter {
 		$this->date_of_embrace = $result[0]->date_of_embrace;
 		$this->player_id    = $result[0]->player_id;
 		$this->clan_flaw    = $result[0]->clan_flaw;
+		$this->sect         = $result[0]->sect;
 		
 		/* Attributes */
 		$sql = "SELECT stat.name		name,
