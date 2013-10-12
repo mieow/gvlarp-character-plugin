@@ -9,9 +9,6 @@ function character_backgrounds() {
 		<script type="text/javascript">
 			function tabSwitch(tab) {
 				document.getElementById('gv-approve').style.display = 'none';
-				document.getElementById('gv-bgdata').style.display = 'none';
-				document.getElementById('gv-sectors').style.display = 'none';
-				document.getElementById('gv-questions').style.display = 'none';
 				document.getElementById(tab).style.display = '';
 				return false;
 			}
@@ -19,10 +16,6 @@ function character_backgrounds() {
 		<div class="gvadmin_nav">
 			<ul>
 				<li><a href="javascript:void(0);" onclick="tabSwitch('gv-approve');">Approvals</a></li>
-				<!-- <li><a href="javascript:void(0);" onclick="tabSwitch('gv-bgdata');">Background Data</a></li>
-				<li><a href="javascript:void(0);" onclick="tabSwitch('gv-questions');">Background Questions</a></li>
-				<li><a href="javascript:void(0);" onclick="tabSwitch('gv-sectors');">Sector Data</a></li>
-				-->
 			</ul>
 		</div>
 		<div class="gvadmin_content">
@@ -30,20 +23,6 @@ function character_backgrounds() {
 				<h1>Extended Background Approvals</h1>
 				<?php render_approvals_data(); ?>
 			</div>
-			<!--
-			<div id="gv-bgdata" <?php tabdisplay("bgdata", "gvapprove"); ?>>
-				<h1>Background Data</h1>
-				<?php render_background_data(); ?>
-			</div>
-			<div id="gv-sectors" <?php tabdisplay("sector", "gvapprove"); ?>>
-				<h1>Background Sectors</h1>
-				<?php render_sector_data(); ?>
-			</div>
-			<div id="gv-questions" <?php tabdisplay("question", "gvapprove"); ?>>
-				<h1>Extended Background Questions</h1>
-				<?php render_question_data(); ?>
-			</div>
-			-->
 		</div>
 
 	</div>
