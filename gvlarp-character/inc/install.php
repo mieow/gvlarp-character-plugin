@@ -4,7 +4,7 @@ register_activation_hook(__FILE__, "gvlarp_character_install");
 register_activation_hook( __FILE__, 'gvlarp_character_install_data' );
 
 global $gvlarp_character_db_version;
-$gvlarp_character_db_version = "1.8.22"; /* 1.8.16 */
+$gvlarp_character_db_version = "1.8.23"; /* 1.8.16 */
 
 function gvlarp_update_db_check() {
     global $gvlarp_character_db_version;
@@ -769,7 +769,6 @@ function gvlarp_character_install() {
 			dbDelta($sql);
 
 		$current_table_name = $table_prefix . "CONFIG";
-		//rename_column("CONFIG", "HOME_COURT_ID", "HOME_DOMAIN_ID", "MEDIUMINT(9)");
 		$rename = array (
 			'from' => 'HOME_COURT_ID',
 			'to'   => 'HOME_DOMAIN_ID',
@@ -787,6 +786,7 @@ function gvlarp_character_install() {
 					ANDROID_LINK               TINYTEXT       NOT NULL,
 					HOME_DOMAIN_ID             MEDIUMINT(9)   NOT NULL,
 					HOME_SECT_ID               MEDIUMINT(9)   NOT NULL,
+					ASSIGN_XP_BY_PLAYER	       VARCHAR(1)     NOT NULL,
 					PRIMARY KEY  (ID)
 					CONSTRAINT `" . $table_prefix . "config_constraint_1` FOREIGN KEY (HOME_DOMAIN_ID)  REFERENCES " . $table_prefix . "DOMAIN(ID)
 					CONSTRAINT `" . $table_prefix . "config_constraint_2` FOREIGN KEY (HOME_SECT_ID)    REFERENCES " . $table_prefix . "SECT(ID)

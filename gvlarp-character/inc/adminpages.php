@@ -87,8 +87,9 @@ function register_character_menu() {
 	add_menu_page( "Character Plugin Options", "Characters", "manage_options", "gvcharacter-plugin", "character_options");
 	add_submenu_page( "gvcharacter-plugin", "Database Tables",    "Data Tables",   "manage_options", "gvcharacter-data",   "character_datatables" );  
 	add_submenu_page( "gvcharacter-plugin", "Backgrounds",        "Backgrounds",   "manage_options", "gvcharacter-bg",     "character_backgrounds" );  
-	add_submenu_page( "gvcharacter-plugin", "Reports",            "Reports",       "manage_options", "gvcharacter-report", "character_reports" );  
 	add_submenu_page( "gvcharacter-plugin", "XP Approval",        "XP Approval",   "manage_options", "gvcharacter-xp",     "character_experience" );  
+	add_submenu_page( "gvcharacter-plugin", "Assign XP",          "Assign XP",     "manage_options", "gvcharacter-xpassign",  "character_xp_assign" );  
+	add_submenu_page( "gvcharacter-plugin", "Reports",            "Reports",       "manage_options", "gvcharacter-report", "character_reports" );  
 	add_submenu_page( "gvcharacter-plugin", "Configuration",      "Configuration", "manage_options", "gvcharacter-config", "character_config" );  
 }
 
