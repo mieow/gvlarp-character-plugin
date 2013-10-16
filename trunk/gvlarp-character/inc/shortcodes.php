@@ -310,13 +310,7 @@ function get_character_from_email ($email, $setting = 'name') {
 	$playerid = $result[0]->player_id;
 		
 	if ($setting == 'xptotal') {
-		$sql = "SELECT SUM(xpspends.amount) as total
-				FROM
-					" . $wpdb->prefix . "GVLARP_PLAYER_XP as xpspends
-				WHERE
-					xpspends.PLAYER_ID = '%s'";
-		$result = $wpdb->get_results($wpdb->prepare($sql, $playerid));
-		$xp = $result[0]->total;
+		$xp = get_total_xp($this->player_id, $characterID);
 	}
 	
 	if ($setting == 'rating') {
@@ -498,6 +492,113 @@ function print_merit_shortcode($atts, $content = null) {
 	return $output;
 }
 add_shortcode('merit_table', 'print_merit_shortcode');
+
+function print_character_xp_table($atts, $content=null) {
+	extract(shortcode_atts(array ("character" => "null", "group" => "", "maxrecords" => "20"), $atts));
+	$character   = establishCharacter($character);
+	$characterID = establishCharacterID($character);
+	$playerID    = establishPlayerID($character);
+
+	global $wpdb;
+	$table_prefix = GVLARP_TABLE_PREFIX;
+	
+	$config = getConfig();
+	$filteron = $config->ASSIGN_XP_BY_PLAYER == 'Y' ? "PLAYER_ID" : "CHARACTER_ID";
+	$filterid = $config->ASSIGN_XP_BY_PLAYER == 'Y' ? $playerID   : $characterID;
+
+	if ($group != "total" && $group != "TOTAL") {
+		$sqlSpent = "SELECT 
+					player.name as player_name,
+					chara.name as char_name,
+					xp_reason.name as reason_name,
+					xp_spent.amount,
+					xp_spent.comment,
+					xp_spent.awarded
+				FROM
+					" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
+					" . GVLARP_TABLE_PREFIX . "XP_REASON xp_reason,
+					" . GVLARP_TABLE_PREFIX . "PLAYER_XP xp_spent,
+					" . GVLARP_TABLE_PREFIX . "PLAYER player
+				WHERE
+					chara.ID = xp_spent.CHARACTER_ID
+					AND player.ID = chara.PLAYER_ID
+					AND xp_reason.ID = xp_spent.XP_REASON_ID
+					AND chara.DELETED != 'Y'
+					AND xp_spent.$filteron = %s";
+					
+		$sqlPending = "SELECT 
+					player.name as player_name,
+					chara.name as char_name,
+					\"Pending\" as reason_name,
+					pending.amount,
+					pending.comment,
+					pending.awarded
+				FROM
+					" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
+					" . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND pending,
+					" . GVLARP_TABLE_PREFIX . "PLAYER player
+				WHERE
+					player.ID = chara.PLAYER_ID
+					AND pending.CHARACTER_ID = chara.ID
+					AND pending.PLAYER_ID = player.ID
+					AND chara.DELETED != 'Y'
+					AND pending.$filteron = %s";
+		
+		$sql = "$sqlSpent
+				UNION
+				$sqlPending
+				ORDER BY awarded";
+		$sql = $wpdb->prepare($sql, $filterid, $filterid);	
+		$character_xp = $wpdb->get_results($sql);
+
+		$output = "<table class='gvplugin' id=\"cxpt\">
+						   <tr><th class=\"gvthead gvcol_1\">Character</th>
+							   <th class=\"gvthead gvcol_2\">XP Reason</th>
+							   <th class=\"gvthead gvcol_3\">XP Amount</th>
+							   <th class=\"gvthead gvcol_4\">Comment</th>
+							   <th class=\"gvthead gvcol_5\">Date of award</th></tr>\n";
+
+		$arr = array();
+		$i = 0;
+		foreach ($character_xp as $current_xp) {
+			$arr[$i] = "<tr><td class=\"gvcol_1 gvcol_key\">" . $current_xp->char_name   . "</td><td class=\"gvcol_2 gvcol_val\">"
+				. $current_xp->reason_name . "</td><td class=\"gvcol_3 gvcol_val\">"
+				. $current_xp->amount      . "</td><td class='gvcol_4 gvcol_val'>"
+				. stripslashes($current_xp->comment)     . "</td><td class='gvcol_5 gvcol_val'>"
+				. $current_xp->awarded     . "</td></tr>\n";
+			$i++;
+		}
+
+		$pageSize = 20;
+		if ((int) $maxrecords > 0) {
+			$pageSize = (int) $maxrecords;
+		}
+		$j = 0;
+		if ($i > $pageSize) {
+			$j = $i - $pageSize;
+		}
+
+		while ($j < $i) {
+			$output .= $arr[$j];
+			$j++;
+		}
+
+		$output .= "<tr><td colspan=3 class=\"gvsummary\">Total amount of XP to spend</td>
+							<td colspan=2 class=\"gvsummary\">" . $xp_total . "</td></tr>\n";
+
+		$output .= "</table>";
+		
+	}
+	else {
+
+		$output = get_total_xp($playerID, $characterID);
+
+	}
+
+	return $output;
+}
+add_shortcode('character_xp_table', 'print_character_xp_table');
+
 
 	
 ?>

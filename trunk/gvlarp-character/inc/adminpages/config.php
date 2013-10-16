@@ -32,6 +32,7 @@ function character_config() {
 						'ANDROID_LINK' => $_REQUEST['androidlink'],
 						'HOME_DOMAIN_ID' => $_REQUEST['homedomain'],
 						'HOME_SECT_ID'   => $_REQUEST['homesect'],
+						'ASSIGN_XP_BY_PLAYER' => $_REQUEST['assignxp'],
 					);
 					
 					$result = $wpdb->update(GVLARP_TABLE_PREFIX . "CONFIG",
@@ -61,6 +62,7 @@ function character_config() {
 				$options[0]->ANDROID_LINK = $_REQUEST['androidlink'];
 				$options[0]->HOME_DOMAIN_ID = $_REQUEST['homedomain'];
 				$options[0]->HOME_SECT_ID = $_REQUEST['homesect'];
+				$options[0]->ASSIGN_XP_BY_PLAYER = $_REQUEST['assignxp'];
 			}
 		?>
 
@@ -77,7 +79,7 @@ function character_config() {
 			</tr><tr>
 				<td>URL to Profile Placeholder image</td>
 				<td><input type="text" name="placeholder" value="<?php print $options[0]->PLACEHOLDER_IMAGE; ?>" size=60 /></td>
-				<td>This image is used in place of a character portait on the profile page.</td>
+				<td>This image is used in place of a character portrait on the profile page.</td>
 			</tr><tr>
 				<td>Home Domain</td>
 				<td>
@@ -106,6 +108,12 @@ function character_config() {
 				</select>
 				</td>
 				<td>Select what is the default sect for new character</td>
+			</tr><tr>
+				<td>Assign XP By</td>
+				<td>
+				<input type="radio" name="assignxp" value="Y" <?php if ($options[0]->ASSIGN_XP_BY_PLAYER == 'Y') print "checked"; ?>>Player
+				<input type="radio" name="assignxp" value="N" <?php if ($options[0]->ASSIGN_XP_BY_PLAYER == 'N') print "checked"; ?>>Character	
+				<td>Experience can be assigned to players or to characters</td>
 			</tr>
 			</table>
 			<input type="submit" name="save_options" class="button-primary" value="Save Options" />

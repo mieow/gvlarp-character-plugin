@@ -62,15 +62,6 @@ function handleMasterXP() {
 	- called by handleMasterXP
 	- and handleGVLarpForm
  */
-function addPlayerXP($player, $character, $xpReason, $value, $comment) {
-	global $wpdb;
-	$table_prefix = GVLARP_TABLE_PREFIX;
-	$sql = "INSERT INTO " . $table_prefix . "PLAYER_XP (player_id, amount, character_id, xp_reason_id, comment, awarded)
-					VALUES (%d, %d, %d, %d, %s, SYSDATE())";
-	$wpdb->query($wpdb->prepare($sql, $player, ((int) $value), $character, $xpReason, $comment));
-	
-	touch_last_updated($character);
-}
 
 /* shortcode */
 
@@ -79,6 +70,7 @@ function print_xp_spend_table() {
 	
 	$character   = establishCharacter($character);
 	$characterID = establishCharacterID($character);
+	$playerID    = establishPlayerID($character);
 	
 	$output = "";
 	$step = $_REQUEST['step'];
@@ -104,7 +96,7 @@ function print_xp_spend_table() {
 	/* VALIDATE SPENDS */
 	switch ($step) {
 		case 'supply_details':
-			$outputError .= validate_spends($characterID, $docancel);
+			$outputError .= validate_spends($playerID, $characterID, $docancel);
 			if (!empty($outputError)) {
 				$output .= "<div class='gvxp_error'>$outputError</div>";
 				$step = "";
@@ -188,8 +180,9 @@ function render_select_spends($character) {
 
 	$character   = establishCharacter($character);
 	$characterID = establishCharacterID($character);
+	$playerID    = establishPlayerID($character);
 	
-	$xp_total      = get_total_xp($characterID);
+	$xp_total      = get_total_xp($playerID, $characterID);
 	$xp_pending    = get_pending_xp($characterID);
 	$fulldoturl    = plugins_url( 'gvlarp-character/images/viewfulldot.jpg' );
 	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
@@ -1533,7 +1526,7 @@ function save_merit_to_pending ($type, $table, $itemtable, $itemidname, $playerI
 }
 
 
-function get_total_xp($characterID) {
+/* function get_total_xp($characterID) {
 	global $wpdb;
 	
 	$sql = "SELECT SUM(AMOUNT) as COST FROM " . GVLARP_TABLE_PREFIX . "PLAYER_XP WHERE CHARACTER_ID = %s";
@@ -1544,6 +1537,7 @@ function get_total_xp($characterID) {
 	
 	return $xptotal;
 }
+ */
 function get_pending_xp($characterID) {
 	global $wpdb;
 	
@@ -1579,9 +1573,9 @@ function cancel_pending($data) {
 	}
 }
 
-function validate_spends($characterID, $docancel) {
+function validate_spends($playerID, $characterID, $docancel) {
 
-	$xp_total   = get_total_xp($characterID);
+	$xp_total   = get_total_xp($playerID, $characterID);
 	$xp_pending = get_pending_xp($characterID);
 	$xp_spent    = 0;
 	$outputError = "";

@@ -267,14 +267,7 @@ class larpcharacter {
 		}
 		
 		/* Current Experience */
-		$sql = "SELECT SUM(xpspends.amount) as total
-				FROM
-					" . GVLARP_TABLE_PREFIX . "PLAYER_XP as xpspends
-				WHERE
-					xpspends.PLAYER_ID = '%s'";
-		$sql = $wpdb->prepare($sql, $this->player_id);
-		$result = $wpdb->get_results($sql);
-		$this->current_experience = $result[0]->total;
+		$this->current_experience = get_total_xp($this->player_id, $characterID);
 		
 		
 	}

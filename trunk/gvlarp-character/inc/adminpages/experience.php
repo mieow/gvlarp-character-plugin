@@ -1,5 +1,8 @@
 <?php
 
+/* EXPERIENCE APPROVALS
+------------------------------------------------------------------- */
+
 function character_experience() {
 	if ( !current_user_can( 'manage_options' ) )  {
 		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
@@ -654,6 +657,359 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
 			$sql .= " ORDER BY questions.{$_REQUEST['orderby']} {$_REQUEST['order']}";
 		
 		/* echo "<p>SQL: $sql</p>"; */
+		$data =$wpdb->get_results($sql);
+		$this->items = $data;
+        
+
+        $current_page = $this->get_pagenum();
+        $total_items = count($data);
+
+        
+        $this->items = $data;
+        
+        $this->set_pagination_args( array(
+            'total_items' => $total_items,                  
+            'per_page'    => $total_items,                  
+            'total_pages' => 1
+        ) );
+    }
+
+}
+
+
+/* ASSIGN EXPERIENCE
+------------------------------------------------------------------- */
+
+function character_xp_assign() {
+	if ( !current_user_can( 'manage_options' ) )  {
+		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
+	}
+	?>
+	<div class="wrap">
+		<h2>Assign Experience</h2>
+		<?php render_xp_assign_page(); ?>
+	</div>
+	
+	<?php
+}
+
+function addPlayerXP($player, $character, $xpReason, $value, $comment) {
+	global $wpdb;
+	$table_prefix = GVLARP_TABLE_PREFIX;
+	$sql = "INSERT INTO " . $table_prefix . "PLAYER_XP (player_id, amount, character_id, xp_reason_id, comment, awarded)
+					VALUES (%d, %d, %d, %d, %s, SYSDATE())";
+	$wpdb->query($wpdb->prepare($sql, $player, ((int) $value), $character, $xpReason, $comment));
+	
+	touch_last_updated($character);
+}
+
+
+function render_xp_assign_page(){
+
+	$type = "xpassign";
+	
+	if ($_REQUEST['do_update']) {
+		//echo "<p>Saving...</p>";
+		//print_r($_REQUEST['xp_reason']);
+		//print_r($_REQUEST['xp_change']);
+		//print_r($_REQUEST['comment']);
+		
+		$reasons  = $_REQUEST['xp_reason'];
+		$comments = $_REQUEST['comment'];
+		$players  = $_REQUEST['xp_player'];
+		
+		foreach( $_REQUEST['xp_change'] as $characterID => $change) {
+			if (!empty($change) && is_numeric($change)) {
+				
+				addPlayerXP(
+					$players[$characterID],
+					$characterID,
+					$reasons[$characterID],
+					$change,
+					$comments[$characterID]);
+			}
+		
+		}
+		
+	}
+	
+	
+	$config = getConfig();
+
+ 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+	$current_url = remove_query_arg( 'action', $current_url );
+  ?>	
+
+	<!-- Forms are NOT created automatically, so you need to wrap the table in one to use features like bulk actions -->
+	<form id="<?php print $type ?>-filter" method="get" action='<?php print $current_url; ?>'>
+		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
+		<input type="hidden" name="tab" value="<?php print $type ?>" />
+		
+		<table class="wp-list-table widefat">
+		<tr><th class="manage-column">Player</th>
+			<th class="manage-column">Character</th><th>Character Status</th>
+			<th class="manage-column">Current Experience</th>
+			<th class="manage-column">Reason</th>
+			<th class="manage-column">XP Change</th>
+			<th class="manage-column">Comment</th></tr>
+		<?php
+			if ($config->ASSIGN_XP_BY_PLAYER == 'Y')
+				render_xp_by_player();
+			else
+				render_xp_by_character();
+		
+		?>
+		</table>
+		<input type="submit" name="do_update" class="button-primary" value="Update" />
+		
+	</form>
+
+    <?php
+
+}
+
+
+function render_xp_by_player () {
+	global $wpdb;
+	
+	$sql = "SELECT
+				player.ID,
+				SUM(xp.amount) as PLAYER_XP
+			FROM
+				" . GVLARP_TABLE_PREFIX . "PLAYER_XP xp,
+				" . GVLARP_TABLE_PREFIX . "PLAYER player,
+				" . GVLARP_TABLE_PREFIX . "PLAYER_STATUS pstatus
+			WHERE
+				pstatus.ID = player.PLAYER_STATUS_ID
+				AND xp.PLAYER_ID = player.ID
+				AND pstatus.NAME = 'Active'
+			GROUP BY player.ID";
+	//echo "<p>SQL1: $sql</p>";
+	$player_xp = $wpdb->get_results($sql, OBJECT_K);
+	
+	//print_r($player_xp);
+	
+	$sql = "SELECT
+				chara.ID as ID,
+				chara.name as CHARACTERNAME,
+				player.name as PLAYER,
+				player.ID as PLAYER_ID,
+				cstatus.name as CSTATUS
+			FROM
+				" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
+				" . GVLARP_TABLE_PREFIX . "PLAYER player,
+				" . GVLARP_TABLE_PREFIX . "PLAYER_STATUS pstatus,
+				" . GVLARP_TABLE_PREFIX . "CHARACTER_STATUS cstatus
+			WHERE
+				chara.PLAYER_ID = player.ID
+				AND pstatus.ID = player.PLAYER_STATUS_ID
+				AND cstatus.ID = chara.CHARACTER_STATUS_ID
+				AND pstatus.NAME = 'Active'
+				AND cstatus.NAME != 'Dead'
+				AND chara.DELETED != 'Y'
+			GROUP BY chara.ID
+			ORDER BY PLAYER, CHARACTERNAME, cstatus.ID";
+	
+	//echo "<p>SQL2: $sql</p>";
+	$results = $wpdb->get_results($sql);
+	
+	$output = "";
+	$lastplayer = "";
+	foreach ($results as $row) {
+		if ($lastplayer == $row->PLAYER) {
+			$player = "&nbsp;";
+			$xp = "&nbsp;";
+		} else {
+			$player = $row->PLAYER;
+			$xp = $player_xp[$row->PLAYER_ID]->PLAYER_XP;
+		}
+		$lastplayer = $row->PLAYER;
+	
+		$output .= "<tr>";
+		$output .= "<td>$player<input name='xp_player[{$row->ID}]' value=\"{$row->PLAYER_ID}\" type=\"hidden\" /></td>";
+		$output .= "<td>{$row->CHARACTERNAME}</td><td>{$row->CSTATUS}</td><td>$xp</td>";
+		$output .= "<td><select name='xp_reason[{$row->ID}]'>\n";
+		foreach (listXpReasons() as $reason) {
+			$output .= "<option value='{$reason->id}'>{$reason->name}</option>\n";
+		}
+		$output .= "</select></td>\n";
+		$output .= "<td><input name='xp_change[{$row->ID}]' value=\"\" type=\"text\" size=4 /></td>";
+		$output .= "<td><input name='comment[{$row->ID}]' value=\"\" type=\"text\" size=30 /></td>";
+		$output .= "</tr>";
+	}
+	
+	echo $output;
+
+}
+function render_xp_by_character () {
+	global $wpdb;
+
+	$sql = "SELECT
+				chara.ID as ID,
+				chara.name as CHARACTERNAME,
+				player.name as PLAYER,
+				player.ID as PLAYER_ID,
+				cstatus.name as CSTATUS,
+				SUM(xp.amount) as CHARACTER_XP
+			FROM
+				" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
+				" . GVLARP_TABLE_PREFIX . "PLAYER player,
+				" . GVLARP_TABLE_PREFIX . "PLAYER_STATUS pstatus,
+				" . GVLARP_TABLE_PREFIX . "CHARACTER_STATUS cstatus,
+				" . GVLARP_TABLE_PREFIX . "PLAYER_XP xp
+			WHERE
+				chara.PLAYER_ID = player.ID
+				AND pstatus.ID = player.PLAYER_STATUS_ID
+				AND cstatus.ID = chara.CHARACTER_STATUS_ID
+				AND xp.CHARACTER_ID = chara.ID
+				AND xp.PLAYER_ID = player.ID
+				AND pstatus.NAME = 'Active'
+				AND cstatus.NAME != 'Dead'
+				AND chara.DELETED != 'Y'
+			GROUP BY chara.ID
+			ORDER BY PLAYER, CHARACTERNAME, cstatus.ID, CHARACTER_XP";
+	
+	//echo "<p>SQL: $sql</p>";
+	$results = $wpdb->get_results($sql);
+	//print_r ($results);
+	
+	$output = "";
+	$lastplayer = "";
+	foreach ($results as $row) {
+		$player = $lastplayer == $row->PLAYER ? "&nbsp;" : $row->PLAYER;
+		$lastplayer = $row->PLAYER;
+	
+		$output .= "<tr>";
+		$output .= "<td>$player<input name='xp_player[{$row->ID}]' value=\"{$row->PLAYER_ID}\" type=\"hidden\" /></td>";
+		$output .= "<td>{$row->CHARACTERNAME}</td><td>{$row->CSTATUS}</td><td>{$row->CHARACTER_XP}</td>";
+		$output .= "<td><select name='xp_reason[{$row->ID}]'>\n";
+		foreach (listXpReasons() as $reason) {
+			$output .= "<option value='{$reason->id}'>{$reason->name}</option>\n";
+		}
+		$output .= "</select></td>\n";
+		$output .= "<td><input name='xp_change[{$row->ID}]' value=\"\" type=\"text\" size=4 /></td>";
+		$output .= "<td><input name='comment[{$row->ID}]' value=\"\" type=\"text\" size=30 /></td>";
+		$output .= "</tr>";
+	}
+	
+	echo $output;
+
+}
+
+
+/* 
+-----------------------------------------------
+XP APPROVALS TABLE
+------------------------------------------------ */
+class gvadmin_xpassign_table extends GVMultiPage_ListTable {
+   
+    function __construct(){
+        global $status, $page;
+                
+        parent::__construct( array(
+            'singular'  => 'assignment',     
+            'plural'    => 'assignments',    
+            'ajax'      => false        
+        ) );
+    }
+  
+    function column_default($item, $column_name){
+        switch($column_name){
+            case 'PLAYER':
+                return $item->$column_name;
+            case 'CHARACTER':
+                return $item->$column_name;
+            case 'CSTATUS':
+                return $item->$column_name;
+            case 'CURRENT_XP':
+                return $item->$column_name;
+          default:
+                return print_r($item,true); 
+        }
+    }
+ 
+	function column_xp_reason($item) {
+	
+		$output = '<select name="xp_reason[%s]">\n';
+		foreach (listXpReasons() as $reason) {
+			$output .= "<option value='{$reason->id}'>{$reason->name}</option>\n";
+		}
+		$output .= "</select>\n";
+	
+		return sprintf($output, $item->ID);
+	}
+	function column_xp_change($item) {
+		$output = '<input name="xp_change[%s]" value="" type="text" size=4 />';
+	
+		return sprintf($output, $item->ID);
+	}
+	function column_comment($item) {
+		$output = '<input name="comment[%s]" value="" type="text" size=15 />';
+	
+		return sprintf($output, $item->ID);
+	}
+ 
+    function column_charactername($item){
+                
+        return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>',
+            $item->CHARACTERNAME,
+            $item->ID
+        );
+    }
+   
+    function get_columns(){
+        $columns = array(
+            'PLAYER'         => 'Player',
+            'CHARACTERNAME'  => 'Character',
+			'CSTATUS'        => 'Character Status',
+            'CURRENT_XP'     => 'Current XP',
+            'XP_REASON'      => 'Reason for change',
+			'XP_CHANGE'      => 'XP Change',
+			'COMMENT'        => 'Comment'
+        );
+        return $columns;
+		
+    }
+    
+	        
+    function prepare_items() {
+		global $wpdb;
+        
+        $columns  = $this->get_columns();
+        $hidden   = array();
+        $sortable = array();
+		
+		$type = "xpassign";
+        			
+		$this->_column_headers = array($columns, $hidden, $sortable);
+        
+		$this->type = $type;
+		
+        //$this->process_bulk_action();
+		
+		
+		/* get table data */
+		$sql = "SELECT
+					chara.ID as ID,
+					chara.name as CHARACTERNAME,
+					player.name as PLAYER,
+					cstatus.name as CSTATUS,
+					0 as CHARACTER_XP
+				FROM
+					" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
+					" . GVLARP_TABLE_PREFIX . "PLAYER player,
+					" . GVLARP_TABLE_PREFIX . "PLAYER_STATUS pstatus,
+					" . GVLARP_TABLE_PREFIX . "CHARACTER_STATUS cstatus
+				WHERE
+					chara.PLAYER_ID = player.ID
+					AND pstatus.ID = player.PLAYER_STATUS_ID
+					AND cstatus.ID = chara.CHARACTER_STATUS_ID
+					AND pstatus.NAME = 'Active'
+					AND cstatus.NAME != 'Dead'
+					AND chara.DELETED != 'Y'
+				ORDER BY PLAYER, CHARACTERNAME, cstatus.ID, CHARACTER_XP";
+		
+		echo "<p>SQL: $sql</p>";
 		$data =$wpdb->get_results($sql);
 		$this->items = $data;
         

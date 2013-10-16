@@ -207,7 +207,24 @@ function get_stlink_url($stlinkvalue) {
 	return $url;
 
 }
+function get_total_xp($playerID = 0, $characterID = 0) {
+	global $wpdb;
+	
+	$config = getConfig();
+	$filteron = $config->ASSIGN_XP_BY_PLAYER == 'Y' ? "PLAYER_ID" : "CHARACTER_ID";
+	$filterid = $config->ASSIGN_XP_BY_PLAYER == 'Y' ? $playerID   : $characterID;
+	
+	$sql = "SELECT SUM(xpspends.amount) as total
+			FROM
+				" . GVLARP_TABLE_PREFIX . "PLAYER_XP as xpspends
+			WHERE
+				xpspends.$filteron = '%s'";
+	$sql = $wpdb->prepare($sql, $filterid);
+	$result = $wpdb->get_var($sql);
+	
+	return $result;
 
+}
 function get_clans() {
 
 	global $wpdb;
@@ -1254,106 +1271,6 @@ function get_sects() {
         return $output;
     }
     add_shortcode('master_temp_stat_table', 'print_master_temp_stat_table');
-
-    function print_character_xp_table($atts, $content=null) {
-        extract(shortcode_atts(array ("character" => "null", "group" => "", "maxrecords" => "20"), $atts));
-        $character = establishCharacter($character);
-
-        global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
-
-        $innerQuery = "SELECT xp_totals.player_id player_id, (total_xp + ifnull(total_pending, 0)) total_xp
-                               FROM (SELECT player_xp.player_id player_id, SUM(player_xp.amount) total_xp
-                                     FROM " . $table_prefix . "PLAYER_XP player_xp
-                                     GROUP BY player_xp.player_id) xp_totals
-                                     LEFT JOIN (SELECT pending_xp.player_id player_id, SUM(pending_xp.amount) total_pending
-                                                FROM " . $table_prefix . "PENDING_XP_SPEND pending_xp
-                                                GROUP BY pending_xp.player_id) pending_totals ON pending_totals.player_id = xp_totals.player_id ";
-
-        $sql = "SELECT chara2.name char_name, xp_reason.name reason_name, player_xp.amount, player_xp.comment, player_xp.awarded, total_xp
-                        FROM " . $table_prefix . "CHARACTER chara,
-                             " . $table_prefix . "CHARACTER chara2,
-                             " . $table_prefix . "PLAYER_XP player_xp,
-                             " . $table_prefix . "XP_REASON xp_reason,
-                            (" . $innerQuery   . ") xp_totals
-                        WHERE chara.player_id = player_xp.player_id
-                          AND player_xp.character_id = chara2.id
-                          AND xp_totals.player_id = chara.player_id
-                          AND chara.DELETED != 'Y'
-                          AND chara2.DELETED != 'Y'
-                          AND player_xp.xp_reason_id = xp_reason.id
-                          AND chara.WORDPRESS_ID = %s
-                        union
-                        SELECT chara.name char_name, 'Pending XP Spend' reason_name, pending_xp.amount, pending_xp.comment, pending_xp.awarded, total_xp
-                        FROM " . $table_prefix . "CHARACTER chara,
-                             " . $table_prefix . "CHARACTER chara2,
-                             " . $table_prefix . "PENDING_XP_SPEND pending_xp,
-                            (" . $innerQuery   . ") xp_totals
-                        WHERE chara.player_id = pending_xp.player_id
-                          AND pending_xp.character_id = chara2.id
-                          AND xp_totals.player_id = chara.player_id
-                          AND chara.DELETED != 'Y'
-                          AND chara2.DELETED != 'Y'
-                          AND chara.WORDPRESS_ID = %s
-                        ORDER BY awarded";
-
-        $character_xp = $wpdb->get_results($wpdb->prepare($sql, $character, $character));
-
-        if ($group != "total" && $group != "TOTAL") {
-            $output = "<table class='gvplugin' id=\"cxpt\">
-                               <tr><th class=\"gvthead gvcol_1\">Character</th>
-                                   <th class=\"gvthead gvcol_2\">XP Reason</th>
-                                   <th class=\"gvthead gvcol_3\">XP Amount</th>
-                                   <th class=\"gvthead gvcol_4\">Comment</th>
-                                   <th class=\"gvthead gvcol_5\">Date of award</th></tr>\n";
-
-            $arr = array();
-            $i = 0;
-            $xp_total = 0;
-            foreach ($character_xp as $current_xp) {
-                $arr[$i] = "<tr><td class=\"gvcol_1 gvcol_key\">" . $current_xp->char_name   . "</td><td class=\"gvcol_2 gvcol_val\">"
-                    . $current_xp->reason_name . "</td><td class=\"gvcol_3 gvcol_val\">"
-                    . $current_xp->amount      . "</td><td class='gvcol_4 gvcol_val'>"
-                    . stripslashes($current_xp->comment)     . "</td><td class='gvcol_5 gvcol_val'>"
-                    . $current_xp->awarded     . "</td></tr>\n";
-                $xp_total = (int) $current_xp->total_xp;
-                $i++;
-            }
-
-            $pageSize = 20;
-            if ((int) $maxrecords > 0) {
-                $pageSize = (int) $maxrecords;
-            }
-            $j = 0;
-            if ($i > $pageSize) {
-                $j = $i - $pageSize;
-            }
-
-            while ($j < $i) {
-                $output .= $arr[$j];
-                $j++;
-            }
-
-            $output .= "<tr><td colspan=3 class=\"gvsummary\">Total amount of XP to spend</td>
-                                <td colspan=2 class=\"gvsummary\">" . $xp_total . "</td></tr>\n";
-
-            if (isSt()) {
-                $output .= "<tr><td colspan=5 class=\"gvsummary\">" . print_xp_spend($character) . "</td></tr>\n";
-            }
-            $output .= "</table>";
-        }
-        else {
-            $total_xp = 0;
-            foreach ($character_xp as $current_xp) {
-                $total_xp = (int) $current_xp->total_xp;
-            }
-
-            $output = $total_xp;
-        }
-
-        return $output;
-    }
-    add_shortcode('character_xp_table', 'print_character_xp_table');
 
     function print_character_road_or_path_table($atts, $content=null) {
         extract(shortcode_atts(array ("character" => "null", "group" => "", "maxrecords" => "20"), $atts));
