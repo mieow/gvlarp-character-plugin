@@ -802,7 +802,6 @@ function get_sects() {
     }
     add_shortcode('office_block', 'print_office_block');
 
-
     function print_new_player_table($atts, $content=null) {
         $playerTypes  = listPlayerType();
         $playerStatus = listPlayerStatus();
@@ -827,99 +826,6 @@ function get_sects() {
         return $output;
     }
     add_shortcode('new_player_table', 'print_new_player_table');
-
-    function print_master_xp_table($atts, $content=null) {
-        if (!isST()) {
-            return "Only STs can view the master XP table";
-        }
-
-        global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
-        $xpReasons = listXpReasons();
-
-        $xpOptions = "";
-        foreach ($xpReasons as $reason) {
-            $xpOptions .= "<option value=\"" . $reason->id . "\">" . $reason->name . "</option>";
-        }
-
-        $sql = "SELECT player.name             player_name,
-                               player.id               player_id,
-                               chara.name              character_name,
-                               chara.id                character_id,
-                               chara.character_type_id ctype,
-                               xp_totals.total_xp
-                        FROM " . $table_prefix . "PLAYER player,
-                             " . $table_prefix . "PLAYER_STATUS pstatus,
-                             " . $table_prefix . "CHARACTER chara,
-                             " . $table_prefix . "CHARACTER_STATUS cstatus,
-                             (SELECT player_xp.player_id player_id, SUM(player_xp.amount) total_xp
-                              FROM " . $table_prefix . "PLAYER_XP player_xp
-                              GROUP BY player_xp.player_id) xp_totals
-                        WHERE chara.player_id = player.id
-                          AND chara.character_status_id = cstatus.id
-                          AND player.player_status_id = pstatus.id
-                          AND pstatus.name = 'Active'
-                          AND cstatus.name = 'Alive'
-                          AND chara.VISIBLE = 'Y'
-                          AND chara.DELETED != 'Y'
-                          AND player.id = xp_totals.player_id
-                        ORDER BY player_name, ctype, character_name";
-
-        $xp_records = $wpdb->get_results($sql);
-
-        $output  = "<form name=\"Master_XP_Form\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">";
-        $output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"master_xp_update\" />";
-        $output .= "<table class='gvplugin' id=\"gvid_mxpt\"><tr><td colspan=6><input type='submit' name=\"submit_new_xp\" value=\"Submit XP Changes\" /></tr>";
-        $output .= "<tr><th class=\"gvthead gvcol_1\">Player</th>
-                            <th class=\"gvthead gvcol_2\">Current XP</th>
-                            <th class=\"gvthead gvcol_3\">Character</th>
-                            <th class=\"gvthead gvcol_4\">XP Reason</th>
-                            <th class=\"gvthead gvcol_5\">XP Change</th>
-                            <th class=\"gvthead gvcol_6\">Comment</th></tr>";
-
-        $last_player = "";
-        $current_player = "";
-        $current_player_id = "";
-        $counter = 0;
-
-        foreach ($xp_records as $current_record) {
-            $current_player = $current_record->player_name;
-            if ($current_player != $last_player) {
-                $counter++;
-                if ($last_player != "") {
-                    $output .= "</select></td>
-                                        <td class='gvcol_4 gvcol_val'><select name=\"" . $current_player_id . "_xp_reason\">" . $xpOptions . "</select>
-                                        </td><td class='gvcol_5 gvcol_val'>
-                                        <input type='text' name=\"" . $current_player_id . "_xp_value\" size=5 maxlength=3 />
-                                        </td><td class='gvcol_6 gvcol_val'>
-                                        <input type='text' name=\"" . $current_player_id . "_xp_comment\" size=30 maxlength=100 />
-                                        </td></tr>";
-                }
-                $last_player = $current_player;
-                $current_xp        = $current_record->total_xp;
-                $current_player_id = $current_record->player_id;
-                $output .= "<tr><td colspan=6><input type='HIDDEN' name=\"counter_" . $counter . "\" value=\"" . $current_player_id . "\"></td></tr><tr>
-                                        <th class=\"gvthleft\">" . $current_player . "</th><td class=\"gvcol_2 gvcol_val\">" . $current_xp . "</td>
-                                        <td class=\"gvcol_3 gvcol_val\"><select name=\"" . $current_player_id . "_character\">";
-            }
-            $output .= "<option value=\"" . $current_record->character_id . "\">" . $current_record->character_name . "</option>";
-        }
-        if ($last_player != "") {
-            $output .= "</select></td>
-                                <td class='gvcol_4 gvcol_val'><select name=\"" . $current_player_id . "_xp_reason\">" . $xpOptions . "</select>
-                                </td><td class='gvcol_5 gvcol_val'>
-                                <input type='text' name=\"" . $current_player_id . "_xp_value\" size=5 maxlength=3 />
-                                </td><td class='gvcol_6 gvcol_val'>
-                                <input type='text' name=\"" . $current_player_id . "_xp_comment\" size=30 maxlength=100 />
-                                </td></tr>";
-        }
-        $output .= "<tr><td colspan=6><input type='submit' name=\"submit_new_xp\" value=\"Submit XP Changes\" /></td>
-                            </table></form>";
-
-        return $output;
-    }
-    add_shortcode('master_xp_table', 'print_master_xp_table');
-
 
     function print_master_path_table($atts, $content=null) {
         extract(shortcode_atts(array ("group" => ""), $atts));
@@ -3055,8 +2961,8 @@ function get_sects() {
             $sql = "INSERT INTO " . $table_prefix . "CHARACTER (name,                public_clan_id,      private_clan_id,          generation_id,
                                                                 date_of_birth,       date_of_embrace,     sire,                     player_id,
                                                                 character_type_id,   character_status_id, character_status_comment, road_or_path_id,
-                                                                road_or_path_rating, domain_id,            wordpress_id,             visible,
-                                                                deleted)
+                                                                road_or_path_rating, domain_id,           sect_id,					wordpress_id,             
+																visible, deleted)
                             VALUES (%s, %d, %d, %d, %s, %s, %s, %d, %d, %d, %s, %d, %d, %d, %d, %s, %s, 'N')";
             $sql = $wpdb->prepare($sql, $characterName,             $characterPublicClan,    $characterPrivateClan,   $characterGeneration,
                 $characterDateOfBirth,      $characterDateOfEmbrace, $characterSire,          $characterPlayer,
@@ -3088,7 +2994,9 @@ function get_sects() {
             $pathReasonID = establishPathReasonID('Initial');
             $sql = "INSERT INTO ". $table_prefix . "CHARACTER_ROAD_OR_PATH (character_id, path_reason_id, awarded, amount, comment) "
                 .  "VALUES (%d, %d, SYSDATE(), %d, 'Character creation')";
-            $wpdb->query($wpdb->prepare($sql, $characterID, $pathReasonID, $characterRoadOrPathRating));
+			$sql = $wpdb->prepare($sql, $characterID, $pathReasonID, $characterRoadOrPathRating);
+			//echo "<p>SQL: $sql</p>";
+            $wpdb->query($sql);
 
             $tempStatReasonID = establishTempStatReasonID('Initial');
             $tempStatID = establishTempStatID('Blood');
