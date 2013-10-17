@@ -134,6 +134,14 @@ function plugin_style()
 }
 add_action('wp_enqueue_scripts', 'plugin_style');
 
+function get_stat_info() {
+	global $wpdb;
+
+	$sql = "SELECT NAME, ID FROM " . GVLARP_TABLE_PREFIX . "STAT;";
+	$statinfo = $wpdb->get_results($sql, OBJECT_K);
+	
+	return $statinfo;
+}
 function get_booknames() {
 
 	global $wpdb;

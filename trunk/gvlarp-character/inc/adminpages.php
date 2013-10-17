@@ -9,6 +9,7 @@ require_once GVLARP_CHARACTER_URL . 'inc/adminpages/moredata.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/toolbar.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/config.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/experience.php';
+require_once GVLARP_CHARACTER_URL . 'inc/adminpages/enlightenment.php';
 
 if(!class_exists('WP_List_Table')){
     require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
@@ -179,6 +180,7 @@ function character_datatables() {
 				<li><?php echo get_tablink('sector', 'Sectors'); ?></li>
 				<li><?php echo get_tablink('question', 'Background Questions'); ?></li>
 				<li><?php echo get_tablink('costmodel', 'Cost Models'); ?></li>
+				<li><?php echo get_tablink('enlighten', 'Paths of Enlightenment'); ?></li>
 			</ul>
 		</div>
 		<div class="gvadmin_content">
@@ -220,6 +222,9 @@ function character_datatables() {
 				break;
 			case 'costmodel':
 				render_costmodel_page("costmodel");
+				break;
+			case 'enlighten':
+				render_enlightenment_page();
 				break;
 			default:
 				render_stat_page("stat");
