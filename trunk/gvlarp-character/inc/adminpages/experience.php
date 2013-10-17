@@ -602,7 +602,7 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
     
     function process_bulk_action() {
         		
-		if( 'approveit'===$this->current_action() && $_REQUEST['tab'] == $this->type) {
+		if( 'approveit'===$this->current_action() && $_REQUEST['tab'] == $this->type && isset($_REQUEST['spend'])) {
 
 			if ('string' == gettype($_REQUEST['spend'])) {
 				$this->approve($_REQUEST['spend']);
@@ -612,7 +612,7 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
 				}
 			}
         }
-        if( 'denyit'===$this->current_action() && $_REQUEST['tab'] == $this->type) {
+        if( 'denyit'===$this->current_action() && $_REQUEST['tab'] == $this->type && isset($_REQUEST['spend'])) {
 			if ('string' == gettype($_REQUEST['spend'])) {
 				$this->deny($_REQUEST['spend']);
 			} else {

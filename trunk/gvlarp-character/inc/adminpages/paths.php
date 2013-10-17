@@ -1,66 +1,66 @@
 <?php
 
 
-function render_enlightenment_page(){
+function render_paths_page(){
 
 
-    $testListTable["enlighten"] = new gvadmin_enlighten_table();
-	$doaction = enlighten_input_validation("enlighten");
+    $testListTable["path"] = new gvadmin_path_table();
+	$doaction = enlighten_input_validation("path");
 	
 	/* echo "<p>action: $doaction</p>"; */
 	
-	if ($doaction == "add-enlighten") {
-		$testListTable["enlighten"]->add();		
+	if ($doaction == "add-path") {
+		$testListTable["path"]->add();		
 	}
-	if ($doaction == "save-enlighten") {
-		$testListTable["enlighten"]->edit();				
+	if ($doaction == "save-path") {
+		$testListTable["path"]->edit();				
 	}
 
-	render_enlighten_add_form("enlighten", $doaction);
-	$testListTable["enlighten"]->prepare_items();
+	render_path_add_form("path", $doaction);
+	$testListTable["path"]->prepare_items();
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
 	?>	
 
-	<form id="enlighten-filter" method="get" action='<?php print $current_url; ?>'>
+	<form id="path-filter" method="get" action='<?php print $current_url; ?>'>
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
-		<input type="hidden" name="tab" value="enlighten" />
- 		<?php $testListTable["enlighten"]->display() ?>
+		<input type="hidden" name="tab" value="path" />
+ 		<?php $testListTable["path"]->display() ?>
 	</form>
 
     <?php 
 }
 
-function render_enlighten_add_form($type, $addaction) {
+function render_path_add_form($type, $addaction) {
 	global $wpdb;
 
-	$id   = $_REQUEST['road'];
+	$id   = $_REQUEST['path'];
 		
 	if ('fix-' . $type == $addaction) {
-		$name     = $_REQUEST[$type . "_name"];
-		$desc     = $_REQUEST[$type . "_desc"];
-		$stat1_id = $_REQUEST[$type . "_stat1"];
-		$stat2_id = $_REQUEST[$type . "_stat2"];
+		$name          = $_REQUEST[$type . "_name"];
+		$desc          = $_REQUEST[$type . "_desc"];
+		$discipline_id = $_REQUEST[$type . "_discipline"];
+		$cost_model_id = $_REQUEST[$type . "_costmodel"];
 		$sourcebook_id = $_REQUEST[$type . "_sourcebook"];
-		$pagenum  = $_REQUEST[$type . "_pagenum"];
-		$visible  = $_REQUEST[$type . "_visible"];
+		$pagenum       = $_REQUEST[$type . "_pagenum"];
+		$visible       = $_REQUEST[$type . "_visible"];
 		
 		$nextaction = $_REQUEST['action'];
 
 	} elseif ('edit-' . $type == $addaction) {
-		$sql = "SELECT * FROM " . GVLARP_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s";
+		$sql = "SELECT * FROM " . GVLARP_TABLE_PREFIX . "PATH WHERE ID = %s";
 		$sql = $wpdb->prepare($sql, $id);
-		$data =$wpdb->get_results($sql);
+		$data =$wpdb->get_row($sql);
 		/* echo "<p>SQL: $sql</p>";
 		print_r($data); */
 		
-		$name     = $data[0]->NAME;
-		$desc     = $data[0]->DESCRIPTION;
-		$stat1_id = $data[0]->STAT1_ID;
-		$stat2_id = $data[0]->STAT2_ID;
-		$sourcebook_id = $data[0]->SOURCE_BOOK_ID;
-		$pagenum  = $data[0]->PAGE_NUMBER;
-		$visible  = $data[0]->VISIBLE;
+		$name          = $data->NAME;
+		$desc          = $data->DESCRIPTION;
+		$discipline_id = $data->DISCIPLINE_ID;
+		$cost_model_id = $data->COST_MODEL_ID;
+		$sourcebook_id = $data->SOURCE_BOOK_ID;
+		$pagenum       = $data->PAGE_NUMBER;
+		$visible       = $data->VISIBLE;
 		
 		$nextaction = "save";
 
@@ -68,8 +68,8 @@ function render_enlighten_add_form($type, $addaction) {
 	
 		$name = "";
 		$desc = "";
-		$stat1_id = 0;
-		$stat2_id = 0;
+		$discipline_id = 0;
+		$cost_model_id = 0;
 		$sourcebook_id = 4;
 		$pagenum = "";
 		$visible = 'Y';
@@ -77,22 +77,7 @@ function render_enlighten_add_form($type, $addaction) {
 		$nextaction = "add";
 		
 	}
-	
-	$statinfo = get_stat_info();
-	
-	$conscience  = $statinfo['Conscience']->ID;  // should be stat1
-	$conviction  = $statinfo['Conviction']->ID;  // should be stat1
-	$selfcontrol = $statinfo['Self Control']->ID;  // should be stat2
-	$instinct    = $statinfo['Instinct']->ID;  // should be stat2
-	
-	// swap if needed
-	if ($stat1_id == $selfcontrol || $stat1_id == $instinct) {
-		$tmp = $stat1_id;
-		$stat1_id = $stat2_id;
-		$stat2_id = $tmp;
-	}
-	
-	
+		
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
 	?>
@@ -103,7 +88,32 @@ function render_enlighten_add_form($type, $addaction) {
 		<table>
 		<tr>
 			<td>Name:</td>
-			<td><input type="text" name="<?php print $type; ?>_name" value="<?php print $name; ?>" size=20 /></td>
+			<td><input type="text" name="<?php print $type; ?>_name" value="<?php print $name; ?>" size=30 /></td>
+			<td>Discipline:</td>
+			<td>
+				<select name="<?php print $type; ?>_discipline">
+					<?php
+						foreach (get_disciplines() as $discipline) {
+							print "<option value='{$discipline->ID}' ";
+							selected($discipline->ID, $discipline_id);
+							echo ">{$discipline->NAME}</option>";
+						}
+					?>
+				</select>
+			</td>
+			<td>Cost Model:  </td>
+			<td><select name="<?php print $type; ?>_costmodel">
+					<?php
+						foreach (get_costmodels() as $costmodel) {
+							print "<option value='{$costmodel->ID}' ";
+							selected($costmodel->ID, $cost_model_id);
+							echo ">{$costmodel->NAME}</option>";
+						}
+					?>
+				</select>
+			</td>
+		</tr>
+		<tr>
 			<td>Sourcebook:  </td>
 			<td>
 			<select name="<?php print $type; ?>_sourcebook">
@@ -118,22 +128,6 @@ function render_enlighten_add_form($type, $addaction) {
 			</td>
 			<td>Page number:  </td>
 			<td><input type="number" name="<?php print $type; ?>_pagenum" value="<?php print $pagenum; ?>" size=5 /></td>
-		</tr>
-		<tr>
-			<td>Stat 1:</td>
-			<td>
-				<input type="radio" name="<?php print $type; ?>_stat1" value="<?php echo $conscience; ?>" <?php if ($stat1_id == $conscience || $stat1_id == 0) print "checked"; ?>>Conscience
-				<input type="radio" name="<?php print $type; ?>_stat1" value="<?php echo $conviction; ?>" <?php if ($stat1_id == $conviction) print "checked"; ?>>Conviction	
-			</td>
-			<td>Stat 2:  </td>
-			<td>
-				<input type="radio" name="<?php print $type; ?>_stat2" value="<?php echo $selfcontrol; ?>" <?php if ($stat2_id == $selfcontrol || $stat2_id == 0) print "checked"; ?>>Self Control
-				<input type="radio" name="<?php print $type; ?>_stat2" value="<?php echo $instinct; ?>" <?php if ($stat2_id == $instinct) print "checked"; ?>>Instinct	
-			</td>
-		</tr>
-		<tr>
-			<td>Description:  </td>
-			<td colspan=3><input type="text" name="<?php print $type; ?>_desc" value="<?php print $desc; ?>" size=90 /></td> 
 			<td>Visible to Players:</td>
 			<td>
 				<select name="<?php print $type; ?>_visible">
@@ -141,6 +135,10 @@ function render_enlighten_add_form($type, $addaction) {
 					<option value="Y" <?php selected($visible, "Y"); ?>>Yes</option>
 				</select>
 			</td>
+		</tr>
+		<tr>
+			<td>Description:  </td>
+			<td colspan=3><input type="text" name="<?php print $type; ?>_desc" value="<?php print $desc; ?>" size=90 /></td> 
 		</tr>
 		</table>
 		<input type="submit" name="save_<?php print $type; ?>" class="button-primary" value="Save" />
@@ -150,7 +148,7 @@ function render_enlighten_add_form($type, $addaction) {
 
 }
 
-function enlighten_input_validation($type) {
+function path_input_validation($type) {
 	
 	
 	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == $type)
@@ -187,14 +185,14 @@ ROAD/PATHS TABLE
 ------------------------------------------------ */
 
 
-class gvadmin_enlighten_table extends GVMultiPage_ListTable {
+class gvadmin_path_table extends GVMultiPage_ListTable {
    
     function __construct(){
         global $status, $page;
                 
         parent::__construct( array(
-            'singular'  => 'road',     
-            'plural'    => 'roads',    
+            'singular'  => 'path',     
+            'plural'    => 'paths',    
             'ajax'      => false        
         ) );
     }
@@ -204,18 +202,18 @@ class gvadmin_enlighten_table extends GVMultiPage_ListTable {
 		$wpdb->show_errors();
 		
 		$dataarray = array(
-						'NAME'        => $_REQUEST['enlighten_name'],
-						'DESCRIPTION' => $_REQUEST['enlighten_desc'],
-						'STAT1_ID'    => $_REQUEST['enlighten_stat1'],
-						'STAT2_ID'    => $_REQUEST['enlighten_stat2'],
-						'SOURCE_BOOK_ID'  => $_REQUEST['enlighten_sourcebook'],
-						'PAGE_NUMBER' => $_REQUEST['enlighten_pagenum'],
-						'VISIBLE'     => $_REQUEST['enlighten_visible']
+						'NAME'           => $_REQUEST['path_name'],
+						'DESCRIPTION'    => $_REQUEST['path_desc'],
+						'DISCIPLINE_ID'  => $_REQUEST['path_discipline'],
+						'COST_MODEL_ID'  => $_REQUEST['path_costmodel'],
+						'SOURCE_BOOK_ID' => $_REQUEST['path_sourcebook'],
+						'PAGE_NUMBER'    => $_REQUEST['path_pagenum'],
+						'VISIBLE'        => $_REQUEST['path_visible']
 					);
 		
 		/* print_r($dataarray); */
 		
-		$wpdb->insert(GVLARP_TABLE_PREFIX . "ROAD_OR_PATH",
+		$wpdb->insert(GVLARP_TABLE_PREFIX . "PATH",
 					$dataarray,
 					array (
 						'%s',
@@ -229,11 +227,11 @@ class gvadmin_enlighten_table extends GVMultiPage_ListTable {
 				);
 		
 		if ($wpdb->insert_id == 0) {
-			echo "<p style='color:red'><b>Error:</b> " . stripslashes($_REQUEST['enlighten_name']) . " could not be inserted (";
+			echo "<p style='color:red'><b>Error:</b> " . stripslashes($_REQUEST['path_name']) . " could not be inserted (";
 			$wpdb->print_error();
 			echo ")</p>";
 		} else {
-			echo "<p style='color:green'>Added " . stripslashes($_REQUEST['enlighten_name']) . "' (ID: {$wpdb->insert_id})</p>";
+			echo "<p style='color:green'>Added " . stripslashes($_REQUEST['path_name']) . "' (ID: {$wpdb->insert_id})</p>";
 		}
 	}
 
@@ -243,29 +241,29 @@ class gvadmin_enlighten_table extends GVMultiPage_ListTable {
 		$wpdb->show_errors();
 		
 		$dataarray = array(
-						'NAME'        => $_REQUEST['enlighten_name'],
-						'DESCRIPTION' => $_REQUEST['enlighten_desc'],
-						'STAT1_ID'    => $_REQUEST['enlighten_stat1'],
-						'STAT2_ID'    => $_REQUEST['enlighten_stat2'],
-						'SOURCE_BOOK_ID'    => $_REQUEST['enlighten_sourcebook'],
-						'PAGE_NUMBER' => $_REQUEST['enlighten_pagenum'],
-						'VISIBLE'     => $_REQUEST['enlighten_visible']
+						'NAME'           => $_REQUEST['path_name'],
+						'DESCRIPTION'    => $_REQUEST['path_desc'],
+						'DISCIPLINE_ID'  => $_REQUEST['path_discipline'],
+						'COST_MODEL_ID'  => $_REQUEST['path_costmodel'],
+						'SOURCE_BOOK_ID' => $_REQUEST['path_sourcebook'],
+						'PAGE_NUMBER'    => $_REQUEST['path_pagenum'],
+						'VISIBLE'        => $_REQUEST['path_visible']
 					);
 		
-		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "ROAD_OR_PATH",
+		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "PATH",
 					$dataarray,
 					array (
-						'ID' => $_REQUEST['enlighten_id']
+						'ID' => $_REQUEST['path']
 					)
 				);
 		
 		if ($result) 
-			echo "<p style='color:green'>Updated Road/Path</p>";
+			echo "<p style='color:green'>Updated Path</p>";
 		else if ($result === 0) 
 			echo "<p style='color:orange'>No updates made</p>";
 		else {
 			$wpdb->print_error();
-			echo "<p style='color:red'>Could not update Road/Path ({$_REQUEST[$type . '_id']})</p>";
+			echo "<p style='color:red'>Could not update Path ({$_REQUEST['path']})</p>";
 		}
 		 
 	}
@@ -277,8 +275,11 @@ class gvadmin_enlighten_table extends GVMultiPage_ListTable {
 		$sql = "select characters.NAME
 				from 
 					" . GVLARP_TABLE_PREFIX . "CHARACTER characters,
-					" . GVLARP_TABLE_PREFIX . "ROAD_OR_PATH paths
-				where characters.ROAD_OR_PATH_ID = paths.ID 
+					" . GVLARP_TABLE_PREFIX . "CHARACTER_PATH charpaths,
+					" . GVLARP_TABLE_PREFIX . "PATH paths
+				where 
+					characters.ID = charpaths.CHARACTER_ID 
+					and paths.ID = charpaths.PATH_ID
 					and paths.ID = %d;";
 					
 		$isused = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
@@ -292,11 +293,11 @@ class gvadmin_enlighten_table extends GVMultiPage_ListTable {
 			
 		} else {
 		
-			$sql = "delete from " . GVLARP_TABLE_PREFIX . "ROAD_OR_PATH where ID = %d;";
+			$sql = "delete from " . GVLARP_TABLE_PREFIX . "PATH where ID = %d;";
 			
 			$result = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
-			echo "<p style='color:green'>Deleted road/path $selectedID</p>";
+			echo "<p style='color:green'>Deleted path $selectedID</p>";
 		}
 	}
   
@@ -304,9 +305,9 @@ class gvadmin_enlighten_table extends GVMultiPage_ListTable {
         switch($column_name){
             case 'DESCRIPTION':
                 return $item->$column_name;
-            case 'STAT1':
+            case 'COST_MODEL':
                 return $item->$column_name;
-            case 'STAT2':
+            case 'DISCIPLINE':
                 return $item->$column_name;
             default:
                 return print_r($item,true); 
@@ -314,14 +315,14 @@ class gvadmin_enlighten_table extends GVMultiPage_ListTable {
     }
 	
 	function column_sourcebook($item) {
-		return $item->bookname . ", " . $item->PAGE_NUMBER;
+		return $item->BOOKNAME . ", " . $item->PAGE_NUMBER;
 	}
 
    function column_name($item){
         
         $actions = array(
-            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&road=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
-            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&road=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
+            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&path=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
+            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&path=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
        );
         
         
@@ -335,13 +336,13 @@ class gvadmin_enlighten_table extends GVMultiPage_ListTable {
 
     function get_columns(){
         $columns = array(
-            'cb'         => '<input type="checkbox" />', 
-            'NAME'       => 'Name',
+            'cb'          => '<input type="checkbox" />', 
+            'NAME'        => 'Name',
             'DESCRIPTION' => 'Description',
-            'STAT1'      => 'Stat1',
-            'STAT2'      => 'Stat2',
-            'SOURCEBOOK' => 'Source book',
-            'VISIBLE'    => 'Visible to Players',
+            'COST_MODEL'  => 'Cost Model',
+            'DISCIPLINE'  => 'Associated Discipline',
+            'SOURCEBOOK'  => 'Source book',
+            'VISIBLE'     => 'Visible to Players',
          );
         return $columns;
 		
@@ -349,10 +350,9 @@ class gvadmin_enlighten_table extends GVMultiPage_ListTable {
     
     function get_sortable_columns() {
         $sortable_columns = array(
-            'NAME'     => array('NAME',true),
-            'STAT1'    => array('STAT1',false),
-            'STAT2'    => array('STAT2',false),
-            'VISIBLE'  => array('VISIBLE',false)
+            'NAME'       => array('NAME',true),
+            'DISCIPLINE' => array('DISCIPLINE',false),
+            'VISIBLE'    => array('VISIBLE',false)
         );
         return $sortable_columns;
     }
@@ -366,18 +366,38 @@ class gvadmin_enlighten_table extends GVMultiPage_ListTable {
     }
     
     function process_bulk_action() {
-        if( 'delete'===$this->current_action() && $_REQUEST['tab'] == $this->type && isset($_REQUEST['road'])) {
-			if ('string' == gettype($_REQUEST['road'])) {
-				$this->delete($_REQUEST['road']);
+        if( 'delete'===$this->current_action() && $_REQUEST['tab'] == $this->type && isset($_REQUEST['path'])) {
+			if ('string' == gettype($_REQUEST['path'])) {
+				$this->delete($_REQUEST['path']);
 			} else {
-				foreach ($_REQUEST['road'] as $road) {
-					$this->delete($road);
+				foreach ($_REQUEST['path'] as $path) {
+					$this->delete($path);
 				}
 			}
         }
         		
      }
+	 
+	function extra_tablenav($which) {
+		if ($which == 'top') {
 
+			echo "<div class='gvfilter'>";
+			
+			/* Select Discipline */
+			echo "<label>Discipline: </label>";
+			if ( !empty( $this->filter_discipline ) ) {
+				echo "<select name='{$this->type}_filter'>";
+				foreach( $this->filter_discipline as $key => $value ) {
+					echo '<option value="' . esc_attr( $key ) . '" ' . selected( $this->active_filter_discipline, $key ) . '>' . esc_attr( $value ) . '</option>';
+				}
+				echo '</select>';
+			}
+						
+			submit_button( 'Filter', 'secondary', false, false );
+			echo "</div>";
+		}
+	}
+ 
         
     function prepare_items() {
         global $wpdb; 
@@ -386,7 +406,7 @@ class gvadmin_enlighten_table extends GVMultiPage_ListTable {
         $hidden = array();
         $sortable = $this->get_sortable_columns();
 		
-		$type = "enlighten";
+		$type = "path";
         			
 		$this->_column_headers = array($columns, $hidden, $sortable);
         
@@ -394,28 +414,46 @@ class gvadmin_enlighten_table extends GVMultiPage_ListTable {
         
         $this->process_bulk_action();
 		
+		// FILTER ON DISCIPLINE
+		$this->filter_discipline = gvmake_filter(get_disciplines());
+		if ( isset( $_REQUEST[$type . '_filter'] ) && array_key_exists( $_REQUEST[$type . '_filter'], $this->filter_discipline ) ) {
+			$this->active_filter_discipline = sanitize_key( $_REQUEST[$type . '_filter'] );
+		} else {
+			$this->active_filter_discipline = 'all';
+		}
+		
 		/* Get the data from the database */
-		$sql = "SELECT paths.ID, paths.NAME, paths.DESCRIPTION, stats1.NAME as STAT1, stats2.NAME as STAT2,
-					books.name as bookname, paths.PAGE_NUMBER, paths.VISIBLE
-				FROM 
-					" . GVLARP_TABLE_PREFIX . "ROAD_OR_PATH paths,
-					" . GVLARP_TABLE_PREFIX . "STAT stats1,
-					" . GVLARP_TABLE_PREFIX . "STAT stats2,
+		$sql = "SELECT
+					paths.ID,
+					paths.NAME,
+					paths.DESCRIPTION,
+					models.NAME as COST_MODEL,
+					disciplines.NAME as DISCIPLINE,
+					books.NAME as BOOKNAME,
+					paths.PAGE_NUMBER,
+					paths.VISIBLE
+				FROM
+					" . GVLARP_TABLE_PREFIX . "PATH paths,
+					" . GVLARP_TABLE_PREFIX . "COST_MODEL models,
+					" . GVLARP_TABLE_PREFIX . "DISCIPLINE disciplines,
 					" . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books
-				WHERE 
-					paths.STAT1_ID = stats1.ID
-					AND paths.STAT2_ID = stats2.ID
+				WHERE
+					paths.COST_MODEL_ID = models.ID
+					AND paths.DISCIPLINE_ID = disciplines.ID
 					AND paths.SOURCE_BOOK_ID = books.ID";
 				
+		if ( "all" !== $this->active_filter_discipline)
+			$sql .= " AND disciplines.ID = %s";
+			
 		/* order the data according to sort columns */
 		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']))
 			$sql .= " ORDER BY {$_REQUEST['orderby']} {$_REQUEST['order']}";
 		
-		$sql .= ";";
+		$sql = $wpdb->prepare($sql,$this->active_filter_discipline);
 		
 		//echo "<p>SQL: $sql</p>";
 		
-		$data =$wpdb->get_results($wpdb->prepare($sql,''));
+		$data =$wpdb->get_results($sql);
         
         $current_page = $this->get_pagenum();
         $total_items = count($data);

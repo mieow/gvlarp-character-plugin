@@ -724,7 +724,7 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
     
     function process_bulk_action() {
         		
-		if( 'approveit'===$this->current_action() && $_REQUEST['tab'] == $this->type) {
+		if( 'approveit'===$this->current_action() && $_REQUEST['tab'] == $this->type && isset($_REQUEST['extbackground'])) {
 
 			if ('string' == gettype($_REQUEST['extbackground'])) {
 				$this->approve($_REQUEST['extbackground']);
@@ -734,7 +734,7 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
 				}
 			}
         }
-        if( 'denyit'===$this->current_action() && $_REQUEST['tab'] == $this->type) {
+        if( 'denyit'===$this->current_action() && $_REQUEST['tab'] == $this->type && isset($_REQUEST['extbackground'])) {
 			if ('string' == gettype($_REQUEST['extbackground'])) {
 				/* $this->deny($_REQUEST['extbackground']); */
 			} else {
@@ -1085,7 +1085,7 @@ class gvadmin_questions_table extends GVMultiPage_ListTable {
     }
     
     function process_bulk_action() {       		
-        if( 'delete'===$this->current_action() && $_REQUEST['tab'] == $this->type) {
+        if( 'delete'===$this->current_action() && $_REQUEST['tab'] == $this->type && isset($_REQUEST['question'])) {
 			if ('string' == gettype($_REQUEST['question'])) {
 				$this->delete_question($_REQUEST['question']);
 			} else {
@@ -1307,7 +1307,7 @@ class gvadmin_sectors_table extends GVMultiPage_ListTable {
     
     function process_bulk_action() {
         		
-        if( 'delete'===$this->current_action() && $_REQUEST['tab'] == $this->type) {
+        if( 'delete'===$this->current_action() && $_REQUEST['tab'] == $this->type && isset($_REQUEST['sector'])) {
 			if ('string' == gettype($_REQUEST['sector'])) {
 				$this->delete_sector($_REQUEST['sector']);
 			} else {
@@ -1563,7 +1563,7 @@ class gvadmin_backgrounds_table extends GVMultiPage_ListTable {
     
     function process_bulk_action() {
         		
-        if( 'delete'===$this->current_action() && $_REQUEST['tab'] == $this->type) {
+        if( 'delete'===$this->current_action() && $_REQUEST['tab'] == $this->type && isset($_REQUEST['background'])) {
 			if ('string' == gettype($_REQUEST['background'])) {
 				$this->delete_background($_REQUEST['background']);
 			} else {

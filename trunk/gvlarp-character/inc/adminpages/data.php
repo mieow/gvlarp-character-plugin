@@ -1,8 +1,6 @@
 <?php
 
 
-
-
 function render_meritflaw_page($type){
 
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
@@ -865,7 +863,7 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
         
 		/* echo "<p>Bulk action " . $this->current_action() . ", currently on tab {$_REQUEST['tab']} and will do action if {$this->type}.</p>"; */
 		
-        if( 'delete'===$this->current_action() && $_REQUEST['tab'] == $this->type) {
+        if( 'delete'===$this->current_action() && $_REQUEST['tab'] == $this->type && isset($_REQUEST['merit'])) {
 			if ('string' == gettype($_REQUEST['merit'])) {
 				$this->delete_merit($_REQUEST['merit']);
 			} else {
@@ -875,7 +873,7 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 			}
         }
 		
-        if( 'hide'===$this->current_action() && $_REQUEST['tab'] == $this->type ) {
+        if( 'hide'===$this->current_action() && $_REQUEST['tab'] == $this->type && isset($_REQUEST['merit']) ) {
 			if ('string' == gettype($_REQUEST['merit'])) {
 				$this->gvlarp_showhide_merit($_REQUEST['merit'], "hide");
 			} else {
@@ -884,7 +882,7 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 				}
 			}
         }
-        if( 'show'===$this->current_action() && $_REQUEST['tab'] == $this->type ) {
+        if( 'show'===$this->current_action() && $_REQUEST['tab'] == $this->type && isset($_REQUEST['merit']) ) {
 			if ('string' == gettype($_REQUEST['merit'])) {
 				$this->gvlarp_showhide_merit($merit, "show");
 			} else {
@@ -1237,7 +1235,7 @@ class gvadmin_rituals_table extends GVMultiPage_ListTable {
     
     function process_bulk_action() {
         		
-        if( 'delete'===$this->current_action() && $_REQUEST['tab'] == $this->type) {
+        if( 'delete'===$this->current_action() && $_REQUEST['tab'] == $this->type && isset($_REQUEST['ritual'])) {
 			if ('string' == gettype($_REQUEST['ritual'])) {
 				$this->delete_ritual($_REQUEST['ritual']);
 			} else {
@@ -1565,7 +1563,7 @@ class gvadmin_books_table extends GVMultiPage_ListTable {
     
     function process_bulk_action() {
         		
-        if( 'delete'===$this->current_action() && $_REQUEST['tab'] == $this->type) {
+        if( 'delete'===$this->current_action() && $_REQUEST['tab'] == $this->type && isset($_REQUEST['book'])) {
 			if ('string' == gettype($_REQUEST['book'])) {
 				$this->delete_book($_REQUEST['book']);
 			} else {
