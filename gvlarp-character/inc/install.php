@@ -245,7 +245,7 @@ function gvlarp_character_install() {
 					DESCRIPTION     TINYTEXT      NOT NULL,
 					STAT1_ID        MEDIUMINT(9)  NOT NULL,
 					STAT2_ID        MEDIUMINT(9)  NOT NULL,
-					SOURCE_BOOK_ID  MEDIUMINT(9)   NOT NULL,
+					SOURCE_BOOK_ID  MEDIUMINT(9)  NOT NULL,
 					PAGE_NUMBER     SMALLINT(4)   NOT NULL,
 					VISIBLE         VARCHAR(1)    NOT NULL,
 					PRIMARY KEY  (ID),

@@ -684,7 +684,7 @@ class gvadmin_skills_table extends GVMultiPage_ListTable {
     }
     
     function process_bulk_action() {
-        if( 'delete'===$this->current_action() && $_REQUEST['tab'] == $this->type) {
+        if( 'delete'===$this->current_action() && $_REQUEST['tab'] == $this->type && isset($_REQUEST['ability'])) {
 			if ('string' == gettype($_REQUEST['ability'])) {
 				$this->delete_skill($_REQUEST['ability']);
 			} else {

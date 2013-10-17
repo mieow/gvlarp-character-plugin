@@ -10,6 +10,7 @@ require_once GVLARP_CHARACTER_URL . 'inc/adminpages/toolbar.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/config.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/experience.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/enlightenment.php';
+require_once GVLARP_CHARACTER_URL . 'inc/adminpages/paths.php';
 
 if(!class_exists('WP_List_Table')){
     require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
@@ -148,7 +149,8 @@ function get_tabhighlight($tab){
 function get_tablink($tab, $text){
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'tab', $current_url );
-	$current_url = add_query_arg('tab', $tab);
+	$current_url = remove_query_arg( 'action', $current_url );
+	$current_url = add_query_arg('tab', $tab, $current_url);
 	$markup = '<a id="gvm-@TAB@" href="@HREF@" @SHOWN@>@TEXT@</a>';
 	return str_replace(
 		Array('@TAB@','@TEXT@','@SHOWN@', '@HREF@'),
@@ -181,6 +183,7 @@ function character_datatables() {
 				<li><?php echo get_tablink('question', 'Background Questions'); ?></li>
 				<li><?php echo get_tablink('costmodel', 'Cost Models'); ?></li>
 				<li><?php echo get_tablink('enlighten', 'Paths of Enlightenment'); ?></li>
+				<li><?php echo get_tablink('path',    'Paths of Magik'); ?></li>
 			</ul>
 		</div>
 		<div class="gvadmin_content">
@@ -225,6 +228,9 @@ function character_datatables() {
 				break;
 			case 'enlighten':
 				render_enlightenment_page();
+				break;
+			case 'path':
+				render_paths_page();
 				break;
 			default:
 				render_stat_page("stat");

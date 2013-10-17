@@ -200,7 +200,7 @@ function render_clan_add_form($addaction) {
 							echo ">{$costmodel->NAME}</option>";
 						}
 					?>
-				</select></td>
+				</select>
 			</td>
 		</tr>
 		<tr>
@@ -216,7 +216,7 @@ function render_clan_add_form($addaction) {
 							echo ">{$discipline->NAME}</option>";
 						}
 					?>
-				</select></td>
+				</select>
 			</td>
 		</tr>
 		<tr>
@@ -542,7 +542,7 @@ class gvadmin_clans_table extends GVMultiPage_ListTable {
         
 		/* echo "<p>Bulk action " . $this->current_action() . ", currently on tab {$_REQUEST['tab']} and will do action if {$this->type}.</p>"; */
 		
-        if( 'delete'===$this->current_action() && $_REQUEST['tab'] == $this->type) {
+        if( 'delete'===$this->current_action() && $_REQUEST['tab'] == $this->type && isset($_REQUEST['clan'])) {
 			if ('string' == gettype($_REQUEST['clan'])) {
 				$this->delete_clan($_REQUEST['clan']);
 			} else {
@@ -956,7 +956,7 @@ class gvadmin_disciplines_table extends GVMultiPage_ListTable {
         
 		/* echo "<p>Bulk action " . $this->current_action() . ", currently on tab {$_REQUEST['tab']} and will do action if {$this->type}.</p>"; */
 		
-        if( 'delete'===$this->current_action() && $_REQUEST['tab'] == $this->type) {
+        if( 'delete'===$this->current_action() && $_REQUEST['tab'] == $this->type && isset($_REQUEST['discipline'])) {
 			if ('string' == gettype($_REQUEST['discipline'])) {
 				$this->delete_discipline($_REQUEST['discipline']);
 			} else {
