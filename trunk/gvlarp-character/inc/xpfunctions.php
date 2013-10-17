@@ -525,84 +525,143 @@ function render_stats($characterID, $maxRating, $pendingSpends) {
 function render_skills($characterID, $maxRating, $pendingSpends) {
 	global $wpdb;
 	
-	/* $sqlCharacterSkill = "SELECT
-					skill.name as name, skill.specialisation_at as spec_at, skill.id as item_id,
-					skill.grouping as grp, skill.COST_MODEL_ID as COST_MODEL_ID,
-					cha_skill.level as level, cha_skill.comment as comment, cha_skill.id as id,
-					null as next_value, null as pending_id
+	$sqlCharacterSkill = "SELECT
+					skill.name as name, 
+					cha_skill.level as level, 
+					cha_skill.comment as comment, 
+					cha_skill.id as id,
+					skill.specialisation_at as spec_at, 
+					skill.id as item_id,
+					skill.grouping as grp,
+					CASE skill.grouping WHEN 'Talents' THEN 3 WHEN 'Skills' THEN 2 WHEN 'Knowledges' THEN 1 ELSE 0 END as ordering,
+					pending.CHARTABLE_LEVEL,
+					steps.XP_COST,
+					steps.NEXT_VALUE, 
+					skill.COST_MODEL_ID as COST_MODEL_ID,
+					NOT(ISNULL(pending.CHARTABLE_LEVEL)) as has_pending, 
+					pending.ID as pending_id
 				FROM
-					" . GVLARP_TABLE_PREFIX . "CHARACTER_SKILL cha_skill,
-					" . GVLARP_TABLE_PREFIX . "SKILL skill
-				WHERE
-					cha_skill.CHARACTER_ID = %s
-					AND cha_skill.SKILL_ID = skill.ID";
-
-	$sqlPendingSpend = "SELECT
-					skill.name as name, skill.specialisation_at as spec_at, skill.id as item_id,
-					skill.grouping as grp, skill.COST_MODEL_ID as COST_MODEL_ID,
-					null as level, pending.specialisation as comment, pending.CHARTABLE_ID as id,
-					pending.CHARTABLE_LEVEL as next_value, pending.ID as pending_id
-				FROM
-					" . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND pending,
-					" . GVLARP_TABLE_PREFIX . "SKILL skill
-				WHERE
-					pending.CHARACTER_ID = %s
-					AND pending.ITEMTABLE_ID = skill.ID
-					AND pending.CHARTABLE = 'CHARACTER_SKILL'";
-	*/
-	
-	$sqlSkill = "SELECT
-					skill.name as name, skill.specialisation_at as spec_at, skill.id as item_id,
-					skill.grouping as grp, skill.COST_MODEL_ID as COST_MODEL_ID,
-					cha_skill.level as level, cha_skill.comment, cha_skill.id,
-					null as next_value, 0 as pending_id
-				FROM
-					" . GVLARP_TABLE_PREFIX . "SKILL skill
-					LEFT JOIN 
-						(SELECT *
-						FROM " . GVLARP_TABLE_PREFIX . "CHARACTER_SKILL
+					" . GVLARP_TABLE_PREFIX . "CHARACTER_SKILL cha_skill
+					LEFT JOIN
+						(SELECT ID, CHARTABLE_ID, CHARTABLE_LEVEL
+						FROM
+							" . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND
 						WHERE
 							CHARACTER_ID = %s
-						) cha_skill
+							AND CHARTABLE = 'CHARACTER_SKILL'
+						) as pending
 					ON
-						cha_skill.SKILL_ID = skill.ID
+						pending.CHARTABLE_ID = cha_skill.ID,
+					" . GVLARP_TABLE_PREFIX . "SKILL skill,
+					" . GVLARP_TABLE_PREFIX . "COST_MODEL_STEP steps,
+					" . GVLARP_TABLE_PREFIX . "COST_MODEL models
 				WHERE
-					skill.VISIBLE = 'Y'
-					";
+					cha_skill.CHARACTER_ID = %s
+					AND cha_skill.SKILL_ID = skill.ID
+					AND steps.COST_MODEL_ID = models.ID
+					AND skill.COST_MODEL_ID  = models.ID
+					AND skill.VISIBLE = 'Y'
+					AND steps.CURRENT_VALUE = cha_skill.level";
+	$sqlPending = "SELECT
+					skill.name as name, 
+					0 as level, 
+					pending.SPECIALISATION as comment, 
+					0 as id,
+					skill.specialisation_at as spec_at, 
+					skill.id as item_id,
+					skill.grouping as grp,
+					CASE skill.grouping WHEN 'Talents' THEN 3 WHEN 'Skills' THEN 2 WHEN 'Knowledges' THEN 1 ELSE 0 END as ordering,
+					pending.CHARTABLE_LEVEL,
+					steps.XP_COST,
+					steps.NEXT_VALUE, 
+					skill.COST_MODEL_ID as COST_MODEL_ID,
+					1 as has_pending, 
+					pending.ID as pending_id
+				FROM
+					" . GVLARP_TABLE_PREFIX . "SKILL skill,
+					" . GVLARP_TABLE_PREFIX . "COST_MODEL_STEP steps,
+					" . GVLARP_TABLE_PREFIX . "COST_MODEL models,
+					" . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND pending
+				WHERE
+					pending.CHARACTER_ID = %s
+					AND pending.CHARTABLE = 'CHARACTER_SKILL'
+					AND pending.ITEMTABLE_ID = skill.ID
+					AND pending.CHARTABLE_ID = 0
+					AND steps.COST_MODEL_ID = models.ID
+					AND skill.COST_MODEL_ID  = models.ID
+					AND skill.VISIBLE = 'Y'
+					AND steps.CURRENT_VALUE = 0";
+	$sqlMultiple = "SELECT
+					skill.name as name, 
+					0 as level, 
+					\"\" as comment, 
+					0 as id,
+					skill.specialisation_at as spec_at, 
+					skill.id as item_id,
+					skill.grouping as grp,
+					CASE skill.grouping WHEN 'Talents' THEN 3 WHEN 'Skills' THEN 2 WHEN 'Knowledges' THEN 1 ELSE 0 END as ordering,
+					0 as CHARTABLE_LEVEL,
+					steps.XP_COST,
+					steps.NEXT_VALUE, 
+					skill.COST_MODEL_ID as COST_MODEL_ID,
+					0 as has_pending, 
+					0 as pending_id
+				FROM
+					" . GVLARP_TABLE_PREFIX . "SKILL skill,
+					" . GVLARP_TABLE_PREFIX . "COST_MODEL_STEP steps,
+					" . GVLARP_TABLE_PREFIX . "COST_MODEL models
+				WHERE
+					skill.MULTIPLE = 'Y'
+					AND skill.VISIBLE = 'Y'
+					AND steps.CURRENT_VALUE = 0
+					AND steps.COST_MODEL_ID = models.ID
+					AND skill.COST_MODEL_ID  = models.ID";
 					
-	$sql = "SELECT
-				list.name,
-				list.level as level,
-				list.comment,
-				list.id,
-				list.spec_at,
-				list.item_id,
-				list.grp,
-				0 as CHARTABLE_LEVEL,
-				steps.XP_COST,
-				steps.NEXT_VALUE,
-				NOT(ISNULL(list.next_value)) as has_pending,
-				list.pending_id
-			FROM
-				($sqlSkill) list,
-				" . GVLARP_TABLE_PREFIX . "COST_MODEL_STEP steps,
-				" . GVLARP_TABLE_PREFIX . "COST_MODEL models
-			WHERE
-				steps.COST_MODEL_ID     = models.ID
-				AND list.COST_MODEL_ID  = models.ID
-				AND (
-					(NOT(ISNULL(list.level)) AND steps.CURRENT_VALUE = list.level)
-					OR
-					(ISNULL(list.level) AND steps.CURRENT_VALUE = 0)
-				)
-			ORDER BY list.grp, list.name, list.comment";
+	
+	$sql = "$sqlCharacterSkill
+			UNION
+			$sqlPending
+			UNION
+			$sqlMultiple
+			ORDER BY ordering DESC, grp, name, level DESC, comment";
 	
 	
 	$sql = $wpdb->prepare($sql, $characterID, $characterID, $characterID, $characterID, $characterID);
-    echo "<p>SQL: $sql</p>";
-	$character_skills_xp = $wpdb->get_results($sql);
+    //echo "<p>SQL: $sql</p>";
+	$character_skills_xp = reformat_skills_xp($wpdb->get_results($sql));
 	
-	$rowoutput = render_spend_table('skill', $character_skills_xp, $maxRating, 3);
+	$sql = "SELECT
+				skill.name as name, 
+				0 as level, 
+				\"\" as comment, 
+				0 as id,
+				skill.specialisation_at as spec_at, 
+				skill.id as item_id,
+				skill.grouping as grp,
+				CASE skill.grouping WHEN 'Talents' THEN 3 WHEN 'Skills' THEN 2 WHEN 'Knowledges' THEN 1 ELSE 0 END as ordering,
+				0 as CHARTABLE_LEVEL,
+				steps.XP_COST,
+				steps.NEXT_VALUE, 
+				skill.COST_MODEL_ID as COST_MODEL_ID,
+				0 as has_pending, 
+				0 as pending_id
+			FROM
+				" . GVLARP_TABLE_PREFIX . "SKILL skill,
+				" . GVLARP_TABLE_PREFIX . "COST_MODEL_STEP steps,
+				" . GVLARP_TABLE_PREFIX . "COST_MODEL models
+			WHERE
+				skill.VISIBLE = 'Y'
+				AND steps.CURRENT_VALUE = 0
+				AND steps.COST_MODEL_ID = models.ID
+				AND skill.COST_MODEL_ID  = models.ID
+			ORDER BY ordering DESC, grp, name";
+	$skills_list = $wpdb->get_results($sql);
+	
+    //echo "<p>SQL: $sql</p>";
+	//print_r($skills_list);
+	
+	$rowoutput = render_skill_spend_table('skill', $skills_list, $character_skills_xp, 
+						$maxRating, 3);
 	
 	if (!empty($rowoutput)) {
 		$output .= "<table>\n";
@@ -613,6 +672,116 @@ function render_skills($characterID, $maxRating, $pendingSpends) {
 	return $output;
 
 }
+
+function render_skills_row ($type, $rownum, $max2display, $maxRating, $datarow, $levelsdata) {
+
+	$fulldoturl    = plugins_url( 'gvlarp-character/images/xpdot.jpg' );
+	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
+	$pendingdoturl = plugins_url( 'gvlarp-character/images/pendingdot.jpg' );
+
+	$rowoutput = "";
+		// Hidden fields
+	$rowoutput .= "<tr style='display:none'><td>\n";
+	$rowoutput .= "<input type='hidden' name='{$type}_spec_at[" . $rownum . "]' value='" . $datarow->spec_at . "' >";
+	$rowoutput .= "<input type='hidden' name='{$type}_spec[" . $rownum . "]'    value='" . $datarow->comment . "' >";
+	$rowoutput .= "<input type='hidden' name='{$type}_curr[" . $rownum . "]'    value='" . $datarow->level . "' >\n";
+	$rowoutput .= "<input type='hidden' name='{$type}_itemid[" . $rownum . "]'  value='" . $datarow->item_id . "' >\n";
+	$rowoutput .= "<input type='hidden' name='{$type}_id[" . $rownum . "]'      value='" . $datarow->id . "' >\n";
+	$rowoutput .= "<input type='hidden' name='{$type}_name[" . $rownum . "]'    value='" . $datarow->name . "' >\n";
+	$rowoutput .= "</td></tr>\n";
+	
+	// start column / new column
+/* 	if (isset($datarow->grp)) {
+		if ($grp != $datarow->grp) {
+			if (empty($grp)) {
+				$rowoutput .= "<tr><td class='gvxp_col'><table><tr><th colspan=$colspan>{$datarow->grp}</th></tr>";
+				$col++;
+			} 
+			elseif ($col == $columns) {
+				$rowoutput .= "</table></td></tr><tr><td class='gvxp_col'><table><tr><th colspan=$colspan>{$datarow->grp}</th></tr>";
+				$col = 1;
+			}
+			else {
+				$rowoutput .= "</table></td><td class='gvxp_col'><table><tr><th colspan=$colspan>{$datarow->grp}</th></tr>";
+				$col++;
+			}
+			$grp = $datarow->grp;
+		}
+	}
+ */	
+	//dots row
+	$xpcost = 0;
+	$rowoutput .= "<tr><th class='gvthleft'><span";
+	if ($datarow->comment)
+		$rowoutput .= " alt='{$datarow->comment}' title='{$datarow->comment}' class='gvxp_spec' ";
+	$rowoutput .= ">{$datarow->name}</span></th>";
+	for ($i=1;$i<=$max2display;$i++) {
+	
+		if ($datarow->level >= $i)
+			$rowoutput .= "<td class='gvxp_dot'><img src='$fulldoturl'></td>";
+		elseif ($maxRating < $i)
+			$rowoutput .= "<td class='gvxp_dot'><img src='$emptydoturl'></td>";
+		elseif ($datarow->CHARTABLE_LEVEL)
+			if ($datarow->CHARTABLE_LEVEL >= $i)
+				$rowoutput .= "<td class='gvxp_dot'><img src='$pendingdoturl'></td>";
+			else
+				$rowoutput .= "<td class='gvxp_dot'><img src='$emptydoturl'></td>";
+		else
+			if ($datarow->NEXT_VALUE == $i) {
+			
+				if ($datarow->NEXT_VALUE > $datarow->level)
+					$xpcost = $datarow->XP_COST;
+				
+				$comment    = $datarow->name . " " . $datarow->level . " > " . $i;
+			
+				$rowoutput .= "<td class='gvxp_checkbox'>";
+				$rowoutput .= "<input type='hidden'   name='{$type}_cost[" . $rownum . "]'    value='" . $xpcost . "' >";
+				$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $rownum . "]' value='$comment' >";
+				$rowoutput .= "<input type='CHECKBOX' name='{$type}_level[" . $rownum . "]'   value='$i' ";
+				if (isset($levelsdata[$rownum]) && $i == $levelsdata[$rownum])
+					$rowoutput .= "checked";
+				$rowoutput .= ">";
+				$rowoutput .= "</td>";
+			}
+			else
+				$rowoutput .= "<td class='gvxp_dot'><img src='$emptydoturl'></td>";
+				
+	}
+	
+		
+	$xpcost = $xpcost ? "(" . $xpcost . " XP)" : "";
+	if ($datarow->has_pending)
+		//$rowoutput .= "<td class='gvxp_checkbox'><input type='CHECKBOX' name='{$type}_cancel[$rownum]' value='{$datarow->pending_id}'><label>clear</label></td>";
+		$rowoutput .= "<td class='gvcol_cost'><input class='gvxp_clear' type='submit' name=\"{$type}_cancel[{$datarow->pending_id}]\" value=\"Clear\"></td>";
+	else
+		$rowoutput .= "<td class='gvcol_cost'>$xpcost</td>";
+	$rowoutput .= "</tr>\n";
+
+	
+	return $rowoutput;
+
+}
+
+function reformat_skills_xp ($input) {
+
+	$arrayout = array();
+	
+	foreach ($input as $row) {
+		if (array_key_exists($row->item_id, $arrayout)) {
+			array_push($arrayout[$row->item_id],$row);
+		} else {
+			$arrayout[$row->item_id] = array($row);
+		}
+	
+	}
+	
+	//print_r($arrayout);
+	
+	return $arrayout;
+
+}
+
+
 function render_disciplines($characterID, $maxRating, $pendingSpends) {
 	global $wpdb;
 	
@@ -1035,6 +1204,59 @@ function render_spend_table($type, $allxpdata, $maxRating, $columns) {
 
 	return $rowoutput;
 }
+
+
+function render_skill_spend_table($type, $list, $allxpdata, $maxRating, $columns) {
+
+	$levelsdata    = $_REQUEST[$type . '_level'];
+
+	$max2display = get_max_dots($xpdata, $maxRating);
+	$colspan = 2 + $max2display;
+	$grp = "";
+	$col = 0;
+	$rowoutput = "";
+	//print_r($allxpdata);
+	if (count($list)>0) {
+		$id = 0;
+		foreach ($list as $skill) {
+		
+			if (isset($skill->grp)) {
+				if ($grp != $skill->grp) {
+					if (empty($grp)) {
+						$rowoutput .= "<tr><td class='gvxp_col'><table><tr><th colspan=$colspan>{$skill->grp}</th></tr>";
+						$col++;
+					} 
+					elseif ($col == $columns) {
+						$rowoutput .= "</table></td></tr><tr><td class='gvxp_col'><table><tr><th colspan=$colspan>{$skill->grp}</th></tr>";
+						$col = 1;
+					}
+					else {
+						$rowoutput .= "</table></td><td class='gvxp_col'><table><tr><th colspan=$colspan>{$skill->grp}</th></tr>";
+						$col++;
+					}
+					$grp = $skill->grp;
+				}
+			}		
+			
+			if (array_key_exists($skill->item_id, $allxpdata)) {
+				//loop through array
+				foreach ($allxpdata[$skill->item_id] as $xpdatarow) {
+					$rowoutput .= render_skills_row($type, $id, $max2display, $maxRating, $xpdatarow, $levelsdata);
+					$id++;
+				}
+			} else {
+			
+				$rowoutput .= render_skills_row($type, $id, $max2display, $maxRating, $skill, $levelsdata);
+				$id++;
+			}
+			
+		}
+	}
+	$rowoutput .= "</table></td></tr>\n";
+
+	return $rowoutput;
+}
+
 function render_ritual_spend_table($type, $allxpdata, $columns) {
 
 	$fulldoturl    = plugins_url( 'gvlarp-character/images/xpdot.jpg' );
@@ -1310,8 +1532,8 @@ function calc_submitted_spend($type) {
 		if (!empty($level))
 			$spend += $costs[$id];
 	}
-	print_r($costs);
-	print_r($_REQUEST[$type . '_level']);
+	//print_r($costs);
+	//print_r($_REQUEST[$type . '_level']);
 	
 	return $spend;
 	
