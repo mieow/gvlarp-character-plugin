@@ -42,12 +42,12 @@ function  get_loggedindomain($characterID) {
 	return $result[0]->domain;
 }
 
-function get_profilelink($profilelink, $wordpressid, $character) {
+function get_profilelink($wordpressid, $character) {
 	$markup = '<a href="@PROFILELINK@?CHARACTER=@WORDPRESS@" @EXTRA@>@NAME@</a>';
 
 	return str_replace(
 		Array('@PROFILELINK@','@WORDPRESS@','@EXTRA@','@NAME@'),
-			Array($profilelink, urlencode($wordpressid), "",$character),
+			Array(get_stlink_url('viewProfile'), urlencode($wordpressid), "",$character),
 			$markup
 		);
 }
@@ -256,13 +256,11 @@ function print_background_shortcode($atts, $content = null) {
 			$output .= "</tr>\n";
 		}
 		
-		$config = getConfig();
-
 		foreach ($result as $tablerow) {
 			$col = 1;
 			$output .= "<tr>";
 			foreach ($columnlist as $name) {
-				if ($name == 'character') $output .= "<td class='gvcol_$col gvcol_key'>" . get_profilelink($config->PROFILE_LINK, $tablerow->wordpress_id, $tablerow->charname) . "</td>";
+				if ($name == 'character') $output .= "<td class='gvcol_$col gvcol_key'>" . get_profilelink($tablerow->wordpress_id, $tablerow->charname) . "</td>";
 				if ($name == 'player') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->playername}</td>";
 				if ($name == 'clan')   $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->publicclan}</td>";
 				if ($name == 'status') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->cstat}</td>";
@@ -465,13 +463,13 @@ function print_merit_shortcode($atts, $content = null) {
 			$output .= "</tr>\n";
 		}
 		
-		$config = getConfig();
+		//$config = getConfig();
 
 		foreach ($result as $tablerow) {
 			$col = 1;
 			$output .= "<tr>";
 			foreach ($columnlist as $name) {
-				if ($name == 'character') $output .= "<td class='gvcol_$col gvcol_key'>" . get_profilelink($config->PROFILE_LINK, $tablerow->wordpress_id, $tablerow->charname) . "</td>";
+				if ($name == 'character') $output .= "<td class='gvcol_$col gvcol_key'>" . get_profilelink($tablerow->wordpress_id, $tablerow->charname) . "</td>";
 				if ($name == 'player') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->playername}</td>";
 				if ($name == 'clan')   $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->publicclan}</td>";
 				if ($name == 'status') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->cstat}</td>";

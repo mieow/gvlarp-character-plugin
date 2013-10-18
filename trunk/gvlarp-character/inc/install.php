@@ -4,7 +4,7 @@ register_activation_hook(__FILE__, "gvlarp_character_install");
 register_activation_hook( __FILE__, 'gvlarp_character_install_data' );
 
 global $gvlarp_character_db_version;
-$gvlarp_character_db_version = "1.8.24"; /* 1.8.16 */
+$gvlarp_character_db_version = "1.8.25"; /* 1.8.16 */
 
 function gvlarp_update_db_check() {
     global $gvlarp_character_db_version;
@@ -780,9 +780,7 @@ function gvlarp_character_install() {
 		rename_column($rename);
 		$sql = "CREATE TABLE " . $current_table_name . " (
 					ID                         MEDIUMINT(9)   NOT NULL  AUTO_INCREMENT,
-					PROFILE_LINK               TINYTEXT       NOT NULL,
 					PLACEHOLDER_IMAGE          TINYTEXT       NOT NULL,
-					CLAN_DISCIPLINE_DISCOUNT   VARCHAR(10)    NOT NULL,
 					ANDROID_LINK               TINYTEXT       NOT NULL,
 					HOME_DOMAIN_ID             MEDIUMINT(9)   NOT NULL,
 					HOME_SECT_ID               MEDIUMINT(9)   NOT NULL,
@@ -794,9 +792,9 @@ function gvlarp_character_install() {
 		//echo "<p>SQL: $sql</p>";
 		dbDelta($sql);
 		/* remove COLUMNS if it exists */
-		$remove = array (
-			'CLAN_DISCIPLINE_DISCOUNT' => '' 
-		);
+		$remove = array ('CLAN_DISCIPLINE_DISCOUNT' => '');
+		remove_columns($current_table_name, $remove);
+		$remove = array ('PROFILE_LINK' => '');
 		remove_columns($current_table_name, $remove);
 		
 		$current_table_name = $table_prefix . "EXTENDED_BACKGROUND";
@@ -855,10 +853,10 @@ function gvlarp_character_install_data() {
 									'LINK' => '',
 									'ORDERING' => 4
 							),
-		'View Character XP Page' => array(	'VALUE' => 'View Character XP Page',
-											'DESCRIPTION' => 'View Character XP Page',
-											'LINK' => '',
-											'ORDERING' => 5
+		'viewProfile ' => array(	'VALUE' => 'viewProfile',
+									'DESCRIPTION' => 'View Character Profile',
+									'LINK' => '',
+									'ORDERING' => 5
 									),
 		'viewXPSpend' => array(	'VALUE' => 'viewXPSpend',
 								'DESCRIPTION' => 'View XP Spend Workspace',
