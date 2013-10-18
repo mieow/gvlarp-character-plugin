@@ -35,10 +35,14 @@ function gv_print_redirect()
 	global $textfont;
 	global $textrowheight;
 
-    if( $_SERVER['REQUEST_URI'] == get_stlink_url('printCharSheet') && is_user_logged_in() )
+    if( is_page(get_stlink_page('printCharSheet')) && is_user_logged_in() )
     {
-		$character = establishCharacter('');
-		$characterID = establishCharacterID($character);
+		if (isset($_REQUEST['characterID']))
+			$characterID = $_REQUEST['characterID'];
+		else {
+			$character = establishCharacter('');
+			$characterID = establishCharacterID($character);
+		}
 		$mycharacter = new larpcharacter();
 		$mycharacter->load($characterID);
 		
