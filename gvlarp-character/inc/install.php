@@ -4,7 +4,7 @@ register_activation_hook(__FILE__, "gvlarp_character_install");
 register_activation_hook( __FILE__, 'gvlarp_character_install_data' );
 
 global $gvlarp_character_db_version;
-$gvlarp_character_db_version = "1.8.25"; /* 1.8.16 */
+$gvlarp_character_db_version = "1.8.27"; /* 1.8.16 */
 
 function gvlarp_update_db_check() {
     global $gvlarp_character_db_version;
@@ -834,7 +834,7 @@ function gvlarp_character_install_data() {
 	
 	$data = array (
 		'editCharSheet' => array(	'VALUE' => 'editCharSheet',
-									'DESCRIPTION' => 'Edit Character Sheet',
+									'DESCRIPTION' => 'New/Edit Character Sheet',
 									'LINK' => '',
 									'ORDERING' => 1
 							),
@@ -848,8 +848,8 @@ function gvlarp_character_install_data() {
 									'LINK' => '',
 									'ORDERING' => 3
 							),
-		'viewCharPage' => array(	'VALUE' => 'viewCharPage',
-									'DESCRIPTION' => 'View Character Page',
+		'viewCustom' => array(		'VALUE' => 'viewCustom',
+									'DESCRIPTION' => 'View Custom Page as Character',
 									'LINK' => '',
 									'ORDERING' => 4
 							),
@@ -875,7 +875,17 @@ function gvlarp_character_install_data() {
 		if (!$exists) 
 			$rowsadded = $wpdb->insert( GVLARP_TABLE_PREFIX . "ST_LINK", $entry);
 	}
-
+	$sql = "SELECT ID FROM  " . GVLARP_TABLE_PREFIX . "ST_LINK WHERE VALUE != %s";
+	for ($i = 1;$i<count(array_keys($data));$i++)
+		$sql .= ' AND VALUE != %s';
+	$sql = $wpdb->prepare($sql,array_keys($data));
+	//echo "<p>SQL: $sql</p>";
+	$results = $wpdb->get_results($sql);
+	//print_r($results);
+	$sql = "DELETE FROM " . GVLARP_TABLE_PREFIX . "ST_LINK WHERE ID = %d";
+	foreach ($results as $row) {
+		$result = $wpdb->get_results($wpdb->prepare($sql, $row->ID));
+	}
 
 	// Does the sect ID need to be added to the characters
 	$sql = "SELECT ID FROM " . GVLARP_TABLE_PREFIX . "CHARACTER WHERE SECT_ID = 0";
