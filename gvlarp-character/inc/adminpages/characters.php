@@ -205,6 +205,7 @@ function character_options() {
 				
 				if (!empty($character->wordpress_id)) {
 					echo '&nbsp;<a href="' . $stlinks['printCharSheet']->LINK  . '?CHARACTER='. urlencode($character->wordpress_id) . '"><img src="' . $iconurl . 'print.png" alt="Print" title="Print Character" /></a>';
+					echo '&nbsp;<a href="' . $stlinks['viewProfile']->LINK     . '?CHARACTER='. urlencode($character->wordpress_id) . '"><img src="' . $iconurl . 'profile.png" alt="Profile" title="View Profile" /></a>';
 					echo '&nbsp;<a href="' . $stlinks['viewXPSpend']->LINK     . '?CHARACTER='. urlencode($character->wordpress_id) . '"><img src="' . $iconurl . 'spendxp.png" alt="XP Spend" title="Spend Experience" /></a>';
 					echo '&nbsp;<a href="' . $stlinks['viewExtBackgrnd']->LINK . '?CHARACTER='. urlencode($character->wordpress_id) . '"><img src="' . $iconurl . 'background.png" alt="Background" title="Extended Background" /></a>';
 				}

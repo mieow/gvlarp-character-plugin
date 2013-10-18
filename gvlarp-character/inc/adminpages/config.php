@@ -26,7 +26,6 @@ function character_config() {
 				if (isset($_REQUEST['save_options'])) {
 					$wpdb->show_errors();
 					$dataarray = array (
-						'PROFILE_LINK' => $_REQUEST['profile'],
 						'PLACEHOLDER_IMAGE' => $_REQUEST['placeholder'],
 						//'CLAN_DISCIPLINE_DISCOUNT' => $_REQUEST['discount'],
 						'ANDROID_LINK' => $_REQUEST['androidlink'],
@@ -56,7 +55,6 @@ function character_config() {
 				$options = $wpdb->get_results($wpdb->prepare($sql,''));
 			} else {
 				echo "<p style='color:red'>Could not save options: $inputsfail</p>";
-				$options[0]->PROFILE_LINK = $_REQUEST['profile'];
 				$options[0]->PLACEHOLDER_IMAGE = $_REQUEST['placeholder'];
 				$options[0]->CLAN_DISCIPLINE_DISCOUNT = $_REQUEST['discount'];
 				$options[0]->ANDROID_LINK = $_REQUEST['androidlink'];
@@ -69,13 +67,9 @@ function character_config() {
 		<form id='options_form' method='post'>
 			<table>
 			<tr>
-				<td>URL to Character Profile</td>
-				<td><input type="text" name="profile" value="<?php print $options[0]->PROFILE_LINK; ?>" size=60 /></td>
-				<td>Location of profile page with the character summary.</td>
-			</tr><tr>
 				<td>URL to Android XML Output</td>
 				<td><input type="text" name="androidlink" value="<?php print $options[0]->ANDROID_LINK; ?>" size=60 /></td>
-				<td>Page where andoid app connects to for character sheet output.</td>
+				<td>Page where android app connects to for character sheet output.</td>
 			</tr><tr>
 				<td>URL to Profile Placeholder image</td>
 				<td><input type="text" name="placeholder" value="<?php print $options[0]->PLACEHOLDER_IMAGE; ?>" size=60 /></td>
