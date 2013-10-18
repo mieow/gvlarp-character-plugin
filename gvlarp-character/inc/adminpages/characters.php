@@ -41,6 +41,32 @@ function character_options() {
 	<div class="wrap">
 		<h2>Characters <a class="add-new-h2" href="<?php echo $stlinks['editCharSheet']->LINK ; ?>">Add New</a></h2>
 
+		<?php 
+		
+		if (isset($_REQUEST['action']) && $_REQUEST['action'] == 'delete' && $_REQUEST['characterID'] != 0) {
+		
+			?>
+			<p>Confirm deletion of character <?php echo $_REQUEST['characterName']; ?></p>
+			<div class="char_delete">
+				
+				<form id="character-delete" method="get" action='<?php print $current_url; ?>'>
+				<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
+				<input type="hidden" name="characterID" value="<?php print $_REQUEST['characterID'] ?>" />
+				<input type='submit' name="cConfirm" value="Confirm Delete" />
+				<input type='submit' name="cCancel" value="Cancel" />
+				</form>
+			
+			</div>
+		
+		<?php
+		} else {
+		
+			if (isset($_REQUEST['cConfirm'])) {
+				echo deleteCharacter($_REQUEST['characterID']);
+			} 
+
+		?>
+		
 		<div class="char_clan_menu">
 		<?php
 			$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
@@ -94,6 +120,7 @@ function character_options() {
 			<table class="wp-list-table widefat">
 			<tr>
 				<th>Character Name</th>
+				<th>Actions</th>
 				<th>Clan</th>
 				<th>Player Name</th>
 				<th>Player Status</th>
@@ -166,14 +193,22 @@ function character_options() {
 					echo '<a href="' . $stlinks['viewCharSheet']->LINK . '?CHARACTER='. urlencode($character->wordpress_id) . '">' . $character->charactername . '</a>';
 				else 
 					echo $character->charactername;
-				echo '<br><div>
+				
+				echo "</th><td>";
+				echo '<div>
 					&nbsp;<a href="' . $stlinks['editCharSheet']->LINK . '?characterID=' . urlencode($character->ID) . '"><img src="' . $iconurl . 'edit.png" alt="Edit" title="Edit Character" /></a>';
+
+				$delete_url = add_query_arg('action', 'delete', $current_url);
+				$delete_url = add_query_arg('characterID', urlencode($character->ID), $delete_url);
+				$delete_url = add_query_arg('characterName', urlencode($character->charactername), $delete_url);
+				echo '&nbsp;<a href="' . $delete_url . '"><img src="' . $iconurl . 'delete.png" alt="Delete" title="Delete Character" /></a>';
+				
 				if (!empty($character->wordpress_id)) {
 					echo '&nbsp;<a href="' . $stlinks['printCharSheet']->LINK  . '?CHARACTER='. urlencode($character->wordpress_id) . '"><img src="' . $iconurl . 'print.png" alt="Print" title="Print Character" /></a>';
 					echo '&nbsp;<a href="' . $stlinks['viewXPSpend']->LINK     . '?CHARACTER='. urlencode($character->wordpress_id) . '"><img src="' . $iconurl . 'spendxp.png" alt="XP Spend" title="Spend Experience" /></a>';
 					echo '&nbsp;<a href="' . $stlinks['viewExtBackgrnd']->LINK . '?CHARACTER='. urlencode($character->wordpress_id) . '"><img src="' . $iconurl . 'background.png" alt="Background" title="Extended Background" /></a>';
 				}
-				echo "</div></th>";
+				echo "</div></td>";
 				echo "<td>{$character->clan}</td>";
 				echo "<td>{$character->player}</td>";
 				echo "<td>{$character->player_status}</td>";
@@ -186,6 +221,8 @@ function character_options() {
 			?>
 			</table>
 		</div>
+		
+		<?php } ?>
 	</div>
 	<?php
 }
@@ -1440,6 +1477,46 @@ function processCharacterUpdate($characterID) {
 	touch_last_updated($characterID);
 
 	return $characterID;
+}
+
+
+function deleteCharacter($characterID) {
+	global $wpdb;
+	$table_prefix = GVLARP_TABLE_PREFIX;
+
+	$sql = "UPDATE " . $table_prefix . "CHARACTER
+					SET DELETED = 'Y'
+					WHERE ID = %d";
+
+	$sql = $wpdb->prepare($sql, $characterID);
+	$wpdb->query($sql);
+
+	//echo "<p>SQL del: $sql</p>";
+	$output = "Problem with delete, contact webmaster";
+
+	$sql = "SELECT name
+			FROM " . $table_prefix . "CHARACTER
+			WHERE 
+				ID = %d
+				AND DELETED = 'Y'";
+
+	$sql = $wpdb->prepare($sql, $characterID);
+	//echo "<p>SQL check: $sql</p>";
+	$characterNames = $wpdb->get_results($sql);
+	//print_r($characterNames);
+	$sqlOutput = "";
+
+	foreach ($characterNames as $characterName) {
+		$sqlOutput .= $characterName->name . " ";
+	}
+
+	if ($sqlOutput != "") {
+		$output = "Deleted character " . $sqlOutput;
+	}
+	
+	touch_last_updated($characterID);
+	
+	return $output;
 }
 
 ?>

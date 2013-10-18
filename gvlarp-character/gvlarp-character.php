@@ -2074,43 +2074,6 @@ function get_sects() {
         return $output;
     }
 
-    function deleteCharacter($characterID) {
-        global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
-
-        $sql = "UPDATE " . $table_prefix . "CHARACTER
-                        SET DELETED = 'Y'
-                        WHERE ID = %d";
-
-        $wpdb->query($wpdb->prepare($sql, $characterID));
-
-        $output = "Problem with delete, contact webmaster";
-
-        $sql = "SELECT name
-                        FROM " . $table_prefix . "CHARACTER
-                        WHERE ID = %d
-                          AND DELETED = 'Y'";
-
-        $characterNames = $wpdb->get_results($wpdb->prepare($sql, $characterID));
-        $sqlOutput = "";
-
-        foreach ($characterNames as $characterName) {
-            $sqlOutput .= $characterName->name . " ";
-        }
-
-        if ($sqlOutput != "") {
-            $output = "Deleted character " . $sqlOutput;
-        }
-
-        $output .= "<br /><form name=\"CD_Form\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">";
-        $output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"displayUpdateCharacter\" />";        $output .= "<table class='gvplugin' id=\"gvid_dcf\"><tr><td class=\"gvcol_1 gvcol_val\">";
-        $output .= "<input type='submit' name=\"cSubmit\" value=\"Back to the character list\" /></td></tr></table></form>";
-		
-		touch_last_updated($characterID);
-		
-        return $output;
-    }
-
     function print_xp_spend($character) {
         global $wpdb;
         $table_prefix = GVLARP_TABLE_PREFIX;
