@@ -1,5 +1,6 @@
 <?php
 
+require_once GVLARP_CHARACTER_URL . 'inc/adminpages/characters.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/reports.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/reportclasses.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/backgrounds.php';
@@ -94,12 +95,6 @@ function register_character_menu() {
 	add_submenu_page( "gvcharacter-plugin", "Reports",            "Reports",       "manage_options", "gvcharacter-report", "character_reports" );  
 	add_submenu_page( "gvcharacter-plugin", "Configuration",      "Configuration", "manage_options", "gvcharacter-config", "character_config" );  
 }
-
-function character_options() {
-
-
-}
-
 
 
 function tabdisplay($tab, $default="merit") {

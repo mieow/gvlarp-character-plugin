@@ -54,7 +54,7 @@ function toolbar_link_gvadmin( $wp_admin_bar ) {
 		$args = array(
 			'id'    => 'gvcharacters',
 			'title' => 'Characters',
-			/* 'href'  => admin_url('admin.php?page=gvcharacter-plugin'), */
+			'href'  => admin_url('admin.php?page=gvcharacter-plugin'),
 			'meta'  => array( 'class' => 'my-toolbar-page' )
 		);
 		$wp_admin_bar->add_node( $args );
