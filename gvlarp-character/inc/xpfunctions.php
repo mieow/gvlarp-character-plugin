@@ -560,7 +560,6 @@ function render_skills($characterID, $maxRating, $pendingSpends) {
 					AND cha_skill.SKILL_ID = skill.ID
 					AND steps.COST_MODEL_ID = models.ID
 					AND skill.COST_MODEL_ID  = models.ID
-					AND skill.VISIBLE = 'Y'
 					AND steps.CURRENT_VALUE = cha_skill.level";
 	$sqlPending = "SELECT
 					skill.name as name, 
@@ -589,40 +588,11 @@ function render_skills($characterID, $maxRating, $pendingSpends) {
 					AND pending.CHARTABLE_ID = 0
 					AND steps.COST_MODEL_ID = models.ID
 					AND skill.COST_MODEL_ID  = models.ID
-					AND skill.VISIBLE = 'Y'
-					AND steps.CURRENT_VALUE = 0";
-	$sqlMultiple = "SELECT
-					skill.name as name, 
-					0 as level, 
-					\"\" as comment, 
-					0 as id,
-					skill.specialisation_at as spec_at, 
-					skill.id as item_id,
-					skill.grouping as grp,
-					CASE skill.grouping WHEN 'Talents' THEN 3 WHEN 'Skills' THEN 2 WHEN 'Knowledges' THEN 1 ELSE 0 END as ordering,
-					0 as CHARTABLE_LEVEL,
-					steps.XP_COST,
-					steps.NEXT_VALUE, 
-					skill.COST_MODEL_ID as COST_MODEL_ID,
-					0 as has_pending, 
-					0 as pending_id
-				FROM
-					" . GVLARP_TABLE_PREFIX . "SKILL skill,
-					" . GVLARP_TABLE_PREFIX . "COST_MODEL_STEP steps,
-					" . GVLARP_TABLE_PREFIX . "COST_MODEL models
-				WHERE
-					skill.MULTIPLE = 'Y'
-					AND skill.VISIBLE = 'Y'
-					AND steps.CURRENT_VALUE = 0
-					AND steps.COST_MODEL_ID = models.ID
-					AND skill.COST_MODEL_ID  = models.ID";
-					
+					AND steps.CURRENT_VALUE = 0";					
 	
 	$sql = "$sqlCharacterSkill
 			UNION
 			$sqlPending
-			UNION
-			$sqlMultiple
 			ORDER BY ordering DESC, grp, name, level DESC, comment";
 	
 	
@@ -644,20 +614,21 @@ function render_skills($characterID, $maxRating, $pendingSpends) {
 				steps.NEXT_VALUE, 
 				skill.COST_MODEL_ID as COST_MODEL_ID,
 				0 as has_pending, 
-				0 as pending_id
+				0 as pending_id,
+				skill.VISIBLE,
+				skill.MULTIPLE
 			FROM
 				" . GVLARP_TABLE_PREFIX . "SKILL skill,
 				" . GVLARP_TABLE_PREFIX . "COST_MODEL_STEP steps,
 				" . GVLARP_TABLE_PREFIX . "COST_MODEL models
 			WHERE
-				skill.VISIBLE = 'Y'
-				AND steps.CURRENT_VALUE = 0
+				steps.CURRENT_VALUE = 0
 				AND steps.COST_MODEL_ID = models.ID
 				AND skill.COST_MODEL_ID  = models.ID
 			ORDER BY ordering DESC, grp, name";
 	$skills_list = $wpdb->get_results($sql);
 	
-    //echo "<p>SQL: $sql</p>";
+    echo "<p>SQL: $sql</p>";
 	//print_r($skills_list);
 	
 	$rowoutput = render_skill_spend_table('skill', $skills_list, $character_skills_xp, 
@@ -1212,6 +1183,7 @@ function render_skill_spend_table($type, $list, $allxpdata, $maxRating, $columns
 
 	$max2display = get_max_dots($xpdata, $maxRating);
 	$colspan = 2 + $max2display;
+	$multipleonce = array();
 	$grp = "";
 	$col = 0;
 	$rowoutput = "";
@@ -1241,13 +1213,20 @@ function render_skill_spend_table($type, $list, $allxpdata, $maxRating, $columns
 			if (array_key_exists($skill->item_id, $allxpdata)) {
 				//loop through array
 				foreach ($allxpdata[$skill->item_id] as $xpdatarow) {
+					echo "<li>$id : {$xpdatarow->name} : {$xpdatarow->comment}</li>";
 					$rowoutput .= render_skills_row($type, $id, $max2display, $maxRating, $xpdatarow, $levelsdata);
 					$id++;
+					if ($skill->MULTIPLE == 'Y' && !array_key_exists($skill->item_id,$multipleonce)) {
+						$multipleonce[$skill->item_id] = 1;
+						$rowoutput .= render_skills_row($type, $id, $max2display, $maxRating, $skill, $levelsdata);
+						$id++;
+					}
 				}
 			} else {
-			
-				$rowoutput .= render_skills_row($type, $id, $max2display, $maxRating, $skill, $levelsdata);
-				$id++;
+				if ($skill->VISIBLE == 'Y') {
+					$rowoutput .= render_skills_row($type, $id, $max2display, $maxRating, $skill, $levelsdata);
+					$id++;
+				}
 			}
 			
 		}
