@@ -4,7 +4,7 @@ register_activation_hook(__FILE__, "gvlarp_character_install");
 register_activation_hook( __FILE__, 'gvlarp_character_install_data' );
 
 global $gvlarp_character_db_version;
-$gvlarp_character_db_version = "1.8.23"; /* 1.8.16 */
+$gvlarp_character_db_version = "1.8.24"; /* 1.8.16 */
 
 function gvlarp_update_db_check() {
     global $gvlarp_character_db_version;
@@ -835,35 +835,40 @@ function gvlarp_character_install_data() {
 	global $wpdb;
 	
 	$data = array (
+		'editCharSheet' => array(	'VALUE' => 'editCharSheet',
+									'DESCRIPTION' => 'Edit Character Sheet',
+									'LINK' => '',
+									'ORDERING' => 1
+							),
 		'viewCharSheet' => array(	'VALUE' => 'viewCharSheet',
 									'DESCRIPTION' => 'View Character Sheet',
 									'LINK' => '',
-									'ORDERING' => 1
+									'ORDERING' => 2
 							),
 		'printCharSheet' => array(	'VALUE' => 'printCharSheet',
 									'DESCRIPTION' => 'View Printable Character Sheet',
 									'LINK' => '',
-									'ORDERING' => 2
+									'ORDERING' => 3
 							),
 		'viewCharPage' => array(	'VALUE' => 'viewCharPage',
 									'DESCRIPTION' => 'View Character Page',
 									'LINK' => '',
-									'ORDERING' => 3
+									'ORDERING' => 4
 							),
 		'View Character XP Page' => array(	'VALUE' => 'View Character XP Page',
 											'DESCRIPTION' => 'View Character XP Page',
 											'LINK' => '',
-											'ORDERING' => 4
+											'ORDERING' => 5
 									),
 		'viewXPSpend' => array(	'VALUE' => 'viewXPSpend',
 								'DESCRIPTION' => 'View XP Spend Workspace',
 								'LINK' => '',
-								'ORDERING' => 5,
+								'ORDERING' => 6,
 						),
 		'viewExtBackgrnd' => array(	'VALUE' => 'viewExtBackgrnd',
 								'DESCRIPTION' => 'View Extended Background',
 								'LINK' => '',
-								'ORDERING' => 6,
+								'ORDERING' => 7,
 						),
 	);
 	foreach ($data as $key => $entry) {
