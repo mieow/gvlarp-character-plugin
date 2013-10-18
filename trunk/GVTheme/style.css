@@ -342,10 +342,17 @@ input#search.searchbox {
 /* =Widget
 ------------------------------------------------------------- */
 .widget li {
-    padding-bottom: 4px;}
+	padding-top: 4px;
+    padding-bottom: 4px;
+}
 .widget p {
     padding-left:4px;
-    margin-bottom: 1.0em;}
+    margin-bottom: 1.0em;
+}
+.solar {
+    color: #666;
+	padding-top: 10px;
+}
 
 /* =Blogroll
 -------------------------------------------------------------- */
