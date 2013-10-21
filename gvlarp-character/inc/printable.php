@@ -70,6 +70,17 @@ function gv_print_redirect()
 					)
 			);
 			
+			$config = getConfig();
+			if ($config->USE_NATURE_DEMEANOUR == 'Y') {
+				$pdf->BasicInfoTableRow(array(
+						'Nature:', $mycharacter->nature,
+						'Demeanour:', $mycharacter->demeanour,
+						'', '',
+						)
+				);
+
+			}
+			
 			$pdf->Divider('Attributes');
 			
 			$physical = $mycharacter->getAttributes("Physical");

@@ -169,6 +169,15 @@ function get_costmodels() {
 	
 	return $list;
 }
+function get_natures() {
+
+	global $wpdb;
+
+	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "NATURE;";
+	$list = $wpdb->get_results($wpdb->prepare($sql,''));
+	
+	return $list;
+}
 function get_sectors($showhidden = false) {
 
 	global $wpdb;
@@ -396,7 +405,8 @@ function get_sects() {
                                chara.character_status_comment status_comment,
                                domains.name domain,
                                path.name path_name,
-                               path_totals.path_value
+                               path_totals.path_value,
+							   chara.ID 
                         FROM " . $table_prefix . "CHARACTER chara,
                              " . $table_prefix . "CLAN pub_clan,
                              " . $table_prefix . "CLAN priv_clan,
@@ -419,6 +429,29 @@ function get_sects() {
 
         $character_details = $wpdb->get_row($wpdb->prepare($sql, $character));
 
+		$config = getConfig();
+		
+		if ($config->USE_NATURE_DEMEANOUR == 'Y') {
+				
+			$sql = "SELECT 
+						natures.name as nature,
+						demeanours.name as demeanour
+					FROM
+						" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
+						" . GVLARP_TABLE_PREFIX . "NATURE natures,
+						" . GVLARP_TABLE_PREFIX . "NATURE demeanours
+					WHERE
+						chara.NATURE_ID = natures.ID
+						AND chara.DEMEANOUR_ID = demeanours.ID
+						AND chara.ID = %s";
+			$result = $wpdb->get_row($wpdb->prepare($sql, $character_details->ID));
+		
+			$character_details->nature   = $result->nature;
+			$character_details->demeanour = $result->demeanour;
+			
+		}
+
+		
         if ($group == "") {
             $output  = "<table class='gvplugin' id=\"gvid_cdb\"><tr><td class=\"gvcol_1 gvcol_key\">Character_name</td><td class=\"gvcol_2 gvcol_val\">" . $character_details->char_name       . "</td></tr>";
             $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Public Clan</td><td class=\"gvcol_2 gvcol_val\">"           . $character_details->pub_clan        . "</td></tr>";
@@ -431,9 +464,17 @@ function get_sects() {
             $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Sire's Name</td><td class=\"gvcol_2 gvcol_val\">"           . $character_details->sire            . "</td></tr>";
             $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Character Status</td><td class=\"gvcol_2 gvcol_val\">"      . $character_details->status          . "</td></tr>";
             $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Status Comment</td><td class=\"gvcol_2 gvcol_val\">"        . $character_details->status_comment  . "</td></tr>";
-            $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Current Domain</td><td class=\"gvcol_2 gvcol_val\">"         . $character_details->domain           . "</td></tr>";
+            $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Current Domain</td><td class=\"gvcol_2 gvcol_val\">"        . $character_details->domain           . "</td></tr>";
             $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Road or Path name</td><td class=\"gvcol_2 gvcol_val\">"     . $character_details->path_name       . "</td></tr>";
             $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Road or Path rating</td><td class=\"gvcol_2 gvcol_val\">"   . $character_details->path_value      . "</td></tr>";
+			
+			if ($config->USE_NATURE_DEMEANOUR == 'Y') {
+				
+				$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Nature</td><td class=\"gvcol_2 gvcol_val\">" . $character_details->nature      . "</td></tr>";
+				$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Demeanour</td><td class=\"gvcol_2 gvcol_val\">" . $character_details->demeanour      . "</td></tr>";
+			
+			}
+			
             $output .= "</table>";
         }
         else {

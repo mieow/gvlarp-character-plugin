@@ -27,11 +27,11 @@ function character_config() {
 					$wpdb->show_errors();
 					$dataarray = array (
 						'PLACEHOLDER_IMAGE' => $_REQUEST['placeholder'],
-						//'CLAN_DISCIPLINE_DISCOUNT' => $_REQUEST['discount'],
 						'ANDROID_LINK' => $_REQUEST['androidlink'],
 						'HOME_DOMAIN_ID' => $_REQUEST['homedomain'],
 						'HOME_SECT_ID'   => $_REQUEST['homesect'],
 						'ASSIGN_XP_BY_PLAYER' => $_REQUEST['assignxp'],
+						'USE_NATURE_DEMEANOUR' => $_REQUEST['usenature'],
 					);
 					
 					$result = $wpdb->update(GVLARP_TABLE_PREFIX . "CONFIG",
@@ -56,11 +56,11 @@ function character_config() {
 			} else {
 				echo "<p style='color:red'>Could not save options: $inputsfail</p>";
 				$options[0]->PLACEHOLDER_IMAGE = $_REQUEST['placeholder'];
-				$options[0]->CLAN_DISCIPLINE_DISCOUNT = $_REQUEST['discount'];
-				$options[0]->ANDROID_LINK = $_REQUEST['androidlink'];
-				$options[0]->HOME_DOMAIN_ID = $_REQUEST['homedomain'];
-				$options[0]->HOME_SECT_ID = $_REQUEST['homesect'];
-				$options[0]->ASSIGN_XP_BY_PLAYER = $_REQUEST['assignxp'];
+				$options[0]->ANDROID_LINK      = $_REQUEST['androidlink'];
+				$options[0]->HOME_DOMAIN_ID    = $_REQUEST['homedomain'];
+				$options[0]->HOME_SECT_ID      = $_REQUEST['homesect'];
+				$options[0]->ASSIGN_XP_BY_PLAYER  = $_REQUEST['assignxp'];
+				$options[0]->USE_NATURE_DEMEANOUR = $_REQUEST['usenature'];
 			}
 		?>
 
@@ -108,6 +108,12 @@ function character_config() {
 				<input type="radio" name="assignxp" value="Y" <?php if ($options[0]->ASSIGN_XP_BY_PLAYER == 'Y') print "checked"; ?>>Player
 				<input type="radio" name="assignxp" value="N" <?php if ($options[0]->ASSIGN_XP_BY_PLAYER == 'N') print "checked"; ?>>Character	
 				<td>Experience can be assigned to players or to characters</td>
+			</tr><tr>
+				<td>Use Nature/Demeanour</td>
+				<td>
+				<input type="radio" name="usenature" value="Y" <?php if ($options[0]->USE_NATURE_DEMEANOUR == 'Y') print "checked"; ?>>Yes
+				<input type="radio" name="usenature" value="N" <?php if ($options[0]->USE_NATURE_DEMEANOUR == 'N') print "checked"; ?>>No	
+				<td>Enter and Display Nature and Demeanours for characters.</td>
 			</tr>
 			</table>
 			<input type="submit" name="save_options" class="button-primary" value="Save Options" />

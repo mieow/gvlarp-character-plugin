@@ -27,6 +27,8 @@ class larpcharacter {
 	var $sire;
 	var $combo_disciplines;
 	var $current_experience;
+	var $nature;
+	var $demeanour;
 	var $clan_flaw;
 	
 	function load ($characterID){
@@ -91,6 +93,26 @@ class larpcharacter {
 		$this->player_id    = $result[0]->player_id;
 		$this->clan_flaw    = $result[0]->clan_flaw;
 		$this->sect         = $result[0]->sect;
+		
+		/* Nature / Demeanour, if used */
+		$config = getConfig();
+		if ($config->USE_NATURE_DEMEANOUR == 'Y') {
+			$sql = "SELECT 
+						natures.name as nature,
+						demeanours.name as demeanour
+					FROM
+						" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
+						" . GVLARP_TABLE_PREFIX . "NATURE natures,
+						" . GVLARP_TABLE_PREFIX . "NATURE demeanours
+					WHERE
+						chara.NATURE_ID = natures.ID
+						AND chara.DEMEANOUR_ID = demeanours.ID
+						AND chara.ID = %s";
+			$result = $wpdb->get_row($wpdb->prepare($sql, $characterID));
+			
+			$this->nature    = $result->nature;
+			$this->demeanour = $result->demeanour;
+		}
 		
 		/* Attributes */
 		$sql = "SELECT stat.name		name,
