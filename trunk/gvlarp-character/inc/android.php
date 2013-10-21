@@ -43,6 +43,11 @@ function gv_android_redirect () {
 		echo output_xlmtag("SIRE",         $mycharacter->sire);
 		echo output_xlmtag("CLAN_FLAW",    $mycharacter->clan_flaw);
 		
+		if (get_gvconfig('USE_NATURE_DEMEANOUR') == 'Y') {
+			echo output_xlmtag("NATURE",    $mycharacter->nature);
+			echo output_xlmtag("DEMEANOUR", $mycharacter->demeanour);
+		}
+		
 		/* Attributes */
 		echo "\t<ATTRIBUTES>\n";
 		echo "\t\t<PHYSICAL>\n";

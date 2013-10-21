@@ -300,6 +300,8 @@ function displayUpdateCharacter($characterID) {
 		$characterSectId           = $config->HOME_SECT_ID;
 		$characterWordpressName    = "";
 		$characterVisible          = "Y";
+		$characterNatureId         = "";
+		$characterDemeanourId      = "";
 
 		$characterHarpyQuote       = "";
 		$characterPortraitURL      = "";
@@ -357,6 +359,19 @@ function displayUpdateCharacter($characterID) {
 			foreach ($characterProfiles as $characterProfile) {
 				$characterHarpyQuote  = stripslashes($characterProfile->QUOTE);
 				$characterPortraitURL = $characterProfile->PORTRAIT;
+			}
+			
+			if ($config->USE_NATURE_DEMEANOUR == 'Y') {
+				$sql = "SELECT
+							NATURE_ID,
+							DEMEANOUR_ID
+						FROM " . $table_prefix . "CHARACTER
+						WHERE ID = %d";
+				$characterND = $wpdb->get_row($wpdb->prepare($sql, $characterID));
+				
+				$characterNatureId    = $characterND->NATURE_ID;
+				$characterDemeanourId = $characterND->DEMEANOUR_ID;
+			
 			}
 		}
 
@@ -480,6 +495,30 @@ function displayUpdateCharacter($characterID) {
 			$output .= ">" . $sect->NAME . "</option>";
 		}
 		$output .= "</select></td><td></td></tr>";
+		
+		if ($config->USE_NATURE_DEMEANOUR == 'Y') {
+			$output .= "<tr><td>Nature</td><td colspan=2>";
+			$output .= "<select name = \"charNature\">";
+			$output .= "<option value=\"0\">[Select]</option>";
+			foreach (get_natures() as $nature) {
+				$output .= "<option value=\"" . $nature->ID . "\" ";
+				if ($nature->ID == $characterNatureId) {
+					$output .= "SELECTED";
+				}
+				$output .= ">" . $nature->NAME . "</option>";
+			}
+			$output .= "</select></td><td>Demeanour</td><td colspan=2>";
+			$output .= "<select name = \"charDemeanour\">";
+			$output .= "<option value=\"0\">[Select]</option>";
+			foreach (get_natures() as $nature) {
+				$output .= "<option value=\"" . $nature->ID . "\" ";
+				if ($nature->ID == $characterDemeanourId) {
+					$output .= "SELECTED";
+				}
+				$output .= ">" . $nature->NAME . "</option>";
+			}
+			$output .= "</select></td></td>";
+		}
 		
 		$output .= "</table>";
 
@@ -1088,6 +1127,8 @@ function processCharacterUpdate($characterID) {
 	$characterStatusComment    = $_POST['charStatusComment'];
 	$characterVisible          = $_POST['charVisible'];
 	$characterWordPress        = $_POST['charWordPress'];
+	$characterNature           = $_POST['charNature'];
+	$characterDemeanour        = $_POST['charDemeanour'];
 			
 	if (get_magic_quotes_gpc()) {
 		$characterHarpyQuote = stripslashes($_POST['charHarpyQuote']);
@@ -1474,6 +1515,20 @@ function processCharacterUpdate($characterID) {
 			$wpdb->query($sql);
 		}
 		$officeCounter++;
+	}
+	
+	$config = getConfig();
+	if ($config->USE_NATURE_DEMEANOUR == 'Y') {
+		$dataarray = array(
+			'NATURE_ID'    => $characterNature,
+			'DEMEANOUR_ID' => $characterDemeanour,
+		);
+		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "CHARACTER",
+					$dataarray,
+					array ('ID' => $characterID)
+				);
+	
+	
 	}
 	
 	touch_last_updated($characterID);
