@@ -13,6 +13,8 @@ require_once GVLARP_CHARACTER_URL . 'inc/adminpages/experience.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/enlightenment.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/paths.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/nature.php';
+require_once GVLARP_CHARACTER_URL . 'inc/adminpages/domains.php';
+require_once GVLARP_CHARACTER_URL . 'inc/adminpages/offices.php';
 
 if(!class_exists('WP_List_Table')){
     require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
@@ -181,6 +183,8 @@ function character_datatables() {
 				<li><?php echo get_tablink('enlighten', 'Paths of Enlightenment'); ?></li>
 				<li><?php echo get_tablink('path',    'Paths of Magik'); ?></li>
 				<li><?php echo get_tablink('nature',  'Nature/Demeanour'); ?></li>
+				<li><?php echo get_tablink('domain',  'Domains'); ?></li>
+				<li><?php echo get_tablink('office',  'Offices'); ?></li>
 			</ul>
 		</div>
 		<div class="gvadmin_content">
@@ -231,6 +235,12 @@ function character_datatables() {
 				break;
 			case 'nature':
 				render_nature_page();
+				break;
+			case 'domain':
+				render_domain_page();
+				break;
+			case 'office':
+				render_office_page();
 				break;
 			default:
 				render_stat_page("stat");
