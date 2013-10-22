@@ -520,7 +520,9 @@ class GVReport_ListTable extends WP_List_Table {
 			if ( !empty( $this->filter_player_status ) ) {
 				echo "<select name='player_status'>";
 				foreach( $this->filter_player_status as $key => $value ) {
-					echo '<option value="' . esc_attr( $key ) . '" ' . selected( $this->active_filter_player_status, $key ) . '>' . esc_attr( $value ) . '</option>';
+					echo '<option value="' . esc_attr( $key ) . '" ';
+					selected( $this->active_filter_player_status, $key );
+					echo '>' . esc_attr( $value ) . '</option>';
 				}
 				echo '</select>';
 			}
@@ -529,7 +531,9 @@ class GVReport_ListTable extends WP_List_Table {
 			if ( !empty( $this->filter_character_type ) ) {
 				echo "<select name='character_type'>";
 				foreach( $this->filter_character_type as $key => $value ) {
-					echo '<option value="' . esc_attr( $key ) . '" ' . selected( $this->active_filter_character_type, $key ) . '>' . esc_attr( $value ) . '</option>';
+					echo '<option value="' . esc_attr( $key ) . '" ';
+					selected( $this->active_filter_character_type, $key );
+					echo '>' . esc_attr( $value ) . '</option>';
 				}
 				echo '</select>';
 			}
@@ -538,19 +542,27 @@ class GVReport_ListTable extends WP_List_Table {
 			if ( !empty( $this->filter_character_status ) ) {
 				echo "<select name='character_status'>";
 				foreach( $this->filter_character_status as $key => $value ) {
-					echo '<option value="' . esc_attr( $key ) . '" ' . selected( $this->active_filter_character_status, $key ) . '>' . esc_attr( $value ) . '</option>';
+					echo '<option value="' . esc_attr( $key ) . '" ';
+					selected( $this->active_filter_character_status, $key );
+					echo '>' . esc_attr( $value ) . '</option>';
 				}
 				echo '</select>';
 			}
 			
 			echo "<label>Character Visibility: </label>";
 			echo "<select name='character_visible'>";
-			echo '<option value="all" ' . selected( $this->active_filter_character_visible, 'all' ) . '>All</option>';
-			echo '<option value="Y" '   . selected( $this->active_filter_character_visible, 'Y' )   . '>Yes</option>';
-			echo '<option value="N" '   . selected( $this->active_filter_character_visible, 'N' )   . '>No</option>';
+			echo '<option value="all" ';
+					selected( $this->active_filter_character_visible, 'all' );
+					echo '>All</option>';
+			echo '<option value="Y" ';
+					selected( $this->active_filter_character_visible, 'Y' );
+					echo '>Yes</option>';
+			echo '<option value="N" ';
+					selected( $this->active_filter_character_visible, 'N' );
+					echo '>No</option>';
 			echo '</select>';
 			
-			submit_button( 'Filter', 'secondary', false, false );
+			submit_button( 'Filter', 'secondary', 'do_filter_tablenav', false );
 			echo "<label>Download: </label>";
 			echo "<a class='button-primary' href='" . plugins_url( 'gvlarp-character/tmp/report.pdf') . "'>PDF</a>";
 			echo "<a class='button-primary' href='" . plugins_url( 'gvlarp-character/tmp/report.csv') . "'>CSV</a>";

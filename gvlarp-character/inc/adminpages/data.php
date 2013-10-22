@@ -29,7 +29,7 @@ function render_meritflaw_page($type){
    ?>	
 
 	<!-- Forms are NOT created automatically, so you need to wrap the table in one to use features like bulk actions -->
-	<form id="<?php print $type ?>-filter" method="get" action='<?php print $current_url; ?>'>
+	<form id="<?php print $type ?>-filter" method="get" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
 		<input type="hidden" name="tab" value="<?php print $type ?>" />
  		<?php $testListTable[$type]->display() ?>
@@ -64,7 +64,7 @@ function render_rituals_page(){
 	$current_url = remove_query_arg( 'action', $current_url );
 	?>	
 
-	<form id="rituals-filter" method="get" action='<?php print $current_url; ?>'>
+	<form id="rituals-filter" method="get" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
 		<input type="hidden" name="tab" value="ritual" />
  		<?php $testListTable["rituals"]->display() ?>
@@ -92,7 +92,7 @@ function render_sourcebook_page(){
 	$current_url = remove_query_arg( 'action', $current_url );
 	?>	
 
-	<form id="books-filter" method="get" action='<?php print $current_url; ?>'>
+	<form id="books-filter" method="get" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
 		<input type="hidden" name="tab" value="book" />
  		<?php $testListTable["books"]->display() ?>
@@ -178,15 +178,27 @@ function render_meritflaw_add_form($type, $addaction) {
 	$current_url = remove_query_arg( 'action', $current_url );
 
 	?>
-	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
+	<form id="new-<?php print $type; ?>" method="post" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
 		<input type="hidden" name="tab" value="<?php print $type; ?>" />
 		<input type="hidden" name="action" value="<?php print $nextaction; ?>" />
 		<table>
 		<tr>
-			<td><?php print ucfirst($type); ?> Name:  </td><td><input type="text" name="<?php print $type; ?>_name" value="<?php print stripslashes($name); ?>" size=20 /></td> <!-- check sizes -->
-			<td>Grouping:   </td><td><input type="text" name="<?php print $type; ?>_group" value="<?php print $group; ?>" size=20 /></td>
-			<td>Sourcebook: </td><td>
+			<td><?php print ucfirst($type); ?> Name:  </td>
+			<td><input type="text" name="<?php print $type; ?>_name" value="<?php print stripslashes($name); ?>" size=20 /></td> <!-- check sizes -->
+			<td>Grouping:   </td>
+			<td><input type="text" name="<?php print $type; ?>_group" value="<?php print $group; ?>" size=20 /></td>
+			<td>Visible to Players: </td>
+			<td>
+				<select name="<?php print $type; ?>_visible">
+					<option value="N" <?php selected($visible, "N"); ?>>No</option>
+					<option value="Y" <?php selected($visible, "Y"); ?>>Yes</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td>Sourcebook: </td>
+			<td>
 				<select name="<?php print $type; ?>_sourcebook">
 					<?php
 						foreach ($booklist as $book) {
@@ -197,38 +209,33 @@ function render_meritflaw_add_form($type, $addaction) {
 					?>
 				</select>
 			</td>
-			<td>Page Number: </td><td><input type="number" name="<?php print $type; ?>_page_number" value="<?php print $pagenum; ?>" /></td>
-		</tr>
-		<tr>
-			<td>Freebie Point Cost: </td><td><input type="number" name="<?php print $type; ?>_cost" value="<?php print $cost; ?>" /></td>
-			<td>Multiple?: </td><td>
+			<td>Page Number: </td>
+			<td><input type="number" name="<?php print $type; ?>_page_number" value="<?php print $pagenum; ?>" /></td>
+			<td>Multiple?: </td>
+			<td>
 				<select name="<?php print $type; ?>_multiple">
-					<option value="N" <?php echo selected($multiple, "N"); ?>>No</option>
-					<option value="Y" <?php echo selected($multiple, "Y"); ?>>Yes</option>
+					<option value="N" <?php selected($multiple, "N"); ?>>No</option>
+					<option value="Y" <?php selected($multiple, "Y"); ?>>Yes</option>
 				</select>
 			</td>
-			<td>Visible to Players: </td><td>
-				<select name="<?php print $type; ?>_visible">
-					<option value="N" <?php echo selected($visible, "N"); ?>>No</option>
-					<option value="Y" <?php echo selected($visible, "Y"); ?>>Yes</option>
-				</select>
-			</td>
-			<td></td>
 		</tr>
 		<tr>
-			<td>Experience Cost: </td><td><input type="number" name="<?php print $type; ?>_xp_cost" value="<?php print $xpcost; ?>" /></td>
+			<td>Freebie Point Cost: </td>
+			<td><input type="number" name="<?php print $type; ?>_cost" value="<?php print $cost; ?>" /></td>
+			<td>Experience Cost: </td>
+			<td><input type="number" name="<?php print $type; ?>_xp_cost" value="<?php print $xpcost; ?>" /></td>
 			<td>Has Specialisation?: </td><td>
 				<select name="<?php print $type; ?>_has_specialisation">
-					<option value="N" <?php echo selected($spec, "N"); ?>>No</option>
-					<option value="Y" <?php echo selected($spec, "Y"); ?>>Yes</option>
+					<option value="N" <?php selected($spec, "N"); ?>>No</option>
+					<option value="Y" <?php selected($spec, "Y"); ?>>Yes</option>
 				</select>
 			</td>
-			<td></td>
-			<td></td>
 		</tr>
 		<tr>
-			<td>Description: </td><td colspan=3><input type="text" name="<?php print $type; ?>_desc" value="<?php print $desc; ?>" size=50 /></td>
-			<td>Extended Background Question: </td><td colspan=3><input type="text" name="<?php print $type; ?>_question" value="<?php print $question; ?>" size=50 /></td>
+			<td>Description: </td>
+			<td colspan=2><input type="text" name="<?php print $type; ?>_desc" value="<?php print $desc; ?>" size=50 /></td>
+			<td>Extended Background Question: </td>
+			<td colspan=2><input type="text" name="<?php print $type; ?>_question" value="<?php print $question; ?>" size=50 /></td>
 		</tr>
 		</table>
 		<input type="submit" name="do_add_<?php print $type; ?>" class="button-primary" value="Save <?php print ucfirst($type); ?>" />
@@ -316,14 +323,20 @@ function render_ritual_add_form($addaction) {
 	$current_url = remove_query_arg( 'action', $current_url );
 
 	?>
-	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
+	<form id="new-<?php print $type; ?>" method="post" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
 		<input type="hidden" name="tab" value="<?php print $type; ?>" />
 		<input type="hidden" name="action" value="<?php print $nextaction; ?>" />
 		<table>
 		<tr>
 			<td><?php print ucfirst($type); ?> Name:  </td>
-			<td colspan=7><input type="text" name="<?php print $type; ?>_name" value="<?php print $name; ?>" size=60 /></td> <!-- check sizes -->
+			<td colspan=3><input type="text" name="<?php print $type; ?>_name" value="<?php print $name; ?>" size=60 /></td> <!-- check sizes -->
+			<td>Visible to Players: </td>
+			<td>
+				<select name="<?php print $type; ?>_visible">
+					<option value="N" <?php selected($visible, "N"); ?>>No</option>
+					<option value="Y" <?php selected($visible, "Y"); ?>>Yes</option>
+				</select></td>
 
 		</tr>
 		<tr>
@@ -339,10 +352,12 @@ function render_ritual_add_form($addaction) {
 					?>
 				</select>
 			</td> 
-
 			<td>Level:  </td>
 			<td><input type="text" name="<?php print $type; ?>_level" value="<?php print $level; ?>" size=3 /></td> <!-- check sizes -->
-
+			<td>Experience Cost: </td>
+			<td><input type="number" name="<?php print $type; ?>_cost" value="<?php print $cost; ?>" /></td>
+		</tr>
+		<tr>
 			<td>Sourcebook: </td>
 			<td>
 				<select name="<?php print $type; ?>_sourcebook">
@@ -357,20 +372,13 @@ function render_ritual_add_form($addaction) {
 			</td>
 			
 			<td>Page Number: </td>
-			<td><input type="number" name="<?php print $type; ?>_page_number" value="<?php print $pagenum; ?>" size=3 /></td>
-
+			<td><input type="number" name="<?php print $type; ?>_page_number" value="<?php print $pagenum; ?>" /></td>
+			<td colspan=2>&nbsp;</td>
 		</tr>
 		<tr>
 			<td>Dicepool: </td><td><input type="text" name="<?php print $type; ?>_dicepool" value="<?php print $dicepool; ?>" /></td>
-			<td>Difficulty: </td><td><input type="number" name="<?php print $type; ?>_difficulty" value="<?php print $diff; ?>" size=3 /></td>
-			<td>Experience Cost: </td>
-			<td><input type="number" name="<?php print $type; ?>_cost" value="<?php print $cost; ?>" size=3 /></td>
-
-			<td>Visible to Players: </td><td>
-				<select name="<?php print $type; ?>_visible">
-					<option value="N" <?php selected($visible, "N"); ?>>No</option>
-					<option value="Y" <?php selected($visible, "Y"); ?>>Yes</option>
-				</select></td>
+			<td>Difficulty: </td><td><input type="number" name="<?php print $type; ?>_difficulty" value="<?php print $diff; ?>" /></td>
+			<td colspan=2>&nbsp;</td>
 		</tr>
 		<tr>
 			<td>Description: </td><td colspan=5><input type="text" name="<?php print $type; ?>_desc" value="<?php print $desc; ?>" size=120 /></td>
@@ -431,7 +439,7 @@ function render_book_add_form($addaction) {
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
 	?>
-	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
+	<form id="new-<?php print $type; ?>" method="post" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
 		<input type="hidden" name="tab" value="<?php print $type; ?>" />
 		<input type="hidden" name="action" value="<?php print $nextaction; ?>" />
@@ -823,7 +831,7 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
             'cb'           => '<input type="checkbox" />', 
             'NAME'         => 'Name',
             'DESCRIPTION'  => 'Description',
-            'GROUPING'     => 'Grouping/Type',
+            'GROUPING'     => 'Grouping / Type',
             'COST'         => 'Freebie Cost',
             'XP_COST'      => 'Experience Cost',
             'MULTIPLE'     => 'Can be bought multiple times?',
@@ -902,7 +910,9 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 			if ( !empty( $this->filter_visible ) ) {
 				echo "<select name='{$this->type}_filter'>";
 				foreach( $this->filter_visible as $key => $value ) {
-					echo '<option value="' . esc_attr( $key ) . '" ' . selected( $this->active_filter_visible, $key ) . '>' . esc_attr( $value ) . '</option>';
+					echo '<option value="' . esc_attr( $key ) . '" ';
+					selected( $this->active_filter_visible, $key );
+					echo '>' . esc_attr( $value ) . '</option>';
 				}
 				echo '</select>';
 			}
@@ -912,7 +922,9 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 			if ( !empty( $this->filter_group ) ) {
 				echo "<select name='{$this->type}_group'>";
 				foreach( $this->filter_group as $key => $value ) {
-					echo '<option value="' . esc_attr( $key ) . '" ' . selected( $this->active_filter_group, $key ) . '>' . esc_attr( $value ) . '</option>';
+					echo '<option value="' . esc_attr( $key ) . '" ';
+					selected( $this->active_filter_group, $key );
+					echo '>' . esc_attr( $value ) . '</option>';
 				}
 				echo '</select>';
 			}
@@ -922,12 +934,14 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 			if ( !empty( $this->filter_multiple ) ) {
 				echo "<select name='{$this->type}_multiple'>";
 				foreach( $this->filter_multiple as $key => $value ) {
-					echo '<option value="' . esc_attr( $key ) . '" ' . selected( $this->active_filter_multiple, $key ) . '>' . esc_attr( $value ) . '</option>';
+					echo '<option value="' . esc_attr( $key ) . '" ';
+					selected( $this->active_filter_multiple, $key );
+					echo '>' . esc_attr( $value ) . '</option>';
 				}
 				echo '</select>';
 			}
 			
-			submit_button( 'Filter', 'secondary', false, false );
+			submit_button( 'Filter', 'secondary', 'do_filter_merits', false );
 			echo "</div>";
 		}
 	}
@@ -1182,8 +1196,8 @@ class gvadmin_rituals_table extends GVMultiPage_ListTable {
     function column_name($item){
         
         $actions = array(
-            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&ritual=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
-            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&ritual=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
+            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&amp;ritual=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
+            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&amp;ritual=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
         );
         
         
@@ -1254,7 +1268,9 @@ class gvadmin_rituals_table extends GVMultiPage_ListTable {
 			if ( !empty( $this->filter_discipline ) ) {
 				echo "<select name='{$this->type}_discipline'>";
 				foreach( $this->filter_discipline as $key => $value ) {
-					echo '<option value="' . esc_attr( $key ) . '" ' . selected( $this->active_filter_discipline, $key ) . '>' . esc_attr( $value ) . '</option>';
+					echo '<option value="' . esc_attr( $key ) . '" ';
+					selected( $this->active_filter_discipline, $key );
+					echo '>' . esc_attr( $value ) . '</option>';
 				}
 				echo '</select>';
 			}
@@ -1263,7 +1279,9 @@ class gvadmin_rituals_table extends GVMultiPage_ListTable {
 			if ( !empty( $this->filter_level ) ) {
 				echo "<select name='{$this->type}_level'>";
 				foreach( $this->filter_level as $key => $value ) {
-					echo '<option value="' . esc_attr( $key ) . '" ' . selected( $this->active_filter_level, $key ) . '>' . esc_attr( $value ) . '</option>';
+					echo '<option value="' . esc_attr( $key ) . '" ';
+					selected( $this->active_filter_level, $key );
+					echo '>' . esc_attr( $value ) . '</option>';
 				}
 				echo '</select>';
 			}
@@ -1272,12 +1290,14 @@ class gvadmin_rituals_table extends GVMultiPage_ListTable {
 			if ( !empty( $this->filter_book ) ) {
 				echo "<select name='{$this->type}_book'>";
 				foreach( $this->filter_book as $key => $value ) {
-					echo '<option value="' . esc_attr( $key ) . '" ' . selected( $this->active_filter_book, $key ) . '>' . esc_attr( $value ) . '</option>';
+					echo '<option value="' . esc_attr( $key ) . '" ';
+					selected( $this->active_filter_book, $key );
+					echo '>' . esc_attr( $value ) . '</option>';
 				}
 				echo '</select>';
 			}
 			
-			submit_button( 'Filter', 'secondary', false, false );
+			submit_button( 'Filter', 'secondary', 'do_filter_rituals', false );
 			echo "</div>";
 		}
 	}
@@ -1520,8 +1540,8 @@ class gvadmin_books_table extends GVMultiPage_ListTable {
     function column_name($item){
         
         $actions = array(
-            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&book=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
-            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&book=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
+            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&amp;book=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
+            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&amp;book=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
         );
         
         

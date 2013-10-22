@@ -22,7 +22,7 @@ function render_enlightenment_page(){
 	$current_url = remove_query_arg( 'action', $current_url );
 	?>	
 
-	<form id="enlighten-filter" method="get" action='<?php print $current_url; ?>'>
+	<form id="enlighten-filter" method="get" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
 		<input type="hidden" name="tab" value="enlighten" />
  		<?php $testListTable["enlighten"]->display() ?>
@@ -96,7 +96,7 @@ function render_enlighten_add_form($type, $addaction) {
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
 	?>
-	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
+	<form id="new-<?php print $type; ?>" method="post" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
 		<input type="hidden" name="tab" value="<?php print $type; ?>" />
 		<input type="hidden" name="action" value="<?php print $nextaction; ?>" />
@@ -117,7 +117,7 @@ function render_enlighten_add_form($type, $addaction) {
 				</select>
 			</td>
 			<td>Page number:  </td>
-			<td><input type="number" name="<?php print $type; ?>_pagenum" value="<?php print $pagenum; ?>" size=5 /></td>
+			<td><input type="number" name="<?php print $type; ?>_pagenum" value="<?php print $pagenum; ?>" /></td>
 		</tr>
 		<tr>
 			<td>Stat 1:</td>
@@ -126,7 +126,7 @@ function render_enlighten_add_form($type, $addaction) {
 				<input type="radio" name="<?php print $type; ?>_stat1" value="<?php echo $conviction; ?>" <?php if ($stat1_id == $conviction) print "checked"; ?>>Conviction	
 			</td>
 			<td>Stat 2:  </td>
-			<td>
+			<td colspan=3>
 				<input type="radio" name="<?php print $type; ?>_stat2" value="<?php echo $selfcontrol; ?>" <?php if ($stat2_id == $selfcontrol || $stat2_id == 0) print "checked"; ?>>Self Control
 				<input type="radio" name="<?php print $type; ?>_stat2" value="<?php echo $instinct; ?>" <?php if ($stat2_id == $instinct) print "checked"; ?>>Instinct	
 			</td>
@@ -320,8 +320,8 @@ class gvadmin_enlighten_table extends GVMultiPage_ListTable {
    function column_name($item){
         
         $actions = array(
-            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&road=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
-            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&road=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
+            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&amp;road=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
+            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&amp;road=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
        );
         
         

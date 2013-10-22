@@ -63,7 +63,7 @@ function render_stat_page($type){
    ?>	
 
 	<!-- Forms are NOT created automatically, so you need to wrap the table in one to use features like bulk actions -->
-	<form id="<?php print $type ?>-filter" method="get" action='<?php print $current_url; ?>'>
+	<form id="<?php print $type ?>-filter" method="get" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
 		<input type="hidden" name="tab" value="<?php print $type ?>" />
  		<?php $testListTable[$type]->display() ?>
@@ -93,7 +93,7 @@ function render_skill_page(){
 	$current_url = remove_query_arg( 'action', $current_url );
 	?>	
 
-	<form id="skill-filter" method="get" action='<?php print $current_url; ?>'>
+	<form id="skill-filter" method="get" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
 		<input type="hidden" name="tab" value="skill" />
  		<?php $testListTable["skill"]->display() ?>
@@ -152,7 +152,7 @@ function render_skill_add_form($type, $addaction) {
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
 	?>
-	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
+	<form id="new-<?php print $type; ?>" method="post" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
 		<input type="hidden" name="tab" value="<?php print $type; ?>" />
 		<input type="hidden" name="action" value="<?php print $nextaction; ?>" />
@@ -163,7 +163,7 @@ function render_skill_add_form($type, $addaction) {
 			<td>Grouping:</td>
 			<td><input type="text" name="<?php print $type; ?>_group" value="<?php print $grouping; ?>" size=20 /></td>
 			<td>Specialise at level:  </td>
-			<td colspan=3><input type="text" name="<?php print $type; ?>_spec_at" value="<?php print $specialise_at; ?>" size=10 /></td>
+			<td><input type="text" name="<?php print $type; ?>_spec_at" value="<?php print $specialise_at; ?>" size=10 /></td>
 		</tr>
 		<tr>
 			<td>Cost Model:  </td>
@@ -185,8 +185,8 @@ function render_skill_add_form($type, $addaction) {
 			</td>
 			<td>Multiple?: </td><td>
 				<select name="<?php print $type; ?>_multiple">
-					<option value="N" <?php echo selected($multiple, "N"); ?>>No</option>
-					<option value="Y" <?php echo selected($multiple, "Y"); ?>>Yes</option>
+					<option value="N" <?php selected($multiple, "N"); ?>>No</option>
+					<option value="Y" <?php selected($multiple, "Y"); ?>>Yes</option>
 				</select>
 			</td>
 		</tr>
@@ -237,7 +237,7 @@ function render_stat_form($type, $addaction) {
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
 	?>
-	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
+	<form id="new-<?php print $type; ?>" method="post" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
 		<input type="hidden" name="tab" value="<?php print $type; ?>" />
 		<input type="hidden" name="action" value="<?php print $nextaction; ?>" />
@@ -398,7 +398,7 @@ class gvadmin_stats_table extends GVMultiPage_ListTable {
     function column_name($item){
         
         $actions = array(
-            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&stat=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
+            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&amp;stat=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
         );
         
         
@@ -639,8 +639,8 @@ class gvadmin_skills_table extends GVMultiPage_ListTable {
    function column_name($item){
         
         $actions = array(
-            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&ability=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
-            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&ability=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
+            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&amp;ability=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
+            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&amp;ability=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
        );
         
         

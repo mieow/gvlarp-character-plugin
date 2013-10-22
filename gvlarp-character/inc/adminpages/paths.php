@@ -22,7 +22,7 @@ function render_paths_page(){
 	$current_url = remove_query_arg( 'action', $current_url );
 	?>	
 
-	<form id="path-filter" method="get" action='<?php print $current_url; ?>'>
+	<form id="path-filter" method="get" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
 		<input type="hidden" name="tab" value="path" />
  		<?php $testListTable["path"]->display() ?>
@@ -81,7 +81,7 @@ function render_path_add_form($type, $addaction) {
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
 	?>
-	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
+	<form id="new-<?php print $type; ?>" method="post" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
 		<input type="hidden" name="tab" value="<?php print $type; ?>" />
 		<input type="hidden" name="action" value="<?php print $nextaction; ?>" />
@@ -127,7 +127,7 @@ function render_path_add_form($type, $addaction) {
 				</select>
 			</td>
 			<td>Page number:  </td>
-			<td><input type="number" name="<?php print $type; ?>_pagenum" value="<?php print $pagenum; ?>" size=5 /></td>
+			<td><input type="number" name="<?php print $type; ?>_pagenum" value="<?php print $pagenum; ?>" /></td>
 			<td>Visible to Players:</td>
 			<td>
 				<select name="<?php print $type; ?>_visible">
@@ -138,7 +138,7 @@ function render_path_add_form($type, $addaction) {
 		</tr>
 		<tr>
 			<td>Description:  </td>
-			<td colspan=3><input type="text" name="<?php print $type; ?>_desc" value="<?php print $desc; ?>" size=90 /></td> 
+			<td colspan=5><input type="text" name="<?php print $type; ?>_desc" value="<?php print $desc; ?>" size=90 /></td> 
 		</tr>
 		</table>
 		<input type="submit" name="save_<?php print $type; ?>" class="button-primary" value="Save" />
@@ -321,8 +321,8 @@ class gvadmin_path_table extends GVMultiPage_ListTable {
    function column_name($item){
         
         $actions = array(
-            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&path=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
-            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&path=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
+            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&amp;path=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
+            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&amp;path=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
        );
         
         
@@ -388,12 +388,14 @@ class gvadmin_path_table extends GVMultiPage_ListTable {
 			if ( !empty( $this->filter_discipline ) ) {
 				echo "<select name='{$this->type}_filter'>";
 				foreach( $this->filter_discipline as $key => $value ) {
-					echo '<option value="' . esc_attr( $key ) . '" ' . selected( $this->active_filter_discipline, $key ) . '>' . esc_attr( $value ) . '</option>';
+					echo '<option value="' . esc_attr( $key ) . '" ';
+					selected( $this->active_filter_discipline, $key );
+					echo '>' . esc_attr( $value ) . '</option>';
 				}
 				echo '</select>';
 			}
 						
-			submit_button( 'Filter', 'secondary', false, false );
+			submit_button( 'Filter', 'secondary', 'do_filter_roads', false);
 			echo "</div>";
 		}
 	}

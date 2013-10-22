@@ -15,6 +15,7 @@ require_once GVLARP_CHARACTER_URL . 'inc/adminpages/paths.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/nature.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/domains.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/offices.php';
+//require_once GVLARP_CHARACTER_URL . 'inc/adminpages/combodisciplines.php';
 
 if(!class_exists('WP_List_Table')){
     require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
@@ -152,7 +153,7 @@ function get_tablink($tab, $text){
 	$markup = '<a id="gvm-@TAB@" href="@HREF@" @SHOWN@>@TEXT@</a>';
 	return str_replace(
 		Array('@TAB@','@TEXT@','@SHOWN@', '@HREF@'),
-			Array($tab, $text, get_tabhighlight($tab, $default),$current_url),
+			Array($tab, $text, get_tabhighlight($tab, $default),htmlentities($current_url)),
 			$markup
 		);
 }
@@ -185,6 +186,7 @@ function character_datatables() {
 				<li><?php echo get_tablink('nature',  'Nature/Demeanour'); ?></li>
 				<li><?php echo get_tablink('domain',  'Domains'); ?></li>
 				<li><?php echo get_tablink('office',  'Offices'); ?></li>
+				<li><?php echo get_tablink('combo',   'Combination Disciplines'); ?></li>
 			</ul>
 		</div>
 		<div class="gvadmin_content">
@@ -241,6 +243,9 @@ function character_datatables() {
 				break;
 			case 'office':
 				render_office_page();
+				break;
+			case 'combo':
+				render_combo_page();
 				break;
 			default:
 				render_stat_page("stat");

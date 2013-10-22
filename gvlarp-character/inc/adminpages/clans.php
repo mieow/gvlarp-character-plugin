@@ -62,7 +62,7 @@ function render_clan_page(){
 	$current_url = remove_query_arg( 'action', $current_url );
 	?>	
 
-	<form id="clans-filter" method="get" action='<?php print $current_url; ?>'>
+	<form id="clans-filter" method="get" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
 		<input type="hidden" name="tab" value="clans" />
  		<?php $testListTable["clans"]->display() ?>
@@ -159,7 +159,7 @@ function render_clan_add_form($addaction) {
 
 	$disciplines = get_disciplines();
 	?>
-	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
+	<form id="new-<?php print $type; ?>" method="post" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
 		<input type="hidden" name="tab" value="clans" />
 		<input type="hidden" name="action" value="<?php print $nextaction; ?>" />
@@ -184,7 +184,7 @@ function render_clan_add_form($addaction) {
 							echo ">{$costmodel->NAME}</option>";
 						}
 					?>
-				</select></td>
+				</select>
 			</td>
 		</tr>
 		<tr>
@@ -232,7 +232,7 @@ function render_clan_add_form($addaction) {
 							echo ">{$discipline->NAME}</option>";
 						}
 					?>
-				</select></td>
+				</select>
 			</td>
 		</tr>
 		<tr>
@@ -248,11 +248,8 @@ function render_clan_add_form($addaction) {
 							echo ">{$discipline->NAME}</option>";
 						}
 					?>
-				</select></td>
+				</select>
 			</td>
-		</tr>
-		<tr>
-
 		</tr>
 		</table>
 		<input type="submit" name="do_add_<?php print $type; ?>" class="button-primary" value="Save <?php print ucfirst($type); ?>" />
@@ -493,8 +490,8 @@ class gvadmin_clans_table extends GVMultiPage_ListTable {
 		$act = ($item->VISIBLE === 'Y') ? 'hide' : 'show';
         
         $actions = array(
-            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&clan=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
-            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&clan=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
+            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&amp;clan=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
+            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&amp;clan=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
         );
         
         
@@ -629,7 +626,7 @@ function render_discipline_page(){
 	$current_url = remove_query_arg( 'action', $current_url );
 	?>	
 
-	<form id="disc-filter" method="get" action='<?php print $current_url; ?>'>
+	<form id="disc-filter" method="get" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
 		<input type="hidden" name="tab" value="disc" />
  		<?php $testListTable["disc"]->display() ?>
@@ -694,7 +691,7 @@ function render_discipline_add_form($addaction) {
 	$current_url = remove_query_arg( 'action', $current_url );
 
 	?>
-	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
+	<form id="new-<?php print $type; ?>" method="post" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
 		<input type="hidden" name="tab" value="<?php print $type; ?>" />
 		<input type="hidden" name="action" value="<?php print $nextaction; ?>" />
@@ -702,7 +699,8 @@ function render_discipline_add_form($addaction) {
 		<tr>
 			<td>Name:  </td>
 			<td><input type="text" name="<?php print $type; ?>_name" value="<?php print $name; ?>" size=30 /></td>
-			<td>Sourcebook: </td><td>
+			<td>Sourcebook: </td>
+			<td>
 				<select name="<?php print $type; ?>_sourcebook">
 					<?php
 						foreach (get_booknames() as $book) {
@@ -713,7 +711,8 @@ function render_discipline_add_form($addaction) {
 					?>
 				</select>
 			</td>
-			<td>Page Number: </td><td><input type="number" name="<?php print $type; ?>_pagenum" value="<?php print $pagenum; ?>" size=5 /></td>
+			<td>Page Number: </td>
+			<td><input type="number" name="<?php print $type; ?>_pagenum" value="<?php print $pagenum; ?>" /></td>
 		</tr>
 		<tr>
 			<td>Description:  </td>
@@ -910,8 +909,8 @@ class gvadmin_disciplines_table extends GVMultiPage_ListTable {
     function column_name($item){
 	        
         $actions = array(
-            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&discipline=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
-            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&discipline=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
+            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&amp;discipline=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
+            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&amp;discipline=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
         );
         
         

@@ -80,7 +80,7 @@ function render_approvals_data(){
    ?>	
 
 	<!-- Forms are NOT created automatically, so you need to wrap the table in one to use features like bulk actions -->
-	<form id="approve-filter" method="get" action='<?php print $current_url; ?>'>
+	<form id="approve-filter" method="get" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
 		<input type="hidden" name="tab" value="gvapprove" />
  		<?php $testListTable['gvapprove']->display() ?>
@@ -110,7 +110,7 @@ function render_question_data(){
   ?>	
 
 	<!-- Forms are NOT created automatically, so you need to wrap the table in one to use features like bulk actions -->
-	<form id="question-filter" method="get" action='<?php print $current_url; ?>'>
+	<form id="question-filter" method="get" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
 		<input type="hidden" name="tab" value="question" />
 		<?php $testListTable['question']->display() ?>
@@ -138,7 +138,7 @@ function render_sector_data(){
   ?>	
 
 	<!-- Forms are NOT created automatically, so you need to wrap the table in one to use features like bulk actions -->
-	<form id="sector-filter" method="get" action='<?php print $current_url; ?>'>
+	<form id="sector-filter" method="get" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
 		<input type="hidden" name="tab" value="sector" />
 		<?php $testListTable['sector']->display() ?>
@@ -171,7 +171,7 @@ function render_background_data(){
   ?>	
 
 	<!-- Forms are NOT created automatically, so you need to wrap the table in one to use features like bulk actions -->
-	<form id="bgdata-filter" method="get" action='<?php print $current_url; ?>'>
+	<form id="bgdata-filter" method="get" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
 		<input type="hidden" name="tab" value="bgdata" />
 		<?php $testListTable['bgdata']->display() ?>
@@ -240,7 +240,7 @@ function render_bgdata_add_form($addaction) {
 	$current_url = remove_query_arg( 'action', $current_url );
 
 	?>
-	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
+	<form id="new-<?php print $type; ?>" method="post" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
 		<input type="hidden" name="tab" value="<?php print $type; ?>" />
 		<input type="hidden" name="action" value="<?php print $nextaction; ?>" />
@@ -268,19 +268,23 @@ function render_bgdata_add_form($addaction) {
 					?>
 				</select>
 			</td>
-			<td>Visible to Players: </td><td>
+			<td>Visible to Players: </td>
+			<td>
 				<select name="<?php print $type; ?>_visible">
 					<option value="N" <?php selected($visible, "N"); ?>>No</option>
 					<option value="Y" <?php selected($visible, "Y"); ?>>Yes</option>
-				</select></td>
+				</select>
+			</td>
 		
 		</tr>
 		<tr>
-			<td>Has a Sector: </td><td>
+			<td>Has a Sector: </td>
+			<td>
 				<select name="<?php print $type; ?>_hassector">
 					<option value="N" <?php selected($has_sector, "N"); ?>>No</option>
 					<option value="Y" <?php selected($has_sector, "Y"); ?>>Yes</option>
-				</select></td>
+				</select>
+			</td>
 				
 			<td>Description:  </td>
 			<td colspan=5><input type="text" name="<?php print $type; ?>_desc" value="<?php print $desc; ?>" size=90 /></td> <!-- check sizes -->
@@ -348,7 +352,7 @@ function render_sector_add_form($addaction) {
 	$current_url = remove_query_arg( 'action', $current_url );
 
 	?>
-	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
+	<form id="new-<?php print $type; ?>" method="post" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
 		<input type="hidden" name="tab" value="<?php print $type; ?>" />
 		<input type="hidden" name="action" value="<?php print $nextaction; ?>" />
@@ -432,7 +436,7 @@ function render_question_add_form($addaction) {
 	$current_url = remove_query_arg( 'action', $current_url );
 
 	?>
-	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
+	<form id="new-<?php print $type; ?>" method="post" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
 		<input type="hidden" name="tab" value="<?php print $type; ?>" />
 		<input type="hidden" name="action" value="<?php print $nextaction; ?>" />
@@ -457,7 +461,7 @@ function render_question_add_form($addaction) {
 		<tr>
 			<td>Question:  </td>
 			<td colspan=5>
-				<textarea name="<?php print $type; ?>_question" " rows="2" cols="100" ><?php print $question; ?></textarea>
+				<textarea name="<?php print $type; ?>_question" rows="2" cols="100" ><?php print $question; ?></textarea>
 			</td> 
 
 		</tr>
@@ -485,7 +489,7 @@ function render_approve_form($showform, $id, $data) {
 	
 	if ($showform) {
 	?>
-	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
+	<form id="new-<?php print $type; ?>" method="post" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="table_id" value="<?php print $tableid; ?>" />
 		<input type="hidden" name="table"    value="<?php print $table; ?>"/>
 		<input type="hidden" name="tab"      value="<?php print $type; ?>" />
@@ -670,8 +674,8 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
     function column_name($item){
         
         $actions = array(
-            'approveit' => sprintf('<a href="?page=%s&amp;action=%s&extbackground=%s&amp;tab=%s">Approve</a>',$_REQUEST['page'],'approveit',$item['ID'], $this->type),
-            'denyit'    => sprintf('<a href="?page=%s&amp;action=%s&extbackground=%s&amp;tab=%s">Deny</a>',$_REQUEST['page'],'denyit',$item['ID'], $this->type),
+            'approveit' => sprintf('<a href="?page=%s&amp;action=%s&amp;extbackground=%s&amp;tab=%s">Approve</a>',$_REQUEST['page'],'approveit',$item['ID'], $this->type),
+            'denyit'    => sprintf('<a href="?page=%s&amp;action=%s&amp;extbackground=%s&amp;tab=%s">Deny</a>',$_REQUEST['page'],'denyit',$item['ID'], $this->type),
         );
         
         
@@ -1039,8 +1043,8 @@ class gvadmin_questions_table extends GVMultiPage_ListTable {
     function column_title($item){
         
         $actions = array(
-            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&question=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
-            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&question=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
+            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&amp;question=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
+            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&amp;question=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
         );
         
         
@@ -1263,8 +1267,8 @@ class gvadmin_sectors_table extends GVMultiPage_ListTable {
     function column_name($item){
         
         $actions = array(
-            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&sector=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
-            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&sector=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
+            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&amp;sector=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
+            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&amp;sector=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
         );
         
         
@@ -1501,8 +1505,8 @@ class gvadmin_backgrounds_table extends GVMultiPage_ListTable {
     function column_name($item){
         
         $actions = array(
-            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&background=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
-            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&background=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
+            'edit'      => sprintf('<a href="?page=%s&amp;action=%s&amp;background=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
+            'delete'    => sprintf('<a href="?page=%s&amp;action=%s&amp;background=%s&amp;tab=%s">Delete</a>',$_REQUEST['page'],'delete',$item->ID, $this->type),
         );
         
         

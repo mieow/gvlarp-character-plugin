@@ -55,9 +55,15 @@ class gvreport_flaws extends GVReport_ListTable {
 			
 			echo "<span>Merit/Flaw: </span>";
 			echo "<select name='merit_or_flaw'>";
-			echo '<option value="all" '    . selected( $this->active_filter_merit_or_flaw, 'all' )  . '>All</option>';
-			echo '<option value="merit" '  . selected( $this->active_filter_merit_or_flaw, 'merit') . '>Merits</option>';
-			echo '<option value="flaw" ' . selected( $this->active_filter_merit_or_flaw, 'flaw' )   . '>Flaws</option>';
+			echo '<option value="all" ';
+			selected( $this->active_filter_merit_or_flaw, 'all' );
+			echo '>All</option>';
+			echo '<option value="merit" ';
+			selected( $this->active_filter_merit_or_flaw, 'merit');
+			echo '>Merits</option>';
+			echo '<option value="flaw" ';
+			selected( $this->active_filter_merit_or_flaw, 'flaw' );
+			echo '>Flaws</option>';
 			echo '</select>';
 			
 			$this->filter_tablenav();
@@ -576,7 +582,9 @@ class gvreport_sect extends GVReport_ListTable {
 			
 			echo "<span>Sect: </span>";
 			echo "<select name='selectsect'>";
-			echo '<option value="all" '    . selected( $this->active_filter_selectsect, 'all' )  . '>All</option>';
+			echo '<option value="all" ';
+			selected( $this->active_filter_selectsect, 'all' );
+			echo '>All</option>';
 			foreach (get_sects() as $sect) {
 				echo '<option value="' . $sect->ID . '" ';
 				echo selected( $this->active_filter_selectsect, $sect->ID );
