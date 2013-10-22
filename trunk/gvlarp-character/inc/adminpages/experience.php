@@ -26,7 +26,7 @@ function render_xp_approvals_page($type){
   ?>	
 
 	<!-- Forms are NOT created automatically, so you need to wrap the table in one to use features like bulk actions -->
-	<form id="xpapprove-filter" method="get" action='<?php print $current_url; ?>'>
+	<form id="xpapprove-filter" method="get" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
 		<input type="hidden" name="tab" value="xpapprove" />
 		<?php $testListTable['xpapprove']->display() ?>
@@ -276,7 +276,7 @@ function render_costmodel_page($type){
 	<p>If the XP Cost is set to 0 then XP cannot be used to buy up anything using that model</p>
 	<p>If the Freebie Cost is set to 0 then Freebie points cannot be used to buy the next level using that model</p>
 
-	<form id="new-<?php print $type; ?>" method="post" action='<?php print $current_url; ?>'>
+	<form id="new-<?php print $type; ?>" method="post" action='<?php print htmlentities($current_url); ?>'>
 	<input type="hidden" name="tab" value="<?php print $type; ?>" />
 	<input type="hidden" name="costmodel" value="<?php print $_REQUEST['costmodel']; ?>" />
 	<input type="hidden" name="action" value="save" />
@@ -284,7 +284,7 @@ function render_costmodel_page($type){
 	<input type="text"   name="costmodel_name" value="<?php print $name; ?>"></p>
 	<p>Description:
 	<input type="text"   name="costmodel_desc" value="<?php print $description; ?>"></p>
-	<table class="costmodels">
+	<table class="wp-list-table costmodels widefat">
 	<tr>
 		<th class="costmodels">Current Level</th>
 		<th class="costmodels">Next Level</th>
@@ -543,8 +543,8 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
     function column_charactername($item){
         
         $actions = array(
-            'approveit' => sprintf('<a href="?page=%s&amp;action=%s&spend=%s&amp;tab=%s">Approve</a>',$_REQUEST['page'],'approveit',$item->ID, $this->type),
-            'denyit'    => sprintf('<a href="?page=%s&amp;action=%s&spend=%s&amp;tab=%s">Deny</a>',$_REQUEST['page'],'denyit',$item->ID, $this->type),
+            'approveit' => sprintf('<a href="?page=%s&amp;action=%s&amp;spend=%s&amp;tab=%s">Approve</a>',$_REQUEST['page'],'approveit',$item->ID, $this->type),
+            'denyit'    => sprintf('<a href="?page=%s&amp;action=%s&amp;spend=%s&amp;tab=%s">Deny</a>',$_REQUEST['page'],'denyit',$item->ID, $this->type),
         );
         
         
@@ -741,7 +741,7 @@ function render_xp_assign_page(){
   ?>	
 
 	<!-- Forms are NOT created automatically, so you need to wrap the table in one to use features like bulk actions -->
-	<form id="<?php print $type ?>-filter" method="get" action='<?php print $current_url; ?>'>
+	<form id="<?php print $type ?>-filter" method="get" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
 		<input type="hidden" name="tab" value="<?php print $type ?>" />
 		

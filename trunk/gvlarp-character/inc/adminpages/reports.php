@@ -74,9 +74,10 @@ function render_select_report() {
 
 function render_report($reporttable) {
 	
-	$reporttable->prepare_items(); ?>
-	
-	<form id=<?php print $_REQUEST['report'] ?>" method="get" action=''>
+	$reporttable->prepare_items(); 
+	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+	?>
+	<form id="<?php print $_REQUEST['report'] ?>" method="get" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="page"   value="<?php print $_REQUEST['page'] ?>" />
 		<input type="hidden" name="report" value="<?php print $_REQUEST['report'] ?>" />
 		<?php $reporttable->display(); ?>

@@ -1855,7 +1855,7 @@ function get_sects() {
         /*************************************************************************/
 
         if ($showAll && $showUpdateTable) {
-            $output .= "<form name=\"PROFILE_UPDATE_FORM\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">";
+            $output .= "<form name=\"PROFILE_UPDATE_FORM\" method='post' action=\"" . urlencode($_SERVER['REQUEST_URI']) . "\">";
             $output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"updateProfile\" />";
             if (isset($_POST['CHARACTER'])) {
                 $output .= "<input type='HIDDEN' name=\"CHARACTER\" value=\"" . $character . "\" />";
@@ -1881,7 +1881,7 @@ function get_sects() {
                 .  $characterName . "</a>";
         }
         $output .= "</th></tr>";
-        $output .= "<tr><td class=\"gvcol_1 gvcol_val\"><p><img src=\"";
+        $output .= "<tr><td class=\"gvcol_1 gvcol_val\"><p><img alt=\"Picture\" src=\"";
 
         if ($showAll) {
             $output .= $privateIcon;
@@ -1945,7 +1945,7 @@ function get_sects() {
             $output .= "</td></tr>";
         }
 
-        $output .= "</table></p>";
+        $output .= "</table>";
 
         if ($character == $currentCharacter) {
             $output .= "</form>";
@@ -1954,7 +1954,7 @@ function get_sects() {
         //        if (!$showAll) {
         //            $output .= "<p>Click to send <a href=\"\">private message</a></p>";
         //        }
-        $output .= "</td><td class=\"gvcol_2 gvcol_img\"><img src=\"" . $imageURL . "\"></td></tr></table>";
+        $output .= "</td><td class=\"gvcol_2 gvcol_img\"><img alt=\"Profile Image\" src=\"" . $imageURL . "\"></td></tr></table>";
 
         return $output;
     }

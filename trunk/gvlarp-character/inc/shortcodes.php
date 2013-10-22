@@ -1,4 +1,12 @@
 <?php
+
+
+function get_shortcode_id($base) {
+	static $shortcode_id;
+	$shortcode_id++;
+	return $base . "_" . $shortcode_id;
+}
+
 function get_homedomain() {
 
 	global $wpdb;
@@ -239,7 +247,7 @@ function print_background_shortcode($atts, $content = null) {
 	
 	if (count($result)) {
 		$columnlist = explode(',',$columns);
-		$output = "<table class='gvplugin' id=\"gvid_blb\">\n";
+		$output = "<table class='gvplugin' id=\"" . get_shortcode_id("gvid_blb") . "\">\n";
 		if ($heading) {
 			$output .= "<tr>";
 			foreach ($columnlist as $name) {
@@ -447,7 +455,7 @@ function print_merit_shortcode($atts, $content = null) {
 	
 	if (count($result)) {
 		$columnlist = explode(',',$columns);
-		$output = "<table class='gvplugin' id=\"gvid_mlb\">\n";
+		$output = "<table class='gvplugin' id=\"" . get_shortcode_id("gvid_mlb") . "\">\n";
 		if ($heading) {
 			$output .= "<tr>";
 			foreach ($columnlist as $name) {
@@ -549,7 +557,7 @@ function print_character_xp_table($atts, $content=null) {
 		$sql = $wpdb->prepare($sql, $filterid, $filterid);	
 		$character_xp = $wpdb->get_results($sql);
 
-		$output = "<table class='gvplugin' id=\"cxpt\">
+		$output = "<table class='gvplugin' id=\"" . get_shortcode_id("cxpt") . "\">
 						   <tr><th class=\"gvthead gvcol_1\">Character</th>
 							   <th class=\"gvthead gvcol_2\">XP Reason</th>
 							   <th class=\"gvthead gvcol_3\">XP Amount</th>

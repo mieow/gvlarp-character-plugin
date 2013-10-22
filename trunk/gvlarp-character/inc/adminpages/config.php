@@ -251,8 +251,8 @@ function character_config() {
 				<td>View Dot/Box Line Width (mm)</td><td><input type="text" name="gvcharacter_view_dotlinewidth" value="<?php echo get_option('gvcharacter_view_dotlinewidth'); ?>" size=4 /></td>
 				<td >
 					<table><tr>
-					<td><img width=16 src='<?php echo plugins_url( 'gvlarp-character/images/viewemptydot.jpg' ); ?>'></td>
-					<td><img width=16 src='<?php echo plugins_url( 'gvlarp-character/images/viewfulldot.jpg' ); ?>'></td>
+					<td><img alt="empty dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/viewemptydot.jpg' ); ?>'></td>
+					<td><img alt="full dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/viewfulldot.jpg' ); ?>'></td>
 					</tr></table>
 				</td>
 			</tr>
@@ -264,7 +264,7 @@ function character_config() {
 				<td>XP Spend Background Colour (#RRGGBB)</td><td><input type="color" name="gvcharacter_xp_bgcolour" value="<?php echo get_option('gvcharacter_xp_bgcolour'); ?>" /></td>
 				<td>XP Spend Dot/Box Colour (#RRGGBB)</td><td><input type="color" name="gvcharacter_xp_dotcolour" value="<?php echo get_option('gvcharacter_xp_dotcolour'); ?>" /></td>
 				<td>XP Spend Dot/Box Line Width (mm)</td><td><input type="text" name="gvcharacter_xp_dotlinewidth" value="<?php echo get_option('gvcharacter_xp_dotlinewidth'); ?>" size=4 /></td>
-				<td ><img width=16 src='<?php echo plugins_url( 'gvlarp-character/images/xpdot.jpg' ); ?>'></td>
+				<td ><img alt="xp dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/xpdot.jpg' ); ?>'></td>
 			</tr>
 		</table>
 
@@ -274,7 +274,7 @@ function character_config() {
 				<td>Pending Background Colour (#RRGGBB)</td><td><input type="color" name="gvcharacter_pend_bgcolour" value="<?php echo get_option('gvcharacter_pend_bgcolour'); ?>" /></td>
 				<td>Pending Dot/Box Colour (#RRGGBB)</td><td><input type="color" name="gvcharacter_pend_dotcolour" value="<?php echo get_option('gvcharacter_pend_dotcolour'); ?>" /></td>
 				<td>Pending Dot/Box Line Width (mm)</td><td><input type="text" name="gvcharacter_pend_dotlinewidth" value="<?php echo get_option('gvcharacter_pend_dotlinewidth'); ?>" size=4 /></td>
-				<td ><img width=16 src='<?php echo plugins_url( 'gvlarp-character/images/pendingdot.jpg' ); ?>'></td>
+				<td ><img alt="pending dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/pendingdot.jpg' ); ?>'></td>
 			</tr>
 		</table>
 
@@ -298,23 +298,25 @@ function character_config() {
 			</tr>
 			<tr>
 				<td>Character Sheet Footer</td><td><input type="text" name="gvcharacter_pdf_footer" value="<?php echo get_option('gvcharacter_pdf_footer'); ?>" size=30 /></td>
-				<?php if (class_exists('Imagick')) { ?>
+			<?php if (class_exists('Imagick')) { ?>
 				<td>Dot/Box Colour (#RRGGBB)</td><td><input type="color" name="gvcharacter_pdf_dotcolour" value="<?php echo get_option('gvcharacter_pdf_dotcolour'); ?>" /></td>
 				<td>Dot/Box Line Width (mm)</td><td><input type="text" name="gvcharacter_pdf_dotlinewidth" value="<?php echo get_option('gvcharacter_pdf_dotlinewidth'); ?>" size=4 /></td>
 			</tr>
+			<tr>
 				<td colspan = 6>
 					<table><tr>
-					<td><img width=16 src='<?php echo plugins_url( 'gvlarp-character/images/emptydot.jpg' ); ?>'></td>
-					<td><img width=16 src='<?php echo plugins_url( 'gvlarp-character/images/fulldot.jpg' ); ?>'></td>
-					<td><img width=16 src='<?php echo plugins_url( 'gvlarp-character/images/box.jpg' ); ?>'></td>
-					<td><img width=16 src='<?php echo plugins_url( 'gvlarp-character/images/boxcross1.jpg' ); ?>'></td>
-					<td><img width=16 src='<?php echo plugins_url( 'gvlarp-character/images/boxcross2.jpg' ); ?>'></td>
-					<td><img width=16 src='<?php echo plugins_url( 'gvlarp-character/images/boxcross3.jpg' ); ?>'></td>
+					<td><img alt="empty dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/emptydot.jpg' ); ?>'></td>
+					<td><img alt="full dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/fulldot.jpg' ); ?>'></td>
+					<td><img alt="box dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/box.jpg' ); ?>'></td>
+					<td><img alt="box2 dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/boxcross1.jpg' ); ?>'></td>
+					<td><img alt="box3 dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/boxcross2.jpg' ); ?>'></td>
+					<td><img alt="box4 dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/boxcross3.jpg' ); ?>'></td>
 					</tr></table>
 				</td>
+				<?php } else { ?>
+				
 			<tr>
 				
-				<?php } else { ?>
 				<td colspan=4>&nbsp;</td>
 				<?php } ?>
 			</tr>

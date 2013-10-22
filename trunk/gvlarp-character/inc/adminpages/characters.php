@@ -72,10 +72,10 @@ function character_options() {
 			$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 			
 			$noclan_url = remove_query_arg( 'clan', $current_url );
-			$arr = array('<a href="' . $noclan_url . '" class="nav_clan">All</a>');
+			$arr = array('<a href="' . urlencode($noclan_url) . '" class="nav_clan">All</a>');
 			foreach (get_clans() as $clan) {
 				$clanurl = add_query_arg('clan', $clan->ID);
-				array_push($arr, '<a href="' . $clanurl . '" class="nav_clan">' . $clan->NAME . '</a>');
+				array_push($arr, '<a href="' . urlencode($clanurl) . '" class="nav_clan">' . $clan->NAME . '</a>');
 			}
 			$text = implode(' | ', $arr);
 			echo $text;
@@ -83,36 +83,51 @@ function character_options() {
 		</div>
 		<div class="char_filters">
 			
-			<form id="character-filter" method="get" action='<?php print $current_url; ?>'>
+			<form id="character-filter" method="get" action='<?php print htmlentities($current_url); ?>'>
 				<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
 				<label>Player Status: </label>
-				<select name='player_status'>"
-					<?php foreach( $options_player_status as $key => $value )
-							echo '<option value="' . esc_attr( $key ) . '" ' . selected( $active_player_status, $key ) . '>' . esc_attr( $value ) . '</option>';
+				<select name='player_status'>
+					<?php foreach( $options_player_status as $key => $value ) {
+							echo '<option value="' . esc_attr( $key ) . '" ';
+							selected( $active_player_status, $key );
+							echo '>' . esc_attr( $value ) . '</option>';
+						}
 					?>
 				</select>
 				<label>Character Type: </label>
-				<select name='character_type'>"
-					<?php foreach( $options_character_type as $key => $value )
-							echo '<option value="' . esc_attr( $key ) . '" ' . selected( $active_character_type, $key ) . '>' . esc_attr( $value ) . '</option>';
+				<select name='character_type'>
+					<?php foreach( $options_character_type as $key => $value ) {
+							echo '<option value="' . esc_attr( $key ) . '" ';
+							selected( $active_character_type, $key );
+							echo '>' . esc_attr( $value ) . '</option>';
+						}
 					?>
 				</select>
 				<label>Character Status: </label>
-				<select name='character_status'>"
-					<?php foreach( $options_character_status as $key => $value )
-							echo '<option value="' . esc_attr( $key ) . '" ' . selected( $active_character_status, $key ) . '>' . esc_attr( $value ) . '</option>';
+				<select name='character_status'>
+					<?php foreach( $options_character_status as $key => $value ) {
+							echo '<option value="' . esc_attr( $key ) . '" ';
+							selected( $active_character_status, $key );
+							echo '>' . esc_attr( $value ) . '</option>';
+						}
 					?>
 				</select>
 				<label>Character Visibility: </label>
 				<select name='character_visible'>
 					<?php
-					echo '<option value="all" ' . selected( $active_character_visible, 'all' ) . '>All</option>';
-					echo '<option value="Y" '   . selected( $active_character_visible, 'y' )   . '>Yes</option>';
-					echo '<option value="N" '   . selected( $active_character_visible, 'n' )   . '>No</option>';
+					echo '<option value="all" ';
+					selected( $active_character_visible, 'all' );
+					echo '>All</option>';
+					echo '<option value="Y" ';
+					selected( $active_character_visible, 'y' );
+					echo '>Yes</option>';
+					echo '<option value="N" ';
+					selected( $active_character_visible, 'n' );
+					echo '>No</option>';
 					?>
 				</select>
 				
-				<?php submit_button( 'Filter', 'secondary', false, false ); ?>
+				<?php submit_button( 'Filter', 'secondary', 'do_filter_character', false); ?>
 			</form>
 		
 		</div>
@@ -201,7 +216,7 @@ function character_options() {
 				$delete_url = add_query_arg('action', 'delete', $current_url);
 				$delete_url = add_query_arg('characterID', urlencode($character->ID), $delete_url);
 				$delete_url = add_query_arg('characterName', urlencode($character->charactername), $delete_url);
-				echo '&nbsp;<a href="' . $delete_url . '"><img src="' . $iconurl . 'delete.png" alt="Delete" title="Delete Character" /></a>';
+				echo '&nbsp;<a href="' . urlencode($delete_url) . '"><img src="' . $iconurl . 'delete.png" alt="Delete" title="Delete Character" /></a>';
 				
 				if (!empty($character->wordpress_id)) {
 					echo '&nbsp;<a href="' . $stlinks['printCharSheet']->LINK  . '?CHARACTER='. urlencode($character->wordpress_id) . '"><img src="' . $iconurl . 'print.png" alt="Print" title="Print Character" /></a>';
