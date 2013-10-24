@@ -15,7 +15,7 @@ require_once GVLARP_CHARACTER_URL . 'inc/adminpages/paths.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/nature.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/domains.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/offices.php';
-//require_once GVLARP_CHARACTER_URL . 'inc/adminpages/combodisciplines.php';
+require_once GVLARP_CHARACTER_URL . 'inc/adminpages/combodisciplines.php';
 
 if(!class_exists('WP_List_Table')){
     require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );

@@ -72,10 +72,10 @@ function character_options() {
 			$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 			
 			$noclan_url = remove_query_arg( 'clan', $current_url );
-			$arr = array('<a href="' . urlencode($noclan_url) . '" class="nav_clan">All</a>');
+			$arr = array('<a href="' . htmlentities($noclan_url) . '" class="nav_clan">All</a>');
 			foreach (get_clans() as $clan) {
 				$clanurl = add_query_arg('clan', $clan->ID);
-				array_push($arr, '<a href="' . urlencode($clanurl) . '" class="nav_clan">' . $clan->NAME . '</a>');
+				array_push($arr, '<a href="' . htmlentities($clanurl) . '" class="nav_clan">' . $clan->NAME . '</a>');
 			}
 			$text = implode(' | ', $arr);
 			echo $text;
