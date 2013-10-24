@@ -956,7 +956,7 @@ function get_sects() {
                               AND chara.DELETED != 'Y'
                               AND pstatus.name = 'Active'
                               AND cstatus.name != 'Dead'
-                              AND cytpe.name = %s
+                              AND ctype.name = %s
                             ORDER BY ctype.id, chara.name";
 
             $path_records = $wpdb->get_results($wpdb->prepare($sql, $group));
@@ -1301,6 +1301,7 @@ function get_sects() {
     }
     add_shortcode('character_road_or_path_table', 'print_character_road_or_path_table');
 
+	/*
     function print_character_update_table($atts, $content=null) {
         extract(shortcode_atts(array ("group"           => "",
             "characterstatus" => "",
@@ -1483,7 +1484,7 @@ function get_sects() {
         }
         return $output;
     }
-    add_shortcode('update_character_table', 'print_character_update_table');
+    add_shortcode('update_character_table', 'print_character_update_table'); */
 
     function print_player_admin($atts, $content=null) {
         extract(shortcode_atts(array ("playerstatus" => "",
