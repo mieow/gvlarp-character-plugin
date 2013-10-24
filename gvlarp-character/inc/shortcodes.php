@@ -353,7 +353,6 @@ function print_merit_shortcode($atts, $content = null) {
 	extract(shortcode_atts(array (
 		"character" => "null",
 		"merit"      => "Clan Friendship",
-		"matchtype"  => "",
 		"match"      => "",
 		"domain"     => "home",
 		"liststatus" => "Alive",
