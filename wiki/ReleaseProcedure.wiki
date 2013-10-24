@@ -1,0 +1,18 @@
+#summary Procedure before version can be released
+
+= Introduction =
+
+This is the process to go through before the version is available for release
+
+
+= Details =
+
+* HTML Validation
+* Prepare summary of changes, and update in
+  - Web page
+  - Top level PHP file
+* Prepare summary of database changes
+  - Top level PHP fle
+* Update initial data tables
+* Testing
+* SVN Tag
