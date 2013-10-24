@@ -7,12 +7,19 @@ This is the process to go through before the version is available for release
 
 = Details =
 
-* HTML Validation
-* Prepare summary of changes, and update in
+1) HTML Validation
+
+2) Prepare summary of changes, and update in
+
   - Web page
   - Top level PHP file
-* Prepare summary of database changes
+
+3) Prepare summary of database changes
+
   - Top level PHP fle
-* Update initial data tables
-* Testing
-* SVN Tag
+
+4) Update initial data tables
+
+5) Testing
+
+6) SVN Tag
