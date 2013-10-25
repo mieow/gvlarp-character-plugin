@@ -20,6 +20,8 @@ This is the process to go through before the version is available for release
 
 4) Update initial data tables
 
+5) Change table prefix and recreate tables from scratch, with imported data
+
 5) Testing
 
 6) SVN Tag
