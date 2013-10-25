@@ -1,13 +1,13 @@
 <?php
     /*  Plugin Name: GVLarp Character Plugin
         Plugin URI: http://www.gvlarp.com/character-plugin
-        Description: Plugin to store and display PCs and NPCs of GVLarp
+        Description: Management of Characters and Players for Vampire-the Masquerade
         Author: Lambert Behnke & Jane Houston
-        Version: 1.7.0
+        Version: 1.8.0
         Author URI: http://www.gvlarp.com
     */
 
-    /*  Copyright 2013  Lambert Behnke  (email : Lambert.Behnke@gmail.com)
+    /*  Copyright 2013 Lambert Behnke and Jane Houston
 
         This program is free software; you can redistribute it and/or modify
         it under the terms of the GNU General Public License, version 2, as
@@ -57,7 +57,13 @@
 					  for properly upgrading the database when plugin is activated.  Added initial table data 
 					  during installation for ST links, Sectors, Extended Background questions, Generations,
 					  player status, character status, Attributes/stats, Clans.
-
+		Version 1.8.0 Alot more admin pages created. Caitiff XP Spends now supported. Nature/Demeanour, sect 
+					  membership, assigning xp by character now supported. Solar Calc widget incorporated.
+					  Shortcodes ‘status_list_block’, ‘dead_character_table’ and ‘prestige_list_block’ replaced 
+					  with ‘background_table’ and ‘merit_table’ to support display of other backgrounds 
+					  (e.g. Anarch Status). Removed shortcode ‘xp_spend_table’. Page now generated with content 
+					  filter. XP Spend page re-written to allow multiple spends at the one time. Also shows 
+					  pending spends and allows them to be cancelled.
         Comments:
 
 	*/
@@ -65,63 +71,46 @@
     /*
         DB Changes: 
 		
-		Version 1.7.0 
-			Table PLAYER_TYPE, 		DESCRIPTION type changed to TINYTEXT
-			Table PLAYER_STATUS, 	DESCRIPTION type changed to TINYTEXT
-			Table ST_LINK, 			DESCRIPTION type changed to TINYTEXT
-			Table ST_LINK, 			LINK type changed to TINYTEXT
-			Table OFFICE, 			DESCRIPTION type changed to TINYTEXT
-			Table XP_REASON, 		DESCRIPTION type changed to TINYTEXT
-			Table PATH_REASON, 		DESCRIPTION type changed to TINYTEXT
-			Table TEMPORARY_STAT_REASON, DESCRIPTION type changed to TINYTEXT
-			Table CHARACTER_TYPE, 	DESCRIPTION type changed to TINYTEXT
-			Table CHARACTER_STATUS, DESCRIPTION type changed to TINYTEXT
-			Table CLAN, 			DESCRIPTION type changed to TINYTEXT
-			Table CLAN, 			Added field CLAN_PAGE_LINK
-			Table CLAN, 			Added field CLAN_FLAW
-			Table COURT, 			DESCRIPTION type changed to TINYTEXT
-			Table SOURCE_BOOK, 		DESCRIPTION type changed to TINYTEXT
-			Table COST_MODEL, 		DESCRIPTION type changed to TINYTEXT
-			Table STAT, 			DESCRIPTION type changed to TINYTEXT
-			Table STAT, 			Added field SPECIALISATION_AT
-			Table TEMPORARY_STAT, 	DESCRIPTION type changed to TINYTEXT
-			Table SKILL, 			DESCRIPTION type changed to TINYTEXT
-			Table SKILL, 			Added field MULTIPLE
-			Table SKILL, 			Added field SPECIALISATION_AT
-			Table BACKGROUND, 		DESCRIPTION type changed to TINYTEXT
-			Table HAS_SECTOR, 		DESCRIPTION type changed to TINYTEXT
-			Added table SECTOR
-			Table MERIT, 			DESCRIPTION type changed to TINYTEXT
-			Table DISCIPLINE, 		DESCRIPTION type changed to TINYTEXT
-			Table PATH, 			DESCRIPTION type changed to TINYTEXT
-			Table DISCIPLINE_POWER, DESCRIPTION type changed to TINYTEXT
-			Table PATH_POWER, 		DESCRIPTION type changed to TINYTEXT
-			Table RITUAL, 			DESCRIPTION type changed to TINYTEXT
-			Table CHARACTER_MERIT, 	Added field APPROVED_DETAIL
-			Table CHARACTER_MERIT, 	Added field PENDING_DETAIL
-			Table CHARACTER_MERIT, 	Added field DENIED_DETAIL
-			Table CHARACTER_BACKGROUND, 	Added field APPROVED_DETAIL
-			Table CHARACTER_BACKGROUND, 	Added field PENDING_DETAIL
-			Table CHARACTER_BACKGROUND, 	Added field DENIED_DETAIL
-			Table CHARACTER_BACKGROUND, 	Added field SECTOR_ID
-			Table COMBO_DISCIPLINE, QUOTE type changed to TEXT
-			Table COMBO_DISCIPLINE, PORTRAIT type changed to TINYTEXT
-			Table CONFIG, 			PROFILE_LINK type changed to TINYTEXT
-			Table CONFIG, 			PLACEHOLDER_IMAGE type changed to TINYTEXT
-			Removed table EXTENDED_CHARACTER_BACKGROUND
-			Added table EXTENDED_BACKGROUND
-			Added table CHARACTER_EXTENDED_BACKGROUND
+		Version 1.8.28
+			All constraints explicitly named
+			Table CLAN,				Added column CLAN_COST_MODEL_ID
+			Table CLAN,				Added column NONCLAN_COST_MODEL_ID
+			Renamed table COURT to DOMAIN
+			Added table SECT
+			Added table NATURE
+			Table CHARACTER,		Renamed COURT_ID to DOMAIN_ID
+			Table CHARACTER,		Added column SECT_ID
+			Table CHARACTER,		Added column NATURE_ID
+			Table CHARACTER,		Added column DEMEANOUR_ID
+			Table CHARACTER,		Added column LAST_UPDATED
+			Table CHARACTER_OFFICE,	Renamed COURT_ID to DOMAIN_ID
+			Table PENDING_XP_SPEND,	Added column CHARTABLE
+			Table PENDING_XP_SPEND,	Added column CHARTABLE_ID
+			Table PENDING_XP_SPEND,	Added column CHARTABLE_LEVEL
+			Table PENDING_XP_SPEND,	Added column ITEMTABLE
+			Table PENDING_XP_SPEND,	Added column ITEMNAME
+			Table PENDING_XP_SPEND,	Added column ITEMTABLE_ID
+			Table PENDING_XP_SPEND,	Removed column CODE
+			Table DISCIPLINE,		Removed COST_MODEL_ID
+			Table CONFIG,			Added column HOME_DOMAIN_ID
+			Table CONFIG,			Added column HOME_SECT_ID
+			Table CONFIG,			Added column ASSIGN_XP_BY_PLAYER
+			Table CONFIG,			Added column USE_NATURE_DEMEANOUR
+			Table CONFIG,			Removed column PROFILE_LINK
+			Table CONFIG,			Removed column CLAN_DISCIPLINE_DISCOUNT
 			
          */
-define( 'GVLARP_CHARACTER_URL', plugin_dir_path(__FILE__) );define( 'GVLARP_TABLE_PREFIX', $wpdb->prefix . "GVLARP_" );
+define( 'GVLARP_CHARACTER_URL', plugin_dir_path(__FILE__) );
+define( 'GVLARP_TABLE_PREFIX', $wpdb->prefix . "VTM_" );
 require_once GVLARP_CHARACTER_URL . 'inc/printable.php';
-require_once GVLARP_CHARACTER_URL . 'inc/adminpages.php';
 require_once GVLARP_CHARACTER_URL . 'inc/install.php';
 require_once GVLARP_CHARACTER_URL . 'inc/extendedbackground.php';
 require_once GVLARP_CHARACTER_URL . 'inc/widgets.php';
 require_once GVLARP_CHARACTER_URL . 'inc/android.php';
 require_once GVLARP_CHARACTER_URL . 'inc/xpfunctions.php';
 require_once GVLARP_CHARACTER_URL . 'inc/shortcodes.php';
+require_once GVLARP_CHARACTER_URL . 'inc/adminpages.php';
+
 
 function register_plugin_styles() {
 	wp_register_style( 'my-plugin', plugins_url( 'my-plugin/css/plugin.css' ) );

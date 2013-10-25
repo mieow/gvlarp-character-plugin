@@ -13,55 +13,42 @@ function character_config() {
 		<h2>Configuration</h2>
 		<h3>Options</h3>
 		<?php 
-			$inputsfail = 0;
-			if (isset($_REQUEST['save_options']) ) {
-				/* Validate entries */
-				if (!empty($_REQUEST['discount'])) {
-					if ( ($_REQUEST['discount']+0) == 0) {
-						$inputsfail = "Invalid value of discount";
-					}
+		
+			if (isset($_REQUEST['save_options'])) {
+			
+				$sql = "SELECT ID FROM " . GVLARP_TABLE_PREFIX . "CONFIG ORDER BY ID";
+				$configid = $wpdb->get_var($sql);
+			
+				$wpdb->show_errors();
+				$dataarray = array (
+					'PLACEHOLDER_IMAGE' => $_REQUEST['placeholder'],
+					'ANDROID_LINK' => $_REQUEST['androidlink'],
+					'HOME_DOMAIN_ID' => $_REQUEST['homedomain'],
+					'HOME_SECT_ID'   => $_REQUEST['homesect'],
+					'ASSIGN_XP_BY_PLAYER' => $_REQUEST['assignxp'],
+					'USE_NATURE_DEMEANOUR' => $_REQUEST['usenature'],
+				);
+				
+				$result = $wpdb->update(GVLARP_TABLE_PREFIX . "CONFIG",
+					$dataarray,
+					array (
+						'ID' => $configid
+					),
+					array('%s', '%s', '%d', '%d', '%s', '%s')
+				);		
+				
+				if ($result) 
+					echo "<p style='color:green'>Updated configuration options</p>";
+				else if ($result === 0) 
+					echo "<p style='color:orange'>No updates made to options</p>";
+				else {
+					$wpdb->print_error();
+					echo "<p style='color:red'>Could not update options</p>";
 				}
+				
 			}
-			if (!$inputsfail) {
-				if (isset($_REQUEST['save_options'])) {
-					$wpdb->show_errors();
-					$dataarray = array (
-						'PLACEHOLDER_IMAGE' => $_REQUEST['placeholder'],
-						'ANDROID_LINK' => $_REQUEST['androidlink'],
-						'HOME_DOMAIN_ID' => $_REQUEST['homedomain'],
-						'HOME_SECT_ID'   => $_REQUEST['homesect'],
-						'ASSIGN_XP_BY_PLAYER' => $_REQUEST['assignxp'],
-						'USE_NATURE_DEMEANOUR' => $_REQUEST['usenature'],
-					);
-					
-					$result = $wpdb->update(GVLARP_TABLE_PREFIX . "CONFIG",
-						$dataarray,
-						array (
-							'ID' => 1
-						)
-					);		
-					
-					if ($result) 
-						echo "<p style='color:green'>Updated configuration options</p>";
-					else if ($result === 0) 
-						echo "<p style='color:orange'>No updates made to options</p>";
-					else {
-						$wpdb->print_error();
-						echo "<p style='color:red'>Could not update options</p>";
-					}
-					
-				}
-				$sql = "select * from " . GVLARP_TABLE_PREFIX . "CONFIG;";
-				$options = $wpdb->get_results($wpdb->prepare($sql,''));
-			} else {
-				echo "<p style='color:red'>Could not save options: $inputsfail</p>";
-				$options[0]->PLACEHOLDER_IMAGE = $_REQUEST['placeholder'];
-				$options[0]->ANDROID_LINK      = $_REQUEST['androidlink'];
-				$options[0]->HOME_DOMAIN_ID    = $_REQUEST['homedomain'];
-				$options[0]->HOME_SECT_ID      = $_REQUEST['homesect'];
-				$options[0]->ASSIGN_XP_BY_PLAYER  = $_REQUEST['assignxp'];
-				$options[0]->USE_NATURE_DEMEANOUR = $_REQUEST['usenature'];
-			}
+			$sql = "select * from " . GVLARP_TABLE_PREFIX . "CONFIG;";
+			$options = $wpdb->get_results($wpdb->prepare($sql,''));
 		?>
 
 		<form id='options_form' method='post'>
