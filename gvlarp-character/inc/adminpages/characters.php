@@ -201,8 +201,11 @@ function character_options() {
 			//echo "<p>SQL: $sql</p>";
 			//print_r($result);
 		
+			$i = 0;
 			foreach ($result as $character) {
-				echo "<tr>\n";
+				echo "<tr";
+				if ($i % 2) echo " class=\"alternate\"";
+				echo ">\n";
 				echo "<th>";
 				if (!empty($character->wordpress_id))
 					echo '<a href="' . $stlinks['viewCharSheet']->LINK . '?CHARACTER='. urlencode($character->wordpress_id) . '">' . $character->charactername . '</a>';
@@ -233,6 +236,7 @@ function character_options() {
 				echo "<td>{$character->character_status}</td>";
 				echo "<td>{$character->visible}</td>";
 				echo "</tr>\n";
+				$i++;
 			}
 		
 			?>

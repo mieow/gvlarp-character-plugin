@@ -101,7 +101,7 @@
 			
          */
 define( 'GVLARP_CHARACTER_URL', plugin_dir_path(__FILE__) );
-define( 'GVLARP_TABLE_PREFIX', $wpdb->prefix . "VTM_" );
+define( 'GVLARP_TABLE_PREFIX', $wpdb->prefix . "GVLARP_" );
 require_once GVLARP_CHARACTER_URL . 'inc/printable.php';
 require_once GVLARP_CHARACTER_URL . 'inc/install.php';
 require_once GVLARP_CHARACTER_URL . 'inc/extendedbackground.php';
@@ -1861,7 +1861,7 @@ function get_sects() {
                 }
             }
         }
-        $output .= "<table class='gvplugin' id=\"gvid_prof_out\"><tr><th colspan=2 class=\"gvthhead\">";
+        $output .= "<table class='gvplugin gvprofile' id=\"gvid_prof_out\"><tr><th colspan=2 class=\"gvthhead\">";
 
         if ($viewCharacterSheetLink == "") {
             $output .= $characterName;
@@ -1880,7 +1880,7 @@ function get_sects() {
             $output .= $publicIcon;
         }
 
-        $output .= "\">" . $quote . "<p><table class='gvplugin' id=\"gvid_prof_in\">";
+        $output .= "\">" . $quote . "<p><table class='gvplugin gvprofile' id=\"gvid_prof_in\">";
 
         $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Player:</td><td class=\"gvcol_2 gvcol_val\">" . $playerName . "</td></tr>";
         $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Clan:</td><td class=\"gvcol_2 gvcol_val\">";
