@@ -217,10 +217,28 @@ function render_costmodel_page($type){
 						'XP_COST'         => $_REQUEST["xpcost"][$i]
 					);
 					
-					$result = $wpdb->update(GVLARP_TABLE_PREFIX . "COST_MODEL_STEP",
-						$dataarray,
-						array ('ID' => $_REQUEST["rowids"][$i])
-					);					
+					if (empty($_REQUEST["rowids"][$i])) {
+						// add new step
+						$wpdb->insert(GVLARP_TABLE_PREFIX . "COST_MODEL_STEP",
+							$dataarray,
+							array (
+								'%d',
+								'%d',
+								'%d',
+								'%d',
+								'%d',
+								'%d'
+							)
+						);
+						$result = $wpdb->insert_id;
+					} else {
+						// update step
+						$result = $wpdb->update(GVLARP_TABLE_PREFIX . "COST_MODEL_STEP",
+							$dataarray,
+							array ('ID' => $_REQUEST["rowids"][$i])
+						);
+					}
+					
 					if ($result) $updates++;
 					else if ($result !== 0) $fail = 1;
 				}
