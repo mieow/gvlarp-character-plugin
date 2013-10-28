@@ -76,7 +76,7 @@ function render_domain_add_form($type, $addaction) {
 		<table>
 		<tr>
 			<td>Name:</td>
-			<td><input type="text" name="<?php print $type; ?>_name" value="<?php print $name; ?>" size=30 /></td>
+			<td><input type="text" name="<?php print $type; ?>_name" value="<?php print stripslashes($name); ?>" size=30 /></td>
 			<td>Visible to Players:</td>
 			<td>
 				<select name="<?php print $type; ?>_visible">
@@ -87,7 +87,7 @@ function render_domain_add_form($type, $addaction) {
 		</tr>
 		<tr>
 			<td>Description:  </td>
-			<td colspan=3><input type="text" name="<?php print $type; ?>_desc" value="<?php print $desc; ?>" size=90 /></td> 
+			<td colspan=3><input type="text" name="<?php print $type; ?>_desc" value="<?php print stripslashes($desc); ?>" size=90 /></td> 
 		</tr>
 		</table>
 		<input type="submit" name="save_<?php print $type; ?>" class="button-primary" value="Save" />
@@ -230,7 +230,7 @@ class gvadmin_domain_table extends GVMultiPage_ListTable {
     function column_default($item, $column_name){
         switch($column_name){
             case 'DESCRIPTION':
-                return $item->$column_name;
+                return stripslashes($item->$column_name);
             default:
                 return print_r($item,true); 
         }
@@ -246,7 +246,7 @@ class gvadmin_domain_table extends GVMultiPage_ListTable {
         
         
         return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
-            $item->NAME,
+            stripslashes($item->NAME),
             $item->ID,
             $this->row_actions($actions)
         );

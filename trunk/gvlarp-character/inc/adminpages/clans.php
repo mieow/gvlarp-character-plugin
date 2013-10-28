@@ -577,7 +577,7 @@ class gvadmin_clans_table extends GVMultiPage_ListTable {
 					clancosts.ID = clan.CLAN_COST_MODEL_ID
 					AND nonclancosts.ID = clan.NONCLAN_COST_MODEL_ID";
 		
-		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']) && $type == $_REQUEST['tab'])
+		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']) && $this->type == $_REQUEST['tab'])
 			$sql .= " ORDER BY clan.{$_REQUEST['orderby']} {$_REQUEST['order']}";
 		
 		$sql .= ";";
@@ -991,13 +991,13 @@ class gvadmin_disciplines_table extends GVMultiPage_ListTable {
 				where
 					books.ID = disciplines.SOURCE_BOOK_ID";
 		
-		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']) && $type == $_REQUEST['tab'])
+		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']) && $this->type == $_REQUEST['tab'])
 			$sql .= " ORDER BY disciplines.{$_REQUEST['orderby']} {$_REQUEST['order']}";
 		
 		$sql .= ";";
-		/* echo "<p>SQL: " . $sql . "</p>"; */
+		//echo "<p>SQL: " . $sql . "</p>";
 		
-		$data =$wpdb->get_results($wpdb->prepare($sql,''));
+		$data =$wpdb->get_results($sql);
         
         $current_page = $this->get_pagenum();
         $total_items = count($data);

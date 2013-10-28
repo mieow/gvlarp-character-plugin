@@ -122,45 +122,45 @@ Hunted,You are pursued by a fanatical witch-hunter,-4,Social,-4,0,N,1,491,Y,Who 
 Masquerade Breaker,You accidentally broke the Masquerade shortly after you were embraced,-2,Social,-2,0,N,1,491,Y,Describe the circumstances around the breaking of the masqerade.  Who knows and what do they want from you?
 Old Flame,Someone you loved is now your enemy,-2,Social,-2,0,N,1,491,Y,Who was your old flame and why do they now hate you?
 Rival Sires,Two vampires wanted to embrace you,-2,Social,-2,0,N,1,491,Y,Describe the circumstances around your embrace
-Former Prince,,-3,Social,-3,0,N,1,492,Y,What city were you a Prince of and how did you lose the position?
-Hunted Like a Dog,,-3,Social,-3,0,N,1,492,Y,Who hunts you and why?
+Former Prince,You lost your position as Prince in another city,-3,Social,-3,0,N,1,492,Y,What city were you a Prince of and how did you lose the position?
+Hunted Like a Dog,The Sabbat or other Sect want to exterminate you,-3,Social,-3,0,N,1,492,Y,Who hunts you and why?
 Clan Enmity,You are deemed unworthy in the eyes of a clan,-3,Social,-3,0,Y,1,492,Y,Why does the clan hate you?
 Disgrace to the Blood,Sire says embrace was mistake,-3,Social,-3,0,N,1,492,Y,
-Loathsome Regnant,,-4,Social,-4,0,N,1,492,Y,Describe your regnant
-Narc,,-3,Social,-3,0,N,1,492,Y,
-Overextended,,-4,Social,-4,0,N,1,492,Y,
-Sleeping With the Enemy,,-3,Social,-3,0,N,1,492,Y,
-Uppity,,-2,Social,-2,0,N,1,492,Y,
-Blood Hunted (entire Camarilla),,-6,Social,-6,0,N,1,493,Y,Why have you been blood hunted by the Camarilla?
-Blood Hunted (own city),,-4,Social,-4,0,N,1,493,Y,Why have you been blood hunted in your city?
-Hidden Diablerie,,3,Supernatural,3,0,N,1,493,Y,
-Laughingstock,,-5,Social,-5,0,N,1,493,Y,Why are you a laughingstock?
-Probationary Sect Member,,-4,Social,-4,0,N,1,493,Y,
+Loathsome Regnant,You are bloodbonded to a Kindred that treats you very badly,-4,Social,-4,0,N,1,492,Y,Describe your regnant
+Narc,You are known to be a snitch and informant,-3,Social,-3,0,N,1,492,Y,
+Overextended,You have your fingers in too many pies,-4,Social,-4,0,N,1,492,Y,
+Sleeping With the Enemy,You have an intimate connection with a member of the Sabbat,-3,Social,-3,0,N,1,492,Y,
+Uppity,You are very proud of your standing in the Camarilla,-2,Social,-2,0,N,1,492,Y,
+Blood Hunted (entire Camarilla),The Camarilla has targetted you for a bloodhunt,-6,Social,-6,0,N,1,493,Y,Why have you been blood hunted by the Camarilla?
+Blood Hunted (own city),A city has targetted you for a bloodhunt,-4,Social,-4,0,N,1,493,Y,Why have you been blood hunted in your city?
+Hidden Diablerie,Diablerie's black streaks don't show in your aura,3,Supernatural,3,0,N,1,493,Y,
+Laughingstock,The local Harpy's laugh at you,-5,Social,-5,0,N,1,493,Y,Why are you a laughingstock?
+Probationary Sect Member,You are a defector from the Sabbat you hasn't been fully accepted,-4,Social,-4,0,N,1,493,Y,Why did you leave the Sabbat?
 Cast No Refection,You have no reflection in mirrors,-1,Supernatural,-1,0,N,1,493,Y,
 Deceptive Aura,Your aura registers as mortal,1,Supernatural,1,0,N,1,493,Y,
 Healing Touch,Your aura registers as mortal,1,Supernatural,1,0,N,1,493,Y,
 Inoffensive to Animals,Animals don't fear you,1,Supernatural,1,0,N,1,493,Y,
 Medium,You can see and talk to spirits and ghosts,2,Supernatural,2,0,N,1,493,Y,
-Red List,,-7,Social,-7,0,N,1,493,Y,Why are you on the Red List?
+Red List,You are on the Kindred Most Wanted list,-7,Social,-7,0,N,1,493,Y,Why are you on the Red List?
 Lucky,Blessed with good fortune,3,Supernatural,3,0,N,1,493,Y,
 Magic Resistance,"Resistant to magic rituals, spells and disciplines",3,Supernatural,3,0,N,1,493,Y,
 Oracular Ability,Interpret signs and omens,3,Supernatural,3,0,N,1,493,Y,
 Spirit Mentor,You have a companion wraith,3,Supernatural,3,0,N,1,493,Y,Who was your spirit mentor while they were alive and what do they help you with?
 True Love,Your true love gives you strength,4,Supernatural,4,0,N,1,493,Y,Describe your true love and what they mean to you
 Cursed (1-5pt),You suffer from a supernatural curse,-3,Supernatural,-3,0,N,1,494,Y,What is the nature of the curse?
-Beacon of the Unholy,,-2,Supernatural,-2,0,N,1,494,Y,
-Cold Breeze,,-1,Supernatural,-1,0,N,1,494,Y,
-Deathsight,,-2,Supernatural,-2,0,N,1,494,Y,
+Beacon of the Unholy,You radiate evil,-2,Supernatural,-2,0,N,1,494,Y,
+Cold Breeze,A chill wind follows you everywhere,-1,Supernatural,-1,0,N,1,494,Y,
+Deathsight,Everything looks dead and decayed,-2,Supernatural,-2,0,N,1,494,Y,
 Repulsed by Garlic,You dislike garlic intensely,-1,Supernatural,-1,0,N,1,494,Y,
-Nine Lives,,6,Supernatural,6,0,N,1,494,Y,
-Touch of Frost,,-1,Supernatural,-1,0,N,1,494,Y,
-True Faith,,7,Supernatural,7,0,N,1,494,Y,
-Unbondable,,5,Supernatural,5,0,N,1,494,Y,
-Can't Cross Running Water,,-3,Supernatural,-3,0,N,1,495,Y,
+Nine Lives,Fate gives you 9 chances to die,6,Supernatural,6,0,N,1,494,Y,
+Touch of Frost,Plants wither and die in your presence,-1,Supernatural,-1,0,N,1,494,Y,
+True Faith,You have a real faith in God,7,Supernatural,7,0,N,1,494,Y,
+Unbondable,You cannot be bloodbonded,5,Supernatural,5,0,N,1,494,Y,
+Can't Cross Running Water,You cannot cross running water,-3,Supernatural,-3,0,N,1,495,Y,
 Light Sensitivity,You are far more sensitive to sunlight than other kindred,-5,Supernatural,-5,0,N,1,495,Y,
-Dark Fate,,-5,Supernatural,-5,0,N,1,495,Y,
-Grip of the Damned,,-4,Supernatural,-4,0,N,1,495,Y,
-Haunted,,-3,Supernatural,-3,0,N,1,495,Y,Who haunts you and why?
+Dark Fate,You are doomed,-5,Supernatural,-5,0,N,1,495,Y,
+Grip of the Damned,Mortals feel pain from the Kiss,-4,Supernatural,-4,0,N,1,495,Y,
+Haunted,An angry spirit haunts you,-3,Supernatural,-3,0,N,1,495,Y,Who haunts you and why?
 Repelled by Crosses,"You must flee from crosses, even when they are not backed by",-3,Supernatural,-3,0,N,1,495,Y,
 Eerie Presence,You make mortals nervous as they are instinctively aware tha,-2,Supernatural,-2,0,N,1,495,Y,
-Lord of the Flies,,-2,Supernatural,-2,0,N,1,495,Y,
+Lord of the Flies,Flies follow you around,-2,Supernatural,-2,0,N,1,495,Y,

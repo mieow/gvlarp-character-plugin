@@ -815,6 +815,8 @@ function render_xp_by_player () {
 	
 	$output = "";
 	$lastplayer = "";
+	$rowclasses = array(" class=\"alternate\"", "");
+	$rowclass = 1;
 	foreach ($results as $row) {
 		if ($lastplayer == $row->PLAYER) {
 			$player = "&nbsp;";
@@ -822,10 +824,11 @@ function render_xp_by_player () {
 		} else {
 			$player = $row->PLAYER;
 			$xp = $player_xp[$row->PLAYER_ID]->PLAYER_XP;
+			$rowclass = !$rowclass;
 		}
 		$lastplayer = $row->PLAYER;
 	
-		$output .= "<tr>";
+		$output .= "<tr" . $rowclasses[$rowclass] . ">";
 		$output .= "<td>$player<input name='xp_player[{$row->ID}]' value=\"{$row->PLAYER_ID}\" type=\"hidden\" /></td>";
 		$output .= "<td>{$row->CHARACTERNAME}</td><td>{$row->CSTATUS}</td><td>$xp</td>";
 		$output .= "<td><select name='xp_reason[{$row->ID}]'>\n";
