@@ -10,7 +10,7 @@ ID,NAME,DESCRIPTION,ICON_LINK,CLAN_PAGE_LINK,CLAN_FLAW,CLAN_COST_MODEL_ID,NONCLA
 9,Lasombra,Lasombra,/wp-content/plugins/gvlarp-character/images/Lasombra.png,,No reflection,4,10,N
 10,Caitiff,Caitiff,/wp-content/plugins/gvlarp-character/images/Caitiff.png,,Clanless,11,11,Y
 11,Assamite,Assamite,/wp-content/plugins/gvlarp-character/images/Assamite.png,,Cannot drink kindred blood,4,10,N
-12,Followers of Set,Settites,/wp-content/plugins/gvlarp-character/images/FollowersOfSet.png,,,4,10,N
+12,Followers of Set,Settites,/wp-content/plugins/gvlarp-character/images/FollowersOfSet.png,,Sensitive to bright light,4,10,N
 13,Ravnos,Ravnos,/wp-content/plugins/gvlarp-character/images/Ravnos.png,,Compulsive behaviour,4,10,N
 14,Tzimisce,Tzimisce,/wp-content/plugins/gvlarp-character/images/Tzimisce.png,,Need to sleep on home soil,4,10,N
 15,Samedi,Samedi,/wp-content/plugins/gvlarp-character/images/Samedi.png,,Horribly ugly,4,10,N
