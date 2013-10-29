@@ -1,6 +1,6 @@
-"ID","NAME","DESCRIPTION"
-"1","Initial","Initial Road or Path Rating"
-"2","Game action","Action taken during the game"
-"3","Downtime action","Action taken during downtime"
-"4","Outside influenc","Influences outside your control"
-"5","Path change","Change of Road or Path"
+NAME,DESCRIPTION
+Initial,Initial Road or Path Rating
+Game action,Action taken during the game
+Downtime action,Action taken during downtime
+Outside influenc,Influences outside your control
+Path change,Change of Road or Path

@@ -1,13 +1,13 @@
 ID,NAME,DESCRIPTION,DISCIPLINE_ID,COST_MODEL_ID,SOURCE_BOOK_ID,PAGE_NUMBER,VISIBLE
 1,Lure of Flames,Conjure forth mystical flames,5,7,1,218,Y
 2,Elemental Mastery,Control and communion with inanimate objects,5,7,1,214,Y
-4,Hands of Destruction,Sabbat path with rumours of demonoic origin,5,7,1,217,N
-5,Neptune\'s Might,Manipulate water,5,7,1,218,Y
+4,Hands of Destruction,Sabbat path with rumours of demonoic origin,5,7,1,217,Y
+5,Neptune's Might,Manipulate water,5,7,1,218,Y
 6,Path of Conjuring,Invoke objects out of thin air,5,7,1,220,Y
 7,Path of Corruption,Influence the psyches of individuals,5,7,1,221,Y
-8,The Path of Mars,Effect war and violence,5,7,1,224,N
+8,The Path of Mars,Effect war and violence,5,7,1,224,Y
 9,Path of Technomancy,Control of electronic devices,5,7,1,224,Y
-10,Father\\\'s Vengeance,Based on teachings of the book of Nod,5,7,1,226,N
+10,Father's Vengeance,Based on teachings of the book of Nod,5,7,1,226,Y
 11,Thaumaturgical Countermagic,Resist the effects of Thaumaturgy,5,7,1,228,Y
 12,Weather Control,Command over the weather,5,7,1,228,Y
 14,Movement of the Mind,Telekinesis,5,7,1,220,Y
@@ -18,5 +18,5 @@ ID,NAME,DESCRIPTION,DISCIPLINE_ID,COST_MODEL_ID,SOURCE_BOOK_ID,PAGE_NUMBER,VISIB
 19,The Cenotaph Path,Discovering or forging links between the living world and the Shadowlands,11,7,1,166,Y
 20,The Corpse in the Monster,Enhances the necromantic understanding of the unliving form,11,7,1,168,Y
 21,The Grave’s Decay,Observation of the working of time on all things mortal,11,7,1,171,Y
-22,Path of the Four Humors,This antiquated path was primarily considered the knowledge of the Lamia bloodline,11,7,1,173,N
+22,Path of the Four Humors,This antiquated path was primarily considered the knowledge of the Lamia bloodline,11,7,1,173,Y
 23,Vitreous Path,Control and influence the energies pertaining to death,11,7,1,174,Y
