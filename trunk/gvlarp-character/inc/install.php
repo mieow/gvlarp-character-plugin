@@ -4,7 +4,7 @@ register_activation_hook(__FILE__, "gvlarp_character_install");
 register_activation_hook( __FILE__, 'gvlarp_character_install_data' );
 
 global $gvlarp_character_db_version;
-$gvlarp_character_db_version = "1.8.30n"; 
+$gvlarp_character_db_version = "1.8.30"; 
 
 function gvlarp_update_db_check() {
     global $gvlarp_character_db_version;
@@ -29,6 +29,8 @@ function gvlarp_character_install() {
 	
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 	
+		// LEVEL 1 TABLES - TABLES WITHOUT FOREIGN KEY CONSTRAINTS
+	
 		$current_table_name = $table_prefix . "PLAYER_TYPE";
 		$sql = "CREATE TABLE " . $current_table_name . " (
 					ID           MEDIUMINT(9) NOT NULL AUTO_INCREMENT,
@@ -46,19 +48,6 @@ function gvlarp_character_install() {
 					PRIMARY KEY  (ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
-
-		$current_table_name = $table_prefix . "PLAYER";
-		$sql = "CREATE TABLE " . $current_table_name . " (
-					ID                 MEDIUMINT(9) NOT NULL AUTO_INCREMENT,
-					NAME               VARCHAR(60)  NOT NULL,
-					PLAYER_TYPE_ID     MEDIUMINT(9) NOT NULL,
-					PLAYER_STATUS_ID   MEDIUMINT(9) NOT NULL,
-					PRIMARY KEY  (ID),
-					CONSTRAINT `" . $table_prefix . "player_constraint_1` FOREIGN KEY (PLAYER_TYPE_ID)   REFERENCES " . $table_prefix . "PLAYER_TYPE(ID),
-					CONSTRAINT `" . $table_prefix . "player_constraint_2` FOREIGN KEY (PLAYER_STATUS_ID) REFERENCES " . $table_prefix . "PLAYER_STATUS(ID)
-					) ENGINE=INNODB;";
-		dbDelta($sql);
-
 
 		$current_table_name = $table_prefix . "ST_LINK";
 		$sql = "CREATE TABLE " . $current_table_name . " (
@@ -136,47 +125,6 @@ function gvlarp_character_install() {
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 
-		$current_table_name = $table_prefix . "COST_MODEL_STEP";
-		$sql = "CREATE TABLE " . $current_table_name . " (
-					ID              MEDIUMINT(9) NOT NULL  AUTO_INCREMENT,
-					COST_MODEL_ID   MEDIUMINT(9) NOT NULL,
-					SEQUENCE        SMALLINT(3)  NOT NULL,
-					CURRENT_VALUE   SMALLINT(3)  NOT NULL,
-					NEXT_VALUE      SMALLINT(3)  NOT NULL,
-					FREEBIE_COST    SMALLINT(3)  NOT NULL,
-					XP_COST         SMALLINT(3)  NOT NULL,
-					PRIMARY KEY  (ID),
-					CONSTRAINT `" . $table_prefix . "cost_model_step_constraint_1` FOREIGN KEY (COST_MODEL_ID) REFERENCES " . $table_prefix . "COST_MODEL(ID)
-					) ENGINE=INNODB;";
-		dbDelta($sql);
-
-		$current_table_name = $table_prefix . "CLAN";
-		$sql = "CREATE TABLE " . $current_table_name . " (
-					ID           	MEDIUMINT(9)  NOT NULL AUTO_INCREMENT,
-					NAME         	VARCHAR(30)   NOT NULL,
-					DESCRIPTION  	TINYTEXT      NOT NULL,
-					ICON_LINK    	TINYTEXT      NOT NULL,
-					CLAN_PAGE_LINK	TINYTEXT      NOT NULL,
-					CLAN_FLAW    	TINYTEXT      NOT NULL,
-					CLAN_COST_MODEL_ID      MEDIUMINT(9) NOT NULL,
-					NONCLAN_COST_MODEL_ID   MEDIUMINT(9) NOT NULL,
-					VISIBLE      	VARCHAR(1)    NOT NULL,
-					PRIMARY KEY  (ID),
-					CONSTRAINT `" . $table_prefix . "clan_constraint_1` FOREIGN KEY (CLAN_COST_MODEL_ID)    REFERENCES " . $table_prefix . "COST_MODEL(ID),
-					CONSTRAINT `" . $table_prefix . "clan_constraint_2` FOREIGN KEY (NONCLAN_COST_MODEL_ID) REFERENCES " . $table_prefix . "COST_MODEL(ID)
-					) ENGINE=INNODB;";
-		dbDelta($sql);
-		//echo "<p>Clan SQL: $sql</p>";
-
-		/* $current_table_name = $table_prefix . "COURT";
-		$sql = "CREATE TABLE " . $current_table_name . " (
-					ID           MEDIUMINT(9) NOT NULL AUTO_INCREMENT,
-					NAME         VARCHAR(16)  NOT NULL,
-					DESCRIPTION  TINYTEXT     NOT NULL,
-					VISIBLE      VARCHAR(1)   NOT NULL,
-					PRIMARY KEY  (ID)
-					) ENGINE=INNODB;";
-		dbDelta($sql); */
 		if (table_exists('COURT')) {
 			rename_table("COURT", "DOMAIN");
 		} else {		
@@ -233,8 +181,84 @@ function gvlarp_character_install() {
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 
-		$current_table_name = $table_prefix . "STAT";
+		$current_table_name = $table_prefix . "TEMPORARY_STAT";
+		$sql = "CREATE TABLE " . $current_table_name . " (
+					ID              MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
+					NAME            VARCHAR(60)   NOT NULL,
+					DESCRIPTION     TINYTEXT      NOT NULL,
+					VISIBLE         VARCHAR(1)    NOT NULL,
+					PRIMARY KEY  (ID)
+					) ENGINE=INNODB;";
+		dbDelta($sql);
+
+		$current_table_name = $table_prefix . "SECTOR";
+		$sql = "CREATE TABLE " . $current_table_name . " (
+					ID              MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
+					NAME            VARCHAR(16)   NOT NULL,
+					DESCRIPTION     TINYTEXT      NOT NULL,
+					VISIBLE         VARCHAR(1)    NOT NULL,
+					PRIMARY KEY  (ID)
+					) ENGINE=INNODB;";
+		dbDelta($sql);
+
+		$current_table_name = $table_prefix . "EXTENDED_BACKGROUND";
+		$sql = "CREATE TABLE " . $current_table_name . " (
+					ID                    MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
+					ORDERING              SMALLINT(4)   NOT NULL,
+					GROUPING              VARCHAR(90)   NOT NULL,
+					TITLE                 VARCHAR(90)   NOT NULL,
+					BACKGROUND_QUESTION   TEXT   		NOT NULL,
+					VISIBLE				  VARCHAR(1)    NOT NULL,
+					PRIMARY KEY  (ID)
+					) ENGINE=INNODB;";
+		dbDelta($sql);
 		
+		// LEVEL 2 TABLES - TABLES WITH A FOREIGN KEY CONSTRAINT TO A LEVEL 1 TABLE
+		
+		$current_table_name = $table_prefix . "PLAYER";
+		$sql = "CREATE TABLE " . $current_table_name . " (
+					ID                 MEDIUMINT(9) NOT NULL AUTO_INCREMENT,
+					NAME               VARCHAR(60)  NOT NULL,
+					PLAYER_TYPE_ID     MEDIUMINT(9) NOT NULL,
+					PLAYER_STATUS_ID   MEDIUMINT(9) NOT NULL,
+					PRIMARY KEY  (ID),
+					CONSTRAINT `" . $table_prefix . "player_constraint_1` FOREIGN KEY (PLAYER_TYPE_ID)   REFERENCES " . $table_prefix . "PLAYER_TYPE(ID),
+					CONSTRAINT `" . $table_prefix . "player_constraint_2` FOREIGN KEY (PLAYER_STATUS_ID) REFERENCES " . $table_prefix . "PLAYER_STATUS(ID)
+					) ENGINE=INNODB;";
+		dbDelta($sql);
+
+		$current_table_name = $table_prefix . "COST_MODEL_STEP";
+		$sql = "CREATE TABLE " . $current_table_name . " (
+					ID              MEDIUMINT(9) NOT NULL  AUTO_INCREMENT,
+					COST_MODEL_ID   MEDIUMINT(9) NOT NULL,
+					SEQUENCE        SMALLINT(3)  NOT NULL,
+					CURRENT_VALUE   SMALLINT(3)  NOT NULL,
+					NEXT_VALUE      SMALLINT(3)  NOT NULL,
+					FREEBIE_COST    SMALLINT(3)  NOT NULL,
+					XP_COST         SMALLINT(3)  NOT NULL,
+					PRIMARY KEY  (ID),
+					CONSTRAINT `" . $table_prefix . "cost_model_step_constraint_1` FOREIGN KEY (COST_MODEL_ID) REFERENCES " . $table_prefix . "COST_MODEL(ID)
+					) ENGINE=INNODB;";
+		dbDelta($sql);
+
+		$current_table_name = $table_prefix . "CLAN";
+		$sql = "CREATE TABLE " . $current_table_name . " (
+					ID           	MEDIUMINT(9)  NOT NULL AUTO_INCREMENT,
+					NAME         	VARCHAR(30)   NOT NULL,
+					DESCRIPTION  	TINYTEXT      NOT NULL,
+					ICON_LINK    	TINYTEXT      NOT NULL,
+					CLAN_PAGE_LINK	TINYTEXT      NOT NULL,
+					CLAN_FLAW    	TINYTEXT      NOT NULL,
+					CLAN_COST_MODEL_ID      MEDIUMINT(9) NOT NULL,
+					NONCLAN_COST_MODEL_ID   MEDIUMINT(9) NOT NULL,
+					VISIBLE      	VARCHAR(1)    NOT NULL,
+					PRIMARY KEY  (ID),
+					CONSTRAINT `" . $table_prefix . "clan_constraint_1` FOREIGN KEY (CLAN_COST_MODEL_ID)    REFERENCES " . $table_prefix . "COST_MODEL(ID),
+					CONSTRAINT `" . $table_prefix . "clan_constraint_2` FOREIGN KEY (NONCLAN_COST_MODEL_ID) REFERENCES " . $table_prefix . "COST_MODEL(ID)
+					) ENGINE=INNODB;";
+		dbDelta($sql);
+
+		$current_table_name = $table_prefix . "STAT";
 		$sql = "CREATE TABLE " . $current_table_name . " (
 					ID              	MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
 					NAME            	VARCHAR(16)   NOT NULL,
@@ -248,6 +272,124 @@ function gvlarp_character_install() {
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 
+		$current_table_name = $table_prefix . "SKILL";
+		$sql = "CREATE TABLE " . $current_table_name . " (
+					ID              	MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
+					NAME            	VARCHAR(16)   NOT NULL,
+					DESCRIPTION     	TINYTEXT      NOT NULL,
+					GROUPING        	VARCHAR(30)   NOT NULL,
+					COST_MODEL_ID   	MEDIUMINT(9)  NOT NULL,
+					MULTIPLE			VARCHAR(1)	  NOT NULL,
+					SPECIALISATION_AT	SMALLINT(2)	  NOT NULL,
+					VISIBLE         	VARCHAR(1)    NOT NULL,
+					PRIMARY KEY  (ID),
+					CONSTRAINT `" . $table_prefix . "skill_constraint_1` FOREIGN KEY (COST_MODEL_ID) REFERENCES " . $table_prefix . "COST_MODEL(ID)
+					) ENGINE=INNODB;";
+
+		
+		dbDelta($sql);
+
+		$current_table_name = $table_prefix . "BACKGROUND";
+		$sql = "CREATE TABLE " . $current_table_name . " (
+					ID              MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
+					NAME            VARCHAR(30)   NOT NULL,
+					DESCRIPTION     TINYTEXT      NOT NULL,
+					GROUPING        VARCHAR(30)   NOT NULL,
+					COST_MODEL_ID   MEDIUMINT(9)  NOT NULL,
+					HAS_SECTOR      VARCHAR(1)    NOT NULL,
+					VISIBLE         VARCHAR(1)    NOT NULL,
+					BACKGROUND_QUESTION TEXT,
+					PRIMARY KEY  (ID),
+					CONSTRAINT `" . $table_prefix . "background_constraint_1` FOREIGN KEY (COST_MODEL_ID) REFERENCES " . $table_prefix . "COST_MODEL(ID)
+					) ENGINE=INNODB;";
+
+		
+		dbDelta($sql);
+			
+		$current_table_name = $table_prefix . "MERIT";
+			$sql = "CREATE TABLE " . $current_table_name . " (
+						ID                  MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
+						NAME                VARCHAR(32)   NOT NULL,
+						DESCRIPTION         TINYTEXT      NOT NULL,
+						VALUE               SMALLINT(3)   NOT NULL,
+						GROUPING            VARCHAR(30)   NOT NULL,
+						COST                SMALLINT(3)   NOT NULL,
+						XP_COST             SMALLINT(3)   NOT NULL,
+						MULTIPLE            VARCHAR(1)    NOT NULL,
+						HAS_SPECIALISATION  VARCHAR(1)    NOT NULL,
+						SOURCE_BOOK_ID      MEDIUMINT(9)  NOT NULL,
+						PAGE_NUMBER         SMALLINT(4)   NOT NULL,
+						VISIBLE             VARCHAR(1)    NOT NULL,
+						BACKGROUND_QUESTION VARCHAR(255),
+						PRIMARY KEY  (ID),
+						CONSTRAINT `" . $table_prefix . "merit_constraint_1` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
+						) ENGINE=INNODB;";			
+			dbDelta($sql);
+
+		$current_table_name = $table_prefix . "DISCIPLINE";
+		$sql = "CREATE TABLE " . $current_table_name . " (
+					ID              MEDIUMINT(9)  NOT NULL   AUTO_INCREMENT,
+					NAME            VARCHAR(32)   NOT NULL,
+					DESCRIPTION     TINYTEXT      NOT NULL,
+					SOURCE_BOOK_ID  MEDIUMINT(9)  NOT NULL,
+					PAGE_NUMBER     SMALLINT(4)   NOT NULL,
+					VISIBLE         VARCHAR(1)    NOT NULL,
+					PRIMARY KEY  (ID),
+					CONSTRAINT `" . $table_prefix . "discipline_constraint_1` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
+					) ENGINE=INNODB;";
+		dbDelta($sql);
+		/* remove COST_MODEL_ID if it exists */
+		$remove = array (
+			'COST_MODEL_ID' => $table_prefix . 'ibfk_1' 
+		);
+		remove_columns($current_table_name, $remove);
+		
+		$current_table_name = $table_prefix . "COMBO_DISCIPLINE";
+			$sql = "CREATE TABLE " . $current_table_name . " (
+						ID              MEDIUMINT(9)  NOT NULL   AUTO_INCREMENT,
+						NAME            VARCHAR(60)   NOT NULL,
+						DESCRIPTION     TINYTEXT      NOT NULL,
+						COST            SMALLINT(3)   NOT NULL,
+						SOURCE_BOOK_ID  MEDIUMINT(9)  NOT NULL,
+						PAGE_NUMBER     SMALLINT(4)   NOT NULL,
+						VISIBLE         VARCHAR(1)    NOT NULL,
+						PRIMARY KEY  (ID),
+						CONSTRAINT `" . $table_prefix . "combo_disc_constraint_1` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
+						) ENGINE=INNODB;";
+			dbDelta($sql);
+
+		$current_table_name = $table_prefix . "CONFIG";
+		$rename = array (
+			'from' => 'HOME_COURT_ID',
+			'to'   => 'HOME_DOMAIN_ID',
+			'table' => $current_table_name,
+			'definition' => 'MEDIUMINT(9)  NOT NULL',
+			'constraint' => $table_prefix . "config_constraint_1",
+			'reference'  => $table_prefix . "DOMAIN(ID)"
+		);
+		rename_column($rename);
+		$sql = "CREATE TABLE " . $current_table_name . " (
+					ID                         MEDIUMINT(9)   NOT NULL  AUTO_INCREMENT,
+					PLACEHOLDER_IMAGE          TINYTEXT       NOT NULL,
+					ANDROID_LINK               TINYTEXT       NOT NULL,
+					HOME_DOMAIN_ID             MEDIUMINT(9)   NOT NULL,
+					HOME_SECT_ID               MEDIUMINT(9)   NOT NULL,
+					ASSIGN_XP_BY_PLAYER	       VARCHAR(1)     NOT NULL,
+					USE_NATURE_DEMEANOUR       VARCHAR(1)     NOT NULL,
+					PRIMARY KEY  (ID),
+					CONSTRAINT `" . $table_prefix . "config_constraint_1` FOREIGN KEY (HOME_DOMAIN_ID)  REFERENCES " . $table_prefix . "DOMAIN(ID),
+					CONSTRAINT `" . $table_prefix . "config_constraint_2` FOREIGN KEY (HOME_SECT_ID)    REFERENCES " . $table_prefix . "SECT(ID)
+					) ENGINE=INNODB;";
+		//echo "<p>SQL: $sql</p>";
+		dbDelta($sql);
+		/* remove COLUMNS if it exists */
+		$remove = array ('CLAN_DISCIPLINE_DISCOUNT' => '');
+		remove_columns($current_table_name, $remove);
+		$remove = array ('PROFILE_LINK' => '');
+		remove_columns($current_table_name, $remove);
+		
+		// LEVEL 3 TABLES - TABLES WITH A FOREIGN KEY CONSTRAINT TO A LEVEL 2 TABLE
+	
 		$current_table_name = $table_prefix . "ROAD_OR_PATH";
 		$sql = "CREATE TABLE " . $current_table_name . " (
 					ID              MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
@@ -265,6 +407,91 @@ function gvlarp_character_install() {
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 		
+		$current_table_name = $table_prefix . "PATH";
+			$sql = "CREATE TABLE " . $current_table_name . " (
+						ID              MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
+						NAME            VARCHAR(63)   NOT NULL,
+						DESCRIPTION     TINYTEXT      NOT NULL,
+						DISCIPLINE_ID   MEDIUMINT(9)  NOT NULL,
+						COST_MODEL_ID   MEDIUMINT(9)  NOT NULL,
+						SOURCE_BOOK_ID  MEDIUMINT(9)   NOT NULL,
+						PAGE_NUMBER     SMALLINT(4)   NOT NULL,
+						VISIBLE         VARCHAR(1)    NOT NULL,
+						PRIMARY KEY  (ID),
+						CONSTRAINT `" . $table_prefix . "path_constraint_1` FOREIGN KEY (DISCIPLINE_ID)  REFERENCES " . $table_prefix . "DISCIPLINE(ID),
+						CONSTRAINT `" . $table_prefix . "path_constraint_2` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID),
+						CONSTRAINT `" . $table_prefix . "path_constraint_3` FOREIGN KEY (COST_MODEL_ID)  REFERENCES " . $table_prefix . "COST_MODEL(ID)
+						) ENGINE=INNODB;";
+
+			
+			dbDelta($sql);
+
+		$current_table_name = $table_prefix . "DISCIPLINE_POWER";
+			$sql = "CREATE TABLE " . $current_table_name . " (
+						ID mediumint(9) NOT NULL AUTO_INCREMENT,
+						NAME varchar(32) NOT NULL,
+						DESCRIPTION TINYTEXT NOT NULL,
+						LEVEL smallint(2) NOT NULL,
+						DISCIPLINE_ID mediumint(9) NOT NULL,
+						DICE_POOL varchar(60) NOT NULL,
+						DIFFICULTY varchar(60) NOT NULL,
+						COST smallint(3) NOT NULL,
+						SOURCE_BOOK_ID mediumint(9) NOT NULL,
+						PAGE_NUMBER smallint(4) NOT NULL,
+						VISIBLE varchar(1) NOT NULL,
+						PRIMARY KEY  (ID),
+						CONSTRAINT `" . $table_prefix . "disc_power_constraint_1` FOREIGN KEY (DISCIPLINE_ID) REFERENCES " . $table_prefix . "DISCIPLINE(ID),
+						CONSTRAINT `" . $table_prefix . "disc_power_constraint_2` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
+						) ENGINE=INNODB;";
+
+			
+			dbDelta($sql);
+
+		$current_table_name = $table_prefix . "RITUAL";
+			$sql = "CREATE TABLE " . $current_table_name . " (
+						ID              MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
+						NAME            VARCHAR(60)   NOT NULL,
+						DESCRIPTION     TINYTEXT      NOT NULL,
+						LEVEL           SMALLINT(2)   NOT NULL,
+						DISCIPLINE_ID   MEDIUMINT(9)  NOT NULL,
+						DICE_POOL       VARCHAR(60)   NOT NULL,
+						DIFFICULTY      VARCHAR(60)   NOT NULL,
+						COST            SMALLINT(3)   NOT NULL,
+						SOURCE_BOOK_ID  MEDIUMINT(9)   NOT NULL,
+						PAGE_NUMBER     SMALLINT(4)   NOT NULL,
+						VISIBLE         VARCHAR(1)    NOT NULL,
+						PRIMARY KEY  (ID),
+						CONSTRAINT `" . $table_prefix . "ritual_constraint_1` FOREIGN KEY (DISCIPLINE_ID) REFERENCES " . $table_prefix . "DISCIPLINE(ID),
+						CONSTRAINT `" . $table_prefix . "ritual_constraint_2` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
+						) ENGINE=INNODB;";
+			dbDelta($sql);
+
+		$current_table_name = $table_prefix . "CLAN_DISCIPLINE";
+			$sql = "CREATE TABLE " . $current_table_name . " (
+						ID             MEDIUMINT(9) NOT NULL AUTO_INCREMENT,
+						CLAN_ID        MEDIUMINT(9) NOT NULL,
+						DISCIPLINE_ID  MEDIUMINT(9) NOT NULL,
+						PRIMARY KEY  (ID),
+						CONSTRAINT `" . $table_prefix . "clan_disc_constraint_1` FOREIGN KEY (CLAN_ID)       REFERENCES " . $table_prefix . "CLAN(ID),
+						CONSTRAINT `" . $table_prefix . "clan_disc_constraint_2` FOREIGN KEY (DISCIPLINE_ID) REFERENCES " . $table_prefix . "DISCIPLINE(ID)
+						) ENGINE=INNODB;";
+			dbDelta($sql);
+		//echo "<p>Clan Disc SQL: $sql</p>";
+
+		$current_table_name = $table_prefix . "COMBO_DISCIPLINE_PREREQUISITE";
+			$sql = "CREATE TABLE " . $current_table_name . " (
+						ID                   MEDIUMINT(9)  NOT NULL AUTO_INCREMENT,
+						COMBO_DISCIPLINE_ID  MEDIUMINT(9)  NOT NULL,
+						DISCIPLINE_ID        MEDIUMINT(9)  NOT NULL,
+						DISCIPLINE_LEVEL     SMALLINT(3)   NOT NULL,
+						PRIMARY KEY  (ID),
+						CONSTRAINT `" . $table_prefix . "char_combo_pre_constraint_1` FOREIGN KEY (COMBO_DISCIPLINE_ID) REFERENCES " . $table_prefix . "COMBO_DISCIPLINE(ID),
+						CONSTRAINT `" . $table_prefix . "char_combo_pre_constraint_2` FOREIGN KEY (DISCIPLINE_ID)       REFERENCES " . $table_prefix . "DISCIPLINE(ID)
+						) ENGINE=INNODB;";
+			dbDelta($sql);
+
+		// LEVEL 4 TABLES - TABLES WITH A FOREIGN KEY CONSTRAINT TO A LEVEL 3 TABLE
+
 		$current_table_name = $table_prefix . "CHARACTER";
 		$rename = array (
 			'from' => 'COURT_ID',
@@ -312,6 +539,29 @@ function gvlarp_character_install() {
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 		//echo "<p>Char SQL: $sql</p>";
+
+		$current_table_name = $table_prefix . "PATH_POWER";
+			$sql = "CREATE TABLE " . $current_table_name . " (
+						ID              MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
+						NAME            VARCHAR(32)   NOT NULL,
+						DESCRIPTION     TINYTEXT      NOT NULL,
+						LEVEL           SMALLINT(2)   NOT NULL,
+						PATH_ID         MEDIUMINT(9)  NOT NULL,
+						DICE_POOL       VARCHAR(60)   NOT NULL,
+						DIFFICULTY      VARCHAR(60)   NOT NULL,
+						COST            SMALLINT(3)   NOT NULL,
+						SOURCE_BOOK_ID  MEDIUMINT(9)   NOT NULL,
+						PAGE_NUMBER     SMALLINT(4)   NOT NULL,
+						VISIBLE         VARCHAR(1)    NOT NULL,
+						PRIMARY KEY  (ID),
+						CONSTRAINT `" . $table_prefix . "path_power_constraint_1` FOREIGN KEY (PATH_ID) REFERENCES " . $table_prefix . "PATH(ID),
+						CONSTRAINT `" . $table_prefix . "path_power_constraint_2` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
+						) ENGINE=INNODB;";
+
+			
+			dbDelta($sql);
+
+		// LEVEL 5 TABLES - TABLES WITH A FOREIGN KEY CONSTRAINT TO A LEVEL 4 TABLE
 
 		$current_table_name = $table_prefix . "CHARACTER_OFFICE";
 		$rename = array (
@@ -399,18 +649,6 @@ function gvlarp_character_install() {
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 
-		$current_table_name = $table_prefix . "TEMPORARY_STAT";
-			$sql = "CREATE TABLE " . $current_table_name . " (
-						ID              MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
-						NAME            VARCHAR(60)   NOT NULL,
-						DESCRIPTION     TINYTEXT      NOT NULL,
-						VISIBLE         VARCHAR(1)    NOT NULL,
-						PRIMARY KEY  (ID)
-						) ENGINE=INNODB;";
-
-			
-			dbDelta($sql);
-
 		$current_table_name = $table_prefix . "CHARACTER_TEMPORARY_STAT";
 			$sql = "CREATE TABLE " . $current_table_name . " (
 						ID                        MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
@@ -428,186 +666,6 @@ function gvlarp_character_install() {
 
 			
 			dbDelta($sql);
-
-		$current_table_name = $table_prefix . "SKILL";
-			$sql = "CREATE TABLE " . $current_table_name . " (
-						ID              	MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
-						NAME            	VARCHAR(16)   NOT NULL,
-						DESCRIPTION     	TINYTEXT      NOT NULL,
-						GROUPING        	VARCHAR(30)   NOT NULL,
-						COST_MODEL_ID   	MEDIUMINT(9)  NOT NULL,
-						MULTIPLE			VARCHAR(1)	  NOT NULL,
-						SPECIALISATION_AT	SMALLINT(2)	  NOT NULL,
-						VISIBLE         	VARCHAR(1)    NOT NULL,
-						PRIMARY KEY  (ID),
-						CONSTRAINT `" . $table_prefix . "skill_constraint_1` FOREIGN KEY (COST_MODEL_ID) REFERENCES " . $table_prefix . "COST_MODEL(ID)
-						) ENGINE=INNODB;";
-
-			
-			dbDelta($sql);
-
-		$current_table_name = $table_prefix . "BACKGROUND";
-		$sql = "CREATE TABLE " . $current_table_name . " (
-					ID              MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
-					NAME            VARCHAR(30)   NOT NULL,
-					DESCRIPTION     TINYTEXT      NOT NULL,
-					GROUPING        VARCHAR(30)   NOT NULL,
-					COST_MODEL_ID   MEDIUMINT(9)  NOT NULL,
-					HAS_SECTOR      VARCHAR(1)    NOT NULL,
-					VISIBLE         VARCHAR(1)    NOT NULL,
-					BACKGROUND_QUESTION TEXT,
-					PRIMARY KEY  (ID),
-					CONSTRAINT `" . $table_prefix . "background_constraint_1` FOREIGN KEY (COST_MODEL_ID) REFERENCES " . $table_prefix . "COST_MODEL(ID)
-					) ENGINE=INNODB;";
-
-		
-		dbDelta($sql);
-			
-		$current_table_name = $table_prefix . "SECTOR";
-		$sql = "CREATE TABLE " . $current_table_name . " (
-					ID              MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
-					NAME            VARCHAR(16)   NOT NULL,
-					DESCRIPTION     TINYTEXT      NOT NULL,
-					VISIBLE         VARCHAR(1)    NOT NULL,
-					PRIMARY KEY  (ID)
-					) ENGINE=INNODB;";
-		dbDelta($sql);
-
-		$current_table_name = $table_prefix . "MERIT";
-			$sql = "CREATE TABLE " . $current_table_name . " (
-						ID                  MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
-						NAME                VARCHAR(32)   NOT NULL,
-						DESCRIPTION         TINYTEXT      NOT NULL,
-						VALUE               SMALLINT(3)   NOT NULL,
-						GROUPING            VARCHAR(30)   NOT NULL,
-						COST                SMALLINT(3)   NOT NULL,
-						XP_COST             SMALLINT(3)   NOT NULL,
-						MULTIPLE            VARCHAR(1)    NOT NULL,
-						HAS_SPECIALISATION  VARCHAR(1)    NOT NULL,
-						SOURCE_BOOK_ID      MEDIUMINT(9)  NOT NULL,
-						PAGE_NUMBER         SMALLINT(4)   NOT NULL,
-						VISIBLE             VARCHAR(1)    NOT NULL,
-						BACKGROUND_QUESTION VARCHAR(255),
-						PRIMARY KEY  (ID),
-						CONSTRAINT `" . $table_prefix . "merit_constraint_1` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
-						) ENGINE=INNODB;";
-
-			
-			dbDelta($sql);
-
-		$current_table_name = $table_prefix . "DISCIPLINE";
-		$sql = "CREATE TABLE " . $current_table_name . " (
-						ID              MEDIUMINT(9)  NOT NULL   AUTO_INCREMENT,
-						NAME            VARCHAR(32)   NOT NULL,
-						DESCRIPTION     TINYTEXT      NOT NULL,
-						SOURCE_BOOK_ID  MEDIUMINT(9)  NOT NULL,
-						PAGE_NUMBER     SMALLINT(4)   NOT NULL,
-						VISIBLE         VARCHAR(1)    NOT NULL,
-						PRIMARY KEY  (ID),
-						CONSTRAINT `" . $table_prefix . "discipline_constraint_1` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
-						) ENGINE=INNODB;";
-
-			
-			dbDelta($sql);
-		
-		/* remove COST_MODEL_ID if it exists */
-		$remove = array (
-			'COST_MODEL_ID' => $table_prefix . 'ibfk_1' 
-		);
-		remove_columns($current_table_name, $remove);
-		
-		
-		$current_table_name = $table_prefix . "PATH";
-			$sql = "CREATE TABLE " . $current_table_name . " (
-						ID              MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
-						NAME            VARCHAR(63)   NOT NULL,
-						DESCRIPTION     TINYTEXT      NOT NULL,
-						DISCIPLINE_ID   MEDIUMINT(9)  NOT NULL,
-						COST_MODEL_ID   MEDIUMINT(9)  NOT NULL,
-						SOURCE_BOOK_ID  MEDIUMINT(9)   NOT NULL,
-						PAGE_NUMBER     SMALLINT(4)   NOT NULL,
-						VISIBLE         VARCHAR(1)    NOT NULL,
-						PRIMARY KEY  (ID),
-						CONSTRAINT `" . $table_prefix . "path_constraint_1` FOREIGN KEY (DISCIPLINE_ID)  REFERENCES " . $table_prefix . "DISCIPLINE(ID),
-						CONSTRAINT `" . $table_prefix . "path_constraint_2` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID),
-						CONSTRAINT `" . $table_prefix . "path_constraint_3` FOREIGN KEY (COST_MODEL_ID)  REFERENCES " . $table_prefix . "COST_MODEL(ID)
-						) ENGINE=INNODB;";
-
-			
-			dbDelta($sql);
-
-		$current_table_name = $table_prefix . "DISCIPLINE_POWER";
-			$sql = "CREATE TABLE " . $current_table_name . " (
-						ID mediumint(9) NOT NULL AUTO_INCREMENT,
-						NAME varchar(32) NOT NULL,
-						DESCRIPTION TINYTEXT NOT NULL,
-						LEVEL smallint(2) NOT NULL,
-						DISCIPLINE_ID mediumint(9) NOT NULL,
-						DICE_POOL varchar(60) NOT NULL,
-						DIFFICULTY varchar(60) NOT NULL,
-						COST smallint(3) NOT NULL,
-						SOURCE_BOOK_ID mediumint(9) NOT NULL,
-						PAGE_NUMBER smallint(4) NOT NULL,
-						VISIBLE varchar(1) NOT NULL,
-						PRIMARY KEY  (ID),
-						CONSTRAINT `" . $table_prefix . "disc_power_constraint_1` FOREIGN KEY (DISCIPLINE_ID) REFERENCES " . $table_prefix . "DISCIPLINE(ID),
-						CONSTRAINT `" . $table_prefix . "disc_power_constraint_2` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
-						) ENGINE=INNODB;";
-
-			
-			dbDelta($sql);
-
-		$current_table_name = $table_prefix . "PATH_POWER";
-			$sql = "CREATE TABLE " . $current_table_name . " (
-						ID              MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
-						NAME            VARCHAR(32)   NOT NULL,
-						DESCRIPTION     TINYTEXT      NOT NULL,
-						LEVEL           SMALLINT(2)   NOT NULL,
-						PATH_ID         MEDIUMINT(9)  NOT NULL,
-						DICE_POOL       VARCHAR(60)   NOT NULL,
-						DIFFICULTY      VARCHAR(60)   NOT NULL,
-						COST            SMALLINT(3)   NOT NULL,
-						SOURCE_BOOK_ID  MEDIUMINT(9)   NOT NULL,
-						PAGE_NUMBER     SMALLINT(4)   NOT NULL,
-						VISIBLE         VARCHAR(1)    NOT NULL,
-						PRIMARY KEY  (ID),
-						CONSTRAINT `" . $table_prefix . "path_power_constraint_1` FOREIGN KEY (PATH_ID) REFERENCES " . $table_prefix . "PATH(ID),
-						CONSTRAINT `" . $table_prefix . "path_power_constraint_2` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
-						) ENGINE=INNODB;";
-
-			
-			dbDelta($sql);
-
-		$current_table_name = $table_prefix . "RITUAL";
-			$sql = "CREATE TABLE " . $current_table_name . " (
-						ID              MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
-						NAME            VARCHAR(60)   NOT NULL,
-						DESCRIPTION     TINYTEXT      NOT NULL,
-						LEVEL           SMALLINT(2)   NOT NULL,
-						DISCIPLINE_ID   MEDIUMINT(9)  NOT NULL,
-						DICE_POOL       VARCHAR(60)   NOT NULL,
-						DIFFICULTY      VARCHAR(60)   NOT NULL,
-						COST            SMALLINT(3)   NOT NULL,
-						SOURCE_BOOK_ID  MEDIUMINT(9)   NOT NULL,
-						PAGE_NUMBER     SMALLINT(4)   NOT NULL,
-						VISIBLE         VARCHAR(1)    NOT NULL,
-						PRIMARY KEY  (ID),
-						CONSTRAINT `" . $table_prefix . "ritual_constraint_1` FOREIGN KEY (DISCIPLINE_ID) REFERENCES " . $table_prefix . "DISCIPLINE(ID),
-						CONSTRAINT `" . $table_prefix . "ritual_constraint_2` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
-						) ENGINE=INNODB;";
-			dbDelta($sql);
-
-		$current_table_name = $table_prefix . "CLAN_DISCIPLINE";
-			$sql = "CREATE TABLE " . $current_table_name . " (
-						ID             MEDIUMINT(9) NOT NULL AUTO_INCREMENT,
-						CLAN_ID        MEDIUMINT(9) NOT NULL,
-						DISCIPLINE_ID  MEDIUMINT(9) NOT NULL,
-						PRIMARY KEY  (ID),
-						CONSTRAINT `" . $table_prefix . "clan_disc_constraint_1` FOREIGN KEY (CLAN_ID)       REFERENCES " . $table_prefix . "CLAN(ID),
-						CONSTRAINT `" . $table_prefix . "clan_disc_constraint_2` FOREIGN KEY (DISCIPLINE_ID) REFERENCES " . $table_prefix . "DISCIPLINE(ID)
-						) ENGINE=INNODB;";
-			dbDelta($sql);
-		//echo "<p>Clan Disc SQL: $sql</p>";
 
 		$current_table_name = $table_prefix . "CHARACTER_STAT";
 			$sql = "CREATE TABLE " . $current_table_name . " (
@@ -734,20 +792,6 @@ function gvlarp_character_install() {
 						) ENGINE=INNODB;";
 			dbDelta($sql);
 		
-		$current_table_name = $table_prefix . "COMBO_DISCIPLINE";
-			$sql = "CREATE TABLE " . $current_table_name . " (
-						ID              MEDIUMINT(9)  NOT NULL   AUTO_INCREMENT,
-						NAME            VARCHAR(60)   NOT NULL,
-						DESCRIPTION     TINYTEXT      NOT NULL,
-						COST            SMALLINT(3)   NOT NULL,
-						SOURCE_BOOK_ID  MEDIUMINT(9)  NOT NULL,
-						PAGE_NUMBER     SMALLINT(4)   NOT NULL,
-						VISIBLE         VARCHAR(1)    NOT NULL,
-						PRIMARY KEY  (ID),
-						CONSTRAINT `" . $table_prefix . "combo_disc_constraint_1` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
-						) ENGINE=INNODB;";
-			dbDelta($sql);
-
 		$current_table_name = $table_prefix . "CHARACTER_COMBO_DISCIPLINE";
 		
 			$sql = "CREATE TABLE " . $current_table_name . " (
@@ -758,18 +802,6 @@ function gvlarp_character_install() {
 						PRIMARY KEY  (ID),
 						CONSTRAINT `" . $table_prefix . "char_combo_constraint_1` FOREIGN KEY (CHARACTER_ID)        REFERENCES " . $table_prefix . "CHARACTER(ID),
 						CONSTRAINT `" . $table_prefix . "char_combo_constraint_2` FOREIGN KEY (COMBO_DISCIPLINE_ID) REFERENCES " . $table_prefix . "COMBO_DISCIPLINE(ID)
-						) ENGINE=INNODB;";
-			dbDelta($sql);
-
-		$current_table_name = $table_prefix . "COMBO_DISCIPLINE_PREREQUISITE";
-			$sql = "CREATE TABLE " . $current_table_name . " (
-						ID                   MEDIUMINT(9)  NOT NULL AUTO_INCREMENT,
-						COMBO_DISCIPLINE_ID  MEDIUMINT(9)  NOT NULL,
-						DISCIPLINE_ID        MEDIUMINT(9)  NOT NULL,
-						DISCIPLINE_LEVEL     SMALLINT(3)   NOT NULL,
-						PRIMARY KEY  (ID),
-						CONSTRAINT `" . $table_prefix . "char_combo_pre_constraint_1` FOREIGN KEY (COMBO_DISCIPLINE_ID) REFERENCES " . $table_prefix . "COMBO_DISCIPLINE(ID),
-						CONSTRAINT `" . $table_prefix . "char_combo_pre_constraint_2` FOREIGN KEY (DISCIPLINE_ID)       REFERENCES " . $table_prefix . "DISCIPLINE(ID)
 						) ENGINE=INNODB;";
 			dbDelta($sql);
 
@@ -784,48 +816,6 @@ function gvlarp_character_install() {
 						) ENGINE=INNODB;";
 			dbDelta($sql);
 
-		$current_table_name = $table_prefix . "CONFIG";
-		$rename = array (
-			'from' => 'HOME_COURT_ID',
-			'to'   => 'HOME_DOMAIN_ID',
-			'table' => $current_table_name,
-			'definition' => 'MEDIUMINT(9)  NOT NULL',
-			'constraint' => $table_prefix . "config_constraint_1",
-			'reference'  => $table_prefix . "DOMAIN(ID)"
-		);
-		rename_column($rename);
-		$sql = "CREATE TABLE " . $current_table_name . " (
-					ID                         MEDIUMINT(9)   NOT NULL  AUTO_INCREMENT,
-					PLACEHOLDER_IMAGE          TINYTEXT       NOT NULL,
-					ANDROID_LINK               TINYTEXT       NOT NULL,
-					HOME_DOMAIN_ID             MEDIUMINT(9)   NOT NULL,
-					HOME_SECT_ID               MEDIUMINT(9)   NOT NULL,
-					ASSIGN_XP_BY_PLAYER	       VARCHAR(1)     NOT NULL,
-					USE_NATURE_DEMEANOUR       VARCHAR(1)     NOT NULL,
-					PRIMARY KEY  (ID),
-					CONSTRAINT `" . $table_prefix . "config_constraint_1` FOREIGN KEY (HOME_DOMAIN_ID)  REFERENCES " . $table_prefix . "DOMAIN(ID),
-					CONSTRAINT `" . $table_prefix . "config_constraint_2` FOREIGN KEY (HOME_SECT_ID)    REFERENCES " . $table_prefix . "SECT(ID)
-					) ENGINE=INNODB;";
-		//echo "<p>SQL: $sql</p>";
-		dbDelta($sql);
-		/* remove COLUMNS if it exists */
-		$remove = array ('CLAN_DISCIPLINE_DISCOUNT' => '');
-		remove_columns($current_table_name, $remove);
-		$remove = array ('PROFILE_LINK' => '');
-		remove_columns($current_table_name, $remove);
-		
-		$current_table_name = $table_prefix . "EXTENDED_BACKGROUND";
-		$sql = "CREATE TABLE " . $current_table_name . " (
-					ID                    MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
-					ORDERING              SMALLINT(4)   NOT NULL,
-					GROUPING              VARCHAR(90)   NOT NULL,
-					TITLE                 VARCHAR(90)   NOT NULL,
-					BACKGROUND_QUESTION   TEXT   		NOT NULL,
-					VISIBLE				  VARCHAR(1)    NOT NULL,
-					PRIMARY KEY  (ID)
-					) ENGINE=INNODB;";
-		dbDelta($sql);
-		
 		$current_table_name = $table_prefix . "CHARACTER_EXTENDED_BACKGROUND";
 		$sql = "CREATE TABLE " . $current_table_name . " (
 					ID                    MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
