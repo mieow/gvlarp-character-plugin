@@ -1,10 +1,10 @@
 ID,NAME,DESCRIPTION
 1,Attribute,Attribute
 2,Skill,Abilities
-4,ClanDiscipline,Costs for Clan Disciplines
-5,Background,Background
-7,Path,Path
-8,Virtue,Virtue
-9,Willpower,Willpower
-10,NonClan,Non-Clan Discipline
-11,Caitiff,Caitiff Discipline
+3,ClanDiscipline,Costs for Clan Disciplines
+4,Background,Background
+5,Path,Path
+6,Virtue,Virtue
+7,Willpower,Willpower
+8,NonClan,Non-Clan Discipline
+9,Caitiff,Caitiff Discipline

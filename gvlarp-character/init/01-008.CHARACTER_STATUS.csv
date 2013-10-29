@@ -1,9 +1,9 @@
-ID,NAME,DESCRIPTION
-1,Alive,Character is active
-2,Torpor,Character is in torpor
-3,Dead,The character has been destroyed
-4,Imprisoned,The character has been imprisoned
-5,Missing,Location and status unknown
-6,Staked,Character has been staked
-7,Banished,Character has been banished from the city
-8,Bloodhunted,Character has been bloodhunted
+NAME,DESCRIPTION
+Alive,Character is active
+Torpor,Character is in torpor
+Dead,The character has been destroyed
+Imprisoned,The character has been imprisoned
+Missing,Location and status unknown
+Staked,Character has been staked
+Banished,Character has been banished from the city
+Bloodhunted,Character has been bloodhunted
