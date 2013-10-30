@@ -217,9 +217,9 @@ function character_options() {
 					&nbsp;<a href="' . $stlinks['editCharSheet']->LINK . '?characterID=' . urlencode($character->ID) . '"><img src="' . $iconurl . 'edit.png" alt="Edit" title="Edit Character" /></a>';
 
 				$delete_url = add_query_arg('action', 'delete', $current_url);
-				$delete_url = add_query_arg('characterID', urlencode($character->ID), $delete_url);
+				$delete_url = add_query_arg('characterID', $character->ID, $delete_url);
 				$delete_url = add_query_arg('characterName', urlencode($character->charactername), $delete_url);
-				echo '&nbsp;<a href="' . urlencode($delete_url) . '"><img src="' . $iconurl . 'delete.png" alt="Delete" title="Delete Character" /></a>';
+				echo '&nbsp;<a href="' . htmlentities($delete_url) . '"><img src="' . $iconurl . 'delete.png" alt="Delete" title="Delete Character" /></a>';
 				
 				if (!empty($character->wordpress_id)) {
 					echo '&nbsp;<a href="' . $stlinks['printCharSheet']->LINK  . '?CHARACTER='. urlencode($character->wordpress_id) . '"><img src="' . $iconurl . 'print.png" alt="Print" title="Print Character" /></a>';
