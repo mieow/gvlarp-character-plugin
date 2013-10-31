@@ -90,7 +90,7 @@ function get_tabdisplay($tab, $default="backgrounds") {
 function get_editbackgrounds_tab($characterID) {
 	global $wpdb;
 
-	$character = establishCharacter("Ugly Duckling");
+	$character = establishCharacter("");
 	$characterID = establishCharacterID($character);
 	
 	/* Save backgrounds */
@@ -223,7 +223,7 @@ function get_editbackgrounds_tab($characterID) {
 function get_editmerits_tab($characterID) {
 	global $wpdb;
 
-	$character = establishCharacter("Ugly Duckling");
+	$character = establishCharacter("");
 	$characterID = establishCharacterID($character);
 	
 	/* Save Merits and Flaws */

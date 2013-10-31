@@ -164,6 +164,7 @@ function character_datatables() {
 	if ( !current_user_can( 'manage_options' ) )  {
 		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 	}
+	$config = getConfig();
 	?>
 	<div class="wrap">
 		<h2>Database Tables</h2>
@@ -183,7 +184,7 @@ function character_datatables() {
 				<li><?php echo get_tablink('costmodel', 'Cost Models'); ?></li>
 				<li><?php echo get_tablink('enlighten', 'Paths of Enlightenment'); ?></li>
 				<li><?php echo get_tablink('path',    'Paths of Magik'); ?></li>
-				<li><?php echo get_tablink('nature',  'Nature/Demeanour'); ?></li>
+				<li><?php if ($config->USE_NATURE_DEMEANOUR == 'Y') echo get_tablink('nature',  'Nature/Demeanour'); ?></li>
 				<li><?php echo get_tablink('domain',  'Domains'); ?></li>
 				<li><?php echo get_tablink('office',  'Offices'); ?></li>
 				<li><?php echo get_tablink('combo',   'Combination Disciplines'); ?></li>
