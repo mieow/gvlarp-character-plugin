@@ -37,16 +37,21 @@ function print_map($atts, $content = null) {
 	
 	// Define the LatLng coordinates for the polygon's path.
     $output .= "<script>
-	function loadDomains(map) {\n";
+	function loadDomains(map) {
+		infoWindow = new google.maps.InfoWindow({maxWidth: 200});";
 	
 	foreach ($domains as $domain) {
-
+		
 		$output .= "\nvar domainCoords" . $domain->ID . " = [\n";
 		
 		$coordlist = explode("\n",$domain->COORDINATES);
-		
+		$infolat = "";
+		$infolong = "";
 		foreach ($coordlist as $coord) {
 			$latlong = explode(",", preg_replace('/\s+/', '', $coord));
+		
+			if ($infolat == "" || $infolat < $latlong[0]) $infolat = $latlong[0];
+			if ($infolong == "" || $infolong > $latlong[1]) $infolong = $latlong[1];
 		
 			$output .= "new google.maps.LatLng(" . $latlong[0] . "," . $latlong[1] . "),\n";
 		}
@@ -72,11 +77,15 @@ function print_map($atts, $content = null) {
 		myDomain{$domain->ID}.setMap(map);
 		
 		// Add a listener for the click event.
-		google.maps.event.addListener(myDomain{$domain->ID}, 'click', showDomainInfo);
+		google.maps.event.addListener(myDomain{$domain->ID}, 'click', function(event) {
+			var myLatLng = event.latLong; //new google.maps.LatLng($infolat, $infolong);
+			var contentString = '<div><b>" . $domain->NAME . "</b><br>" . $domain->DESCRIPTION . "</div>';
+			infoWindow.setPosition(myLatLng);
+			infoWindow.setContent(contentString);
+			infoWindow.open(map,this);
+		});
 
-		infoWindow = new google.maps.InfoWindow();\n\n";
-		
-		
+		\n\n";
 
 	}
 		
