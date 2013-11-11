@@ -5,9 +5,9 @@ function print_map($atts, $content = null) {
 
 	$output = "";
 
-	// Attributes:
+	/* Attributes:
 	//		map size
-	//		show/hide map key
+	//		show/hide map key */
 	extract(shortcode_atts(array (
 		"showmapkey"    => 1,
 		"height"        => 200,
@@ -21,16 +21,13 @@ function print_map($atts, $content = null) {
 	$zoom   = get_option('feedingmap_zoom');
 	$type   = get_option('feedingmap_map_type');
 
-	// Get Domains
+	/* Get Domains */
 	$sql = "SELECT domains.*, owners.FILL_COLOUR, owners.VISIBLE as SHOWOWNER
 			FROM 
 				" . FEEDINGMAP_TABLE_PREFIX . "DOMAIN domains,
 				" . FEEDINGMAP_TABLE_PREFIX . "OWNER owners
-			WHERE domains.VISIBLE = 'Y'";
-	$domains = $wpdb->get_results($sql);
-
-	// Define the LatLng coordinates for the polygon's path.
-    $output .= "<script type='text/javascript'><!--
+			WHERE 				owners.ID = domains.OWNER_ID				AND domains.VISIBLE = 'Y'";
+	$domains = $wpdb->get_results($sql);			/* Define the LatLng coordinates for the polygon's path. */	$output .= "<script type='text/javascript'><!--
 	var infoWindow;
 	function loadDomains(map) {
 		infoWindow = new google.maps.InfoWindow({maxWidth: 200});
@@ -115,7 +112,7 @@ function print_map($atts, $content = null) {
 	$output .= "<div id=\"feedingmap\" style=\"height:{$height}px; width:{$width}px\">\n";
 	$output .= "<div id=\"map-canvas\" style=\"width: 100%; height: 100%\"></div>\n";
 	$output .= "</div>\n";
-
+	/* Map Key */	$sql = "SELECT * FROM " . FEEDINGMAP_TABLE_PREFIX . "OWNER WHERE VISIBLE = 'Y'";	$owners = $wpdb->get_results($sql);    $output .= "<table class=\"feedingmapkey\">\n";	$output .= "<tr><th colspan=2>Map Key</th></tr>\n";	foreach ($owners as $owner) {		$output .= "<tr><td>". $owner->NAME . "</td>";		$output .= "<td style='background-color:" . $owner->FILL_COLOUR . ";width:10px'>&nbsp;</td></tr>\n";	}	$output .= "</table>\n\n";
 	return $output;
 }
 add_shortcode('feeding_map', 'print_map');
