@@ -133,12 +133,12 @@ function feedingmap_page() {
 		
 		<hr />
 		
-		<h3>Map Key</h3>
+		<h3 id="feedingmap_owner_section">Map Key</h3>
 		<?php render_owner_data(); ?>
 		
 		<hr />
 		
-		<h3>Domains</h3>
+		<h3 id="feedingmap_domain_section">Domains</h3>
 		<?php render_domain_data(); ?>
 		
 	</div>
