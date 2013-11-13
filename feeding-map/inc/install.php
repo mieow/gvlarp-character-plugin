@@ -1,15 +1,17 @@
 <?php
 
 register_activation_hook(__FILE__, "feedingmap_install");
+register_activation_hook(__FILE__, "feedingmap_install_data");
 
 global $feedingmap_db_version;
-$feedingmap_db_version = "1.0.3"; 
+$feedingmap_db_version = "1.0.4"; 
 
 function feedingmap_db_check() {
     global $feedingmap_db_version;
 	
     if (get_site_option( 'feedingmap_db_version' ) != $feedingmap_db_version) {
         feedingmap_install();
+		feedingmap_install_data();
 		
 		update_option( "feedingmap_db_version", $feedingmap_db_version );
     }
@@ -56,6 +58,34 @@ function feedingmap_install() {
 		//echo "<p>SQL: $sql</p>";
 		
 	}
+	
+}
+
+function feedingmap_install_data() {
+	global $wpdb;
+	
+	$wpdb->show_errors();
+	
+	$data = array (
+		0 => array(	'ID'          => 1,
+					'NAME'        => 'Unclaimed',
+					'FILL_COLOUR' => '#FFFFFF',
+					'VISIBLE'     => 'Y'
+		),
+		1 => array(	'ID'          => 2,
+					'NAME'        => 'The Rack',
+					'FILL_COLOUR' => '#000000',
+					'VISIBLE'     => 'Y'
+		),
+	);
+	$sql = "select ID from " . FEEDINGMAP_TABLE_PREFIX . "OWNER;";
+	$exists = count($wpdb->get_results($sql));
+	if (!$exists) 
+		foreach ($data as $key => $entry) {
+				$rowsadded = $wpdb->insert( FEEDINGMAP_TABLE_PREFIX . "OWNER", $entry);
+		}
+
+
 	
 }
 

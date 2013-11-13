@@ -10,16 +10,16 @@ function print_map($atts, $content = null) {
 	//		show/hide map key */
 	extract(shortcode_atts(array (
 		"showmapkey"    => 1,
-		"height"        => 200,
+		"height"        => 250,
 		"width"         => 400
 		), $atts)
 	);
 
 	$apikey = get_option('feedingmap_google_api');
-	$lat    = get_option('feedingmap_centre_lat');
-	$long   = get_option('feedingmap_centre_long');
-	$zoom   = get_option('feedingmap_zoom');
-	$type   = get_option('feedingmap_map_type');
+	$lat    = get_option('feedingmap_centre_lat', '55.862982');
+	$long   = get_option('feedingmap_centre_long', '-4.242325');
+	$zoom   = get_option('feedingmap_zoom', '8');
+	$type   = get_option('feedingmap_map_type', 'ROADMAP');
 
 	/* Get Domains */
 	$sql = "SELECT domains.*, owners.FILL_COLOUR, owners.VISIBLE as SHOWOWNER
@@ -84,7 +84,7 @@ function print_map($atts, $content = null) {
 				paths: domain.coords,
 				strokeColor: '#000000',
 				strokeOpacity: 0.8,
-				strokeWeight: 2,
+				strokeWeight: 1,
 				fillColor: domain.fill,
 				fillOpacity: 0.35
 			});

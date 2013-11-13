@@ -9,30 +9,15 @@ function render_owner_data(){
 	global $wpdb;
 
     $ownerTable = new owner_table();
-	$doaction = $_REQUEST['action'];
-	if (!empty($_REQUEST['owner_name'])){
-		if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['table'] == 'ownertable')
-			$doaction = "edit";
-		if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'show' && $_REQUEST['table'] == 'ownertable')
-			$doaction = "add";
-		if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'hide' && $_REQUEST['table'] == 'ownertable')
-			$doaction = "add";
-	}
 	
 	if (isset($_REQUEST['do_add_owner'])) {
-		switch ($doaction) {
-			case "edit":
-				$ownerTable->edit();
-				break;
-			case "add":
-				$ownerTable->add();
-				break;
-		
-		}
+		if ($_REQUEST['owner']) 
+			$ownerTable->edit();
+		else
+			$ownerTable->add();
 	}
-	echo "<p>Action: $doaction</p>";
 
-	render_owner_add_form($doaction);
+	render_owner_add_form();
 	
 	$ownerTable->prepare_items();
 
@@ -42,7 +27,7 @@ function render_owner_data(){
    ?>	
 
 	<!-- Forms are NOT created automatically, so you need to wrap the table in one to use features like bulk actions -->
-	<form id="owner-filter" method="get" action='<?php print htmlentities($current_url); ?>&amp;#owner-filter'>
+	<form id="feedingmap_owner_section" method="get" action='<?php print htmlentities($current_url); ?>&amp;#feedingmap_owner_section'>
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
 		<input type="hidden" name="table" value="ownertable" />
  		<?php $ownerTable->display() ?>
@@ -57,36 +42,22 @@ function render_domain_data(){
 	$defaultCoord = "lat,long";
 
 	// Validation
-	
-	$doaction = $_REQUEST['action'];
-	if (!empty($_REQUEST['domain_name'])){
-		if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['table'] == 'domaintable')
-			$doaction = "edit";
-		if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'show' && $_REQUEST['table'] == 'domaintable')
-			$doaction = "add";
-		if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'hide' && $_REQUEST['table'] == 'domaintable')
-			$doaction = "add";
-				
-			/* Input Validation */
-			if (empty($_REQUEST['domain_coordinates']) || $_REQUEST['domain_coordinates'] == ""  || $_REQUEST['domain_coordinates'] == $defaultCoord) {
-				$doaction = "fix";
-				echo "<p style='color:red'>ERROR: Enter coordinates</p>";
-			}
-	}
-	
-	if (isset($_REQUEST['do_add_domain'])) {
-		switch ($doaction) {
-			case "edit":
-				$domainTable->edit();
-				break;
-			case "add":
-				$domainTable->add();
-				break;
 		
+	$inputsok = 1;
+	if (isset($_REQUEST['do_add_domain']) && !empty($_REQUEST['domain_name'])) {
+		if (empty($_REQUEST['domain_coordinates']) || $_REQUEST['domain_coordinates'] == ""  || $_REQUEST['domain_coordinates'] == $defaultCoord) {
+			$inputsok = 0;
+			echo "<p style='color:red'>ERROR: Enter coordinates</p>";
+		}
+		
+		if ($inputsok) {
+			if ($_REQUEST['domain']) 
+				$domainTable->edit();
+			else
+				$domainTable->add();
 		}
 	}
-	echo "<p>Action: $doaction</p>";
-	render_feedingdomain_add_form($doaction);
+	render_feedingdomain_add_form($inputsok);
 	
 	$domainTable->prepare_items();
 
@@ -96,7 +67,7 @@ function render_domain_data(){
    ?>	
 
 	<!-- Forms are NOT created automatically, so you need to wrap the table in one to use features like bulk actions -->
-	<form id="domain-filter" method="get" action='<?php print htmlentities($current_url); ?>'>
+	<form id="feedingmap_domain_section" method="get" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
 		<input type="hidden" name="table" value="domaintable" />
  		<?php $domainTable->display() ?>
@@ -105,18 +76,10 @@ function render_domain_data(){
     <?php
 }
 
-function render_owner_add_form($doaction) {
+function render_owner_add_form() {
 	global $wpdb;
 
-	switch ($doaction) {
-	case "fix":
-		$id          = $_REQUEST['owner'];
-		$name        = $_REQUEST['owner_name'];
-		$fillcolour  = $_REQUEST['owner_fill'];
-		$visible     = $_REQUEST['owner_visible'];
-		
-		break;
-	case "save":
+	switch ($_REQUEST['action']) {
 	case "edit":
 		$id          = $_REQUEST['owner'];
 		
@@ -133,24 +96,20 @@ function render_owner_add_form($doaction) {
 		$name = "";
 		$visible = 'Y';
 		$fillcolour = "#FFFFFF";
-			
+		
 	}
-	if (isset($_REQUEST['action']))
-		$nextaction = $_REQUEST['action'];	
-	else
-		$nextaction = "add";
 	
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
 	?>
-	<form id="new-owner" method="post" action='<?php print htmlentities($current_url); ?>&amp;#owner-filter'>
+	<form id="new-owner" method="post" action='<?php print htmlentities($current_url); ?>&amp;#feedingmap_owner_section'>
 		<input type="hidden" name="owner" value="<?php print $id; ?>"/>
 		<input type="hidden" name="table" value="ownertable" />
-		<input type="hidden" name="action" value="<?php print $nextaction; ?>" />
+		<input type="hidden" name="action" value="save" />
 		<table style='width:500px'>
 		<tr>
 			<td>Name:  </td>
-			<td><input type="text" name="owner_name" value="<?php print $name; ?>" /></td>
+			<td><input type="text" name="owner_name" value="<?php print stripslashes($name); ?>" /></td>
 			<td>Fill Colour:  </td>
 			<td><input type="color" name="owner_fill" value="<?php print $fillcolour; ?>" /></td>
 			<td>Visible:  </td>
@@ -172,24 +131,21 @@ function render_owner_add_form($doaction) {
 	<?php
 
 }
-function render_feedingdomain_add_form($doaction) {
+function render_feedingdomain_add_form($inputsok) {
 	global $wpdb;
 
 	$defaultCoord = "lat,long";
 	
-
-	switch ($doaction) {
-		case "fix":
+	//echo "<p>Inputs: $inputsok, action: {$_REQUEST['action']}, table: </p>";
+	if (!$inputsok) {
 			$id          = $_REQUEST['domain'];
 			$name        = $_REQUEST['domain_name'];
 			$visible     = $_REQUEST['domain_visible'];
 			$description = $_REQUEST['domain_desc'];
 			$coordinates = $_REQUEST['domain_coordinates'];
 			$ownerid     = $_REQUEST['domain_owner'];
-			
-			break;
-		case "save":
-		case "edit":
+	} 
+	elseif ($_REQUEST['action'] == 'edit' && $_REQUEST['table'] == 'domaintable') {
 			$id          = $_REQUEST['domain'];
 			
 			$sql = "SELECT * FROM " . FEEDINGMAP_TABLE_PREFIX . "DOMAIN WHERE ID = %d";
@@ -200,39 +156,28 @@ function render_feedingdomain_add_form($doaction) {
 			$description = $data->DESCRIPTION;
 			$coordinates = $data->COORDINATES;
 			$ownerid     = $data->OWNER_ID;
-			
-			break;
-		default:
+	} else {
 			$id = "";
 			$name = "";
 			$visible = 'Y';
 			$description = "";
 			$coordinates = $defaultCoord;
 			$ownerid = 0;
-			
 	}
-	if (isset($_REQUEST['action']))
-		$nextaction = $_REQUEST['action'];	
-	else
-		$nextaction = "add";
-	
+		
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
 	?>
-	<form id="new-domain" method="post" action='<?php print htmlentities($current_url); ?>&amp;#domain-filter'>
+	<form id="new-domain" method="post" action='<?php print htmlentities($current_url); ?>&amp;#feedingmap_domain_section'>
 		<input type="hidden" name="domain" value="<?php print $id; ?>"/>
 		<input type="hidden" name="table" value="domaintable" />
-		<input type="hidden" name="action" value="<?php print $nextaction; ?>" />
+		<input type="hidden" name="action" value="save" />
 		<table style='width:500px'>
 		<tr><td style='vertical-align:top;'>
 			<table>
 				<tr>
 					<td>Name:  </td>
-					<td colspan=3><input type="text" name="domain_name" value="<?php print $name; ?>" /></td>
-				</tr>
-				<tr>
-					<td>Description:  </td>
-					<td colspan=3><input type="text" name="domain_desc" value="<?php print $description; ?>" size=60 /></td>
+					<td colspan=3><input type="text" name="domain_name" value="<?php print stripslashes($name); ?>" /></td>
 				</tr>
 				<tr>
 					<td>Owner:  </td>
@@ -254,6 +199,11 @@ function render_feedingdomain_add_form($doaction) {
 							<option value="Y" <?php selected($visible, "Y"); ?>>Yes</option>
 						</select>
 					</td>
+				</tr>
+				<tr>
+					<td>Description:  </td>
+					<td colspan=3>
+						<textarea name="domain_desc" rows=6 cols=40><?php print stripslashes($description); ?></textarea></td>
 				</tr>
 			</table>
 		</td>
@@ -294,7 +244,7 @@ class owner_table extends WP_List_Table {
         ) );
     }
 	
-	function add($selectedID) {
+	function add() {
 		global $wpdb;
 		$wpdb->show_errors();
 		
@@ -416,14 +366,14 @@ class owner_table extends WP_List_Table {
 		$act = ($item->VISIBLE === 'Y') ? 'hide' : 'show';
         
         $actions = array(
-            $act     => sprintf('<a href="?page=%s&amp;action=%s&amp;owner=%s&amp;table=%s&amp;#owner-filter">%s</a>',$_REQUEST['page'],$act,$item->ID, 'ownertable', ucfirst($act)),
-            'edit'   => sprintf('<a href="?page=%s&amp;action=%s&amp;owner=%s&amp;table=%s&amp;#owner-filter">Edit</a>',$_REQUEST['page'],'edit',$item->ID, 'ownertable'),
-            'delete' => sprintf('<a href="?page=%s&amp;action=%s&amp;owner=%s&amp;table=%s&amp;#owner-filter">Delete</a>',$_REQUEST['page'],'delete',$item->ID, 'ownertable'),
+            $act     => sprintf('<a href="?page=%s&amp;action=%s&amp;owner=%s&amp;table=%s&amp;#feedingmap_owner_section">%s</a>',$_REQUEST['page'],$act,$item->ID, 'ownertable', ucfirst($act)),
+            'edit'   => sprintf('<a href="?page=%s&amp;action=%s&amp;owner=%s&amp;table=%s&amp;#feedingmap_owner_section">Edit</a>',$_REQUEST['page'],'edit',$item->ID, 'ownertable'),
+            'delete' => sprintf('<a href="?page=%s&amp;action=%s&amp;owner=%s&amp;table=%s&amp;#feedingmap_owner_section">Delete</a>',$_REQUEST['page'],'delete',$item->ID, 'ownertable'),
         );
         
         
         return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
-            $item->NAME,
+            stripslashes($item->NAME),
             $item->ID,
             $this->row_actions($actions)
         );
@@ -448,15 +398,13 @@ class owner_table extends WP_List_Table {
 		
     }
     
-    function get_sortable_columns() {
+/*     function get_sortable_columns() {
         $sortable_columns = array(
             'NAME'        => array('NAME',true)
         );
         return $sortable_columns;
     }
-	
-	
-	
+ */	
     
     function get_bulk_actions() {
         $actions = array(
@@ -505,7 +453,7 @@ class owner_table extends WP_List_Table {
         
         $columns  = $this->get_columns();
         $hidden   = array();
-        $sortable = $this->get_sortable_columns();
+        $sortable = array(); //$this->get_sortable_columns();
 		        			
 		$this->_column_headers = array($columns, $hidden, $sortable);
         		
@@ -515,12 +463,9 @@ class owner_table extends WP_List_Table {
 		$data = $wpdb->get_results($sql);
 
 		$this->items = $data;
-        
-		
 
         $current_page = $this->get_pagenum();
         $total_items = count($data);
-
                 
         $this->set_pagination_args( array(
             'total_items' => $total_items,                  
@@ -599,6 +544,29 @@ class domain_table extends WP_List_Table {
 			echo "<p style='color:red'>Could not update {$_REQUEST['domain_name']} ({$_REQUEST['domain']})</p>";
 		}
 	}
+	function assign($selectedID) {
+		global $wpdb;
+		$wpdb->show_errors();
+		
+		$dataarray = array(
+						'OWNER_ID' => $this->ownerselect
+					);
+	
+		$result = $wpdb->update(FEEDINGMAP_TABLE_PREFIX . "DOMAIN",
+					$dataarray,
+					array (
+						'ID' => $selectedID
+					)
+				);
+		
+		if ($result) 
+			echo "<p style='color:green'>Updated domain $selectedID</p>";
+		else if ($result === 0) 
+			echo "<p style='color:orange'>No updates made to $selectedID</p>";
+		else {
+			echo "<p style='color:red'>Could not update $selectedID</p>";
+		}
+	}
 	
 	function delete($selectedID) {
 		global $wpdb;
@@ -640,7 +608,7 @@ class domain_table extends WP_List_Table {
     function column_default($item, $column_name){
         switch($column_name){
             case 'DESCRIPTION':
-                return $item->$column_name;
+                return stripslashes($item->$column_name);
             case 'OWNER':
                 return $item->$column_name;
              default:
@@ -659,14 +627,14 @@ class domain_table extends WP_List_Table {
 		$act = ($item->VISIBLE === 'Y') ? 'hide' : 'show';
         
         $actions = array(
-            $act     => sprintf('<a href="?page=%s&amp;action=%s&amp;domain=%s&amp;table=%s&amp;#domain-filter">%s</a>',$_REQUEST['page'],$act,$item->ID, 'domaintable', ucfirst($act)),
-            'edit'   => sprintf('<a href="?page=%s&amp;action=%s&amp;domain=%s&amp;table=%s&amp;#domain-filter">Edit</a>',$_REQUEST['page'],'edit',$item->ID, 'domaintable'),
-            'delete' => sprintf('<a href="?page=%s&amp;action=%s&amp;domain=%s&amp;table=%s&amp;#domain-filter">Delete</a>',$_REQUEST['page'],'delete',$item->ID, 'domaintable'),
+            $act     => sprintf('<a href="?page=%s&amp;action=%s&amp;domain=%s&amp;table=%s&amp;#feedingmap_domain_section">%s</a>',$_REQUEST['page'],$act,$item->ID, 'domaintable', ucfirst($act)),
+            'edit'   => sprintf('<a href="?page=%s&amp;action=%s&amp;domain=%s&amp;table=%s&amp;#feedingmap_domain_section">Edit</a>',$_REQUEST['page'],'edit',$item->ID, 'domaintable'),
+            'delete' => sprintf('<a href="?page=%s&amp;action=%s&amp;domain=%s&amp;table=%s&amp;#feedingmap_domain_section">Delete</a>',$_REQUEST['page'],'delete',$item->ID, 'domaintable'),
         );
         
         
         return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
-            $item->NAME,
+            stripslashes($item->NAME),
             $item->ID,
             $this->row_actions($actions)
         );
@@ -744,15 +712,46 @@ class domain_table extends WP_List_Table {
 				}
 			}
         }
+        if( 'assign'===$this->current_action() && $_REQUEST['table'] == 'domaintable' && isset($_REQUEST['domain']) ) {
+			if ('string' == gettype($_REQUEST['domain'])) {
+				$this->assign($_REQUEST['domain']);
+			} else {
+				foreach ($_REQUEST['domain'] as $domain) {
+					$this->assign($domain);
+				}
+			}
+        }
 
      }
-        
+ 	function extra_tablenav($which) {
+		if ($which == 'top') {
+
+			echo "<div class='selectowner'>";
+			echo "<label>Select New Owner: </label>";
+			if ( !empty( $this->ownerlist ) ) {
+				echo "<select name='ownerselect'>";
+				foreach( $this->ownerlist as $key => $object ) {
+					echo '<option value="' . esc_attr( $object->ID ) . '" ';
+					selected( $this->ownerselect, $object->ID );
+					echo '>' . esc_attr( $object->NAME ) . '</option>';
+				}
+				echo '</select>';
+			}
+			echo "</div>";
+		}
+	}
+       
     function prepare_items() {
 		global $wpdb;
         
         $columns  = $this->get_columns();
         $hidden   = array();
         $sortable = $this->get_sortable_columns();
+		
+		// Assign to Owner
+		$sql = "SELECT ID, NAME FROM " . FEEDINGMAP_TABLE_PREFIX . "OWNER ORDER BY NAME";
+		$this->ownerlist = $wpdb->get_results($sql);
+		$this->ownerselect = sanitize_key($_REQUEST['ownerselect']);
 		        			
 		$this->_column_headers = array($columns, $hidden, $sortable);
 		
@@ -765,6 +764,9 @@ class domain_table extends WP_List_Table {
 					" . FEEDINGMAP_TABLE_PREFIX . "DOMAIN domains
 				WHERE
 					domains.OWNER_ID = owners.ID";
+		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']) )
+			$sql .= " ORDER BY {$_REQUEST['orderby']} {$_REQUEST['order']}";
+		//echo "<p>SQL: $sql</p>";
 		$data = $wpdb->get_results($sql);
 
 		$this->items = $data;
