@@ -770,7 +770,9 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
 					and characters.ID = charbgs.CHARACTER_ID
 					and charbgs.PENDING_DETAIL != ''
 					and charbgs.DENIED_DETAIL = ''
-					and	(backgrounds.BACKGROUND_QUESTION != '' OR charbgs.SECTOR_ID > 0);";
+					and	(backgrounds.BACKGROUND_QUESTION != '' OR charbgs.SECTOR_ID > 0)
+				order by
+					charbgs.ID;";
 				
 		$tempdata =$wpdb->get_results($wpdb->prepare($sql,''));
 		//echo "<p>SQL: $sql</p>";
@@ -809,7 +811,8 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
 					and characters.ID = charmerit.CHARACTER_ID
 					and charmerit.PENDING_DETAIL != ''
 					and charmerit.DENIED_DETAIL = ''
-					and	merits.BACKGROUND_QUESTION != '';";
+					and	merits.BACKGROUND_QUESTION != ''
+				order by charmerit.ID;";
 				
 		
 		$tempdata =$wpdb->get_results($wpdb->prepare($sql,''));
@@ -844,7 +847,8 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
 				where	questions.ID = answers.QUESTION_ID
 					and characters.ID = answers.CHARACTER_ID
 					and answers.PENDING_DETAIL != ''
-					and answers.DENIED_DETAIL = '';";
+					and answers.DENIED_DETAIL = ''
+				order by answers.ID;";
 					
 		$tempdata =$wpdb->get_results($wpdb->prepare($sql,''));
 		//echo "<p>SQL: $sql</p>";
