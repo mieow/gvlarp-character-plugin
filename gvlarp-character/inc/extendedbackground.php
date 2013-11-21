@@ -335,34 +335,10 @@ function get_editmisc_tab($characterID) {
 	$namesmisc    = $_REQUEST['charmiscTitle'];
 	
 	/* Save Misc Extended Background Answers */
-	if (isset($_REQUEST['miscID']) && $_REQUEST['miscID'] != "") {
+	if (isset($_REQUEST['miscID'])) {
 	
 		foreach ($_REQUEST['save_miscform'] as $id => $buttontext) {
-			/* update answer */
-			$data = array (
-				'PENDING_DETAIL' => $pendingmisc[$id],
-				'DENIED_DETAIL'  => ''
-			);
-			
-			$result = $wpdb->update(GVLARP_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND",
-				$data,
-				array (
-					'ID' => $miscids[$id]
-				)
-			);
-			
-			if ($result) 			echo "<p style='color:green'>Updated {$namesmisc[$id]}</p>";
-			else if ($result === 0) echo "<p style='color:orange'>No updates made to {$namesmisc[$id]} background</p>";
-			else {
-				$wpdb->print_error();
-				echo "<p style='color:red'>Could not update {$namesmisc[$id]}</p>";
-			}
-		}
-		
-	} else {
-		if (isset($_REQUEST['miscformID'])) {
-		
-			foreach ($_REQUEST['miscformID'] as $id => $buttontext) {
+			if ($miscids[$id] == "") {
 				/* new answer */
 				$data = array (
 					'CHARACTER_ID'    => $_REQUEST['charID'],
@@ -381,18 +357,41 @@ function get_editmisc_tab($characterID) {
 					)
 				);
 				if ($wpdb->insert_id == 0) {
-					echo "<p style='color:red'><b>Error:</b> {$names[$id]} could not be saved (";
+					echo "<p style='color:red'><b>Error:</b> {$namesmisc[$id]} could not be saved (";
 					$wpdb->print_error();
 					echo ")</p>";
 				} else {
-					echo "<p style='color:green'>Saved answer '{$names[$id]}' for approval</p>";
+					echo "<p style='color:green'>Saved answer '{$namesmisc[$id]}' for approval</p>";
+				}
+
+			} else {
+		
+				/* update answer */
+				$data = array (
+					'PENDING_DETAIL' => $pendingmisc[$id],
+					'DENIED_DETAIL'  => ''
+				);
+				
+				//print "<p>Info: $id, {$miscids[$id]}, {$_REQUEST['miscID']}</p><pre>";
+				//print_r($data);
+				//print "</pre>";
+				
+				$result = $wpdb->update(GVLARP_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND",
+					$data,
+					array (
+						'ID' => $miscids[$id]
+					)
+				);
+				
+				if ($result) 			echo "<p style='color:green'>Updated {$namesmisc[$id]}</p>";
+				else if ($result === 0) echo "<p style='color:orange'>No updates made to {$namesmisc[$id]} answer</p>";
+				else {
+					$wpdb->print_error();
+					echo "<p style='color:red'>Could not update {$namesmisc[$id]}</p>";
 				}
 			}
-			
 		}
-	}
-
-	
+	} 
 	
 	/* get all the background questions that need extra detail */
 	$sql = "SELECT questions.TITLE, questions.ORDERING, questions.GROUPING, questions.BACKGROUND_QUESTION, 
