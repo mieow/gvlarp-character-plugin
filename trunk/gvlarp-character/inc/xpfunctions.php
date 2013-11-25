@@ -201,7 +201,6 @@ function render_select_spends($character) {
 	$sectioncols    = array();
 	$sectionorder   = array('stat', 'skill', 'disc', 'path',
 							'ritual', 'merit');
-
 	$output = "<p class='gvxp_xpstatus'>You have $xp_total experience in total with $xp_pending points currently pending</p>";
 
 	/* work out the maximum ratings for this character based on generation */
@@ -224,6 +223,7 @@ function render_select_spends($character) {
 	-------------------------------*/
 	$output .= "<div class='gvplugin' id=\"gvid_xpst\">\n";
 	$output .= "<form name=\"SPEND_XP_FORM\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">\n";
+	$output .= "<p>Hover over items with <span class='gvxp_spec'>this formatting</span> to show more information on the item.</p>\n";
 
 
 	$jumpto = array();
@@ -1183,7 +1183,8 @@ function render_spend_table($type, $allxpdata, $maxRating, $columns) {
 			$id++;
 		}
 	}
-	$rowoutput .= "</table></td></tr>\n";
+	if ($rowoutput != "")
+		$rowoutput .= "</table></td></tr>\n";
 
 	return $rowoutput;
 }
@@ -1327,7 +1328,8 @@ function render_ritual_spend_table($type, $allxpdata, $columns) {
 			$id++;
 		}
 	}
-	$rowoutput .= "</table></td></tr>\n";
+	if ($rowoutput != "")
+		$rowoutput .= "</table></td></tr>\n";
 
 	return $rowoutput;
 }
