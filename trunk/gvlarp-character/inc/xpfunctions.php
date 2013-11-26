@@ -201,7 +201,7 @@ function render_select_spends($character) {
 	$sectioncols    = array();
 	$sectionorder   = array('stat', 'skill', 'disc', 'path',
 							'ritual', 'merit');
-	$output = "<p class='gvxp_xpstatus'>You have $xp_total experience in total with $xp_pending points currently pending</p>";
+	$output = "<p class='gvxp_xpstatus'>You have $xp_total experience in total, $xp_pending points currently pending and " . ($xp_total - $xp_pending) . " available to spend</p>";
 
 	/* work out the maximum ratings for this character based on generation */
 	$ratings = get_character_maximums($characterID);
@@ -1103,6 +1103,19 @@ function render_spend_table($type, $allxpdata, $maxRating, $columns) {
 		foreach ($allxpdata as $xpdata) {
 			//$id = $xpdata->id;
 			
+			$tmp_max2display = $max2display;
+			if ($type == 'stat') {
+				switch ($xpdata->name) {
+					case 'Willpower':    $tmp_max2display = 10; break;
+					case 'Conscience':   $tmp_max2display = 5; break;
+					case 'Conviction':   $tmp_max2display = 5; break;
+					case 'Self Control': $tmp_max2display = 5; break;
+					case 'Courage':      $tmp_max2display = 5; break;
+					case 'Instinct':     $tmp_max2display = 5; break;
+				}
+			}
+			$colspan = 2 + $tmp_max2display;
+			
 			// Hidden fields
 			$rowoutput .= "<tr style='display:none'><td>\n";
 			$rowoutput .= "<input type='hidden' name='{$type}_spec_at[" . $id . "]' value='" . $xpdata->spec_at . "' >";
@@ -1138,7 +1151,8 @@ function render_spend_table($type, $allxpdata, $maxRating, $columns) {
 			if ($xpdata->comment)
 				$rowoutput .= " alt='{$xpdata->comment}' title='{$xpdata->comment}' class='gvxp_spec' ";
 			$rowoutput .= ">{$xpdata->name}</span></th>";
-			for ($i=1;$i<=$max2display;$i++) {
+			
+			for ($i=1;$i<=$tmp_max2display;$i++) {
 			
 				if ($xpdata->level >= $i)
 					$rowoutput .= "<td class='gvxp_dot'><img src='$fulldoturl'></td>";
