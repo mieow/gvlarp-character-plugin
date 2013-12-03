@@ -126,16 +126,18 @@ function render_combo_add_form($type, $addaction) {
 			<td colspan=5><input type="text" name="<?php print $type; ?>_desc" value="<?php print $desc; ?>" size=90 /></td> 
 		</tr>
 		</tr><tr>
-			<td colspan=6><strong>Discipline Pre-requisites</strong></td>
+			<td colspan=6><strong>Discipline Pre-requisite Levels</strong></td>
 		</tr><tr>
 			<td colspan=6>
 			<table>
 			<?php
 				$col = 1;
 				foreach(get_disciplines() as $disc) {
+					$prereq = $prerequisites[$disc->ID]->DISCIPLINE_LEVEL ? $prerequisites[$disc->ID]->DISCIPLINE_LEVEL : "0";
+				
 					if ($col == 1) echo "<tr>\n";
 					echo "<td>{$disc->NAME}</td>\n";
-					echo "<td><input type=\"number\" name=\"{$type}_disc[{$disc->ID}]\" value=\"{$prerequisites[$disc->ID]->DISCIPLINE_LEVEL}\" /></td>\n";
+					echo "<td><input type=\"number\" name=\"{$type}_disc[{$disc->ID}]\" value=\"{$prereq}\" size=4 /></td>\n";
 					
 					if ($col == 4) {
 						echo "</tr>\n";
