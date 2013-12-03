@@ -140,7 +140,7 @@ function render_supply_details($character) {
 	if (isset($_REQUEST['merit_level'])) $spent += calc_submitted_spend('merit');
 	
 	$output .= "<p>Spending $spent experience points.</p>\n";
-	$output .= "<p>Please enter specialisations, if available, and describe how you are learning the selected items</p>";
+	$output .= "<p>Please enter specialisations, if available, and enter a description of your learning method</p>";
 	
 	$output .= "<div class='gvplugin' id=\"gvid_xpst\">\n";
 	$output .= "<form name=\"SPEND_XP_FORM\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">\n";
@@ -471,7 +471,7 @@ function render_details_section($type) {
 
 	if (!empty($rowoutput)) {
 		$output .= "<table>\n";
-		$output .= "<tr><th class='gvthead'>Name</th><th class='gvthead'>Specialisation</th><th class='gvthead'>Experience Spend</th><th class='gvthead'>XP Cost</th><th class='gvthead'>Training Note</th></tr>";
+		$output .= "<tr><th class='gvthead'>Name</th><th class='gvthead'>Specialisation</th><th class='gvthead'>Experience Spend</th><th class='gvthead'>XP Cost</th><th class='gvthead'>Training Note/Learning Method</th></tr>";
 		$output .= "$rowoutput\n";
 		$output .= "</table>\n";
 	} 
