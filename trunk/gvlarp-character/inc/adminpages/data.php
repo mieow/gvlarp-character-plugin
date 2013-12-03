@@ -659,7 +659,7 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
  	function gvlarp_showhide_merit($selectedID, $showhide) {
 		global $wpdb;
 		
-		/* echo "id: $selectedID, setting: $showhide"; */
+		//echo "id: $selectedID, setting: $showhide";
 		
 		$wpdb->show_errors();
 		
@@ -892,7 +892,7 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
         }
         if( 'show'===$this->current_action() && $_REQUEST['tab'] == $this->type && isset($_REQUEST['merit']) ) {
 			if ('string' == gettype($_REQUEST['merit'])) {
-				$this->gvlarp_showhide_merit($merit, "show");
+				$this->gvlarp_showhide_merit($_REQUEST['merit'], "show");
 			} else {
 				foreach ($_REQUEST['merit'] as $merit) {
 					$this->gvlarp_showhide_merit($merit, "show");
