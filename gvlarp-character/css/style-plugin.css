@@ -379,6 +379,12 @@ div#csheet {
 	margin: 0px;
 	padding: 0px;
 }
+.gvxp_checkbox {
+    width:15px;
+	font-size: 0.7em;
+	margin: 0px;
+	padding: 0px;
+}
 #gvid_xpst td.gvxp_dot img{
 	width:12px;
 }
