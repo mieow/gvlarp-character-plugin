@@ -1,0 +1,15 @@
+#summary Instructions on installing the plugin
+
+= Instructions =
+
+1) Export the latest release
+
+{{{
+svn export http://gvlarp-character-plugin.googlecode.com/svn/tags/version1-8 gvlarp-character
+}}}
+
+2) Zip the folder
+
+3) Log into the admin account on the wordpress website
+
+4) Add New Plugin -> upload
