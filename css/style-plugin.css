@@ -364,6 +364,7 @@ div#csheet {
 }
 #gvid_xpst .gvcol_cost {
 	font-size:0.7em;
+	width: 52px;
 }
 
 #gvid_xpst .gvcol_val {
