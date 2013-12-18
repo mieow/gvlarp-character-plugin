@@ -26,8 +26,8 @@ This is the process to go through before the version is available for release
 
 6) SVN Tag (example)
 
-cd <working directory>/gvlarp-character-plugin/gvlarp-character
-
+{{{
+cd gvlarp-character-plugin
 svn update
-
-svn tag version1-7	
+svn copy gvlarp-character https://gvlarp-character-plugin.googlecode.com/svn/tags/version1-8 -m "Tagging the v1.8 release of the character plugin."
+}}}
