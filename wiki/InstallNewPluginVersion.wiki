@@ -12,4 +12,6 @@ svn export http://gvlarp-character-plugin.googlecode.com/svn/tags/version1-8 gvl
 
 3) Log into the admin account on the wordpress website
 
-4) Add New Plugin -> upload
+4) De-activate the character plugin, if already installed
+
+5) Add New Plugin -> upload
