@@ -22,6 +22,11 @@ This is the process to go through before the version is available for release
 
 5) Change table prefix and recreate tables from scratch, with imported data
 
+  - Create a new character with everything in it
+  - Check that it saves
+  - Check that it shows up on reports
+  - Check printable PDF, XP Spend, etc pages
+
 5) Testing
 
 6) SVN Tag (example)
