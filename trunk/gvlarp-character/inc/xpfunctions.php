@@ -1150,7 +1150,7 @@ function render_spend_table($type, $allxpdata, $maxRating, $columns) {
 			$rowoutput .= "<tr><th class='gvthleft'><span";
 			if ($xpdata->comment)
 				$rowoutput .= " alt='{$xpdata->comment}' title='{$xpdata->comment}' class='gvxp_spec' ";
-			$rowoutput .= ">{$xpdata->name}</span></th>";
+			$rowoutput .= ">" . stripslashes($xpdata->name) . "</span></th>";
 			
 			for ($i=1;$i<=$tmp_max2display;$i++) {
 			
@@ -1169,7 +1169,7 @@ function render_spend_table($type, $allxpdata, $maxRating, $columns) {
 						if ($xpdata->NEXT_VALUE > $xpdata->level)
 							$xpcost = $xpdata->XP_COST;
 						
-						$comment    = $xpdata->name . " " . $xpdata->level . " > " . $i;
+						$comment    = htmlentities($xpdata->name, ENT_QUOTES) . " " . $xpdata->level . " > " . $i;
 					
 						$rowoutput .= "<td class='gvxp_checkbox'>";
 						$rowoutput .= "<input type='hidden'   name='{$type}_cost[" . $id . "]'    value='" . $xpcost . "' >";
