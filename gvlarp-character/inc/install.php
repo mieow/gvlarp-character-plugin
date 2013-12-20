@@ -4,7 +4,7 @@ register_activation_hook(__FILE__, "gvlarp_character_install");
 register_activation_hook( __FILE__, 'gvlarp_character_install_data' );
 
 global $gvlarp_character_db_version;
-$gvlarp_character_db_version = "1.8.30"; 
+$gvlarp_character_db_version = "1.8.33"; 
 
 function gvlarp_update_db_check() {
     global $gvlarp_character_db_version;
@@ -502,6 +502,8 @@ function gvlarp_character_install() {
 			'reference'  => $table_prefix . "DOMAIN(ID)"
 		);
 		rename_column($rename);
+		remove_constraint($current_table_name, 'char_constraint_10');	// NATURE_ID
+		remove_constraint($current_table_name, 'char_constraint_11');	// DEMEANOUR_ID
 		$sql = "CREATE TABLE " . $current_table_name . " (
 					ID                        MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
 					NAME                      VARCHAR(60)   NOT NULL,
@@ -523,6 +525,7 @@ function gvlarp_character_install() {
 					NATURE_ID                 MEDIUMINT(9)  NOT NULL,
 					DEMEANOUR_ID              MEDIUMINT(9)  NOT NULL,
 					LAST_UPDATED              DATE          NOT NULL,
+					VISIBLE                   VARCHAR(1)    NOT NULL,
 					DELETED                   VARCHAR(1)    NOT NULL,
 					PRIMARY KEY  (ID),
 					CONSTRAINT `" . $table_prefix . "char_constraint_1`  FOREIGN KEY (PUBLIC_CLAN_ID)       REFERENCES " . $table_prefix . "CLAN(ID),
@@ -533,9 +536,7 @@ function gvlarp_character_install() {
 					CONSTRAINT `" . $table_prefix . "char_constraint_6`  FOREIGN KEY (CHARACTER_STATUS_ID)  REFERENCES " . $table_prefix . "CHARACTER_STATUS(ID),
 					CONSTRAINT `" . $table_prefix . "char_constraint_7`  FOREIGN KEY (ROAD_OR_PATH_ID)      REFERENCES " . $table_prefix . "ROAD_OR_PATH(ID),
 					CONSTRAINT `" . $table_prefix . "char_constraint_8`  FOREIGN KEY (DOMAIN_ID)            REFERENCES " . $table_prefix . "DOMAIN(ID),
-					CONSTRAINT `" . $table_prefix . "char_constraint_9`  FOREIGN KEY (SECT_ID)              REFERENCES " . $table_prefix . "SECT(ID),
-					CONSTRAINT `" . $table_prefix . "char_constraint_10` FOREIGN KEY (NATURE_ID)            REFERENCES " . $table_prefix . "NATURE(ID),
-					CONSTRAINT `" . $table_prefix . "char_constraint_11` FOREIGN KEY (DEMEANOUR_ID)         REFERENCES " . $table_prefix . "NATURE(ID)
+					CONSTRAINT `" . $table_prefix . "char_constraint_9`  FOREIGN KEY (SECT_ID)              REFERENCES " . $table_prefix . "SECT(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 		//echo "<p>Char SQL: $sql</p>";
@@ -775,22 +776,22 @@ function gvlarp_character_install() {
 			dbDelta($sql);
 
 		$current_table_name = $table_prefix . "CHARACTER_BACKGROUND";
-			$sql = "CREATE TABLE " . $current_table_name . " (
-						ID                MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
-						CHARACTER_ID      MEDIUMINT(9)  NOT NULL,
-						BACKGROUND_ID     MEDIUMINT(9)  NOT NULL,
-						LEVEL             SMALLINT(3)   NOT NULL,
-						SECTOR_ID		  MEDIUMINT(9)  NOT NULL,
-						COMMENT           VARCHAR(60),
-						APPROVED_DETAIL   TEXT,
-						PENDING_DETAIL    TEXT,
-						DENIED_DETAIL     TEXT,
-						PRIMARY KEY  (ID),
-						CONSTRAINT `" . $table_prefix . "char_bg_constraint_1` FOREIGN KEY (CHARACTER_ID)  REFERENCES " . $table_prefix . "CHARACTER(ID),
-						CONSTRAINT `" . $table_prefix . "char_bg_constraint_2` FOREIGN KEY (BACKGROUND_ID) REFERENCES " . $table_prefix . "BACKGROUND(ID),
-						CONSTRAINT `" . $table_prefix . "char_bg_constraint_3` FOREIGN KEY (SECTOR_ID) REFERENCES " . $table_prefix . "SECTOR(ID)
-						) ENGINE=INNODB;";
-			dbDelta($sql);
+		remove_constraint($current_table_name, 'char_bg_constraint_3');	// SECTOR_ID
+		$sql = "CREATE TABLE " . $current_table_name . " (
+					ID                MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
+					CHARACTER_ID      MEDIUMINT(9)  NOT NULL,
+					BACKGROUND_ID     MEDIUMINT(9)  NOT NULL,
+					LEVEL             SMALLINT(3)   NOT NULL,
+					SECTOR_ID		  MEDIUMINT(9)  NOT NULL,
+					COMMENT           VARCHAR(60),
+					APPROVED_DETAIL   TEXT,
+					PENDING_DETAIL    TEXT,
+					DENIED_DETAIL     TEXT,
+					PRIMARY KEY  (ID),
+					CONSTRAINT `" . $table_prefix . "char_bg_constraint_1` FOREIGN KEY (CHARACTER_ID)  REFERENCES " . $table_prefix . "CHARACTER(ID),
+					CONSTRAINT `" . $table_prefix . "char_bg_constraint_2` FOREIGN KEY (BACKGROUND_ID) REFERENCES " . $table_prefix . "BACKGROUND(ID)
+					) ENGINE=INNODB;";
+		dbDelta($sql);
 		
 		$current_table_name = $table_prefix . "CHARACTER_COMBO_DISCIPLINE";
 		
@@ -989,6 +990,21 @@ function remove_columns($table, $columninfo) {
 		echo "</p>SQL: $sql</p>";
 	} */
 	if( !empty($remove_columns) ) $wpdb->query($sql); 
+
+}
+function remove_constraint($table, $constraint) {
+	global $wpdb;
+
+	
+	$existing_keys = $wpdb->get_col("SHOW INDEX FROM $table WHERE Key_name != 'PRIMARY';",2);
+	
+	/* which constraints/foreign keys to remove */
+	$remove_constraints = array_intersect(array($constraint), $existing_keys);
+	$sql = "ALTER TABLE $table DROP FOREIGN KEY ".implode(', DROP INDEX ',$remove_constraints).';';
+	
+	/* do remove */
+	if( !empty($remove_constraints) ) $wpdb->query($sql);			
+
 
 }
 
