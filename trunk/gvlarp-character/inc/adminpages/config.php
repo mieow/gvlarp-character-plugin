@@ -314,7 +314,9 @@ function character_config() {
 		
 		<?php
 					
-		if (class_exists('Imagick') && isset($_REQUEST['save_options'])) {
+		if (class_exists('Imagick') ) {
+		
+			echo "<p>Creating images</p>";
 		
 			$drawwidth    = 32;
 			$drawheight   = 32;
