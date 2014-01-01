@@ -1,9 +1,0 @@
-Simple:Press Theme Title: GVLarp Theme
-Version: 1.0.0
-Theme URI: http://plugin.gvlarp.com
-Description: A Simple:Press theme based on the default theme for GVLARP
-Author: Jane Houston
-Author URI: http://plugin.gvlarp.com
-Stylesheet: gvlarp.php
-Screenshot: gvlarp.jpg
-Simple:Press Versions: 5.3 and above
