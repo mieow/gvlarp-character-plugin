@@ -364,6 +364,7 @@ div#csheet {
 }
 #gvid_xpst .gvcol_cost {
 	font-size:0.7em;
+	width: 52px;
 }
 
 #gvid_xpst .gvcol_val {
@@ -431,3 +432,9 @@ h4.gvxp_head  {
 
 }
 
+/* =Feeding Map
+-------------------------------------------------------------- */
+#map-canvas { height: 100% }
+#map-canvas img {max-width: none;}
+table.feedingmapkey {width:auto;}
+#feedingmap_status {display:none;}

@@ -223,6 +223,47 @@ function character_config() {
 			<input type="submit" name="save_st_links" class="button-primary" value="Save Links" />
 		</form>
 
+		<h3>Feeding Map Options</h3>
+		<form method="post" action="options.php">
+			<?php
+			settings_fields( 'feedingmap_options_group' );
+			do_settings_sections('feedingmap_options_group');
+			?>	
+			
+			<table>
+			<tr>
+				<td><label>Google Maps API Key:</label></td>
+				<td><input type="text" name="feedingmap_google_api" value="<?php echo get_option('feedingmap_google_api'); ?>" size=60 /></td>
+			</tr>
+			<tr>
+				<td><label>Centre Point, Latitude:</label></td>
+				<td><input type="number" name="feedingmap_centre_lat" value="<?php echo get_option('feedingmap_centre_lat'); ?>" /></td>
+			</tr>
+			<tr>
+				<td><label>Centre Point, Longitude:</label></td>
+				<td><input type="number" name="feedingmap_centre_long" value="<?php echo get_option('feedingmap_centre_long'); ?>" /></td>
+			</tr>
+			<tr>
+				<td><label>Map Zoom:</label></td>
+				<td><input type="number" name="feedingmap_zoom" value="<?php echo get_option('feedingmap_zoom'); ?>" /></td>
+			</tr>
+			<tr>
+				<td><label>Map Type:</label></td>
+				<td>
+					<select name="feedingmap_map_type">
+						<option value="ROADMAP" <?php selected(get_option('feedingmap_map_type'),"ROADMAP"); ?>>Roadmap</option>
+						<option value="SATELLITE" <?php selected(get_option('feedingmap_map_type'),"SATELLITE"); ?>>Satellite</option>
+						<option value="HYBRID" <?php selected(get_option('feedingmap_map_type'),"HYBRID"); ?>>Hybrid</option>
+						<option value="TERRAIN" <?php selected(get_option('feedingmap_map_type'),"TERRAIN"); ?>>Terrain</option>
+					</select>
+				</td>
+			</tr>
+			</table>
+			<?php submit_button("Save Map Options", "primary", "save_map_button"); ?>
+		
+		</form>
+
+		
 		<h3>General Options</h3>
 		<form method="post" action="options.php">
 		<?php
@@ -309,15 +350,13 @@ function character_config() {
 			</tr>
 		</table>
 		
-		<?php submit_button(); ?>
+		<?php submit_button("Save General Options", "primary", "save_general_button"); ?>
 		</form>
 		
 		<?php
 					
-		if (class_exists('Imagick') ) {
-		
-			echo "<p>Creating images</p>";
-		
+		if (class_exists('Imagick')) {
+				
 			$drawwidth    = 32;
 			$drawheight   = 32;
 			$drawmargin   = 1;
