@@ -75,3 +75,10 @@ nav {
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#a6000000', endColorstr='#00000000',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
 	border-top-left-radius: 5px;
 	border-top-right-radius: 5px;}
+
+/* =Feeding Map
+-------------------------------------------------------------- */
+#map-canvas { height: 100% }
+#map-canvas img {max-width: none;}
+table.feedingmapkey {width:auto;}
+.feedingmapkey td {border:1px solid darkgrey;}
