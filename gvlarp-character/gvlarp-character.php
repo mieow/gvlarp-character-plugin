@@ -102,6 +102,7 @@
          */
 define( 'GVLARP_CHARACTER_URL', plugin_dir_path(__FILE__) );
 define( 'GVLARP_TABLE_PREFIX', $wpdb->prefix . "GVLARP_" );
+define( 'FEEDINGMAP_TABLE_PREFIX', $wpdb->prefix . "gvfeedingmap_" );
 require_once GVLARP_CHARACTER_URL . 'inc/printable.php';
 require_once GVLARP_CHARACTER_URL . 'inc/install.php';
 require_once GVLARP_CHARACTER_URL . 'inc/extendedbackground.php';
@@ -111,17 +112,38 @@ require_once GVLARP_CHARACTER_URL . 'inc/xpfunctions.php';
 require_once GVLARP_CHARACTER_URL . 'inc/shortcodes.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages.php';
 
+//require_once GVLARP_CHARACTER_URL . 'inc/install.php';
+//require_once GVLARP_CHARACTER_URL . 'inc/shortcodes.php';
+//require_once GVLARP_CHARACTER_URL . 'inc/tables.php';
 
-function register_plugin_styles() {
-	wp_register_style( 'my-plugin', plugins_url( 'my-plugin/css/plugin.css' ) );
-	wp_enqueue_style( 'my-plugin' );
+
+/* STYLESHEETS
+------------------------------------------------------ */
+
+function feedingmap_admin_css() {
+	wp_enqueue_style('plugin-admin-style', plugins_url('gvlarp-character/css/style-admin.css'));
 }
+add_action('admin_enqueue_scripts', 'feedingmap_admin_css');
+
 function plugin_style()  
 { 
   wp_register_style( 'plugin-style', plugins_url( 'gvlarp-character/css/style-plugin.css' ) );
   wp_enqueue_style( 'plugin-style' );
 }
 add_action('wp_enqueue_scripts', 'plugin_style');
+
+/* JAVASCRIPT
+----------------------------------------------------------------- */
+function feedingmap_scripts() {
+	wp_enqueue_script( 'feedingmap-setup-api', plugins_url('gvlarp-character/js/googleapi.js'));
+}
+
+add_action( 'wp_enqueue_scripts', 'feedingmap_scripts' );
+add_action('admin_enqueue_scripts', 'feedingmap_scripts');
+
+
+/* FUNCTIONS
+----------------------------------------------------------------- */
 
 function get_stat_info() {
 	global $wpdb;
@@ -249,7 +271,27 @@ function get_domains() {
 	
 	return $list;
 }
-function get_sects() {
+function get_player_status() {
+
+	global $wpdb;
+
+	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "PLAYER_STATUS;";
+	$list = $wpdb->get_results($sql);
+	
+	return $list;
+}
+function get_player_type() {
+
+	global $wpdb;
+
+	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "PLAYER_TYPE ORDER BY NAME;";
+	$list = $wpdb->get_results($sql);
+	
+	//print_r($list);
+	
+	return $list;
+}
+	function get_sects() {
 
 	global $wpdb;
 

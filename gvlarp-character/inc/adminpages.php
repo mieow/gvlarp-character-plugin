@@ -16,6 +16,8 @@ require_once GVLARP_CHARACTER_URL . 'inc/adminpages/nature.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/domains.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/offices.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/combodisciplines.php';
+require_once GVLARP_CHARACTER_URL . 'inc/adminpages/feedingmap.php';
+require_once GVLARP_CHARACTER_URL . 'inc/adminpages/players.php';
 
 if(!class_exists('WP_List_Table')){
     require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
@@ -59,6 +61,12 @@ function register_gvlarp_character_settings() {
 	register_setting( 'gvcharacter_options_group', 'gvcharacter_xp_dotcolour' );
 	register_setting( 'gvcharacter_options_group', 'gvcharacter_xp_dotlinewidth' );
 
+	register_setting( 'feedingmap_options_group', 'feedingmap_google_api' );  // google api key
+	register_setting( 'feedingmap_options_group', 'feedingmap_centre_lat' );  // centre point, latitude
+	register_setting( 'feedingmap_options_group', 'feedingmap_centre_long' ); // centre point, latitude
+	register_setting( 'feedingmap_options_group', 'feedingmap_zoom' );        // zoom
+	register_setting( 'feedingmap_options_group', 'feedingmap_map_type' );    // map type
+
 	/* add_settings_section('gv_options_section_pdf', 'PDF Character Sheet', 'gv_options_section_pdf_text', 'gvcharacter-config');
 	add_settings_field('gv_pdf_title',     'Character Sheet Title',      'gvcharacter_pdf_input_title',  'gvcharacter-config',    'gv_options_section_pdf');
 	add_settings_field('gv_pdf_titlefont', 'Character Sheet Title Font', 'gvcharacter_pdf_input_titlefont', 'gvcharacter-config', 'gv_options_section_pdf');
@@ -92,6 +100,7 @@ function gvcharacter_options_validate($input) {
 
 function register_character_menu() {
 	add_menu_page( "Character Plugin Options", "Characters", "manage_options", "gvcharacter-plugin", "character_options");
+	add_submenu_page( "gvcharacter-plugin", "Players",            "Players",       "manage_options", "gvcharacter-player", "character_players" );  
 	add_submenu_page( "gvcharacter-plugin", "Database Tables",    "Data Tables",   "manage_options", "gvcharacter-data",   "character_datatables" );  
 	add_submenu_page( "gvcharacter-plugin", "Backgrounds",        "Backgrounds",   "manage_options", "gvcharacter-bg",     "character_backgrounds" );  
 	add_submenu_page( "gvcharacter-plugin", "XP Approval",        "XP Approval",   "manage_options", "gvcharacter-xp",     "character_experience" );  
@@ -188,6 +197,8 @@ function character_datatables() {
 				<li><?php echo get_tablink('domain',  'Domains'); ?></li>
 				<li><?php echo get_tablink('office',  'Offices'); ?></li>
 				<li><?php echo get_tablink('combo',   'Combination Disciplines'); ?></li>
+				<li><?php echo get_tablink('mapowner', 'Map Domain Owners'); ?></li>
+				<li><?php echo get_tablink('mapdomain','Map Domains'); ?></li>
 			</ul>
 		</div>
 		<div class="gvadmin_content">
@@ -247,6 +258,12 @@ function character_datatables() {
 				break;
 			case 'combo':
 				render_combo_page();
+				break;
+			case 'mapowner':
+				render_owner_data();
+				break;
+			case 'mapdomain':
+				render_domain_data();
 				break;
 			default:
 				render_stat_page("stat");

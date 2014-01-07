@@ -60,6 +60,24 @@ function toolbar_link_gvadmin( $wp_admin_bar ) {
 		$wp_admin_bar->add_node( $args );
 		
 		$args = array(
+			'id'    => 'gvcharacters2',
+			'title' => 'Character Admin',
+			'href'  => admin_url('admin.php?page=gvcharacter-plugin'),
+			'parent' => 'gvcharacters',
+			'meta'  => array( 'class' => 'my-toolbar-page' )
+		); 
+		$wp_admin_bar->add_node( $args );
+		
+		$args = array(
+			'id'    => 'gvplayers',
+			'title' => 'Player Admin',
+			'href'  => admin_url('admin.php?page=gvcharacter-player'),
+			'parent' => 'gvcharacters',
+			'meta'  => array( 'class' => 'my-toolbar-page' )
+		); 
+		$wp_admin_bar->add_node( $args );
+		
+		$args = array(
 			'id'    => 'gvbg',
 			'title' => 'Approve Backgrounds (' . count_BG4approval() . ')',
 			'href'  => admin_url('admin.php?page=gvcharacter-bg'),
