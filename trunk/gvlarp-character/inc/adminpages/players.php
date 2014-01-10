@@ -33,7 +33,8 @@ function render_player_data(){
  	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
   ?>	
-
+	<br /><hr />
+  
 	<!-- Forms are NOT created automatically, so you need to wrap the table in one to use features like bulk actions -->
 	<form id="player-filter" method="get" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
@@ -134,6 +135,8 @@ function render_player_add_form($addaction) {
 }
 
 function player_input_validation() {
+	global $wpdb;
+	
 	$type = "player";
 	
 	//echo "<p>Requested action: " . $_REQUEST['action'] . ", " . $type . "_name: " . $_REQUEST[$type . '_name']; 
@@ -143,12 +146,21 @@ function player_input_validation() {
 		
 	
 	if (!empty($_REQUEST['action']) && !empty($_REQUEST[$type . '_name']) ){
-
 		$doaction = $_REQUEST['action'] . "-" . $type;
-						
 	}
 	
-	/* echo "<p>Doing action $doaction</p>"; */
+	if ($doaction == "add-$type") {
+		$sql = 'SELECT NAME FROM ' . GVLARP_TABLE_PREFIX . 'PLAYER WHERE NAME = %s';
+		$result = $wpdb->get_col($wpdb->prepare($sql,$_REQUEST[$type . '_name'] ));
+		print_r($result);
+		$countmatch = count($result);
+		if ($countmatch > 0) {
+			echo "<p style='color:red'>ERROR: Player name already exists</p>";
+			$doaction = "fix-$type";
+		}
+	}
+	
+	//echo "<p>Doing action $doaction</p>";
 
 	return $doaction;
 }
