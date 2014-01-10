@@ -16,6 +16,7 @@ class larpcharacter {
 	var $wordpress_id;
 	var $generation;
 	var $bloodpool;
+	var $blood_per_round;
 	var $willpower;
 	var $current_willpower;
 	var $path_of_enlightenment;
@@ -85,9 +86,10 @@ class larpcharacter {
 		$this->wordpress_id = $result[0]->wpid;
 		$this->generation   = $result[0]->generation;
 		$this->max_rating   = $result[0]->max_rating;
-		$this->path_of_enlightenment    = $result[0]->path;
-		$this->bloodpool    = $result[0]->bloodpool;
-		$this->sire         = $result[0]->sire;
+		$this->path_of_enlightenment = $result[0]->path;
+		$this->bloodpool       = $result[0]->bloodpool;
+		$this->blood_per_round = $result[0]->blood_per_round;
+		$this->sire            = $result[0]->sire;
 		$this->date_of_birth   = $result[0]->date_of_birth;
 		$this->date_of_embrace = $result[0]->date_of_embrace;
 		$this->player_id    = $result[0]->player_id;
@@ -205,6 +207,32 @@ class larpcharacter {
 		$sql = $wpdb->prepare($sql, $characterID);
 		$result = $wpdb->get_results($sql);
 		$this->disciplines = $result;
+
+		/* Majik Paths */
+		$sql = "SELECT paths.NAME           name,
+					disciplines.NAME		discipline,
+					charpath.level			level
+				FROM
+					" . GVLARP_TABLE_PREFIX . "DISCIPLINE disciplines,
+					" . GVLARP_TABLE_PREFIX . "CHARACTER_PATH charpath,
+					" . GVLARP_TABLE_PREFIX . "PATH paths,
+					" . GVLARP_TABLE_PREFIX . "CHARACTER chara
+				WHERE
+					charpath.PATH_ID = paths.ID
+					AND paths.DISCIPLINE_ID = disciplines.ID
+					AND charpath.CHARACTER_ID = chara.ID
+					AND chara.id = '%s'
+				ORDER BY disciplines.name ASC, paths.NAME;";
+		$sql = $wpdb->prepare($sql, $characterID);
+		$result = $wpdb->get_results($sql);
+		
+		// Reformat:
+		//	[discipline] = ( [name] = level )
+		$this->paths = array();
+		foreach ($result as $majikpath) {
+			$this->paths[$majikpath->discipline][$majikpath->name] = $majikpath->level;
+		}
+		//print_r($this->paths);
 		
 		/* Merits and Flaws */
 		$sql = "SELECT merits.NAME		      name,
@@ -255,7 +283,8 @@ class larpcharacter {
 		$this->path_rating = $result[0]->path_rating;
 		
 		/* Rituals */
-		$sql = "SELECT disciplines.name as discname, rituals.name as ritualname, rituals.level
+		$sql = "SELECT disciplines.name as discname, rituals.name as ritualname, rituals.level,
+					rituals.description, rituals.dice_pool, rituals.difficulty
 				FROM " . GVLARP_TABLE_PREFIX . "DISCIPLINE disciplines,
                     " . GVLARP_TABLE_PREFIX . "CHARACTER_RITUAL char_rit,
                     " . GVLARP_TABLE_PREFIX . "RITUAL rituals
@@ -268,7 +297,12 @@ class larpcharacter {
 		$result = $wpdb->get_results($sql);
 		$i = 0;
 		foreach ($result as $ritual) {
-			$this->rituals[$ritual->discname][$i] = array('name' => $ritual->ritualname, 'level' => $ritual->level);
+			$this->rituals[$ritual->discname][$i] = array(
+				'name' => $ritual->ritualname, 
+				'level' => $ritual->level,
+				'roll'  => $ritual->dice_pool . ", diff " . $ritual->difficulty,
+				'description' => $ritual->description
+			);
 			$i++;
 		}
 		
