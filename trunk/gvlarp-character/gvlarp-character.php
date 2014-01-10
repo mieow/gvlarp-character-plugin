@@ -111,6 +111,7 @@ require_once GVLARP_CHARACTER_URL . 'inc/android.php';
 require_once GVLARP_CHARACTER_URL . 'inc/xpfunctions.php';
 require_once GVLARP_CHARACTER_URL . 'inc/shortcodes.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages.php';
+require_once GVLARP_CHARACTER_URL . 'inc/viewcharacter.php';
 
 //require_once GVLARP_CHARACTER_URL . 'inc/install.php';
 //require_once GVLARP_CHARACTER_URL . 'inc/shortcodes.php';
@@ -1517,6 +1518,7 @@ function get_player_type() {
     }
     add_shortcode('update_character_table', 'print_character_update_table'); */
 
+	/*
     function print_player_admin($atts, $content=null) {
         extract(shortcode_atts(array ("playerstatus" => "",
             "playerType"   => ""), $atts));
@@ -1614,6 +1616,7 @@ function get_player_type() {
         return $output;
     }
     add_shortcode('player_admin', 'print_player_admin');
+	*/
 	
     function print_character_profile($atts, $content=null) {
         extract(shortcode_atts(array ("character" => "null", "group" => "Full", "pwchange" => "False"), $atts));
@@ -2010,6 +2013,7 @@ function get_player_type() {
     }
     add_shortcode('debug_name_value_pairs', 'print_name_value_pairs');
 
+	/*
     function displayUpdatePlayer($playerID) {
         global $wpdb;
         $table_prefix = GVLARP_TABLE_PREFIX;
@@ -2146,7 +2150,7 @@ function get_player_type() {
         $output .= "<input type='submit' name=\"cSubmit\" value=\"Abandon Delete\" /></td></tr></table></form>";
         return $output;
     }
-
+*/
     function print_xp_spend($character) {
         global $wpdb;
         $table_prefix = GVLARP_TABLE_PREFIX;
@@ -2252,6 +2256,7 @@ function get_player_type() {
         return $stLinks;
     }
 
+	
     function listPlayers($playerStatus, $playerType) {
         global $wpdb;
         $table_prefix = GVLARP_TABLE_PREFIX;
