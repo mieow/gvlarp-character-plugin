@@ -124,8 +124,9 @@ function gv_print_redirect()
 			
 			$pdf->Divider();
 			
-			$backgrounds =  $mycharacter->getBackgrounds();
-			$disciplines =  $mycharacter->getDisciplines();
+			$backgrounds = $mycharacter->getBackgrounds();
+			$disciplines = $mycharacter->getDisciplines();
+			$paths       = $mycharacter->paths;
 			
 			$sql = "SELECT DISTINCT GROUPING FROM " . GVLARP_TABLE_PREFIX . "SKILL skills;";
 			$allgroups = $wpdb->get_results($wpdb->prepare($sql,''));	
@@ -140,10 +141,26 @@ function gv_print_redirect()
 			foreach ($secondarygroups as $group)
 					$secondary = array_merge($mycharacter->getAbilities($group), $secondary);	
 			
+			$alldisciplines = array();
+			foreach ($disciplines as $discipline) {
+				array_push($alldisciplines, array( $discipline->name , "", $discipline->level));
+				if (isset($paths[$discipline->name])) {
+					foreach ($paths[$discipline->name] as $path => $level) {
+						array_push($alldisciplines, array( "", $path , $level));
+					}
+				}
+			}
+			
+			$discrows = count($disciplines);
+			if (count($paths) > 0) {
+				foreach ($paths as $discipline => $majikpaths) {
+					$discrows += count($majikpaths);
+				}
+			}
 			$rows = 3;
+			if ($rows < $discrows)           $rows = $discrows;
 			if ($rows < count($backgrounds)) $rows = count($backgrounds);
-			if ($rows < count($disciplines)) $rows = count($disciplines);
-			if ($rows < count($secondary)) $rows = count($secondary);
+			if ($rows < count($secondary))   $rows = count($secondary);
 			
 			for ($i=0;$i<$rows;$i++) {
 				$data = array (
@@ -151,9 +168,9 @@ function gv_print_redirect()
 					(!empty($backgrounds[$i]->sector)) ?  $backgrounds[$i]->sector : stripslashes($backgrounds[$i]->comment),
 					$backgrounds[$i]->level,
 					
-					$disciplines[$i]->name,
-					"",
-					$disciplines[$i]->level,
+					$alldisciplines[$i][0],
+					$alldisciplines[$i][1],
+					$alldisciplines[$i][2],
 					
 					$secondary[$i]->skillname,
 					stripslashes($secondary[$i]->specialty),
@@ -249,10 +266,9 @@ function gv_print_redirect()
 				foreach ($rituals as $majikdiscipline => $rituallist) {
 				$pdf->Divider($majikdiscipline . ' Rituals');
 					foreach ($rituallist as $ritual) {
-						$pdf->FullWidthText("(Level " . $ritual[level] . ") " . $ritual[name]);
+						$pdf->FullWidthText("(Level " . $ritual[level] . ") " . $ritual[name] . " - " . $ritual[description]);
 					} 
 				}
-			
 			}
 			
 			/* Combo Disciplines */
