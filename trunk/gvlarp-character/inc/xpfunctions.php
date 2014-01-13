@@ -184,6 +184,7 @@ function render_select_spends($character) {
 	
 	$xp_total      = get_total_xp($playerID, $characterID);
 	$xp_pending    = get_pending_xp($characterID);
+	$xp_avail      = $xp_total - $xp_pending;
 	$fulldoturl    = plugins_url( 'gvlarp-character/images/viewfulldot.jpg' );
 	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
 	$pendingdoturl = plugins_url( 'gvlarp-character/images/pendingdot.jpg' );
@@ -211,12 +212,12 @@ function render_select_spends($character) {
 	/* get the current pending spends for this character */
 	$pendingSpends = get_pending($characterID);
 	
-	$sectioncontent['stat']   = render_stats($characterID, $maxRating, $pendingSpends);
-	$sectioncontent['skill']  = render_skills($characterID, $maxRating, $pendingSpends);
-	$sectioncontent['disc']   = render_disciplines($characterID, $maxDiscipline, $pendingSpends);
-	$sectioncontent['path']   = render_paths($characterID, 5, $pendingSpends);
-	$sectioncontent['ritual'] = render_rituals($characterID, 5, $pendingSpends);
-	$sectioncontent['merit']  = render_merits($characterID, $pendingSpends);
+	$sectioncontent['stat']   = render_stats($characterID, $maxRating, $pendingSpends, $xp_avail);
+	$sectioncontent['skill']  = render_skills($characterID, $maxRating, $pendingSpends, $xp_avail);
+	$sectioncontent['disc']   = render_disciplines($characterID, $maxDiscipline, $pendingSpends, $xp_avail);
+	$sectioncontent['path']   = render_paths($characterID, 5, $pendingSpends, $xp_avail);
+	$sectioncontent['ritual'] = render_rituals($characterID, 5, $pendingSpends, $xp_avail);
+	$sectioncontent['merit']  = render_merits($characterID, $pendingSpends, $xp_avail);
 	
 	
 	/* DISPLAY TABLES 
@@ -478,7 +479,7 @@ function render_details_section($type) {
 	
 	return $output;
 }
-function render_stats($characterID, $maxRating, $pendingSpends) {
+function render_stats($characterID, $maxRating, $pendingSpends, $xp_avail) {
 	global $wpdb;
 	
 	$sql = "SELECT 
@@ -519,7 +520,7 @@ function render_stats($characterID, $maxRating, $pendingSpends) {
 	//echo "<p>SQL: $sql</p>";
 	$character_stats_xp = $wpdb->get_results($sql);
 	
-	$rowoutput = render_spend_table('stat', $character_stats_xp, $maxRating, 3);
+	$rowoutput = render_spend_table('stat', $character_stats_xp, $maxRating, 3, $xp_avail);
 	
 	if (!empty($rowoutput)) {
 		$output .= "<table>\n";
@@ -530,7 +531,7 @@ function render_stats($characterID, $maxRating, $pendingSpends) {
 	return $output;
 
 }
-function render_skills($characterID, $maxRating, $pendingSpends) {
+function render_skills($characterID, $maxRating, $pendingSpends, $xp_avail) {
 	global $wpdb;
 	
 	/* All the skills currently had, with pending
@@ -646,7 +647,7 @@ function render_skills($characterID, $maxRating, $pendingSpends) {
 	//print_r($skills_list);
 	
 	$rowoutput = render_skill_spend_table('skill', $skills_list, $character_skills_xp, 
-						$maxRating, 3);
+						$maxRating, 3, $xp_avail);
 	
 	if (!empty($rowoutput)) {
 		$output .= "<table>\n";
@@ -658,7 +659,7 @@ function render_skills($characterID, $maxRating, $pendingSpends) {
 
 }
 
-function render_skills_row ($type, $rownum, $max2display, $maxRating, $datarow, $levelsdata) {
+function render_skills_row ($type, $rownum, $max2display, $maxRating, $datarow, $levelsdata, $xp_avail) {
 
 	$fulldoturl    = plugins_url( 'gvlarp-character/images/xpdot.jpg' );
 	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
@@ -717,16 +718,20 @@ function render_skills_row ($type, $rownum, $max2display, $maxRating, $datarow, 
 				if ($datarow->NEXT_VALUE > $datarow->level)
 					$xpcost = $datarow->XP_COST;
 				
-				$comment    = $datarow->name . " " . $datarow->level . " > " . $i;
-			
-				$rowoutput .= "<td class='gvxp_checkbox'>";
-				$rowoutput .= "<input type='hidden'   name='{$type}_cost[" . $rownum . "]'    value='" . $xpcost . "' >";
-				$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $rownum . "]' value='$comment' >";
-				$rowoutput .= "<input type='CHECKBOX' name='{$type}_level[" . $rownum . "]'   value='$i' ";
-				if (isset($levelsdata[$rownum]) && $i == $levelsdata[$rownum])
-					$rowoutput .= "checked";
-				$rowoutput .= ">";
-				$rowoutput .= "</td>";
+				if ($xp_avail >= $xpcost) {
+					$comment    = $datarow->name . " " . $datarow->level . " > " . $i;
+				
+					$rowoutput .= "<td class='gvxp_checkbox'>";
+					$rowoutput .= "<input type='hidden'   name='{$type}_cost[" . $rownum . "]'    value='" . $xpcost . "' >";
+					$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $rownum . "]' value='$comment' >";
+					$rowoutput .= "<input type='CHECKBOX' name='{$type}_level[" . $rownum . "]'   value='$i' ";
+					if (isset($levelsdata[$rownum]) && $i == $levelsdata[$rownum])
+						$rowoutput .= "checked";
+					$rowoutput .= ">";
+					$rowoutput .= "</td>";
+				}
+				else
+					$rowoutput .= "<td class='gvxp_dot'><img src='$emptydoturl'></td>";
 			}
 			else
 				$rowoutput .= "<td class='gvxp_dot'><img src='$emptydoturl'></td>";
@@ -734,7 +739,7 @@ function render_skills_row ($type, $rownum, $max2display, $maxRating, $datarow, 
 	}
 	
 		
-	$xpcost = $xpcost ? "(" . $xpcost . " XP)" : "";
+	$xpcost = ($xpcost && $xp_avail >= $xpcost) ? "(" . $xpcost . " XP)" : "";
 	if ($datarow->has_pending)
 		//$rowoutput .= "<td class='gvxp_checkbox'><input type='CHECKBOX' name='{$type}_cancel[$rownum]' value='{$datarow->pending_id}'><label>clear</label></td>";
 		$rowoutput .= "<td class='gvcol_cost'><input class='gvxp_clear' type='submit' name=\"{$type}_cancel[{$datarow->pending_id}]\" value=\"Clear\"></td>";
@@ -767,7 +772,7 @@ function reformat_skills_xp ($input) {
 }
 
 
-function render_disciplines($characterID, $maxRating, $pendingSpends) {
+function render_disciplines($characterID, $maxRating, $pendingSpends, $xp_avail) {
 	global $wpdb;
 	
 	$sql = "SELECT
@@ -844,7 +849,7 @@ function render_disciplines($characterID, $maxRating, $pendingSpends) {
     //echo "<p>SQL: $sql</p>";
 	$character_data = $wpdb->get_results($sql);
 	
-	$rowoutput = render_spend_table('disc', $character_data, $maxRating, 3);
+	$rowoutput = render_spend_table('disc', $character_data, $maxRating, 3, $xp_avail);
 	
 	if (!empty($rowoutput)) {
 		$output .= "<table>\n";
@@ -855,7 +860,7 @@ function render_disciplines($characterID, $maxRating, $pendingSpends) {
 	return $output;
 
 }
-function render_paths($characterID, $maxRating, $pendingSpends) {
+function render_paths($characterID, $maxRating, $pendingSpends, $xp_avail) {
 	global $wpdb;
 	
 	$sql = "SELECT
@@ -922,7 +927,7 @@ function render_paths($characterID, $maxRating, $pendingSpends) {
     //echo "<p>SQL: $sql</p>";
 	$character_data = $wpdb->get_results($sql);
 	
-	$rowoutput = render_spend_table('path', $character_data, $maxRating, 3);
+	$rowoutput = render_spend_table('path', $character_data, $maxRating, 3, $xp_avail);
 	
 	if (!empty($rowoutput)) {
 		$output .= "<table>\n";
@@ -933,7 +938,7 @@ function render_paths($characterID, $maxRating, $pendingSpends) {
 	return $output;
 
 }
-function render_rituals($characterID, $maxRating, $pendingSpends) {
+function render_rituals($characterID, $maxRating, $pendingSpends, $xp_avail) {
 	global $wpdb;
 	
 	$sql = "SELECT
@@ -987,7 +992,7 @@ function render_rituals($characterID, $maxRating, $pendingSpends) {
     //echo "<p>SQL: $sql</p>";
 	$character_data = $wpdb->get_results($sql);
 	
-	$rowoutput = render_ritual_spend_table('ritual', $character_data, 2);
+	$rowoutput = render_ritual_spend_table('ritual', $character_data, 2, $xp_avail);
 	
 	if (!empty($rowoutput)) {
 		$output .= "<table>\n";
@@ -998,7 +1003,7 @@ function render_rituals($characterID, $maxRating, $pendingSpends) {
 	return $output;
 
 }
-function render_merits($characterID, $pendingSpends) {
+function render_merits($characterID, $pendingSpends, $xp_avail) {
 	global $wpdb;
 	
 	$sql = "SELECT 
@@ -1074,7 +1079,7 @@ function render_merits($characterID, $pendingSpends) {
 	$merits_list = $wpdb->get_results($sql);
     //echo "<p>SQL: $sql</p>";
 	
-	$rowoutput = render_merit_spend_table('merit', $merits_list, $character_merit_xp, 2);
+	$rowoutput = render_merit_spend_table('merit', $merits_list, $character_merit_xp, 2, $xp_avail);
 	
 	if (!empty($rowoutput)) {
 		$output .= "<table>\n";
@@ -1086,7 +1091,7 @@ function render_merits($characterID, $pendingSpends) {
 
 }
 
-function render_spend_table($type, $allxpdata, $maxRating, $columns) {
+function render_spend_table($type, $allxpdata, $maxRating, $columns, $xp_avail) {
 
 	$fulldoturl    = plugins_url( 'gvlarp-character/images/xpdot.jpg' );
 	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
@@ -1165,20 +1170,25 @@ function render_spend_table($type, $allxpdata, $maxRating, $columns) {
 						$rowoutput .= "<td class='gvxp_dot'><img src='$emptydoturl'></td>";
 				else
 					if ($xpdata->NEXT_VALUE == $i) {
-					
+						
 						if ($xpdata->NEXT_VALUE > $xpdata->level)
 							$xpcost = $xpdata->XP_COST;
+							
+						if ($xp_avail >= $xpcost) {
+								
+							$comment    = htmlentities($xpdata->name, ENT_QUOTES) . " " . $xpdata->level . " > " . $i;
 						
-						$comment    = htmlentities($xpdata->name, ENT_QUOTES) . " " . $xpdata->level . " > " . $i;
-					
-						$rowoutput .= "<td class='gvxp_checkbox'>";
-						$rowoutput .= "<input type='hidden'   name='{$type}_cost[" . $id . "]'    value='" . $xpcost . "' >";
-						$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $id . "]' value='$comment' >";
-						$rowoutput .= "<input type='CHECKBOX' name='{$type}_level[" . $id . "]'   value='$i' ";
-						if (isset($levelsdata[$id]) && $i == $levelsdata[$id])
-							$rowoutput .= "checked";
-						$rowoutput .= ">";
-						$rowoutput .= "</td>";
+							$rowoutput .= "<td class='gvxp_checkbox'>";
+							$rowoutput .= "<input type='hidden'   name='{$type}_cost[" . $id . "]'    value='" . $xpcost . "' >";
+							$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $id . "]' value='$comment' >";
+							$rowoutput .= "<input type='CHECKBOX' name='{$type}_level[" . $id . "]'   value='$i' ";
+							if (isset($levelsdata[$id]) && $i == $levelsdata[$id])
+								$rowoutput .= "checked";
+							$rowoutput .= ">";
+							$rowoutput .= "</td>";
+						}
+						else
+							$rowoutput .= "<td class='gvxp_dot'><img src='$emptydoturl'></td>";
 					}
 					else
 						$rowoutput .= "<td class='gvxp_dot'><img src='$emptydoturl'></td>";
@@ -1186,7 +1196,7 @@ function render_spend_table($type, $allxpdata, $maxRating, $columns) {
 			}
 			
 				
-			$xpcost = $xpcost ? "(" . $xpcost . " XP)" : "";
+			$xpcost = ($xpcost && $xp_avail >= $xpcost) ? "(" . $xpcost . " XP)" : "";
 			if ($xpdata->has_pending)
 				//$rowoutput .= "<td class='gvxp_checkbox'><input type='CHECKBOX' name='{$type}_cancel[$id]' value='{$xpdata->pending_id}'><label>clear</label></td>";
 				$rowoutput .= "<td class='gvcol_cost'><input class='gvxp_clear' type='submit' name=\"{$type}_cancel[{$xpdata->pending_id}]\" value=\"Clear\"></td>";
@@ -1204,7 +1214,7 @@ function render_spend_table($type, $allxpdata, $maxRating, $columns) {
 }
 
 
-function render_skill_spend_table($type, $list, $allxpdata, $maxRating, $columns) {
+function render_skill_spend_table($type, $list, $allxpdata, $maxRating, $columns, $xp_avail) {
 
 	$levelsdata    = $_REQUEST[$type . '_level'];
 
@@ -1241,17 +1251,17 @@ function render_skill_spend_table($type, $list, $allxpdata, $maxRating, $columns
 				//loop through array
 				foreach ($allxpdata[$skill->item_id] as $xpdatarow) {
 					//echo "<li>$id : {$xpdatarow->name} : {$xpdatarow->comment}</li>";
-					$rowoutput .= render_skills_row($type, $id, $max2display, $maxRating, $xpdatarow, $levelsdata);
+					$rowoutput .= render_skills_row($type, $id, $max2display, $maxRating, $xpdatarow, $levelsdata, $xp_avail);
 					$id++;
 					if ($skill->MULTIPLE == 'Y' && !array_key_exists($skill->item_id,$multipleonce)) {
 						$multipleonce[$skill->item_id] = 1;
-						$rowoutput .= render_skills_row($type, $id, $max2display, $maxRating, $skill, $levelsdata);
+						$rowoutput .= render_skills_row($type, $id, $max2display, $maxRating, $skill, $levelsdata, $xp_avail);
 						$id++;
 					}
 				}
 			} else {
 				if ($skill->VISIBLE == 'Y') {
-					$rowoutput .= render_skills_row($type, $id, $max2display, $maxRating, $skill, $levelsdata);
+					$rowoutput .= render_skills_row($type, $id, $max2display, $maxRating, $skill, $levelsdata, $xp_avail);
 					$id++;
 				}
 			}
@@ -1263,7 +1273,7 @@ function render_skill_spend_table($type, $list, $allxpdata, $maxRating, $columns
 	return $rowoutput;
 }
 
-function render_ritual_spend_table($type, $allxpdata, $columns) {
+function render_ritual_spend_table($type, $allxpdata, $columns, $xp_avail) {
 
 	$fulldoturl    = plugins_url( 'gvlarp-character/images/xpdot.jpg' );
 	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
@@ -1318,21 +1328,25 @@ function render_ritual_spend_table($type, $allxpdata, $columns) {
 			else {
 				$xpcost = $xpdata->XP_COST;
 				
-				$comment    = "Learn Level {$xpdata->rituallevel} {$xpdata->grp} ritual {$xpdata->name}";
-			
-				$rowoutput .= "<td class='gvxp_checkbox'>";
-				$rowoutput .= "<input type='hidden'   name='{$type}_cost[" . $id . "]'    value='" . $xpcost . "' >";
-				$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $id . "]' value='$comment' >";
-				$rowoutput .= "<input type='CHECKBOX' name='{$type}_level[" . $id . "]'   value='{$xpdata->rituallevel}' ";
-				if (isset($levelsdata[$id]))
-					$rowoutput .= "checked";
-				$rowoutput .= ">";
-				$rowoutput .= "</td>";
+				if ($xp_avail >= $xpcost) {
+					$comment    = "Learn Level {$xpdata->rituallevel} {$xpdata->grp} ritual {$xpdata->name}";
+				
+					$rowoutput .= "<td class='gvxp_checkbox'>";
+					$rowoutput .= "<input type='hidden'   name='{$type}_cost[" . $id . "]'    value='" . $xpcost . "' >";
+					$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $id . "]' value='$comment' >";
+					$rowoutput .= "<input type='CHECKBOX' name='{$type}_level[" . $id . "]'   value='{$xpdata->rituallevel}' ";
+					if (isset($levelsdata[$id]))
+						$rowoutput .= "checked";
+					$rowoutput .= ">";
+					$rowoutput .= "</td>";
+				} else
+					$rowoutput .= "<td class='gvxp_dot'><img src='$emptydoturl'></td>";
+				
 			}
 						
 			
 				
-			$xpcost = $xpcost ? "(" . $xpcost . " XP)" : "";
+			$xpcost = ($xpcost && $xp_avail >= $xpcost) ? "(" . $xpcost . " XP)" : "";
 			if ($xpdata->has_pending)
 				$rowoutput .= "<td class='gvcol_cost'><input class='gvxp_clear' type='submit' name=\"{$type}_cancel[{$xpdata->pending_id}]\" value=\"Clear\"></td>";
 			else
@@ -1347,7 +1361,7 @@ function render_ritual_spend_table($type, $allxpdata, $columns) {
 
 	return $rowoutput;
 }
-function render_merit_spend_table($type, $list, $allxpdata, $columns) {
+function render_merit_spend_table($type, $list, $allxpdata, $columns, $xp_avail) {
 
 	$levelsdata    = $_REQUEST[$type . '_level'];
 
@@ -1384,7 +1398,7 @@ function render_merit_spend_table($type, $list, $allxpdata, $columns) {
 				//loop through array
 				foreach ($allxpdata[$merit->item_id] as $xpdatarow) {
 					//echo "<li>$id : {$xpdatarow->name} : {$xpdatarow->comment}</li>";
-					$rowoutput .= render_merits_row($type, $id, $xpdatarow, $levelsdata);
+					$rowoutput .= render_merits_row($type, $id, $xpdatarow, $levelsdata, $xp_avail);
 					$id++;
 					if ($merit->MULTIPLE == 'Y' 
 						&& !array_key_exists($merit->item_id,$multipleonce)
@@ -1393,14 +1407,14 @@ function render_merit_spend_table($type, $list, $allxpdata, $columns) {
 						) {
 						//echo "<li>$id : {$merit->name} : {$merit->comment}</li>";
 						$multipleonce[$merit->item_id] = 1;
-						$rowoutput .= render_merits_row($type, $id, $merit, $levelsdata);
+						$rowoutput .= render_merits_row($type, $id, $merit, $levelsdata, $xp_avail);
 						$id++;
 					}
 				}
 			} else {
 				if ($merit->VISIBLE == 'Y' && $merit->level >= 0 && $merit->XP_COST > 0 ) {
 					//echo "<li>$id : {$merit->name} : {$merit->comment}</li>";
-					$rowoutput .= render_merits_row($type, $id, $merit, $levelsdata);
+					$rowoutput .= render_merits_row($type, $id, $merit, $levelsdata, $xp_avail);
 					$id++;
 				}
 			}
@@ -1412,7 +1426,7 @@ function render_merit_spend_table($type, $list, $allxpdata, $columns) {
 	return $rowoutput;
 }
 
-function render_merits_row ($type, $id, $xpdata, $levelsdata) {
+function render_merits_row ($type, $id, $xpdata, $levelsdata, $xp_avail) {
 
 	$fulldoturl    = plugins_url( 'gvlarp-character/images/xpdot.jpg' );
 	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
@@ -1443,33 +1457,41 @@ function render_merits_row ($type, $id, $xpdata, $levelsdata) {
 		$rowoutput .= "<td class='gvxp_dot'><img src='$pendingdoturl'></td>";
 	elseif ($xpdata->level < 0)  // flaw
 		if($xpcost) {
-			$comment    = "Buy off level " . ($xpdata->level * -1) . " Flaw {$xpdata->name}";
-			$rowoutput .= "<td class='gvxp_checkbox'>";
-			$rowoutput .= "<input type='hidden'   name='{$type}_cost[" . $id . "]'    value='" . $xpcost . "' >";
-			$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $id . "]' value='$comment' >";
-			$rowoutput .= "<input type='CHECKBOX' name='{$type}_level[" . $id . "]'   value='{$xpdata->level}' ";
-			if (isset($levelsdata[$id]))
-				$rowoutput .= "checked";
-			$rowoutput .= ">";
-			$rowoutput .= "</td>";
+			if ($xp_avail >= $xpcost) {
+				$comment    = "Buy off level " . ($xpdata->level * -1) . " Flaw {$xpdata->name}";
+				$rowoutput .= "<td class='gvxp_checkbox'>";
+				$rowoutput .= "<input type='hidden'   name='{$type}_cost[" . $id . "]'    value='" . $xpcost . "' >";
+				$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $id . "]' value='$comment' >";
+				$rowoutput .= "<input type='CHECKBOX' name='{$type}_level[" . $id . "]'   value='{$xpdata->level}' ";
+				if (isset($levelsdata[$id]))
+					$rowoutput .= "checked";
+				$rowoutput .= ">";
+				$rowoutput .= "</td>";
+			}
+			else
+				$rowoutput .= "<td class='gvxp_dot'><img src='$emptydoturl'></td>";
 		} else
 			$rowoutput .= "<td></td>";
 	else
 		if ($xpdata->id)
 			$rowoutput .= "<td></td>";
 		else {
-			$comment    = "Buy level {$xpdata->level} Merit {$xpdata->name}";
-			$rowoutput .= "<td class='gvxp_checkbox'>";
-			$rowoutput .= "<input type='hidden'   name='{$type}_cost[" . $id . "]'    value='" . $xpcost . "' >";
-			$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $id . "]' value='$comment' >";
-			$rowoutput .= "<input type='CHECKBOX' name='{$type}_level[" . $id . "]'   value='{$xpdata->level}' ";
-			if (isset($levelsdata[$id]))
-				$rowoutput .= "checked";
-			$rowoutput .= ">";
-			$rowoutput .= "</td>";
+			if ($xp_avail >= $xpcost) {
+				$comment    = "Buy level {$xpdata->level} Merit {$xpdata->name}";
+				$rowoutput .= "<td class='gvxp_checkbox'>";
+				$rowoutput .= "<input type='hidden'   name='{$type}_cost[" . $id . "]'    value='" . $xpcost . "' >";
+				$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $id . "]' value='$comment' >";
+				$rowoutput .= "<input type='CHECKBOX' name='{$type}_level[" . $id . "]'   value='{$xpdata->level}' ";
+				if (isset($levelsdata[$id]))
+					$rowoutput .= "checked";
+				$rowoutput .= ">";
+				$rowoutput .= "</td>";
+			}
+			else
+				$rowoutput .= "<td class='gvxp_dot'><img src='$emptydoturl'></td>";
 		} 
 		
-	$xpcost = $xpdata->XP_COST ? "(" . $xpdata->XP_COST . " XP)" : "";
+	$xpcost = ($xpdata->XP_COST && $xp_avail >= $xpcost) ? "(" . $xpdata->XP_COST . " XP)" : "";
 	if ($xpdata->has_pending)
 		$rowoutput .= "<td class='gvcol_cost'><input class='gvxp_clear' type='submit' name=\"{$type}_cancel[{$xpdata->pending_id}]\" value=\"Clear\"></td>";
 	elseif ($xpdata->id && $xpdata->level >= 0)
