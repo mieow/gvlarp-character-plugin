@@ -384,6 +384,7 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
 		$data = $wpdb->get_results($sql);
 		
 		$table    = $data[0]->CHARTABLE;
+		$approvalok = 0;
 		
 		/* add to sheet */
 		switch ($table) {
@@ -406,41 +407,47 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
 			$result = $this->approve_merit($data[0]);
 			break;
 		}
-		if ($result) echo "<p style='color:green'>Approved spend</p>";
+		if ($result) {
+			echo "<p style='color:green'>Approved spend</p>";
+			$approvalok = 1;
+		}
 		else echo "<p style='color:red'>Could not approve spend</p>";
 		
-		/* update current XP */
-		$sql = "SELECT ID FROM " . GVLARP_TABLE_PREFIX . "XP_REASON WHERE NAME = 'XP Spend'";
-		$result = $wpdb->get_results($sql);
+		if ($approvalok) {
+			/* update current XP */
+			$sql = "SELECT ID FROM " . GVLARP_TABLE_PREFIX . "XP_REASON WHERE NAME = 'XP Spend'";
+			$result = $wpdb->get_results($sql);
+			
+			$specialisation = $data[0]->SPECIALISATION ? ("(" . $data[0]->SPECIALISATION . ") ") : "";
+			touch_last_updated($data[0]->CHARACTER_ID);
+			
+			$data = array (
+				'PLAYER_ID'    => $data[0]->PLAYER_ID,
+				'CHARACTER_ID' => $data[0]->CHARACTER_ID,
+				'XP_REASON_ID' => $result[0]->ID,
+				'AWARDED'      => $data[0]->AWARDED,
+				'AMOUNT'       => $data[0]->AMOUNT,
+				'COMMENT'	   => $specialisation . $data[0]->COMMENT
+			);
+			$wpdb->insert(GVLARP_TABLE_PREFIX . "PLAYER_XP",
+							$data,
+							array (
+								'%d',
+								'%d',
+								'%d',
+								'%s',
+								'%d',
+								'%s'
+							)
+						);
+			if ($wpdb->insert_id  == 0) {
+				echo "<p style='color:red'><b>Error:</b> XP spend not added";
+			} 
+			
+			/* then delete from pending */
+			$this->delete_pending($selectedID);
 		
-		$specialisation = $data[0]->SPECIALISATION ? ("(" . $data[0]->SPECIALISATION . ") ") : "";
-		touch_last_updated($data[0]->CHARACTER_ID);
-		
-		$data = array (
-			'PLAYER_ID'    => $data[0]->PLAYER_ID,
-			'CHARACTER_ID' => $data[0]->CHARACTER_ID,
-			'XP_REASON_ID' => $result[0]->ID,
-			'AWARDED'      => $data[0]->AWARDED,
-			'AMOUNT'       => $data[0]->AMOUNT,
-			'COMMENT'	   => $specialisation . $data[0]->COMMENT
-		);
-		$wpdb->insert(GVLARP_TABLE_PREFIX . "PLAYER_XP",
-						$data,
-						array (
-							'%d',
-							'%d',
-							'%d',
-							'%s',
-							'%d',
-							'%s'
-						)
-					);
-		if ($wpdb->insert_id  == 0) {
-			echo "<p style='color:red'><b>Error:</b> XP spend not added";
-		} 
-		
-		/* then delete from pending */
-		$this->delete_pending($selectedID);
+		}
 		
 	}
 	
@@ -672,7 +679,7 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
 					players.ID = pending.PLAYER_ID
 					AND characters.ID = pending.CHARACTER_ID";
 		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']))
-			$sql .= " ORDER BY questions.{$_REQUEST['orderby']} {$_REQUEST['order']}";
+			$sql .= " ORDER BY {$_REQUEST['orderby']} {$_REQUEST['order']}";
 		
 		/* echo "<p>SQL: $sql</p>"; */
 		$data =$wpdb->get_results($sql);
@@ -1030,7 +1037,7 @@ class gvadmin_xpassign_table extends GVMultiPage_ListTable {
 					AND chara.DELETED != 'Y'
 				ORDER BY PLAYER, CHARACTERNAME, cstatus.ID, CHARACTER_XP";
 		
-		echo "<p>SQL: $sql</p>";
+		//echo "<p>SQL: $sql</p>";
 		$data =$wpdb->get_results($sql);
 		$this->items = $data;
         
