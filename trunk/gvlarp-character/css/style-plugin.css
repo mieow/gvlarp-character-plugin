@@ -374,6 +374,12 @@ div#csheet {
 #gvid_xpst .gvxp_spec {
 	border-bottom: 1px dashed red;
 }
+#gvid_xpst .gvxp_dot {
+    width:15px;
+	font-size: 0.7em;
+	margin: 0px;
+	padding: 0px;
+}
 .gvxp_dot {
     width:15px;
 	font-size: 0.7em;
