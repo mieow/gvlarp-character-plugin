@@ -832,6 +832,7 @@ function render_xp_by_player () {
 				AND pstatus.NAME = 'Active'
 				AND cstatus.NAME != 'Dead'
 				AND chara.DELETED != 'Y'
+				AND chara.VISIBLE = 'Y'
 			GROUP BY chara.ID
 			ORDER BY PLAYER, CHARACTERNAME, cstatus.ID";
 	
@@ -894,6 +895,7 @@ function render_xp_by_character () {
 				AND pstatus.NAME = 'Active'
 				AND cstatus.NAME != 'Dead'
 				AND chara.DELETED != 'Y'
+				AND chara.VISIBLE = 'Y'
 			GROUP BY chara.ID
 			ORDER BY PLAYER, CHARACTERNAME, cstatus.ID, CHARACTER_XP";
 	
