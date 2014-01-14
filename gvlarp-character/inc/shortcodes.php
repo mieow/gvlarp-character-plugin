@@ -552,7 +552,7 @@ function print_character_xp_table($atts, $content=null) {
 		$sql = "$sqlSpent
 				UNION
 				$sqlPending
-				ORDER BY awarded";
+				ORDER BY awarded, comment";
 		$sql = $wpdb->prepare($sql, $filterid, $filterid);	
 		$character_xp = $wpdb->get_results($sql);
 
