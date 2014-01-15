@@ -500,6 +500,11 @@ add_shortcode('merit_table', 'print_merit_shortcode');
 
 function print_character_xp_table($atts, $content=null) {
 	extract(shortcode_atts(array ("character" => "null", "group" => "", "maxrecords" => "20"), $atts));
+	
+	if (!is_user_logged_in()) {
+		return "You must be logged in to view this content";
+	}
+	
 	$character   = establishCharacter($character);
 	$characterID = establishCharacterID($character);
 	$playerID    = establishPlayerID($character);
@@ -738,5 +743,351 @@ function print_map($atts, $content = null) {
 	return $output;
 }
 add_shortcode('feeding_map', 'print_map');
+
+function print_character_road_or_path_table($atts, $content=null) {
+	extract(shortcode_atts(array ("character" => "null", "group" => "", "maxrecords" => "20"), $atts));
 	
+	if (!is_user_logged_in()) {
+		return "You must be logged in to view this content";
+	}
+	
+	$character = establishCharacter($character);
+
+	global $wpdb;
+	$table_prefix = GVLARP_TABLE_PREFIX;
+
+	$sql = "SELECT chara.name char_name, preason.name reason_name, cpath.amount, cpath.comment, cpath.awarded, total_path
+					FROM " . $table_prefix . "CHARACTER chara,
+						 " . $table_prefix . "CHARACTER_ROAD_OR_PATH cpath,
+						 " . $table_prefix . "PATH_REASON preason,
+						 (SELECT character_path.character_id, SUM(character_path.amount) total_path
+						  FROM " . $table_prefix . "CHARACTER_ROAD_OR_PATH character_path
+						  GROUP BY character_path.character_id) path_totals
+					WHERE path_totals.character_id = chara.id
+					  AND chara.DELETED != 'Y'
+					  AND cpath.path_reason_id = preason.id
+					  AND cpath.character_id = chara.ID
+					  AND chara.WORDPRESS_ID = %s
+					ORDER BY cpath.awarded, cpath.id";
+
+	$character_path = $wpdb->get_results($wpdb->prepare($sql, $character));
+
+	if ($group != "total" && $group != "TOTAL") {
+		$output .= "<table class='gvplugin' id=\"" . get_shortcode_id("gvid_crpt") . "\">
+						   <tr><th class=\"gvthead gvcol_1\">Path Reason</th>
+							   <th class=\"gvthead gvcol_2\">Path Amount</th>
+							   <th class=\"gvthead gvcol_3\">Comment</th>
+							   <th class=\"gvthead gvcol_4\">Date of award</th></tr>";
+
+		$arr = array();
+		$i = 0;
+		$path_total = 0;
+		foreach ($character_path as $current_path) {
+			$arr[$i] = "<tr><td class=\"gvcol_1 gvcol_val\">" . $current_path->reason_name . "</td><td class=\"gvcol_2 gvcol_val\">"
+				. $current_path->amount      . "</td><td class=\"gvcol_3 gvcol_val\">"
+				. stripslashes($current_path->comment)     . "</td><td class='gvcol_4 gvcol_val'>"
+				. $current_path->awarded     . "</td></tr>";
+			$path_total = (int) $current_path->total_path;
+			$i++;
+		}
+
+		$pageSize = 20;
+		if ((int) $maxrecords > 0) {
+			$pageSize = (int) $maxrecords;
+		}
+		$j = 0;
+		if ($i > $pageSize) {
+			$j = $i - $pageSize;
+		}
+
+		while ($j < $i) {
+			$output .= $arr[$j];
+			$j++;
+		}
+
+		$output .= "<tr><td colspan=2>Total </td>
+								<td class=\"gvsummary\" colspan=2>" . $path_total . "</td></tr>";
+
+		$output .= "</table>";
+	}
+	else {
+		$total_path = 0;
+		foreach ($character_path as $current_path) {
+			$total_path = (int) $current_path->total_path;
+		}
+
+		$output = $total_path;
+	}
+
+	return $output;
+}
+add_shortcode('character_road_or_path_table', 'print_character_road_or_path_table');
+
+function print_character_details($atts, $content=null) {
+	extract(shortcode_atts(array ("character" => "null", "group" => ""), $atts));
+	
+	if (!is_user_logged_in()) {
+		return "You must be logged in to view this content";
+	}
+
+	$character = establishCharacter($character);
+
+	global $wpdb;
+	$table_prefix = GVLARP_TABLE_PREFIX;
+	$output    = "";
+
+	$sql = "SELECT chara.name char_name,
+						   pub_clan.name pub_clan,
+						   priv_clan.name priv_clan,
+						   chara.date_of_birth,
+						   chara.date_of_embrace,
+						   gen.name gen,
+						   gen.bloodpool,
+						   gen.blood_per_round,
+						   chara.sire,
+						   status.name status,
+						   chara.character_status_comment status_comment,
+						   domains.name domain,
+						   path.name path_name,
+						   path_totals.path_value,
+						   chara.ID 
+					FROM " . $table_prefix . "CHARACTER chara,
+						 " . $table_prefix . "CLAN pub_clan,
+						 " . $table_prefix . "CLAN priv_clan,
+						 " . $table_prefix . "GENERATION gen,
+						 " . $table_prefix . "CHARACTER_STATUS status,
+						 " . $table_prefix . "DOMAIN domains,
+						 " . $table_prefix . "ROAD_OR_PATH path,
+						 (SELECT character_path.character_id, SUM(character_path.amount) path_value
+						  FROM " . $table_prefix . "CHARACTER_ROAD_OR_PATH character_path
+						  GROUP BY character_path.character_id) path_totals
+					WHERE chara.WORDPRESS_ID = %s
+					  AND chara.public_clan_id      = pub_clan.id
+					  AND chara.private_clan_id     = priv_clan.id
+					  AND chara.generation_id       = gen.id
+					  AND chara.DELETED != 'Y'
+					  AND chara.character_status_id = status.id
+					  AND chara.domain_id           = domains.id
+					  AND chara.road_or_path_id     = path.id
+					  AND chara.id                  = path_totals.character_id";
+
+	$character_details = $wpdb->get_row($wpdb->prepare($sql, $character));
+
+	$config = getConfig();
+	
+	if ($config->USE_NATURE_DEMEANOUR == 'Y') {
+			
+		$sql = "SELECT 
+					natures.name as nature,
+					demeanours.name as demeanour
+				FROM
+					" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
+					" . GVLARP_TABLE_PREFIX . "NATURE natures,
+					" . GVLARP_TABLE_PREFIX . "NATURE demeanours
+				WHERE
+					chara.NATURE_ID = natures.ID
+					AND chara.DEMEANOUR_ID = demeanours.ID
+					AND chara.ID = %s";
+		$result = $wpdb->get_row($wpdb->prepare($sql, $character_details->ID));
+	
+		$character_details->nature   = $result->nature;
+		$character_details->demeanour = $result->demeanour;
+		
+	}
+
+	
+	if ($group == "") {
+		$output  = "<table class='gvplugin' id=\"" . get_shortcode_id("gvid_cdb") . "\"><tr><td class=\"gvcol_1 gvcol_key\">Character_name</td><td class=\"gvcol_2 gvcol_val\">" . $character_details->char_name       . "</td></tr>";
+		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Public Clan</td><td class=\"gvcol_2 gvcol_val\">"           . $character_details->pub_clan        . "</td></tr>";
+		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Private Clan</td><td class=\"gvcol_2 gvcol_val\">"          . $character_details->priv_clan       . "</td></tr>";
+		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Date of Birth</td><td class=\"gvcol_2 gvcol_val\">"         . $character_details->date_of_birth   . "</td></tr>";
+		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Date of Embrace</td><td class=\"gvcol_2 gvcol_val\">"       . $character_details->date_of_embrace . "</td></tr>";
+		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Generation</td><td class=\"gvcol_2 gvcol_val\">"            . $character_details->gen             . "th</td></tr>";
+		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Max Bloodpool</td><td class=\"gvcol_2 gvcol_val\">"         . $character_details->bloodpool       . "</td></tr>";
+		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Max blood per round</td><td class=\"gvcol_2 gvcol_val\">"   . $character_details->blood_per_round . "</td></tr>";
+		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Sire's Name</td><td class=\"gvcol_2 gvcol_val\">"           . $character_details->sire            . "</td></tr>";
+		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Character Status</td><td class=\"gvcol_2 gvcol_val\">"      . $character_details->status          . "</td></tr>";
+		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Status Comment</td><td class=\"gvcol_2 gvcol_val\">"        . $character_details->status_comment  . "</td></tr>";
+		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Current Domain</td><td class=\"gvcol_2 gvcol_val\">"        . $character_details->domain           . "</td></tr>";
+		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Road or Path name</td><td class=\"gvcol_2 gvcol_val\">"     . $character_details->path_name       . "</td></tr>";
+		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Road or Path rating</td><td class=\"gvcol_2 gvcol_val\">"   . $character_details->path_value      . "</td></tr>";
+		
+		if ($config->USE_NATURE_DEMEANOUR == 'Y') {
+			
+			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Nature</td><td class=\"gvcol_2 gvcol_val\">" . $character_details->nature      . "</td></tr>";
+			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Demeanour</td><td class=\"gvcol_2 gvcol_val\">" . $character_details->demeanour      . "</td></tr>";
+		
+		}
+		
+		$output .= "</table>";
+	}
+	else {
+		$output = "<span class=\"gvcol_val\" id=\"gvid_cdeb_" . $group . "\">" . $character_details->$group . "</span>";
+	}
+
+	return $output;
+}
+add_shortcode('character_detail_block', 'print_character_details');
+
+function print_character_offices($atts, $content=null) {
+	extract(shortcode_atts(array ("character" => "null", "group" => ""), $atts));
+	$character = establishCharacter($character);
+	
+	if (!is_user_logged_in()) {
+		return "You must be logged in to view this content";
+	}
+
+	global $wpdb;
+	$table_prefix = GVLARP_TABLE_PREFIX;
+	$output    = "";
+	$sqlOutput = "";
+	$sql = "SELECT office.name office_name, domain.name domain_name, coffice.comment
+					FROM " . $table_prefix . "CHARACTER_OFFICE coffice,
+						 " . $table_prefix . "OFFICE office,
+						 " . $table_prefix . "DOMAIN domain,
+						 " . $table_prefix . "CHARACTER chara
+					WHERE coffice.OFFICE_ID    = office.ID
+					  AND coffice.CHARACTER_ID = chara.ID
+					  AND coffice.DOMAIN_ID     = domain.ID
+					  AND chara.DELETED != 'Y'
+					  AND chara.WORDPRESS_ID = %s
+				   ORDER BY office.ordering, office.name, domain.name";
+
+	$character_offices = $wpdb->get_results($wpdb->prepare($sql, $character));
+
+	foreach ($character_offices as $current_office) {
+		$sqlOutput .="<tr><td class=\"gvcol_1 gvcol_key\">"  . $current_office->office_name . "</td>
+								  <td class=\"gvcol_2 gvcol_val\">"  . $current_office->domain_name  . "</td>
+								  <td class=\"gvcol_3 gvcol_spec\">" . stripslashes($current_office->comment)     . "</td></tr>";
+	}
+
+	if ($sqlOutput != "") {
+		$output = "<table class='gvplugin' id=\"" . get_shortcode_id("cxpt") . "\" >" . $sqlOutput . "</table>";
+	}
+	else {
+		$output = "";
+	}
+
+	return $output;
+}
+add_shortcode('character_offices_block', 'print_character_offices');
+
+function print_character_temp_stats($atts, $content=null) {
+	extract(shortcode_atts(array ("character" => "null", "stat" => "Willpower"), $atts));
+	$character = establishCharacter($character);
+
+	if (!is_user_logged_in()) {
+		return "You must be logged in to view this content";
+	}
+	
+	global $wpdb;
+	$table_prefix = GVLARP_TABLE_PREFIX;
+
+	$sqlOutput = "";
+	$sql = "SELECT char_temp_stat.character_id, SUM(char_temp_stat.amount) total_temp_stat
+			FROM " . $table_prefix . "CHARACTER_TEMPORARY_STAT char_temp_stat,
+				 " . $table_prefix . "CHARACTER chara,
+				 " . $table_prefix . "TEMPORARY_STAT tstat
+			WHERE char_temp_stat.character_id      = chara.id
+			  AND char_temp_stat.temporary_stat_id = tstat.id
+			  AND tstat.name         = %s
+			  AND chara.WORDPRESS_ID = %s
+			GROUP BY char_temp_stat.character_id, char_temp_stat.temporary_stat_id";
+
+	$character_temp_stats = $wpdb->get_results($wpdb->prepare($sql, $stat, $character));
+
+	foreach ($character_temp_stats as $current_temp_stat) {
+		$sqlOutput = $current_temp_stat->total_temp_stat;
+	}
+
+	$output = "";
+	if ($sqlOutput != "") {
+		if ($stat == "Willpower") {
+			$output = "<span id=\"" . get_shortcode_id("gvid_ctw_willpower") . "\" class=\"gvcol_val\">" . $sqlOutput . "</span>";
+		}
+		else if ($stat == "Blood") {
+			$output = "<span id=\"" . get_shortcode_id("gvid_ctw_bloodpool") . "\" class=\"gvcol_val\">" . $sqlOutput . "</span>";
+		}
+	}
+	else {
+		$output = "";
+	}
+
+	return $output;
+}
+add_shortcode('character_temp_stats', 'print_character_temp_stats');
+
+function print_office_block($atts, $content=null) {
+	extract(shortcode_atts(array ("domain" => "Glasgow", "office" => ""), $atts));
+
+	global $wpdb;
+	$table_prefix = GVLARP_TABLE_PREFIX;
+	$output    = "";
+	$sqlOutput = "";
+
+	$sql = "SELECT chara.name charname, office.name oname, domain.name domainname, office.ordering, coffice.comment
+					FROM " . $table_prefix . "CHARACTER chara,
+						 " . $table_prefix . "CHARACTER_OFFICE coffice,
+						 " . $table_prefix . "OFFICE office,
+						 " . $table_prefix . "DOMAIN domain
+					WHERE coffice.character_id = chara.id
+					  AND coffice.office_id    = office.id
+					  AND coffice.domain_id     = domain.id
+					  AND chara.deleted        = 'N'
+					  AND domain.name = %s ";
+	if (!isSt()) {
+		$sql .= " AND office.visible = 'Y' AND chara.visible = 'Y' ";
+	}
+	if ($office != null && $office != "") {
+		$sql .= " AND office.name = %s ";
+	}
+	$sql .= "ORDER BY domainname, office.ordering, charname";
+
+	if ($office != null && $office != "") {
+		$characterOffices = $wpdb->get_results($wpdb->prepare($sql, $domain, $office));
+	}
+	else {
+		$characterOffices = $wpdb->get_results($wpdb->prepare($sql, $domain));
+	}
+
+	if ($office == null || $office == "") {
+		$currentOffice = "";
+		$lastOffice    = "";
+
+		foreach ($characterOffices as $characterOffice) {
+			$currentOffice = $characterOffice->oname;
+			if ($currentOffice != $lastOffice) {
+				$sqlOutput .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $characterOffice->oname . "</td>";
+				$lastOffice = $currentOffice;
+			}
+			else {
+				$sqlOutput .= "<tr><td class=\"gvcol_1 gvcol_key\">&nbsp;</td>";
+			}
+			$sqlOutput .= "<td class=\"gvcol_2 gvcol_val\">" . $characterOffice->charname . "</td><td class=\"gvcol_3 gvcol_val\">" . stripslashes($characterOffice->comment) . "</td></tr>";
+		}
+
+		if ($sqlOutput != "") {
+			$output = "<table class='gvplugin' id=\"" . get_shortcode_id("gvid_cob") . "\">" . $sqlOutput . "</table>";
+		}
+		else {
+			$output = "No office holders found for the domain of " . $domain;
+		}
+	}
+	else {
+		foreach ($characterOffices as $characterOffice) {
+			if ($output != "") {
+				$output .= ", ";
+			}
+			$output .= $characterOffice->charname;
+		}
+		if ($output == "") {
+			$output = "No current holder of " . $office . " in " . $domain . " found.";
+		}
+	}
+	return $output;
+}
+add_shortcode('office_block', 'print_office_block');
+
+
+
 ?>
