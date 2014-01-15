@@ -102,13 +102,13 @@ function get_viewcharacter_content() {
 	$skill     = $mycharacter->getAbilities("Skills");
 	$knowledge = $mycharacter->getAbilities("Knowledges");
 	
-	$abilrows = 1;
-	if ($abilrows < count($talent)) $abilrows = count($talent);
-	if ($abilrows < count($skill)) $abilrows = count($skill);
-	if ($abilrows < count($knowledge)) $abilrows = count($knowledge);
+	//$abilrows = 1;
+	//if ($abilrows < count($talent)) $abilrows = count($talent);
+	//if ($abilrows < count($skill)) $abilrows = count($skill);
+	//if ($abilrows < count($knowledge)) $abilrows = count($knowledge);
 
 	$content .= "<tr><td colspan=2><table>\n";
-	for ($i=0;$i<$abilrows;$i++) {
+	for ($i=0;$i<count($talent);$i++) {
 		$content .= "<tr>
 				<td class='gvcol_key'>" . $talent[$i]->skillname               . "</td>
 				<td class='gvcol_spec'>" . stripslashes($talent[$i]->specialty) . "</td>
@@ -116,7 +116,7 @@ function get_viewcharacter_content() {
 			</tr>";
 	}
 	$content .= "</table></td><td colspan=2><table>";
-	for ($i=0;$i<$abilrows;$i++) {
+	for ($i=0;$i<count($skill);$i++) {
 		$content .= "<tr>
 				<td class='gvcol_key'>" . $skill[$i]->skillname               . "</td>
 				<td class='gvcol_spec'>" . stripslashes($skill[$i]->specialty) . "</td>
@@ -124,7 +124,7 @@ function get_viewcharacter_content() {
 			</tr>";
 	}
 	$content .= "</table></td><td colspan=2><table>";
-	for ($i=0;$i<$abilrows;$i++) {
+	for ($i=0;$i<count($knowledge);$i++) {
 		$content .= "<tr>
 				<td class='gvcol_key'>" . $knowledge[$i]->skillname               . "</td>
 				<td class='gvcol_spec'>" . stripslashes($knowledge[$i]->specialty) . "</td>
@@ -152,17 +152,17 @@ function get_viewcharacter_content() {
 	foreach ($secondarygroups as $group)
 			$secondary = array_merge($mycharacter->getAbilities($group), $secondary);	
 	
-	$rows = 1;
-	if ($rows < count($backgrounds)) $rows = count($backgrounds);
-	if ($rows < count($disciplines)) $rows = count($disciplines);
-	if ($rows < count($secondary)) $rows = count($secondary);
+	//$rows = 1;
+	//if ($rows < count($backgrounds)) $rows = count($backgrounds);
+	//if ($rows < count($disciplines)) $rows = count($disciplines);
+	//if ($rows < count($secondary)) $rows = count($secondary);
 
 	$content .= "<tr>
 			<td colspan=2><h4>Backgrounds</h4></td>
 			<td colspan=2><h4>Disciplines</h4></td>
 			<td colspan=2><h4>Secondary</h4></td>
 		</tr><tr><td colspan=2><table>\n";
-	for ($i=0;$i<$rows;$i++) {
+	for ($i=0;$i<count($backgrounds);$i++) {
 		$content .= "<tr>
 				<td class='gvcol_key'>" . $backgrounds[$i]->background               . "</td>
 				<td class='gvcol_spec'>" . (!empty($backgrounds[$i]->sector) ?  $backgrounds[$i]->sector : stripslashes($backgrounds[$i]->comment)) . "</td>
@@ -170,18 +170,20 @@ function get_viewcharacter_content() {
 			</tr>";
 	}
 	$content .= "</table></td><td colspan=2><table>";
-	for ($i=0;$i<$rows;$i++) {
+	for ($i=0;$i<count($disciplines);$i++) {
 		$content .= "<tr>
 				<td class='gvcol_key'>" . $disciplines[$i]->name               . "</td>
 				<td class='gvcol_spec'>&nbsp;</td>
 				<td class='gvdot_{$maxrating}_{$disciplines[$i]->level}'>&nbsp;</td>
 			</tr>";
 	}
-	// INSERT COMBO DISCIPLINES!!
-	$content .= "<tr><td colspan=3>Combo-disciplines go here</td></tr>";
+	// COMBO DISCIPLINES
+	$combo = $mycharacter->combo_disciplines;
+	foreach ($combo as $id => $disc)
+		$content .= "<tr><td colspan=3>$disc</td></tr>";
 	
 	$content .= "</table></td><td colspan=2><table>";
-	for ($i=0;$i<$rows;$i++) {
+	for ($i=0;$i<count($secondary);$i++) {
 		$content .= "<tr>
 				<td class='gvcol_key'>" . $secondary[$i]->skillname               . "</td>
 				<td class='gvcol_spec'>" . stripslashes($secondary[$i]->specialty) . "</td>
@@ -220,7 +222,7 @@ function get_viewcharacter_content() {
 	}
 	$content .= "<tr><td colspan=3><hr /></td></tr>";
 	$content .= "<tr><td colspan=3><h4>Willpower</h4></td></tr>";
-	$content .= "<tr><td colspan=3 class='gvdot_10_{$mycharacter->willpower}'>&nbsp;</td></tr>";
+	$content .= "<tr><td colspan=3 class='gvdot_10_{$mycharacter->willpower} gvdotwide'>&nbsp;</td></tr>";
 	$content .= "<tr><td colspan=2 class='gvcol_key'>Current</td><td>" . $mycharacter->current_willpower . "</td></tr>";
 	$content .= "<tr><td colspan=3><hr /></td></tr>";
 	$content .= "<tr><td colspan=2><h4>" . $mycharacter->path_of_enlightenment . "</h4></td><td><h4>" . $mycharacter->path_rating . "</h4></td></tr>";
