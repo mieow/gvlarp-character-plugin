@@ -48,6 +48,9 @@ div#csheet {
    border-bottom: none;
    width: 1px;  
 }
+#csheet .gvdotwide {
+   background-size:auto;
+}
 #csheet #gvid_cstb_Willpower .gvcol_key {
    font-size:12pt;
    text-align: left;
@@ -179,6 +182,7 @@ div#csheet {
 
 /* =DOTS
 -------------------------------------------------------------- */
+
 .gvdot_5_1 {
     width:90px;
     background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-5-1.gif');
