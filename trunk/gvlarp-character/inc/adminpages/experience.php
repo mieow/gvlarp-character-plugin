@@ -406,6 +406,9 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
 		case 'CHARACTER_MERIT':
 			$result = $this->approve_merit($data[0]);
 			break;
+		case 'CHARACTER_COMBO_DISCIPLINE':
+			$result = $this->approve_combo($data[0]);
+			break;
 		}
 		if ($result) {
 			echo "<p style='color:green'>Approved spend</p>";
@@ -516,6 +519,26 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
 		else {
 			$result = null;
 		}
+	
+		return $result;
+	}
+	function approve_combo ($data2update) {
+		global $wpdb;
+	
+		$wpdb->show_errors();
+		
+		
+		$data = array (
+			'CHARACTER_ID'         => $data2update->CHARACTER_ID,
+			'COMBO_DISCIPLINE_ID'  => $data2update->ITEMTABLE_ID,
+			'COMMENT'              => $data2update->SPECIALISATION,
+		);
+		$result = $wpdb->insert(GVLARP_TABLE_PREFIX . $data2update->CHARTABLE,
+			$data,
+			array (
+				'%d', '%d', '%s'
+			)
+		);
 	
 		return $result;
 	}
