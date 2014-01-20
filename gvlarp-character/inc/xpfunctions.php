@@ -37,6 +37,9 @@ function doPendingXPSpend($character) {
 	if (isset($_REQUEST['merit_level'])) {
 		$newid = save_to_pending('merit', 'CHARACTER_MERIT', 'MERIT', 'MERIT_ID', $playerID, $characterID);
 	}
+	if (isset($_REQUEST['combo_level'])) {
+		$newid = save_to_pending('combo', 'CHARACTER_COMBO_DISCIPLINE', 'COMBO_DISCIPLINE', 'COMBO_DISCIPLINE_ID', $playerID, $characterID);
+	}
 }
 	
 /*
@@ -79,6 +82,7 @@ function print_xp_spend_table() {
 	$docancel = (isset($_REQUEST['stat_cancel']) 
 				|| isset($_REQUEST['skill_cancel'])
 				|| isset($_REQUEST['disc_cancel'])
+				|| isset($_REQUEST['combo_cancel'])
 				|| isset($_REQUEST['path_cancel'])
 				|| isset($_REQUEST['ritual_cancel'])
 				|| isset($_REQUEST['merit_cancel'])
@@ -86,6 +90,7 @@ function print_xp_spend_table() {
 	if (isset($_REQUEST['stat_cancel']))    cancel_pending($_REQUEST['stat_cancel']);
 	if (isset($_REQUEST['skill_cancel']))   cancel_pending($_REQUEST['skill_cancel']);
 	if (isset($_REQUEST['disc_cancel']))    cancel_pending($_REQUEST['disc_cancel']);
+	if (isset($_REQUEST['combo_cancel']))   cancel_pending($_REQUEST['combo_cancel']);
 	if (isset($_REQUEST['path_cancel']))    cancel_pending($_REQUEST['path_cancel']);
 	if (isset($_REQUEST['ritual_cancel']))  cancel_pending($_REQUEST['ritual_cancel']);
 	if (isset($_REQUEST['merit_cancel']))   cancel_pending($_REQUEST['merit_cancel']);
@@ -135,6 +140,7 @@ function render_supply_details($character) {
 	if (isset($_REQUEST['stat_level'])) $spent += calc_submitted_spend('stat');
 	if (isset($_REQUEST['skill_level'])) $spent += calc_submitted_spend('skill');
 	if (isset($_REQUEST['disc_level'])) $spent += calc_submitted_spend('disc');
+	if (isset($_REQUEST['combo_level'])) $spent += calc_submitted_spend('combo');
 	if (isset($_REQUEST['path_level'])) $spent += calc_submitted_spend('path');
 	if (isset($_REQUEST['ritual_level'])) $spent += calc_submitted_spend('ritual');
 	if (isset($_REQUEST['merit_level'])) $spent += calc_submitted_spend('merit');
@@ -153,6 +159,9 @@ function render_supply_details($character) {
 	}
 	if (isset($_REQUEST['disc_level'])) {
 		$output .= render_details_section('disc');
+	}
+	if (isset($_REQUEST['combo_level'])) {
+		$output .= render_details_section('combo');
 	}
 	if (isset($_REQUEST['path_level'])) {
 		$output .= render_details_section('path');
@@ -195,12 +204,13 @@ function render_select_spends($character) {
 						'stat'  => "Attributes",
 						'skill' => "Abilities",
 						'disc'  => "Disciplines",
+						'combo' => "Combo Disciplines",
 						'path'  => "Paths",
 						'ritual' => "Rituals",
 						'merit'  => "Merits and Flaws"
 					);
 	$sectioncols    = array();
-	$sectionorder   = array('stat', 'skill', 'disc', 'path',
+	$sectionorder   = array('stat', 'skill', 'disc', 'combo', 'path',
 							'ritual', 'merit');
 	$output = "<p class='gvxp_xpstatus'>You have $xp_total experience in total, $xp_pending points currently pending and " . ($xp_total - $xp_pending) . " available to spend</p>";
 
@@ -215,6 +225,7 @@ function render_select_spends($character) {
 	$sectioncontent['stat']   = render_stats($characterID, $maxRating, $pendingSpends, $xp_avail);
 	$sectioncontent['skill']  = render_skills($characterID, $maxRating, $pendingSpends, $xp_avail);
 	$sectioncontent['disc']   = render_disciplines($characterID, $maxDiscipline, $pendingSpends, $xp_avail);
+	$sectioncontent['combo']  = render_combo($characterID, $pendingSpends, $xp_avail);
 	$sectioncontent['path']   = render_paths($characterID, 5, $pendingSpends, $xp_avail);
 	$sectioncontent['ritual'] = render_rituals($characterID, 5, $pendingSpends, $xp_avail);
 	$sectioncontent['merit']  = render_merits($characterID, $pendingSpends, $xp_avail);
@@ -1003,6 +1014,78 @@ function render_rituals($characterID, $maxRating, $pendingSpends, $xp_avail) {
 	return $output;
 
 }
+
+function render_combo($characterID, $pendingSpends, $xp_avail) {
+	global $wpdb;
+	
+//				" . GVLARP_TABLE_PREFIX . "CHARACTER_COMBO_DISCIPLINE charcombo
+//				IF(prereq.DISCIPLINE_LEVEL <= chardisc.LEVEL, 1,0) as meets_prereq,
+//				disciplines.NAME as prerequisite_discipline, 
+//				prereq.DISCIPLINE_LEVEL as prerequisite_level,
+//				chardisc.LEVEL as actual_discipline_level,
+//				SUM(IF(prereq.DISCIPLINE_LEVEL <= chardisc.LEVEL,1,0)) as count_met,
+//				COUNT(prereq.DISCIPLINE_LEVEL) as count_to_meet
+	$sql = "SELECT 
+				combo.NAME as name, 
+				combo.id as item_id,
+				IF(SUM(IF(prereq.DISCIPLINE_LEVEL <= chardisc.LEVEL,1,0)) = COUNT(prereq.DISCIPLINE_LEVEL),'Y','N') as meets_prereq,
+				IF(ISNULL(charcombo.ID),0,1) as level,
+				NOT(ISNULL(pending.CHARTABLE_LEVEL)) as CHARTABLE_LEVEL,
+				combo.COST as XP_COST,
+				NOT(ISNULL(pending.CHARTABLE_LEVEL)) as has_pending,
+				pending.ID as pending_id,
+				combo.VISIBLE
+			FROM
+				" . GVLARP_TABLE_PREFIX . "DISCIPLINE disciplines,
+				" . GVLARP_TABLE_PREFIX . "COMBO_DISCIPLINE combo
+				LEFT JOIN
+					(SELECT ID, COMBO_DISCIPLINE_ID
+					FROM " . GVLARP_TABLE_PREFIX . "CHARACTER_COMBO_DISCIPLINE 
+					WHERE CHARACTER_ID = %s
+					) as charcombo
+				ON
+					charcombo.COMBO_DISCIPLINE_ID = combo.ID
+				LEFT JOIN
+					(SELECT ID, CHARTABLE_LEVEL, CHARTABLE_ID, ITEMTABLE_ID
+					FROM
+						" . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND
+					WHERE 
+						CHARACTER_ID = %s
+						AND CHARTABLE = 'CHARACTER_COMBO_DISCIPLINE'
+					) as pending
+				ON
+					pending.ITEMTABLE_ID = combo.ID
+					,
+				" . GVLARP_TABLE_PREFIX . "COMBO_DISCIPLINE_PREREQUISITE prereq
+				LEFT JOIN
+					(SELECT DISCIPLINE_ID as ID, LEVEL 
+					FROM " . GVLARP_TABLE_PREFIX . "CHARACTER_DISCIPLINE
+					WHERE CHARACTER_ID = %s
+					) as chardisc
+				ON
+					prereq.DISCIPLINE_ID = chardisc.ID
+			WHERE	
+				prereq.COMBO_DISCIPLINE_ID = combo.ID
+				AND prereq.DISCIPLINE_ID = disciplines.ID
+			GROUP BY combo.NAME";
+	$sql = $wpdb->prepare($sql, $characterID,$characterID,$characterID,$characterID);
+    echo "<p>SQL: $sql</p>";
+	$character_data = $wpdb->get_results($sql);
+	
+	print_r($character_data);
+	
+	$rowoutput = render_combo_spend_table('combo', $character_data, $xp_avail);
+	
+	if (!empty($rowoutput)) {
+		$output .= "<table>\n";
+		$output .= "$rowoutput\n";
+		$output .= "</table>\n";
+	} 
+	
+	return $output;
+
+}
+
 function render_merits($characterID, $pendingSpends, $xp_avail) {
 	global $wpdb;
 	
@@ -1335,6 +1418,86 @@ function render_ritual_spend_table($type, $allxpdata, $columns, $xp_avail) {
 					$rowoutput .= "<input type='hidden'   name='{$type}_cost[" . $id . "]'    value='" . $xpcost . "' >";
 					$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $id . "]' value='$comment' >";
 					$rowoutput .= "<input type='CHECKBOX' name='{$type}_level[" . $id . "]'   value='{$xpdata->rituallevel}' ";
+					if (isset($levelsdata[$id]))
+						$rowoutput .= "checked";
+					$rowoutput .= ">";
+					$rowoutput .= "</td>";
+				} else
+					$rowoutput .= "<td class='gvxp_dot'><img src='$emptydoturl'></td>";
+				
+			}
+						
+			
+				
+			$xpcost = ($xpcost && $xp_avail >= $xpcost) ? "(" . $xpcost . " XP)" : "";
+			if ($xpdata->has_pending)
+				$rowoutput .= "<td class='gvcol_cost'><input class='gvxp_clear' type='submit' name=\"{$type}_cancel[{$xpdata->pending_id}]\" value=\"Clear\"></td>";
+			else
+				$rowoutput .= "<td class='gvcol_cost'>$xpcost</td>";
+			$rowoutput .= "</tr>\n";
+			
+			$id++;
+		}
+	}
+	if ($rowoutput != "")
+		$rowoutput .= "</table></td></tr>\n";
+
+	return $rowoutput;
+}
+function render_combo_spend_table($type, $allxpdata, $xp_avail) {
+
+	$fulldoturl    = plugins_url( 'gvlarp-character/images/xpdot.jpg' );
+	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
+	$pendingdoturl = plugins_url( 'gvlarp-character/images/pendingdot.jpg' );
+	$levelsdata    = $_REQUEST[$type . '_level'];
+
+	$max2display = 1;
+	$colspan = 2 + $max2display;
+	$grp = "";
+	$col = 0;
+	$rowoutput = "";
+	if (count($allxpdata)>0) {
+		$id = 0;
+		foreach ($allxpdata as $xpdata) {
+			//$id = $xpdata->id;
+			
+			// don't display combo-disciplines if you don't have them and you
+			// don't meet the pre-requisites
+			if ($xpdata->meets_prereq == 'N' && $xpdata->level == 0)
+				continue;
+			// don't display if you don't have them and it isn't set to be visible
+			if ($xpdata->VISIBLE == 'N' && $xpdata->level == 0)
+				continue;
+			// don't display if they don't have an xp cost
+			if ($xpdata->XP_COST == 0)
+				continue;
+			
+			// Hidden fields
+			$rowoutput .= "<tr style='display:none'><td>\n";
+			$rowoutput .= "<input type='hidden' name='{$type}_curr[" . $id . "]'    value='" . $xpdata->level . "' >\n";
+			$rowoutput .= "<input type='hidden' name='{$type}_itemid[" . $id . "]'  value='" . $xpdata->item_id . "' >\n";
+			$rowoutput .= "<input type='hidden' name='{$type}_id[" . $id . "]'      value='0' >\n";
+			$rowoutput .= "<input type='hidden' name='{$type}_name[" . $id . "]'    value='" . $xpdata->name . "' >\n";
+			$rowoutput .= "</td></tr>\n";
+						
+			//dots row
+			$xpcost = 0;
+			$rowoutput .= "<tr><th class='gvthleft'><span>{$xpdata->name}</span></th>";
+			
+			if ($xpdata->level)
+				$rowoutput .= "<td class='gvxp_dot'><img src='$fulldoturl'></td>";
+			elseif ($xpdata->CHARTABLE_LEVEL)
+				$rowoutput .= "<td class='gvxp_dot'><img src='$pendingdoturl'></td>";
+			else {
+				$xpcost = $xpdata->XP_COST;
+				
+				if ($xp_avail >= $xpcost) {
+					$comment    = "Learn Combo-Discipline {$xpdata->name}";
+				
+					$rowoutput .= "<td class='gvxp_checkbox'>";
+					$rowoutput .= "<input type='hidden'   name='{$type}_cost[" . $id . "]'    value='" . $xpcost . "' >";
+					$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $id . "]' value='$comment' >";
+					$rowoutput .= "<input type='CHECKBOX' name='{$type}_level[" . $id . "]'   value='1' ";
 					if (isset($levelsdata[$id]))
 						$rowoutput .= "checked";
 					$rowoutput .= ">";
@@ -1869,6 +2032,7 @@ function validate_spends($playerID, $characterID, $docancel) {
 	if (isset($_REQUEST['stat_level'])) $xp_spent += calc_submitted_spend('stat');
 	if (isset($_REQUEST['skill_level'])) $xp_spent += calc_submitted_spend('skill');
 	if (isset($_REQUEST['disc_level'])) $xp_spent += calc_submitted_spend('disc');
+	if (isset($_REQUEST['combo_level'])) $xp_spent += calc_submitted_spend('combo');
 	if (isset($_REQUEST['path_level'])) $xp_spent += calc_submitted_spend('path');
 	if (isset($_REQUEST['ritual_level'])) $xp_spent += calc_submitted_spend('ritual');
 	if (isset($_REQUEST['merit_level'])) $xp_spent += calc_submitted_spend('merit');
