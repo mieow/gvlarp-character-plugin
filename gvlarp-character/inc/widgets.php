@@ -171,6 +171,134 @@ class GVPlugin_Widget extends WP_Widget {
 // register Foo_Widget widget
 add_action( 'widgets_init', create_function( '', 'register_widget( "gvplugin_widget" );' ) );
 
+class GVPlugin_Background_Widget extends WP_Widget {
+	/**	 * Register widget with WordPress.	 */
+	public function __construct() {
+		parent::__construct(
+	 		'gvplugin_background_widget', // Base ID
+			'Character Background Widget', // Name
+			array( 'description' => __( 'Percentage background complete', 'text_domain' ), ) // Args
+		);
+	}
+	/**	 * Front-end display of widget.	 *
+	 * @see WP_Widget::widget()
+	 *
+	 * @param array $args     Widget arguments.
+	 * @param array $instance Saved values from database.
+	 */
+	public function widget( $args, $instance ) {
+		global $wpdb;
+		extract( $args );
+		
+		echo $before_widget;
+		
+		if ( is_user_logged_in() ) {
+			$character = establishCharacter("");
+			$characterID = establishCharacterID($character);
+			
+						
+			$title = apply_filters( 'widget_title', 'Backgrounds' );
+			echo $before_title . $title . $after_title;
+			
+			if (empty($characterID)) {
+				echo '<p>No character selected</p>';
+			} else {
+			
+				$donebgs = 0;
+				$totalbgs = 0;
+				
+				// backgrounds
+				$sql = "select count(backgrounds.BACKGROUND_QUESTION) as total2do, count(charbgs.APPROVED_DETAIL) as totaldone
+						from	" . GVLARP_TABLE_PREFIX . "BACKGROUND backgrounds,
+								" . GVLARP_TABLE_PREFIX . "CHARACTER_BACKGROUND charbgs,
+								" . GVLARP_TABLE_PREFIX . "CHARACTER characters
+						where	
+							backgrounds.ID = charbgs.BACKGROUND_ID
+							and	characters.ID = %d
+							and characters.ID = charbgs.CHARACTER_ID
+							and	(backgrounds.BACKGROUND_QUESTION != '' OR charbgs.SECTOR_ID > 0);";
+				$sql = $wpdb->prepare($sql, $characterID);
+				$result1 = $wpdb->get_row($sql);
+				$donebgs += $result1->totaldone;
+				$totalbgs += $result1->total2do;
+				
+				// Merits and Flaws
+				$sql = "select count(charmerits.APPROVED_DETAIL) as totaldone, count(merits.BACKGROUND_QUESTION) as total2do
+						from	" . GVLARP_TABLE_PREFIX . "MERIT merits,
+								" . GVLARP_TABLE_PREFIX . "CHARACTER_MERIT charmerits,
+								" . GVLARP_TABLE_PREFIX . "CHARACTER characters
+						where	merits.ID = charmerits.MERIT_ID
+							and	characters.ID = %d
+							and characters.ID = charmerits.CHARACTER_ID
+							and	merits.BACKGROUND_QUESTION != '';";
+				$sql = $wpdb->prepare($sql, $characterID);
+				$result2 = $wpdb->get_row($sql);
+				$donebgs += $result2->totaldone;
+				$totalbgs += $result2->total2do;
+				
+				// Misc questions
+				$sql = "SELECT COUNT(ID) as total2do FROM " . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND WHERE VISIBLE = 'Y'";
+				$totalbgs += $wpdb->get_var($sql);
+				
+				$sql = "SELECT COUNT(questions.ID) AS totaldone
+						FROM
+							" . GVLARP_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND as charquest,
+							" . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND as questions
+						WHERE
+							charquest.CHARACTER_ID = %s
+							AND charquest.QUESTION_ID = questions.ID
+							AND questions.VISIBLE = 'Y'
+							AND charquest.APPROVED_DETAIL != ''";
+				$sql = $wpdb->prepare($sql, $characterID);
+				$donebgs += $wpdb->get_var($sql);
+				//echo "<p>SQL: $sql</p>"; 
+				
+				if ($totalbgs <= 0) {
+					echo "<p>There are no <a href='" . get_stlink_url('viewExtBackgrnd') . "?CHARACTER=" . urlencode($character) . "'>character background</a> questions to complete</p>";
+				} 
+				elseif ($donebgs == $totalbgs) {
+					echo "<p>The <a href='" . get_stlink_url('viewExtBackgrnd') . "?CHARACTER=" . urlencode($character) . "'>character background</a> for $character has been completed</p>";
+				}
+				else {
+					echo "<p>The <a href='" . get_stlink_url('viewExtBackgrnd') . "?CHARACTER=" . urlencode($character) . "'>character background</a>  for $character is ";
+					echo sprintf ("%.0f%%", $donebgs * 100 / $totalbgs);
+					echo " complete</p>";
+				}
+			}
+		} 
+		
+		echo $after_widget;
+	}
+	/**	 * Sanitize widget form values as they are saved.
+	 *	 * @see WP_Widget::update()
+	 *	 * @param array $new_instance Values just sent to be saved.
+	 * @param array $old_instance Previously saved values from database.
+	 *	 * @return array Updated safe values to be saved.
+	 */
+	public function update( $new_instance, $old_instance ) {
+		$instance = array();
+		//$instance['charheet_link'] = strip_tags( $new_instance['charheet_link'] );
+		//$instance['profile_link'] = strip_tags( $new_instance['profile_link'] );
+		//$instance['inbox_link'] = strip_tags( $new_instance['inbox_link'] );
+		//$instance['spendxp_link'] = strip_tags( $new_instance['spendxp_link'] );
+		//$instance['dl_category'] = strip_tags( $new_instance['dl_category'] );
+		return $instance;
+	}
+	/**
+	 * Back-end widget form.
+	 *
+	 * @see WP_Widget::form()
+	 *
+	 *
+	 * @param array $instance Previously saved values from database.
+	 */
+	public function form( $instance ) {
+	
+	}
+}
+ // class Foo_Widget
+// register Foo_Widget widget
+add_action( 'widgets_init', create_function( '', 'register_widget( "gvplugin_background_widget" );' ) );
 
 function get_clan_link() {
 	global $wpdb;
