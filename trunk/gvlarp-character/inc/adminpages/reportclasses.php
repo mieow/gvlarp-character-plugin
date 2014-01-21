@@ -452,17 +452,33 @@ class gvreport_signin extends GVReport_ListTable {
                 return $item->$column_name;
             case 'CHARACTERNAME':
                 return $item->$column_name;
+            case 'BACKGROUND':
+                return $item->$column_name;
             case 'SIGNATURE':
                 return $item->$column_name;
             default:
                 return print_r($item,true); 
         }
     }
+	
+	// function column_background($item) {
+		
+		// $alldone = $item->bgdone + $item->mfdone + $item->qdone;
+		// $all2do  = $item->bg2do + $item->mf2do + $this->totalqs;
+		
+		// if ($all2do <= 0)
+			// $out = "No questions";
+		// else
+			// $out = sprintf ("%.0f%% Complete", $alldone * 100 / $all2do);
+	
+		// return $out;
+	// }
 
     function get_columns(){
         $columns = array(
             'PLAYERNAME'    => 'Player',
             'CHARACTERNAME' => 'Character',
+			'BACKGROUND'    => 'Background Complete',
             'SIGNATURE'     => 'Signature',
         );
         return $columns;
@@ -474,7 +490,19 @@ class gvreport_signin extends GVReport_ListTable {
 		$colwidths = array(
             'CHARACTERNAME' => 40,
             'PLAYERNAME'    => 40,
-            'SIGNATURE'     => 120
+			'BACKGROUND'    => 40,
+            'SIGNATURE'     => 80
+		);
+
+		return $colwidths;
+	}		
+	function set_column_alignment($columns = "") {
+	
+		$colwidths = array(
+            'CHARACTERNAME' => 'L',
+            'PLAYERNAME'    => 'L',
+			'BACKGROUND'    => 'C',
+            'SIGNATURE'     => 'L'
 		);
 
 		return $colwidths;
@@ -503,27 +531,79 @@ class gvreport_signin extends GVReport_ListTable {
 		
 		$filterinfo = $this->get_filter_sql();
 		
-		$sql = "SELECT characters.NAME as CHARACTERNAME, players.NAME as PLAYERNAME, \"\" as SIGNATURE
+		$sql = "SELECT COUNT(ID) as total2do FROM " . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND WHERE VISIBLE = 'Y'";
+		$this->totalqs += $wpdb->get_var($sql);
+		
+		$sql = "SELECT characters.NAME as CHARACTERNAME, players.NAME as PLAYERNAME, \"\" as SIGNATURE,
+					CONCAT(FORMAT((IFNULL(SUM(bginfo.TOTALDONE),0) + IFNULL(SUM(mfinfo.TOTALDONE),0) + IFNULL(SUM(qinfo.TOTALDONE),0)) * 100 /
+					(IFNULL(SUM(bginfo.TOTAL2DO),0) + IFNULL(SUM(mfinfo.TOTAL2DO),0) + IFNULL(SUM(totalqs.TOTAL2DO),0)),0),'%%') as BACKGROUND 
 				FROM 
 					" . GVLARP_TABLE_PREFIX. "PLAYER players, 
 					" . GVLARP_TABLE_PREFIX. "CHARACTER characters
+					LEFT JOIN (
+						SELECT charbgs.CHARACTER_ID, 
+							COUNT(backgrounds.BACKGROUND_QUESTION) AS TOTAL2DO, 
+							COUNT(charbgs.APPROVED_DETAIL) AS TOTALDONE
+						FROM
+							" . GVLARP_TABLE_PREFIX . "BACKGROUND backgrounds,
+							" . GVLARP_TABLE_PREFIX . "CHARACTER_BACKGROUND charbgs
+						WHERE
+							backgrounds.ID = charbgs.BACKGROUND_ID
+							and	(backgrounds.BACKGROUND_QUESTION != '' OR charbgs.SECTOR_ID > 0)
+						GROUP BY charbgs.CHARACTER_ID
+					) as bginfo
+					ON
+						characters.ID = bginfo.CHARACTER_ID
+					LEFT JOIN (
+						SELECT charmerits.CHARACTER_ID,
+							COUNT(charmerits.APPROVED_DETAIL) as TOTALDONE, 
+							COUNT(merits.BACKGROUND_QUESTION) as TOTAL2DO
+						FROM
+							" . GVLARP_TABLE_PREFIX . "MERIT merits,
+							" . GVLARP_TABLE_PREFIX . "CHARACTER_MERIT charmerits
+						WHERE
+							merits.ID = charmerits.MERIT_ID
+							AND	merits.BACKGROUND_QUESTION != ''
+						GROUP BY charmerits.CHARACTER_ID
+					) as mfinfo
+					ON
+						characters.ID = mfinfo.CHARACTER_ID
+					LEFT JOIN (
+						SELECT charquest.CHARACTER_ID,
+							COUNT(questions.ID) AS TOTALDONE
+						FROM
+							" . GVLARP_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND as charquest,
+							" . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND as questions
+						WHERE
+							charquest.QUESTION_ID = questions.ID
+							AND questions.VISIBLE = 'Y'
+							AND charquest.APPROVED_DETAIL != ''
+						GROUP BY charquest.CHARACTER_ID
+					) as qinfo
+					ON
+						characters.ID = qinfo.CHARACTER_ID,
+					(SELECT COUNT(ID) as total2do FROM " . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND WHERE VISIBLE = 'Y')
+					as totalqs
 				WHERE 
 					players.ID = characters.PLAYER_ID
 					AND characters.DELETED = 'N'";
 		$sql .= $filterinfo[0];
+		$sql .= " GROUP BY characters.ID";
 		
 		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']))
 			$sql .= " ORDER BY {$_REQUEST['orderby']} {$_REQUEST['order']}";
 
+		
 		$this->_column_headers = array($columns, $hidden, $sortable);
         $this->process_bulk_action();
 		
 		/* run query */
 		$sql = $wpdb->prepare($sql,$filterinfo[1]);
-		/* echo "<p>SQL: $sql (";
-		print_r($filterinfo[1]);
-		echo ")</p>"; */
-		$data =$wpdb->get_results($sql);
+		//echo "<p>SQL: $sql (";
+		//print_r($filterinfo[1]);
+		//echo ")</p>";
+		$data = $wpdb->get_results($sql);
+		//print_r($data);
  		
         $current_page = $this->get_pagenum();
         $total_items = count($data);
