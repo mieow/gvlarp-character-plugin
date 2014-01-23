@@ -18,6 +18,7 @@ require_once GVLARP_CHARACTER_URL . 'inc/adminpages/offices.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/combodisciplines.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/feedingmap.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/players.php';
+require_once GVLARP_CHARACTER_URL . 'inc/adminpages/masterpath.php';
 
 if(!class_exists('WP_List_Table')){
     require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
@@ -104,6 +105,7 @@ function register_character_menu() {
 	add_submenu_page( "gvcharacter-plugin", "Database Tables",    "Data Tables",   "manage_options", "gvcharacter-data",   "character_datatables" );  
 	add_submenu_page( "gvcharacter-plugin", "Backgrounds",        "Backgrounds",   "manage_options", "gvcharacter-bg",     "character_backgrounds" );  
 	add_submenu_page( "gvcharacter-plugin", "XP Approval",        "XP Approval",   "manage_options", "gvcharacter-xp",     "character_experience" );  
+	add_submenu_page( "gvcharacter-plugin", "Path Changes",       "Path Changes",  "manage_options", "gvcharacter-paths",  "character_master_path" );  
 	add_submenu_page( "gvcharacter-plugin", "Assign XP",          "Assign XP",     "manage_options", "gvcharacter-xpassign",  "character_xp_assign" );  
 	add_submenu_page( "gvcharacter-plugin", "Reports",            "Reports",       "manage_options", "gvcharacter-report", "character_reports" );  
 	add_submenu_page( "gvcharacter-plugin", "Configuration",      "Configuration", "manage_options", "gvcharacter-config", "character_config" );  
