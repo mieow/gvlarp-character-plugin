@@ -1069,7 +1069,7 @@ function render_combo($characterID, $pendingSpends, $xp_avail) {
 				AND prereq.DISCIPLINE_ID = disciplines.ID
 			GROUP BY combo.NAME";
 	$sql = $wpdb->prepare($sql, $characterID,$characterID,$characterID,$characterID);
-    echo "<p>SQL: $sql</p>";
+    //echo "<p>SQL: $sql</p>";
 	$character_data = $wpdb->get_results($sql);
 	
 	print_r($character_data);
@@ -1194,12 +1194,30 @@ function render_spend_table($type, $allxpdata, $maxRating, $columns, $xp_avail) 
 			$tmp_max2display = $max2display;
 			if ($type == 'stat') {
 				switch ($xpdata->name) {
-					case 'Willpower':    $tmp_max2display = 10; break;
-					case 'Conscience':   $tmp_max2display = 5; break;
-					case 'Conviction':   $tmp_max2display = 5; break;
-					case 'Self Control': $tmp_max2display = 5; break;
-					case 'Courage':      $tmp_max2display = 5; break;
-					case 'Instinct':     $tmp_max2display = 5; break;
+					case 'Willpower':    
+						$tmp_max2display = 10;
+						$maxRating = 10;
+						break;
+					case 'Conscience':   
+						$tmp_max2display = 5;
+						$maxRating = 5;
+						break;
+					case 'Conviction':
+						$tmp_max2display = 5;
+						$maxRating = 5;
+						break;
+					case 'Self Control': 
+						$tmp_max2display = 5;
+						$maxRating = 5;
+						break;
+					case 'Courage':      
+						$tmp_max2display = 5;
+						$maxRating = 5;
+						break;
+					case 'Instinct':     
+						$tmp_max2display = 5;
+						$maxRating = 5;
+						break;
 				}
 			}
 			$colspan = 2 + $tmp_max2display;
