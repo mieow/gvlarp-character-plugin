@@ -132,15 +132,16 @@ function render_feedingdomain_add_form($inputsok) {
 	$defaultCoord = "lat,long";
 	
 	//echo "<p>Inputs: $inputsok, action: {$_REQUEST['action']}, table: </p>";
-	if (!$inputsok) {
-			$id          = $_REQUEST['mapdomain'];
-			$name        = $_REQUEST['domain_name'];
-			$visible     = $_REQUEST['domain_visible'];
-			$description = $_REQUEST['domain_desc'];
-			$coordinates = $_REQUEST['domain_coordinates'];
-			$ownerid     = $_REQUEST['domain_owner'];
-	} 
-	elseif ($_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == 'domaintable') {
+	// if (!$inputsok) {
+			// $id          = $_REQUEST['mapdomain'];
+			// $name        = $_REQUEST['domain_name'];
+			// $visible     = $_REQUEST['domain_visible'];
+			// $description = $_REQUEST['domain_desc'];
+			// $coordinates = $_REQUEST['domain_coordinates'];
+			// $ownerid     = $_REQUEST['domain_owner'];
+	// } 
+	// else
+	if ($_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == 'mapdomain') {
 			$id          = $_REQUEST['mapdomain'];
 			
 			$sql = "SELECT * FROM " . FEEDINGMAP_TABLE_PREFIX . "DOMAIN WHERE ID = %d";
