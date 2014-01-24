@@ -30,9 +30,17 @@ This is the process to go through before the version is available for release
 
   - Check printable PDF, XP Spend, etc pages
 
+  - Check that data tables are initialised correctly
+
+6) Load in snapshot/database state & data from the last release and repeat testing of step 5. Also check:
+
+  - All database changes have actually happened and no error messages
+
 5) Testing
 
-6) SVN Tag (example)
+6) Take a snapshot of the database
+
+7) SVN Tag (example)
 
 {{{
 cd gvlarp-character-plugin
