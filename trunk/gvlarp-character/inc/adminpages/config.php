@@ -27,6 +27,7 @@ function character_config() {
 					'HOME_SECT_ID'   => $_REQUEST['homesect'],
 					'ASSIGN_XP_BY_PLAYER' => $_REQUEST['assignxp'],
 					'USE_NATURE_DEMEANOUR' => $_REQUEST['usenature'],
+					'DISPLAY_BACKGROUND_IN_PROFILE' => $_REQUEST['displaybg'],
 				);
 				
 				$result = $wpdb->update(GVLARP_TABLE_PREFIX . "CONFIG",
@@ -34,7 +35,7 @@ function character_config() {
 					array (
 						'ID' => $configid
 					),
-					array('%s', '%s', '%d', '%d', '%s', '%s')
+					array('%s', '%s', '%d', '%d', '%s', '%s', '%d')
 				);		
 				
 				if ($result) 
@@ -101,6 +102,20 @@ function character_config() {
 				<input type="radio" name="usenature" value="Y" <?php if ($options[0]->USE_NATURE_DEMEANOUR == 'Y') print "checked"; ?>>Yes
 				<input type="radio" name="usenature" value="N" <?php if ($options[0]->USE_NATURE_DEMEANOUR == 'N') print "checked"; ?>>No	
 				<td>Enter and Display Nature and Demeanours for characters.</td>
+			</tr><tr>
+				<td>Display a Character Background on the Character Profile</td>
+				<td>
+				<select name="displaybg">
+					<option value="0">Not displayed</option>
+					<?php
+					foreach (get_backgrounds() as $bg) {
+						echo '<option value="' . $bg->ID . '" ';
+						selected( $options[0]->DISPLAY_BACKGROUND_IN_PROFILE, $bg->ID );
+						echo '>' . $bg->NAME , '</option>';
+					}
+					?>
+				</select>
+				<td>Specify if a background (e.g. Status) is displayed on the character profile.</td>
 			</tr>
 			</table>
 			<input type="submit" name="save_options" class="button-primary" value="Save Options" />

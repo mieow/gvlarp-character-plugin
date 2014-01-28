@@ -4,7 +4,7 @@ register_activation_hook(__FILE__, "gvlarp_character_install");
 register_activation_hook( __FILE__, 'gvlarp_character_install_data' );
 
 global $gvlarp_character_db_version;
-$gvlarp_character_db_version = "1.9.2"; 
+$gvlarp_character_db_version = "1.9.5"; 
 
 function gvlarp_update_db_check() {
     global $gvlarp_character_db_version;
@@ -215,6 +215,14 @@ function gvlarp_character_install() {
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 		
+		$current_table_name = $table_prefix . "PROFILE_DISPLAY";
+		$sql = "CREATE TABLE " . $current_table_name . " (
+					ID			MEDIUMINT(9)	NOT NULL  AUTO_INCREMENT,
+					NAME		TEXT			NOT NULL,
+					PRIMARY KEY  (ID)
+					) ENGINE=INNODB;";
+		dbDelta($sql);
+		
 		// LEVEL 2 TABLES - TABLES WITH A FOREIGN KEY CONSTRAINT TO A LEVEL 1 TABLE
 		
 		$current_table_name = $table_prefix . "PLAYER";
@@ -323,6 +331,7 @@ function gvlarp_character_install() {
 						PAGE_NUMBER         SMALLINT(4)   NOT NULL,
 						VISIBLE             VARCHAR(1)    NOT NULL,
 						BACKGROUND_QUESTION VARCHAR(255),
+						PROFILE_DISPLAY_ID	MEDIUMINT(9)  NOT NULL,
 						PRIMARY KEY  (ID),
 						CONSTRAINT `" . $table_prefix . "merit_constraint_1` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
 						) ENGINE=INNODB;";			
@@ -378,6 +387,7 @@ function gvlarp_character_install() {
 					HOME_SECT_ID               MEDIUMINT(9)   NOT NULL,
 					ASSIGN_XP_BY_PLAYER	       VARCHAR(1)     NOT NULL,
 					USE_NATURE_DEMEANOUR       VARCHAR(1)     NOT NULL,
+					DISPLAY_BACKGROUND_IN_PROFILE  MEDIUMINT(9)     NOT NULL,
 					PRIMARY KEY  (ID),
 					CONSTRAINT `" . $table_prefix . "config_constraint_1` FOREIGN KEY (HOME_DOMAIN_ID)  REFERENCES " . $table_prefix . "DOMAIN(ID),
 					CONSTRAINT `" . $table_prefix . "config_constraint_2` FOREIGN KEY (HOME_SECT_ID)    REFERENCES " . $table_prefix . "SECT(ID)
@@ -990,7 +1000,7 @@ function feedingmap_install() {
 					COORDINATES     LONGTEXT      NOT NULL,
 					VISIBLE         VARCHAR(1)    NOT NULL,
 					PRIMARY KEY  (ID),
-					CONSTRAINT `" . FEEDINGMAP_TABLE_PREFIX . "domain_constraint_1` FOREIGN KEY (OWNER_ID) REFERENCES " . FEEDINGMAP_TABLE_PREFIX . "OWNER(ID)
+					CONSTRAINT `" . FEEDINGMAP_TABLE_PREFIX . "domain_constraint_2` FOREIGN KEY (OWNER_ID) REFERENCES " . FEEDINGMAP_TABLE_PREFIX . "OWNER(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 		//echo "<p>SQL: $sql</p>";
