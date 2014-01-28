@@ -112,6 +112,7 @@ require_once GVLARP_CHARACTER_URL . 'inc/xpfunctions.php';
 require_once GVLARP_CHARACTER_URL . 'inc/shortcodes.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages.php';
 require_once GVLARP_CHARACTER_URL . 'inc/viewcharacter.php';
+require_once GVLARP_CHARACTER_URL . 'inc/profile.php';
 
 //require_once GVLARP_CHARACTER_URL . 'inc/install.php';
 //require_once GVLARP_CHARACTER_URL . 'inc/shortcodes.php';
@@ -186,6 +187,24 @@ function get_natures() {
 	global $wpdb;
 
 	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "NATURE;";
+	$list = $wpdb->get_results($wpdb->prepare($sql,''));
+	
+	return $list;
+}
+function get_backgrounds() {
+
+	global $wpdb;
+
+	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "BACKGROUND WHERE VISIBLE = 'Y';";
+	$list = $wpdb->get_results($wpdb->prepare($sql,''));
+	
+	return $list;
+}
+function get_profile_display() {
+
+	global $wpdb;
+
+	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "PROFILE_DISPLAY;";
 	$list = $wpdb->get_results($wpdb->prepare($sql,''));
 	
 	return $list;
@@ -511,383 +530,6 @@ function get_player_type() {
         return $output;
     }
     add_shortcode('master_temp_stat_table', 'print_master_temp_stat_table');
-
-    function print_character_profile($atts, $content=null) {
-        extract(shortcode_atts(array ("character" => "null", "group" => "Full", "pwchange" => "False"), $atts));
-
-        if (isset($_POST['CHARACTER'])) {
-            $character = $_POST['CHARACTER'];
-        }
-        else if (isset($_GET['CHARACTER'])) {
-            $character = $_GET['CHARACTER'];
-        }
-
-        $password = true;
-
-        $currentUser      = wp_get_current_user();
-        $currentCharacter = $currentUser->user_login;
-        $observerClan     = "";
-
-        if ($character == "null" || $character == "") {
-            if ($currentCharacter == null || $currentCharacter == "") {
-                return "You need to specify a character or be logged in to view the profiles.<br />";
-            }
-            $character = $currentCharacter;
-        }
-
-        $showAll = false;
-        if (isST() || $character == $currentCharacter) {
-            $showAll = true;
-        }
-        $output = "";
-
-        $showUpdateTable = true;
-        $displayName = $currentUser->display_name;
-        if (isST()) {
-            $user = get_userdatabylogin($character);
-            $displayName = $user->display_name;
-            $userID = $user->ID;
-
-            if ($userID == null || $userID == "" || !((int) ($userID) > 0)) {
-                $showUpdateTable = false;
-            }
-        }
-
-        if ($_POST['GVLARP_FORM'] == "updateProfile" && $showAll && $showUpdateTable) {
-
-            $oldDisplayName = $currentUser->display_name;
-            if (isST()) {
-                $user = get_userdatabylogin($character);
-                $oldDisplayName = $user->display_name;
-            }
-            $newDisplayName = $_POST['displayName'];
-
-            if ($newDisplayName != null
-                && $newDisplayName != ""
-                && $newDisplayName != $oldDisplayName) {
-                changeDisplayName($character, $newDisplayName);
-                $output .= "Changed display name to <b>" . $newDisplayName . "</b><br />";
-                $currentUser = wp_get_current_user();
-            }
-
-            if ($password == true) {
-                $newPassword1 = $_POST['newPassword1'];
-                $newPassword2 = $_POST['newPassword2'];
-
-                if ($newPassword1 != null && $newPassword1 != ""
-                    && $newPassword2 != null && $newPassword2 != "") {
-                    if (changePassword($character, $newPassword1, $newPassword2)) {
-                        $output .= "Successfully changed password<br />";
-                        $currentUser = wp_get_current_user();
-                    }
-                    else {
-                        $output .= "Failed to change password likely they didn't match<br />";
-                    }
-                }
-            }
-        }
-
-        global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
-
-        $sql = "SELECT chara.id                        cid,
-                           chara.name                      cname,
-                           chara.character_status_comment  cstat_comment,
-                           chara.wordpress_id              wpid,
-                           cstat.name                      cstat_name,
-                           player.name                     pname,
-                           domain.name                      domain,
-                           pub_clan.name                   public_clan,
-                           pub_clan.icon_link              public_icon,
-                           priv_clan.name                  private_clan,
-                           priv_clan.icon_link             private_icon
-                    FROM " . $table_prefix . "CHARACTER chara,
-                         " . $table_prefix . "CHARACTER_STATUS cstat,
-                         " . $table_prefix . "PLAYER player,
-                         " . $table_prefix . "DOMAIN domain,
-                         " . $table_prefix . "CLAN pub_clan,
-                         " . $table_prefix . "CLAN priv_clan
-                    WHERE chara.PUBLIC_CLAN_ID = pub_clan.ID
-                      AND chara.PRIVATE_CLAN_ID = priv_clan.ID
-                      AND chara.DOMAIN_ID = domain.ID
-                      AND chara.PLAYER_ID = player.ID
-                      AND chara.CHARACTER_STATUS_ID = cstat.ID
-                      AND chara.DELETED = 'N'
-                      AND chara.WORDPRESS_ID = %s";
-
-        $sql = $wpdb->prepare($sql, $character);
-        $character_details = $wpdb->get_results($sql);
-
-        $characterID               = -1;
-        $characterName             = "";
-        $playerName                = "";
-        $domainName                 = "";
-        $publicClan                = "";
-        $privateClan               = "";
-        $publicIcon                = "";
-        $privateIcon               = "";
-        $status                    = 0;
-        $clanPrestige              = 0;
-        $clanFriendship            = "";
-        $clanEnmity                = "";
-        $positions                 = "";
-        $quote                     = "";
-        $imageURL                  = "";
-        $characterCondition        = "";
-        $characterConditionComment = "";
-        $wordpressId               = "";
-
-        foreach ($character_details as $character_detail) {
-            $characterID               = $character_detail->cid;
-            $characterName             = $character_detail->cname;
-            $wordpressId               = $character_detail->wpid;
-            $characterCondition        = $character_detail->cstat_name;
-            $characterConditionComment = $character_detail->cstat_comment;
-            $playerName                = $character_detail->pname;
-            $domainName                 = $character_detail->domain;
-            $publicClan                = $character_detail->public_clan;
-            $privateClan               = $character_detail->private_clan;
-            $publicIcon                = $character_detail->public_icon;
-            $privateIcon               = $character_detail->private_icon;
-        }
-
-        if ($characterID == -1) {
-            return "No information found for (" . $character . ")<br />";
-        }
-
-        $sql = "SELECT cback.level
-                        FROM " . $table_prefix . "CHARACTER_BACKGROUND cback,
-                             " . $table_prefix . "BACKGROUND back
-                        WHERE cback.BACKGROUND_ID = back.ID
-                          AND cback.CHARACTER_ID = %d
-                          AND back.name = 'Status' ";
-
-        $sql = $wpdb->prepare($sql, $characterID);
-        // $output .= "Character ID: " . $characterID . "<br />" . $sql . "<br />";
-        $characterStatus = $wpdb->get_results($sql);
-
-        foreach ($characterStatus as $currentStatus) {
-            $status = $currentStatus->level;
-        }
-
-        $sql = "SELECT pub_clan.name public_clan
-                        FROM " . $table_prefix . "CHARACTER chara,
-                             " . $table_prefix . "CLAN pub_clan
-                        WHERE chara.PUBLIC_CLAN_ID = pub_clan.ID
-                          AND chara.DELETED = 'N'
-                          AND chara.WORDPRESS_ID = %s";
-
-        $sql = $wpdb->prepare($sql, $currentCharacter);
-        // $output .= "Current Character: " . $currentCharacter . "<br />" . $sql . "<br />";
-        $observerClans = $wpdb->get_results($sql);
-        foreach ($observerClans as $currentClan) {
-            $observerClan = $currentClan->public_clan;
-        }
-
-        $sql = "SELECT cback.level, cback.comment
-                        FROM " . $table_prefix . "CHARACTER_BACKGROUND cback,
-                             " . $table_prefix . "BACKGROUND back
-                        WHERE cback.BACKGROUND_ID = back.ID
-                          AND cback.CHARACTER_ID = %d
-                          AND back.name = 'Clan Prestige' ";
-
-        if (!$showAll) {
-            $sql .= "  AND cback.COMMENT = '" . $observerClan . "' ";
-        }
-
-        $sql = $wpdb->prepare($sql, $characterID);
-        // $output .= "Character ID: " . $characterID . "<br />" . $sql . "<br />";
-        $clanPrestiges = $wpdb->get_results($sql);
-
-        foreach ($clanPrestiges as $currentPrestige) {
-            if ($showAll || $currentPrestige->comment == $observerClan) {
-                $clanPrestige = $currentPrestige->level;
-                if ($currentPrestige->comment != $publicClan) {
-                    $clanPrestige .= " (" . stripslashes($currentPrestige->comment) . ")";
-                }
-            }
-        }
-
-        $sql = "SELECT cmerit.level, cmerit.comment, merit.name
-                        FROM " . $table_prefix . "CHARACTER_MERIT cmerit,
-                             " . $table_prefix . "MERIT merit
-                        WHERE cmerit.merit_ID = merit.ID
-                          AND cmerit.CHARACTER_ID = %d
-                          AND (merit.name = 'Clan Friendship' OR merit.name = 'Clan Enmity') ";
-
-        if (!$showAll) {
-            $sql .= "  AND cmerit.COMMENT = '" . $observerClan . "' ";
-        }
-
-        $sql = $wpdb->prepare($sql, $characterID);
-        // $output .= "Character ID: " . $characterID . "<br />" . $sql . "<br />";
-        $clanMerits = $wpdb->get_results($sql);
-
-        foreach ($clanMerits as $currentMerit) {
-            if ($showAll || $currentMerit->comment == $observerClan) {
-                if ($currentMerit->name == 'Clan Friendship') {
-                    if ($clanFriendship != "") {
-                        $clanFriendship .= "<br />";
-                    }
-                    $clanFriendship .= $currentMerit->comment;
-                }
-                else {
-                    if ($clanEnmity != "") {
-                        $clanEnmity .= "<br />";
-                    }
-                    $clanEnmity .= stripslashes($currentMerit->comment);
-                }
-            }
-        }
-
-        $sql = "SELECT office.name office_name, domain.name domain_name
-                        FROM " . $table_prefix . "CHARACTER_OFFICE coffice,
-                             " . $table_prefix . "OFFICE office,
-                             " . $table_prefix . "DOMAIN domain
-                        WHERE coffice.character_id = %d
-                          AND coffice.office_id    = office.id
-                          AND coffice.domain_id     = domain.id
-                        ORDER BY office.ordering";
-
-        $sql = $wpdb->prepare($sql, $characterID);
-        // $output .= "Character ID: " . $characterID . "<br />" . $sql . "<br />";
-        $offices = $wpdb->get_results($sql);
-
-        foreach ($offices as $currentOffice) {
-            if ($positions != "") {
-                $positions .= "<br />";
-            }
-            $positions .= $currentOffice->office_name;
-            if ($domainName != $currentOffice->domain_name) {
-                $positions .= " (" . $currentOffice->domain_name . ")";
-            }
-        }
-
-        $sql = "SELECT profile.quote, profile.portrait
-                        FROM " . $table_prefix . "CHARACTER_PROFILE profile
-                        WHERE profile.CHARACTER_ID = %d";
-
-        $sql = $wpdb->prepare($sql, $characterID);
-        // $output .= "Character ID: " . $characterID . "<br />" . $sql . "<br />";
-        $profiles = $wpdb->get_results($sql);
-
-        foreach ($profiles as $profile) {
-            $quote    = stripslashes($profile->quote);
-            $imageURL = $profile->portrait;
-        }
-
-        if ($imageURL == "") {
-            $config = getConfig();
-            $imageURL = $config->PLACEHOLDER_IMAGE;
-        }
-
-        /*************************************************************************/
-
-        if ($showAll && $showUpdateTable) {
-            $output .= "<form name=\"PROFILE_UPDATE_FORM\" method='post' action=\"" . urlencode($_SERVER['REQUEST_URI']) . "\">";
-            $output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"updateProfile\" />";
-            if (isset($_POST['CHARACTER'])) {
-                $output .= "<input type='HIDDEN' name=\"CHARACTER\" value=\"" . $character . "\" />";
-            }
-        }
-
-        $viewCharacterSheetLink = "";
-        if (isST()) {
-            $stLinks = listSTLinks();
-            foreach ($stLinks as $stLink) {
-                if ($stLink->description == 'View Character Sheet') {
-                    $viewCharacterSheetLink = get_site_url() . $stLink->link;
-                }
-            }
-        }
-        $output .= "<table class='gvplugin gvprofile' id=\"gvid_prof_out\"><tr><th colspan=2 class=\"gvthhead\">";
-
-        if ($viewCharacterSheetLink == "") {
-            $output .= $characterName;
-        }
-        else {
-            $output .= "<a href=\"" . $viewCharacterSheetLink . "?CHARACTER=" . urldecode($wordpressId) . "\">"
-                .  $characterName . "</a>";
-        }
-        $output .= "</th></tr>";
-        $output .= "<tr><td class=\"gvcol_1 gvcol_val\"><p><img alt=\"Picture\" src=\"";
-
-        if ($showAll) {
-            $output .= $privateIcon;
-        }
-        else {
-            $output .= $publicIcon;
-        }
-
-        $output .= "\">" . $quote . "<p><table class='gvplugin gvprofile' id=\"gvid_prof_in\">";
-
-        $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Player:</td><td class=\"gvcol_2 gvcol_val\">" . $playerName . "</td></tr>";
-        $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Clan:</td><td class=\"gvcol_2 gvcol_val\">";
-        if ($showAll && $publicClan != $privateClan) {
-            $output .= $publicClan . " (" . $privateClan . ")";
-        }
-        else {
-            $output .= $publicClan;
-        }
-        $output .= "</td></tr>";
-        $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Resides:</td><td class=\"gvcol_2 gvcol_val\">" . $domainName . "</td></tr>";
-        $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Status:</td><td class=\"gvcol_2 gvcol_val\">" . $status . "</td></tr>";
-        $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Condition:</td><td class=\"gvcol_2 gvcol_val\">" . $characterCondition;
-        if ($characterConditionComment != "") {
-            $output .= " (" . $characterConditionComment . ")";
-        }
-        $output .= "</td></tr>";
-        if ($showAll || $observerClan == $publicClan) {
-            $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Clan Prestige:</td><td class=\"gvcol_2 gvcol_val\">" . $clanPrestige . "</td></tr>";
-        }
-
-        if ($clanFriendship != "") {
-            $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Clan Friendship:</td><td class=\"gvcol_2 gvcol_val\">" . $clanFriendship . "</td></tr>";
-        }
-        if ($clanEnmity != "") {
-            $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Clan Enmity:</td><td class=\"gvcol_2 gvcol_val\">" . $clanEnmity . "</td></tr>";
-        }
-        if ($positions != "") {
-            $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Positions:</td><td class=\"gvcol_2 gvcol_val\">" . $positions . "</td></tr>";
-        }
-
-        if ($showAll && $showUpdateTable) {
-            $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Display Name:</td><td class=\"gvcol_2 gvcol_val\">";
-            $output .= "<input type='text' size=50 maxlength=50 name=\"displayName\" value=\"" . $displayName . "\">";
-            $output .= "</td></tr>";
-
-            if ($password == true) {
-                $output .= "<tr><td class=\"gvcol_1 gvcol_key\">New Password:</td><td class=\"gvcol_2 gvcol_val\">";
-                $output .= "<input type=\"password\" name=\"newPassword1\">";
-                $output .= "</td></tr>";
-                $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Confirm New Password:</td><td class=\"gvcol_2 gvcol_val\">";
-                $output .= "<input type=\"password\" name=\"newPassword2\">";
-                $output .= "</td></tr>";
-            }
-
-            $buttonText = "Change Display Name";
-            if ($password == true) {
-                $buttonText .= "/Password";
-            }
-            $output .= "<tr><td colspan=2 class=\"gvcol_1 gvcol_submit\">";
-            $output .= "<input type='submit' name=\"profileUpdate\" value=\"" . $buttonText . "\">";
-            $output .= "</td></tr>";
-        }
-
-        $output .= "</table>";
-
-        if ($character == $currentCharacter) {
-            $output .= "</form>";
-        }
-
-        //        if (!$showAll) {
-        //            $output .= "<p>Click to send <a href=\"\">private message</a></p>";
-        //        }
-        $output .= "</td><td class=\"gvcol_2 gvcol_img\"><img alt=\"Profile Image\" src=\"" . $imageURL . "\"></td></tr></table>";
-
-        return $output;
-    }
-    add_shortcode('character_profile', 'print_character_profile');
 
     function print_name_value_pairs($atts, $content=null) {
         $output = "";
@@ -1447,15 +1089,12 @@ function get_player_type() {
 
     function establishCharacterID($character) {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+
         $sql = "SELECT id
-                        FROM " . $table_prefix . "CHARACTER
-                        WHERE WORDPRESS_ID = %s";
-        $characterIDs = $wpdb->get_results($wpdb->prepare($sql, $character));
-        $cid = null;
-        foreach ($characterIDs as $characterID) {
-            $cid = $characterID->id;
-        }
+                FROM " . GVLARP_TABLE_PREFIX . "CHARACTER
+				WHERE WORDPRESS_ID = %s";
+        $cid = $wpdb->get_var($wpdb->prepare($sql, $character));
+
         return $cid;
     }
 
@@ -1540,30 +1179,13 @@ function get_player_type() {
         }
     }
 
-    function changeDisplayName ($character, $newDisplayName) {
-        if (!isST()) {
-            $current_user = wp_get_current_user();
-            $userID = $current_user->ID;
-        }
-        else {
-            $user = get_userdatabylogin($character);
-            $userID = $user->ID;
-        }
-
+    function changeDisplayNameByID ($userID, $newDisplayName) {
         $args = array ('ID' => $userID, 'display_name' => $newDisplayName);
         wp_update_user($args);
         return true;
     }
 
-    function changePassword($character, $newPassword1, $newPassword2) {
-        if (!isST()) {
-            $current_user = wp_get_current_user();
-            $userID = $current_user->ID;
-        }
-        else {
-            $user = get_userdatabylogin($character);
-            $userID = $user->ID;
-        }
+    function changePasswordByID($userID, $newPassword1, $newPassword2) {
 
         if ($newPassword1 == $newPassword2) {
             wp_set_password($newPassword1, $userID);

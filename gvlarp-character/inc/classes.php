@@ -6,10 +6,13 @@ if(!class_exists('WP_List_Table')){
 
 class larpcharacter {
 
-	var $name; 
-	var $clan;
+	var $name;
+	var $display_name;
 	var $sect;
+	var $clan;
 	var $private_clan;
+	var $private_icon;
+	var $public_icon;
 	var $domain;
 	var $player;
 	var $player_id;
@@ -31,15 +34,23 @@ class larpcharacter {
 	var $nature;
 	var $demeanour;
 	var $clan_flaw;
+	var $quote;
+	var $portrait;
+	var $char_status_comment;
+	var $char_status;
+	var $offices;
 	
 	function load ($characterID){
 		global $wpdb;
 		
 		$wpdb->show_errors();
 		
+		$config = getConfig();
+		
 		/* Basic Character Info */
 		$sql = "SELECT chara.name                      cname,
 					   chara.character_status_comment  cstat_comment,
+					   cstatus.name                    cstat,
 					   chara.wordpress_id              wpid,
 					   player.name                     pname,
 					   player.id                       player_id,
@@ -55,7 +66,9 @@ class larpcharacter {
 					   chara.date_of_embrace,
 					   chara.sire,
 					   priv_clan.clan_flaw,
-					   sects.name                      sect
+					   sects.name                      sect,
+					   pub_clan.icon_link			   public_icon,
+					   priv_clan.icon_link			   private_icon
                     FROM " . GVLARP_TABLE_PREFIX . "CHARACTER chara,
                          " . GVLARP_TABLE_PREFIX . "PLAYER player,
                          " . GVLARP_TABLE_PREFIX . "DOMAIN domains,
@@ -63,7 +76,8 @@ class larpcharacter {
                          " . GVLARP_TABLE_PREFIX . "CLAN priv_clan,
 						 " . GVLARP_TABLE_PREFIX . "GENERATION gen,
 						 " . GVLARP_TABLE_PREFIX . "ROAD_OR_PATH paths,
-						 " . GVLARP_TABLE_PREFIX . "SECT sects
+						 " . GVLARP_TABLE_PREFIX . "SECT sects,
+						 " . GVLARP_TABLE_PREFIX . "CHARACTER_STATUS cstatus
                     WHERE chara.PUBLIC_CLAN_ID = pub_clan.ID
                       AND chara.PRIVATE_CLAN_ID = priv_clan.ID
                       AND chara.DOMAIN_ID = domains.ID
@@ -81,23 +95,42 @@ class larpcharacter {
 		$this->name         = $result[0]->cname;
 		$this->clan         = $result[0]->public_clan;
 		$this->private_clan = $result[0]->private_clan;
+		$this->public_icon  = $result[0]->public_icon;
+		$this->private_icon = $result[0]->private_icon;
 		$this->domain       = $result[0]->domain;
 		$this->player       = $result[0]->pname;
 		$this->wordpress_id = $result[0]->wpid;
 		$this->generation   = $result[0]->generation;
 		$this->max_rating   = $result[0]->max_rating;
-		$this->path_of_enlightenment = $result[0]->path;
-		$this->bloodpool       = $result[0]->bloodpool;
-		$this->blood_per_round = $result[0]->blood_per_round;
-		$this->sire            = $result[0]->sire;
-		$this->date_of_birth   = $result[0]->date_of_birth;
-		$this->date_of_embrace = $result[0]->date_of_embrace;
 		$this->player_id    = $result[0]->player_id;
 		$this->clan_flaw    = $result[0]->clan_flaw;
 		$this->sect         = $result[0]->sect;
+		$this->bloodpool    = $result[0]->bloodpool;
+		$this->sire         = $result[0]->sire;
+		$this->char_status  = $result[0]->cstat;
+		$this->blood_per_round = $result[0]->blood_per_round;
+		$this->date_of_birth   = $result[0]->date_of_birth;
+		$this->date_of_embrace = $result[0]->date_of_embrace;
+		$this->char_status_comment   = $result[0]->cstat_comment;
+		$this->path_of_enlightenment = $result[0]->path;
+		
+        $user = get_userdatabylogin($this->name);
+        $this->display_name = $user->display_name;
+		
+		// Profile
+		$sql = "SELECT QUOTE, PORTRAIT
+				FROM 
+					" . GVLARP_TABLE_PREFIX . "CHARACTER_PROFILE
+				WHERE
+					CHARACTER_ID = %s";
+		$result = $wpdb->get_row($wpdb->prepare($sql, $characterID));
+		$this->quote    = $result->QUOTE;
+		if (empty($result->PORTRAIT))
+			$this->portrait = $config->PLACEHOLDER_IMAGE;
+		else
+			$this->portrait = $result->PORTRAIT;
 		
 		/* Nature / Demeanour, if used */
-		$config = getConfig();
 		if ($config->USE_NATURE_DEMEANOUR == 'Y') {
 			$sql = "SELECT 
 						natures.name as nature,
@@ -324,6 +357,21 @@ class larpcharacter {
 		
 		/* Current Experience */
 		$this->current_experience = get_total_xp($this->player_id, $characterID);
+		
+		// Offices / Positions
+		$sql = "SELECT offices.name, offices.visible, domains.name as domain
+				FROM
+					" . GVLARP_TABLE_PREFIX . "CHARACTER_OFFICE charoffice,
+					" . GVLARP_TABLE_PREFIX . "OFFICE offices,
+					" . GVLARP_TABLE_PREFIX . "DOMAIN domains
+				WHERE	
+					charoffice.OFFICE_ID = offices.ID
+					AND charoffice.DOMAIN_ID = domains.ID
+					AND charoffice.CHARACTER_ID = '%s'
+				ORDER BY offices.ORDERING";
+		$sql = $wpdb->prepare($sql, $characterID);
+		$this->offices = $wpdb->get_results($sql);
+		
 		
 		
 	}

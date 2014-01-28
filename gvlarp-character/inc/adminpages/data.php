@@ -12,13 +12,15 @@ function render_meritflaw_page($type){
 		$testListTable[$type]->add_merit($_REQUEST[$type . '_name'], $_REQUEST[$type . '_group'], $_REQUEST[$type . '_sourcebook'], 
 									$_REQUEST[$type . '_page_number'], $_REQUEST[$type . '_cost'], $_REQUEST[$type . '_xp_cost'], 
 									$_REQUEST[$type . '_multiple'], $_REQUEST[$type . '_visible'], $_REQUEST[$type . '_desc'],
-									$_REQUEST[$type . '_question'], $_REQUEST[$type . '_has_specialisation']);
+									$_REQUEST[$type . '_question'], $_REQUEST[$type . '_has_specialisation'],
+									$_REQUEST[$type . '_profile']);
 	}
 	if ($doaction == "save-$type") { 
 		$testListTable[$type]->edit_merit($_REQUEST[$type . '_id'], $_REQUEST[$type . '_name'], $_REQUEST[$type . '_group'], 
 									$_REQUEST[$type . '_sourcebook'], $_REQUEST[$type . '_page_number'], $_REQUEST[$type . '_cost'], 
 									$_REQUEST[$type . '_xp_cost'], $_REQUEST[$type . '_multiple'], $_REQUEST[$type . '_visible'],
-									$_REQUEST[$type . '_desc'], $_REQUEST[$type . '_question'], $_REQUEST[$type . '_has_specialisation']);
+									$_REQUEST[$type . '_desc'], $_REQUEST[$type . '_question'], $_REQUEST[$type . '_has_specialisation'],
+									$_REQUEST[$type . '_profile']);
 	} 
 	
 	render_meritflaw_add_form($type, $doaction);
@@ -120,6 +122,7 @@ function render_meritflaw_add_form($type, $addaction) {
 		$desc = $_REQUEST[$type . '_desc'];
 		$question = $_REQUEST[$type . '_question'];
 		$spec = $_REQUEST[$type . '_has_specialisation'];
+		$profile = $_REQUEST[$type . '_profile'];
 		
 		$nextaction = $_REQUEST['action'];
 		
@@ -130,7 +133,8 @@ function render_meritflaw_add_form($type, $addaction) {
 		$sql = "select merit.ID, merit.NAME as NAME, merit.DESCRIPTION as DESCRIPTION, merit.GROUPING as GROUPING,
 						merit.COST as COST, merit.XP_COST as XP_COST, merit.MULTIPLE as MULTIPLE,
 						books.ID as SOURCEBOOK, merit.PAGE_NUMBER as PAGE_NUMBER,
-						merit.VISIBLE as VISIBLE, merit.BACKGROUND_QUESTION, merit.HAS_SPECIALISATION
+						merit.VISIBLE as VISIBLE, merit.BACKGROUND_QUESTION, merit.HAS_SPECIALISATION,
+						merit.PROFILE_DISPLAY_ID
 						from " . GVLARP_TABLE_PREFIX . "MERIT merit, " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books 
 						where merit.ID = %d and books.ID = merit.SOURCE_BOOK_ID;";
 		
@@ -151,6 +155,7 @@ function render_meritflaw_add_form($type, $addaction) {
 		$desc = $data[0]->DESCRIPTION;
 		$question = $data[0]->BACKGROUND_QUESTION;
 		$spec = $data[0]->HAS_SPECIALISATION;
+		$profile = $data[0]->PROFILE_DISPLAY_ID;
 		
 		$nextaction = "save";
 		
@@ -169,6 +174,7 @@ function render_meritflaw_add_form($type, $addaction) {
 		$desc = "";
 		$question = "";
 		$spec = "N";
+		$profile = 0;
 		
 		$nextaction = "add";
 	}
@@ -228,6 +234,21 @@ function render_meritflaw_add_form($type, $addaction) {
 				<select name="<?php print $type; ?>_has_specialisation">
 					<option value="N" <?php selected($spec, "N"); ?>>No</option>
 					<option value="Y" <?php selected($spec, "Y"); ?>>Yes</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td colspan=4></td>
+			<td>Display in public profile: </td><td>
+				<select name="<?php print $type; ?>_profile">
+					<option value="0" <?php selected($profile, "0"); ?>>Not displayed</option>
+					<?php
+						foreach (get_profile_display() as $opt) {
+							print "<option value='{$opt->ID}' ";
+							($opt->ID == $profile) ? print "selected" : print "";
+							echo ">{$opt->NAME}</option>";
+						}
+					?>
 				</select>
 			</td>
 		</tr>
@@ -685,7 +706,8 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 	}
 	
  	function add_merit($meritname, $meritgroup, $sourcebookid, $pagenum,
-						$cost, $xp_cost, $multiple, $visible, $description, $question, $hasspec) {
+						$cost, $xp_cost, $multiple, $visible, $description, $question, 
+						$hasspec, $profile) {
 		global $wpdb;
 		
 		$wpdb->show_errors();
@@ -702,7 +724,8 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 						'MULTIPLE' => $multiple,
 						'VISIBLE' => $visible,
 						'BACKGROUND_QUESTION' => $question,
-						'HAS_SPECIALISATION' => $hasspec
+						'HAS_SPECIALISATION' => $hasspec,
+						'PROFILE_DISPLAY_ID' => $profile
 					);
 		
 		/* print_r($dataarray); */
@@ -721,7 +744,8 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 						'%s',
 						'%s',
 						'%s',
-						'%s'
+						'%s',
+						'%d'
 					)
 				);
 		
@@ -734,7 +758,8 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 		}
 	}
  	function edit_merit($meritid, $meritname, $meritgroup, $sourcebookid, $pagenum,
-						$cost, $xp_cost, $multiple, $visible, $description, $question, $hasspec) {
+						$cost, $xp_cost, $multiple, $visible, $description, $question, 
+						$hasspec, $profile) {
 		global $wpdb;
 		
 		$wpdb->show_errors();
@@ -751,7 +776,8 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 						'MULTIPLE' => $multiple,
 						'VISIBLE' => $visible,
 						'BACKGROUND_QUESTION' => $question,
-						'HAS_SPECIALISATION' => $hasspec
+						'HAS_SPECIALISATION' => $hasspec,
+						'PROFILE_DISPLAY_ID' => $profile
 					);
 		
 		/* print_r($dataarray); */
@@ -816,6 +842,9 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 	function column_has_specialisation($item){
 		return ($item->HAS_SPECIALISATION == "Y") ? "Yes" : "No";
     }
+	function column_profile_display($item){
+		return $item->PROFILE_DISPLAY_ID ? "Yes" : "No";
+    }
 	
 	function column_has_bg_q($item) {
 		if ($item->BACKGROUND_QUESTION == "")
@@ -839,7 +868,8 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 			'SOURCEBOOK'   => 'Source Book',
             'PAGE_NUMBER'  => 'Source Page',
             'VISIBLE'      => 'Visible to Players',
-            'HAS_BG_Q'     => 'Extended Background'
+            'HAS_BG_Q'     => 'Extended Background',
+            'PROFILE_DISPLAY' => 'Display in Profile'
         );
         return $columns;
 		
@@ -999,7 +1029,8 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 		$sql = "select merit.ID, merit.NAME as NAME, merit.DESCRIPTION as DESCRIPTION, merit.GROUPING as GROUPING,
 						merit.COST as COST, merit.XP_COST as XP_COST, merit.MULTIPLE as MULTIPLE,
 						books.NAME as SOURCEBOOK, merit.PAGE_NUMBER as 	PAGE_NUMBER,
-						merit.VISIBLE as VISIBLE, merit.BACKGROUND_QUESTION, merit.HAS_SPECIALISATION
+						merit.VISIBLE as VISIBLE, merit.BACKGROUND_QUESTION, merit.HAS_SPECIALISATION,
+						merit.PROFILE_DISPLAY_ID
 						from " . GVLARP_TABLE_PREFIX. "MERIT merit, " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books where ";
 		if ($type == "merit") {
 			$sql .= "merit.value >= 0";
