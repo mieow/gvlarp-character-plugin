@@ -4,7 +4,7 @@ register_activation_hook(__FILE__, "gvlarp_character_install");
 register_activation_hook( __FILE__, 'gvlarp_character_install_data' );
 
 global $gvlarp_character_db_version;
-$gvlarp_character_db_version = "1.9.5"; 
+$gvlarp_character_db_version = "1.9.9"; 
 
 function gvlarp_update_db_check() {
     global $gvlarp_character_db_version;
@@ -12,8 +12,6 @@ function gvlarp_update_db_check() {
     if (get_site_option( 'gvlarp_character_db_version' ) != $gvlarp_character_db_version) {
         gvlarp_character_install();
 		gvlarp_character_install_data();
-        feedingmap_install();
-		feedingmap_install_data();
 		
 		update_option( "gvlarp_character_db_version", $gvlarp_character_db_version );
     }
@@ -127,19 +125,15 @@ function gvlarp_character_install() {
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 
-		if (table_exists('COURT')) {
-			rename_table("COURT", "DOMAIN");
-		} else {		
-			$current_table_name = $table_prefix . "DOMAIN";
-			$sql = "CREATE TABLE " . $current_table_name . " (
-						ID           MEDIUMINT(9) NOT NULL AUTO_INCREMENT,
-						NAME         VARCHAR(16)  NOT NULL,
-						DESCRIPTION  TINYTEXT     NOT NULL,
-						VISIBLE      VARCHAR(1)   NOT NULL,
-						PRIMARY KEY  (ID)
-						) ENGINE=INNODB;";
-			dbDelta($sql);
-		}
+		$current_table_name = $table_prefix . "DOMAIN";
+		$sql = "CREATE TABLE " . $current_table_name . " (
+					ID           MEDIUMINT(9) NOT NULL AUTO_INCREMENT,
+					NAME         VARCHAR(16)  NOT NULL,
+					DESCRIPTION  TINYTEXT     NOT NULL,
+					VISIBLE      VARCHAR(1)   NOT NULL,
+					PRIMARY KEY  (ID)
+					) ENGINE=INNODB;";
+		dbDelta($sql);
 
 		$current_table_name = $table_prefix . "SECT";
 		$sql = "CREATE TABLE " . $current_table_name . " (
@@ -169,10 +163,11 @@ function gvlarp_character_install() {
 					BLOOD_PER_ROUND SMALLINT(2)  NOT NULL,
 					MAX_RATING      SMALLINT(2)  NOT NULL,
 					MAX_DISCIPLINE  SMALLINT(2)  NOT NULL,
-					COST            SMALLINT(3)  NOT NULL,
 					PRIMARY KEY  (ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
+		$remove = array ('COST' => '');
+		remove_columns($current_table_name, $remove);
 
 		$current_table_name = $table_prefix . "NATURE";
 		$sql = "CREATE TABLE " . $current_table_name . " (
@@ -219,6 +214,19 @@ function gvlarp_character_install() {
 		$sql = "CREATE TABLE " . $current_table_name . " (
 					ID			MEDIUMINT(9)	NOT NULL  AUTO_INCREMENT,
 					NAME		TEXT			NOT NULL,
+					PRIMARY KEY  (ID)
+					) ENGINE=INNODB;";
+		dbDelta($sql);
+
+		if (table_exists('OWNER', FEEDINGMAP_TABLE_PREFIX)) {
+			rename_table("OWNER", "MAPOWNER", FEEDINGMAP_TABLE_PREFIX, $table_prefix);
+		}
+		$current_table_name = $table_prefix . "MAPOWNER";
+		$sql = "CREATE TABLE " . $current_table_name . " (
+					ID              MEDIUMINT(9)	NOT NULL   AUTO_INCREMENT,
+					NAME            VARCHAR(60)		NOT NULL,
+					FILL_COLOUR     VARCHAR(7)		NOT NULL,
+					VISIBLE         VARCHAR(1)		NOT NULL,
 					PRIMARY KEY  (ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
@@ -349,11 +357,6 @@ function gvlarp_character_install() {
 					CONSTRAINT `" . $table_prefix . "discipline_constraint_1` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
-		/* remove COST_MODEL_ID if it exists */
-		$remove = array (
-			'COST_MODEL_ID' => $table_prefix . 'ibfk_1' 
-		);
-		remove_columns($current_table_name, $remove);
 		
 		$current_table_name = $table_prefix . "COMBO_DISCIPLINE";
 			$sql = "CREATE TABLE " . $current_table_name . " (
@@ -370,21 +373,13 @@ function gvlarp_character_install() {
 			dbDelta($sql);
 
 		$current_table_name = $table_prefix . "CONFIG";
-		$rename = array (
-			'from' => 'HOME_COURT_ID',
-			'to'   => 'HOME_DOMAIN_ID',
-			'table' => $current_table_name,
-			'definition' => 'MEDIUMINT(9)  NOT NULL',
-			'constraint' => $table_prefix . "config_constraint_1",
-			'reference'  => $table_prefix . "DOMAIN(ID)"
-		);
-		rename_column($rename);
 		$sql = "CREATE TABLE " . $current_table_name . " (
 					ID                         MEDIUMINT(9)   NOT NULL  AUTO_INCREMENT,
 					PLACEHOLDER_IMAGE          TINYTEXT       NOT NULL,
 					ANDROID_LINK               TINYTEXT       NOT NULL,
 					HOME_DOMAIN_ID             MEDIUMINT(9)   NOT NULL,
 					HOME_SECT_ID               MEDIUMINT(9)   NOT NULL,
+					DEFAULT_GENERATION_ID      MEDIUMINT(9)   NOT NULL,
 					ASSIGN_XP_BY_PLAYER	       VARCHAR(1)     NOT NULL,
 					USE_NATURE_DEMEANOUR       VARCHAR(1)     NOT NULL,
 					DISPLAY_BACKGROUND_IN_PROFILE  MEDIUMINT(9)     NOT NULL,
@@ -392,13 +387,23 @@ function gvlarp_character_install() {
 					CONSTRAINT `" . $table_prefix . "config_constraint_1` FOREIGN KEY (HOME_DOMAIN_ID)  REFERENCES " . $table_prefix . "DOMAIN(ID),
 					CONSTRAINT `" . $table_prefix . "config_constraint_2` FOREIGN KEY (HOME_SECT_ID)    REFERENCES " . $table_prefix . "SECT(ID)
 					) ENGINE=INNODB;";
-		//echo "<p>SQL: $sql</p>";
 		dbDelta($sql);
-		/* remove COLUMNS if it exists */
-		$remove = array ('CLAN_DISCIPLINE_DISCOUNT' => '');
-		remove_columns($current_table_name, $remove);
-		$remove = array ('PROFILE_LINK' => '');
-		remove_columns($current_table_name, $remove);
+		
+		if (table_exists('DOMAIN', FEEDINGMAP_TABLE_PREFIX)) {
+			rename_table("DOMAIN", "MAPDOMAIN", FEEDINGMAP_TABLE_PREFIX, $table_prefix);
+		} 	
+		$current_table_name = $table_prefix . "MAPDOMAIN";
+		$sql = "CREATE TABLE " . $current_table_name . " (
+					ID              MEDIUMINT(9)  NOT NULL   AUTO_INCREMENT,
+					NAME            VARCHAR(60)   NOT NULL,
+					OWNER_ID  		MEDIUMINT(9)  NOT NULL,
+					DESCRIPTION     TINYTEXT      NOT NULL,
+					COORDINATES     LONGTEXT      NOT NULL,
+					VISIBLE         VARCHAR(1)    NOT NULL,
+					PRIMARY KEY  (ID),
+					CONSTRAINT `" . $table_prefix . "mapdomain_constraint_1` FOREIGN KEY (OWNER_ID)  REFERENCES " . $table_prefix . "MAPOWNER(ID)
+					) ENGINE=INNODB;";
+		dbDelta($sql);
 		
 		// LEVEL 3 TABLES - TABLES WITH A FOREIGN KEY CONSTRAINT TO A LEVEL 2 TABLE
 	
@@ -505,17 +510,6 @@ function gvlarp_character_install() {
 		// LEVEL 4 TABLES - TABLES WITH A FOREIGN KEY CONSTRAINT TO A LEVEL 3 TABLE
 
 		$current_table_name = $table_prefix . "CHARACTER";
-		$rename = array (
-			'from' => 'COURT_ID',
-			'to'   => 'DOMAIN_ID',
-			'table' => $current_table_name,
-			'definition' => 'MEDIUMINT(9)  NOT NULL',
-			'constraint' => $current_table_name . "_ibfk_8",
-			'reference'  => $table_prefix . "DOMAIN(ID)"
-		);
-		rename_column($rename);
-		remove_constraint($current_table_name, 'char_constraint_10');	// NATURE_ID
-		remove_constraint($current_table_name, 'char_constraint_11');	// DEMEANOUR_ID
 		$sql = "CREATE TABLE " . $current_table_name . " (
 					ID                        MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
 					NAME                      VARCHAR(60)   NOT NULL,
@@ -551,7 +545,6 @@ function gvlarp_character_install() {
 					CONSTRAINT `" . $table_prefix . "char_constraint_9`  FOREIGN KEY (SECT_ID)              REFERENCES " . $table_prefix . "SECT(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
-		//echo "<p>Char SQL: $sql</p>";
 
 		$current_table_name = $table_prefix . "PATH_POWER";
 			$sql = "CREATE TABLE " . $current_table_name . " (
@@ -577,15 +570,6 @@ function gvlarp_character_install() {
 		// LEVEL 5 TABLES - TABLES WITH A FOREIGN KEY CONSTRAINT TO A LEVEL 4 TABLE
 
 		$current_table_name = $table_prefix . "CHARACTER_OFFICE";
-		$rename = array (
-			'from' => 'COURT_ID',
-			'to'   => 'DOMAIN_ID',
-			'table' => $current_table_name,
-			'definition' => 'MEDIUMINT(9)  NOT NULL',
-			'constraint' => $current_table_name . "_ibfk_2",
-			'reference'  => $table_prefix . "DOMAIN(ID)"
-		);
-		rename_column($rename);
 		$sql = "CREATE TABLE " . $current_table_name . " (
 					ID            MEDIUMINT(9) NOT NULL  AUTO_INCREMENT,
 					OFFICE_ID     MEDIUMINT(9) NOT NULL,
@@ -645,8 +629,6 @@ function gvlarp_character_install() {
 					CONSTRAINT `" . $table_prefix . "pending_xp_constraint_2` FOREIGN KEY (CHARACTER_ID) REFERENCES " . $table_prefix . "CHARACTER(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
-		$remove = array( 'CODE' => '', 'ITEM_ID' => '');
-		remove_columns($current_table_name, $remove);
 
 		$current_table_name = $table_prefix . "CHARACTER_ROAD_OR_PATH";
 		$sql = "CREATE TABLE " . $current_table_name . " (
@@ -788,7 +770,6 @@ function gvlarp_character_install() {
 			dbDelta($sql);
 
 		$current_table_name = $table_prefix . "CHARACTER_BACKGROUND";
-		remove_constraint($current_table_name, 'char_bg_constraint_3');	// SECTOR_ID
 		$sql = "CREATE TABLE " . $current_table_name . " (
 					ID                MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
 					CHARACTER_ID      MEDIUMINT(9)  NOT NULL,
@@ -966,78 +947,6 @@ function gvlarp_character_install_data() {
 	
 }
 
-function feedingmap_install() {
-	global $wpdb;
-	global $feedingmap_db_version;
-	
-	$installed_version = get_option( "feedingmap_db_version" );
-	
-	if( $installed_version != $feedingmap_db_version ) {
-	
-		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-	
-		// Table to define who controls each area - e.g. Clan or individual Vampire
-		// Owner / Colour
-		$current_table_name = FEEDINGMAP_TABLE_PREFIX . "OWNER";
-		$sql = "CREATE TABLE " . $current_table_name . " (
-					ID              MEDIUMINT(9)	NOT NULL   AUTO_INCREMENT,
-					NAME            VARCHAR(60)		NOT NULL,
-					FILL_COLOUR     VARCHAR(7)		NOT NULL,
-					VISIBLE         VARCHAR(1)		NOT NULL,
-					PRIMARY KEY  (ID)
-					) ENGINE=INNODB;";
-		dbDelta($sql);
-		//echo "<p>SQL: $sql</p>";
-
-		// Table to define each area - e.g. glasgow ward
-		// ID / Name / OWNER_ID / Description (for pop-up)
-		$current_table_name = FEEDINGMAP_TABLE_PREFIX . "DOMAIN";
-		$sql = "CREATE TABLE " . $current_table_name . " (
-					ID              MEDIUMINT(9)  NOT NULL   AUTO_INCREMENT,
-					NAME            VARCHAR(60)   NOT NULL,
-					OWNER_ID  		MEDIUMINT(9)  NOT NULL,
-					DESCRIPTION     TINYTEXT      NOT NULL,
-					COORDINATES     LONGTEXT      NOT NULL,
-					VISIBLE         VARCHAR(1)    NOT NULL,
-					PRIMARY KEY  (ID),
-					CONSTRAINT `" . FEEDINGMAP_TABLE_PREFIX . "domain_constraint_2` FOREIGN KEY (OWNER_ID) REFERENCES " . FEEDINGMAP_TABLE_PREFIX . "OWNER(ID)
-					) ENGINE=INNODB;";
-		dbDelta($sql);
-		//echo "<p>SQL: $sql</p>";
-		
-	}
-	
-}
-
-function feedingmap_install_data() {
-	global $wpdb;
-	
-	$wpdb->show_errors();
-	
-	$data = array (
-		0 => array(	'ID'          => 1,
-					'NAME'        => 'Unclaimed',
-					'FILL_COLOUR' => '#FFFFFF',
-					'VISIBLE'     => 'Y'
-		),
-		1 => array(	'ID'          => 2,
-					'NAME'        => 'The Rack',
-					'FILL_COLOUR' => '#000000',
-					'VISIBLE'     => 'Y'
-		),
-	);
-	$sql = "select ID from " . FEEDINGMAP_TABLE_PREFIX . "OWNER;";
-	$exists = count($wpdb->get_results($sql));
-	if (!$exists) 
-		foreach ($data as $key => $entry) {
-				$rowsadded = $wpdb->insert( FEEDINGMAP_TABLE_PREFIX . "OWNER", $entry);
-		}
-
-
-	
-}
-
-
 function remove_columns($table, $columninfo) {
 	global $wpdb;
 
@@ -1076,6 +985,7 @@ function remove_columns($table, $columninfo) {
 	if( !empty($remove_columns) ) $wpdb->query($sql); 
 
 }
+
 function remove_constraint($table, $constraint) {
 	global $wpdb;
 
@@ -1092,14 +1002,14 @@ function remove_constraint($table, $constraint) {
 
 }
 
-function table_exists($table) {
+function table_exists($table, $prefix = GVLARP_TABLE_PREFIX) {
 	global $wpdb;
 
-	$sql = "SHOW TABLES LIKE " . GVLARP_TABLE_PREFIX . $table;
+	$sql = "SHOW TABLES LIKE '" . $prefix . $table . "'";
 	$result = $wpdb->get_results($sql);
 	$tableExists = count($result) > 0;
 	
-	//echo "<p>Table $table exists: $tableExists</p>";
+	//echo "<p>Table $table exists: $tableExists ($sql)</p>";
 	
 	return $tableExists;
 }
@@ -1133,10 +1043,10 @@ function rename_column($columninfo) {
 
 }
 
-function rename_table($from, $to) {
+function rename_table($from, $to, $prefixfrom = GVLARP_TABLE_PREFIX, $prefixto = GVLARP_TABLE_PREFIX) {
 	global $wpdb;
 
-	$sql = "RENAME TABLE " . GVLARP_TABLE_PREFIX . $from . " TO " . GVLARP_TABLE_PREFIX . $to;
+	$sql = "RENAME TABLE " . $prefixfrom . $from . " TO " . $prefixto . $to;
 	//echo "<p>rename sql: $sql</p>";
 	$result = $wpdb->get_results($sql);
 
