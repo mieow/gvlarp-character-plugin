@@ -78,7 +78,7 @@ function render_owner_add_form() {
 	case "edit":
 		$id          = $_REQUEST['owner'];
 		
-		$sql = "SELECT * FROM " . FEEDINGMAP_TABLE_PREFIX . "OWNER WHERE ID = %d";
+		$sql = "SELECT * FROM " . GVLARP_TABLE_PREFIX . "MAPOWNER WHERE ID = %d";
 		$data =$wpdb->get_row($wpdb->prepare($sql, $id));
 		
 		$name        = $data->NAME;
@@ -144,7 +144,7 @@ function render_feedingdomain_add_form($inputsok) {
 	if ($_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == 'mapdomain') {
 			$id          = $_REQUEST['mapdomain'];
 			
-			$sql = "SELECT * FROM " . FEEDINGMAP_TABLE_PREFIX . "DOMAIN WHERE ID = %d";
+			$sql = "SELECT * FROM " . GVLARP_TABLE_PREFIX . "MAPDOMAIN WHERE ID = %d";
 			$data =$wpdb->get_row($wpdb->prepare($sql, $id));
 			
 			$name        = $data->NAME;
@@ -222,7 +222,7 @@ function render_feedingdomain_add_form($inputsok) {
 function get_owners() {
 	global $wpdb;
 
-	$sql = "SELECT ID, NAME FROM " . FEEDINGMAP_TABLE_PREFIX . "OWNER;";
+	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "MAPOWNER;";
 	$list = $wpdb->get_results($sql,OBJECT_K);
 	
 	return $list;
@@ -250,7 +250,7 @@ class owner_table extends WP_List_Table {
 						'VISIBLE' => $_REQUEST['owner_visible']
 					);
 	
-		$wpdb->insert(FEEDINGMAP_TABLE_PREFIX . "OWNER",
+		$wpdb->insert(GVLARP_TABLE_PREFIX . "MAPOWNER",
 					$dataarray,
 					array (
 						'%s',
@@ -275,7 +275,7 @@ class owner_table extends WP_List_Table {
 						'VISIBLE' => $_REQUEST['owner_visible']
 					);
 	
-		$result = $wpdb->update(FEEDINGMAP_TABLE_PREFIX . "OWNER",
+		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "MAPOWNER",
 					$dataarray,
 					array (
 						'ID' => $_REQUEST['owner']
@@ -295,8 +295,8 @@ class owner_table extends WP_List_Table {
 		
 		$sql = "select domains.NAME 
 			from 
-				" . FEEDINGMAP_TABLE_PREFIX . "OWNER owners , 
-				" . FEEDINGMAP_TABLE_PREFIX . "DOMAIN domains
+				" . GVLARP_TABLE_PREFIX . "MAPOWNER owners , 
+				" . GVLARP_TABLE_PREFIX . "MAPDOMAIN domains
 			where owners.ID = %d and domains.OWNER_ID = owners.ID;";
 		$isused = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
@@ -307,7 +307,7 @@ class owner_table extends WP_List_Table {
 				echo "<li style='color:red'>" . stripslashes($mapdomain->NAME) . "</li>";
 			echo "</ul></p>";
 		} else {
-			$sql = "delete from " . FEEDINGMAP_TABLE_PREFIX . "OWNER where ID = %d;";
+			$sql = "delete from " . GVLARP_TABLE_PREFIX . "MAPOWNER where ID = %d;";
 			
 			$result = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
@@ -325,7 +325,7 @@ class owner_table extends WP_List_Table {
 		
 		$visiblity = $showhide == 'hide' ? 'N' : 'Y';
 		
-		$result = $wpdb->update( FEEDINGMAP_TABLE_PREFIX . "OWNER", 
+		$result = $wpdb->update( GVLARP_TABLE_PREFIX . "MAPOWNER", 
 			array (
 				'VISIBLE' => $visiblity
 			), 
@@ -455,7 +455,7 @@ class owner_table extends WP_List_Table {
         		
         $this->process_bulk_action();
 		
-		$sql  = "SELECT * FROM " . FEEDINGMAP_TABLE_PREFIX . "OWNER ORDER BY NAME";
+		$sql  = "SELECT * FROM " . GVLARP_TABLE_PREFIX . "MAPOWNER ORDER BY NAME";
 		$data = $wpdb->get_results($sql);
 
 		$this->items = $data;
@@ -496,7 +496,7 @@ class domain_table extends WP_List_Table {
 						'VISIBLE' => $_REQUEST['domain_visible']
 					);
 	
-		$wpdb->insert(FEEDINGMAP_TABLE_PREFIX . "DOMAIN",
+		$wpdb->insert(GVLARP_TABLE_PREFIX . "MAPDOMAIN",
 					$dataarray,
 					array (
 						'%s',
@@ -525,7 +525,7 @@ class domain_table extends WP_List_Table {
 						'VISIBLE' => $_REQUEST['domain_visible']
 					);
 	
-		$result = $wpdb->update(FEEDINGMAP_TABLE_PREFIX . "DOMAIN",
+		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "MAPDOMAIN",
 					$dataarray,
 					array (
 						'ID' => $_REQUEST['mapdomain']
@@ -548,7 +548,7 @@ class domain_table extends WP_List_Table {
 						'OWNER_ID' => $this->ownerselect
 					);
 	
-		$result = $wpdb->update(FEEDINGMAP_TABLE_PREFIX . "DOMAIN",
+		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "MAPDOMAIN",
 					$dataarray,
 					array (
 						'ID' => $selectedID
@@ -567,7 +567,7 @@ class domain_table extends WP_List_Table {
 	function delete($selectedID) {
 		global $wpdb;
 		
-		$sql = "delete from " . FEEDINGMAP_TABLE_PREFIX . "DOMAIN where ID = %d;";
+		$sql = "delete from " . GVLARP_TABLE_PREFIX . "MAPDOMAIN where ID = %d;";
 		$wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		echo "<p style='color:green'>Deleted mapdomain {$selectedID}</p>";
 	}
@@ -582,7 +582,7 @@ class domain_table extends WP_List_Table {
 		
 		$visiblity = $showhide == 'hide' ? 'N' : 'Y';
 		
-		$result = $wpdb->update( FEEDINGMAP_TABLE_PREFIX . "DOMAIN", 
+		$result = $wpdb->update( GVLARP_TABLE_PREFIX . "MAPDOMAIN", 
 			array (
 				'VISIBLE' => $visiblity
 			), 
@@ -745,7 +745,7 @@ class domain_table extends WP_List_Table {
         $sortable = $this->get_sortable_columns();
 		
 		// Assign to Owner
-		$sql = "SELECT ID, NAME FROM " . FEEDINGMAP_TABLE_PREFIX . "OWNER ORDER BY NAME";
+		$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "MAPOWNER ORDER BY NAME";
 		$this->ownerlist = $wpdb->get_results($sql);
 		$this->ownerselect = sanitize_key($_REQUEST['ownerselect']);
 		        			
@@ -756,8 +756,8 @@ class domain_table extends WP_List_Table {
 		$sql  = "SELECT 
 					domains.ID, domains.NAME, owners.NAME as OWNER, domains.DESCRIPTION, domains.VISIBLE
 				FROM 
-					" . FEEDINGMAP_TABLE_PREFIX . "OWNER owners,
-					" . FEEDINGMAP_TABLE_PREFIX . "DOMAIN domains
+					" . GVLARP_TABLE_PREFIX . "MAPOWNER owners,
+					" . GVLARP_TABLE_PREFIX . "MAPDOMAIN domains
 				WHERE
 					domains.OWNER_ID = owners.ID";
 		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']) )

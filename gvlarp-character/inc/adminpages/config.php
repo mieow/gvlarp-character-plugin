@@ -28,6 +28,7 @@ function character_config() {
 					'ASSIGN_XP_BY_PLAYER' => $_REQUEST['assignxp'],
 					'USE_NATURE_DEMEANOUR' => $_REQUEST['usenature'],
 					'DISPLAY_BACKGROUND_IN_PROFILE' => $_REQUEST['displaybg'],
+					'DEFAULT_GENERATION_ID' => $_REQUEST['generation'],
 				);
 				
 				$result = $wpdb->update(GVLARP_TABLE_PREFIX . "CONFIG",
@@ -35,7 +36,7 @@ function character_config() {
 					array (
 						'ID' => $configid
 					),
-					array('%s', '%s', '%d', '%d', '%s', '%s', '%d')
+					array('%s', '%s', '%d', '%d', '%s', '%s', '%d', '%d')
 				);		
 				
 				if ($result) 
@@ -116,6 +117,20 @@ function character_config() {
 					?>
 				</select>
 				<td>Specify if a background (e.g. Status) is displayed on the character profile.</td>
+			</tr>
+			</tr><tr>
+				<td>Default Character Generation</td>
+				<td>
+				<select name="generation">
+					<?php
+					foreach (get_generations() as $gen) {
+						echo '<option value="' . $gen->ID . '" ';
+						selected( $options[0]->DEFAULT_GENERATION_ID, $gen->ID );
+						echo '>' . $gen->NAME , '</option>';
+					}
+					?>
+				</select>
+				<td>What is the base generation for new characters.</td>
 			</tr>
 			</table>
 			<input type="submit" name="save_options" class="button-primary" value="Save Options" />
