@@ -634,8 +634,8 @@ function print_map($atts, $content = null) {
 	/* Get Domains */
 	$sql = "SELECT domains.*, owners.FILL_COLOUR, owners.VISIBLE as SHOWOWNER
 			FROM 
-				" . FEEDINGMAP_TABLE_PREFIX . "DOMAIN domains,
-				" . FEEDINGMAP_TABLE_PREFIX . "OWNER owners
+				" . GVLARP_TABLE_PREFIX . "MAPDOMAIN domains,
+				" . GVLARP_TABLE_PREFIX . "MAPOWNER owners
 			WHERE 
 				owners.ID = domains.OWNER_ID
 				AND domains.VISIBLE = 'Y'";
@@ -730,7 +730,7 @@ function print_map($atts, $content = null) {
 	$output .= "</div>\n";
 
 	/* Map Key */
-	$sql = "SELECT * FROM " . FEEDINGMAP_TABLE_PREFIX . "OWNER WHERE VISIBLE = 'Y'";
+	$sql = "SELECT * FROM " . GVLARP_TABLE_PREFIX . "MAPOWNER WHERE VISIBLE = 'Y'";
 	$owners = $wpdb->get_results($sql);
     $output .= "<table class=\"feedingmapkey\">\n";
 	$output .= "<tr><th colspan=2>Map Key</th></tr>\n";
