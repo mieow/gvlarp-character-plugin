@@ -9,6 +9,11 @@ nav {
 	clear:both;
 }
 
+.defaultgen {
+	background:silver;
+	border: 1px solid darkgrey;
+}
+
 .gvadmin_nav{
 	clear: both;
 	display: block;
