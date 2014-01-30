@@ -19,6 +19,7 @@ require_once GVLARP_CHARACTER_URL . 'inc/adminpages/combodisciplines.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/feedingmap.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/players.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages/masterpath.php';
+require_once GVLARP_CHARACTER_URL . 'inc/adminpages/generation.php';
 
 if(!class_exists('WP_List_Table')){
     require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
@@ -199,6 +200,7 @@ function character_datatables() {
 				<li><?php echo get_tablink('domain',  'Domains'); ?></li>
 				<li><?php echo get_tablink('office',  'Offices'); ?></li>
 				<li><?php echo get_tablink('combo',   'Combination Disciplines'); ?></li>
+				<li><?php echo get_tablink('generation', 'Generation'); ?></li>
 				<li><?php echo get_tablink('mapowner', 'Map Domain Owners'); ?></li>
 				<li><?php echo get_tablink('mapdomain','Map Domains'); ?></li>
 			</ul>
@@ -266,6 +268,9 @@ function character_datatables() {
 				break;
 			case 'mapdomain':
 				render_domain_data();
+				break;
+			case 'generation':
+				render_generation_data();
 				break;
 			default:
 				render_stat_page("stat");
