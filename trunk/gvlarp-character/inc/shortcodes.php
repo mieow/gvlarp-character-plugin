@@ -723,7 +723,7 @@ function print_map($atts, $content = null) {
 	$output .= "<input type='hidden' name='feedingmap_clong'  id='feedingmap_clongID'  value=\"$long\">\n";
 	$output .= "<input type='hidden' name='feedingmap_zoom'   id='feedingmap_zoomID'  value=\"$zoom\">\n";
 	$output .= "<input type='hidden' name='feedingmap_type'   id='feedingmap_typeID'  value=\"$type\">\n";
-	$output .= "<input type='button' name='Reload' value='Reload' onclick=\"initialize()\">\n";
+	$output .= "<input type='button' name='Reload' value='Refresh' onclick=\"initialize()\">\n";
 	$output .= "<p id=\"feedingmap_status\">Start</p>\n";
 	$output .= "<div id=\"feedingmap\" style=\"height:{$height}px; width:{$width}px\">\n";
 	$output .= "<div id=\"map-canvas\" style=\"width: 100%; height: 100%\"></div>\n";
@@ -735,7 +735,7 @@ function print_map($atts, $content = null) {
     $output .= "<table class=\"feedingmapkey\">\n";
 	$output .= "<tr><th colspan=2>Map Key</th></tr>\n";
 	foreach ($owners as $owner) {
-		$output .= "<tr><td>". $owner->NAME . "</td>";
+		$output .= "<tr><td>". stripslashes($owner->NAME) . "</td>";
 		$output .= "<td style='background-color:" . $owner->FILL_COLOUR . ";width:10px'>&nbsp;</td></tr>\n";
 	}
 	$output .= "</table>\n\n";

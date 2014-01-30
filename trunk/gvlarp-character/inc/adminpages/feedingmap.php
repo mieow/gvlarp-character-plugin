@@ -183,7 +183,7 @@ function render_feedingdomain_add_form($inputsok) {
 							foreach (get_owners() as $id => $info) {
 								echo "<option value=\"$id\" ";
 								selected($ownerid, $id);
-								echo ">" . $info->NAME . "</option>\n";
+								echo ">" . stripslashes($info->NAME) . "</option>\n";
 							}
 						?>
 						</select>
@@ -259,10 +259,11 @@ class owner_table extends WP_List_Table {
 					)
 				);
 		
+		$owner = stripslashes($_REQUEST['owner_name']);
 		if ($wpdb->insert_id == 0) {
-			echo "<p style='color:red'><b>Error:</b> {$_REQUEST['owner_name']} could not be inserted</p>";
+			echo "<p style='color:red'><b>Error:</b> $owner could not be inserted</p>";
 		} else {
-			echo "<p style='color:green'>Added owner '{$_REQUEST['owner_name']}' (ID: {$wpdb->insert_id})</p>";
+			echo "<p style='color:green'>Added owner '$owner' (ID: {$wpdb->insert_id})</p>";
 		}
 	}
  	function edit() {
@@ -606,7 +607,7 @@ class domain_table extends WP_List_Table {
             case 'DESCRIPTION':
                 return stripslashes($item->$column_name);
             case 'OWNER':
-                return $item->$column_name;
+                return stripslashes($item->$column_name);
              default:
                 return print_r($item,true); 
         }
@@ -729,7 +730,7 @@ class domain_table extends WP_List_Table {
 				foreach( $this->ownerlist as $key => $object ) {
 					echo '<option value="' . esc_attr( $object->ID ) . '" ';
 					selected( $this->ownerselect, $object->ID );
-					echo '>' . esc_attr( $object->NAME ) . '</option>';
+					echo '>' . stripslashes(esc_attr( $object->NAME )) . '</option>';
 				}
 				echo '</select>';
 			}
