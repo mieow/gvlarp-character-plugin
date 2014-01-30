@@ -102,7 +102,7 @@
          */
 define( 'GVLARP_CHARACTER_URL', plugin_dir_path(__FILE__) );
 define( 'GVLARP_TABLE_PREFIX', $wpdb->prefix . "GVLARP_" );
-define( 'FEEDINGMAP_TABLE_PREFIX', $wpdb->prefix . "gvfeedingmap_" );
+//define( 'FEEDINGMAP_TABLE_PREFIX', $wpdb->prefix . "gvfeedingmap_" );
 require_once GVLARP_CHARACTER_URL . 'inc/printable.php';
 require_once GVLARP_CHARACTER_URL . 'inc/install.php';
 require_once GVLARP_CHARACTER_URL . 'inc/extendedbackground.php';
@@ -305,6 +305,17 @@ function get_player_type() {
 	global $wpdb;
 
 	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "PLAYER_TYPE ORDER BY NAME;";
+	$list = $wpdb->get_results($sql);
+	
+	//print_r($list);
+	
+	return $list;
+}
+function get_generations() {
+
+	global $wpdb;
+
+	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "GENERATION ORDER BY BLOODPOOL, MAX_DISCIPLINE;";
 	$list = $wpdb->get_results($sql);
 	
 	//print_r($list);
@@ -652,7 +663,7 @@ function get_player_type() {
         $table_prefix = GVLARP_TABLE_PREFIX;
         $sql = "SELECT ID, name
                 FROM " . $table_prefix . "GENERATION
-                ORDER BY BLOODPOOL, COST";
+                ORDER BY BLOODPOOL, MAX_DISCIPLINE";
 
         $generations = $wpdb->get_results($sql);
         return $generations;
