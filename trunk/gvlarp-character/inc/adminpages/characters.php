@@ -305,7 +305,7 @@ function displayUpdateCharacter($characterID) {
 		$characterName             = "New Name";
 		$characterPublicClanId     = "";
 		$characterPrivateClanId    = "";
-		$characterGenerationId     = "";
+		$characterGenerationId     = $config->DEFAULT_GENERATION_ID;
 		$characterDateOfBirth      = "";
 		$characterDateOfEmbrace    = "";
 		$characterSire             = "";
