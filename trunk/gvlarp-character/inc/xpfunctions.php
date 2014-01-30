@@ -371,28 +371,6 @@ function get_discipline_xp_costs_per_level($disciplineid, $level, $clanid) {
 		print_r($result);
 		echo "</pre>";  */
 	}			
-		
-	/* 		
-	$sql = "SELECT steps.CURRENT_VALUE, steps.NEXT_VALUE, steps.XP_COST
-		FROM
-			" . GVLARP_TABLE_PREFIX . "COST_MODEL_STEP steps,
-			" . GVLARP_TABLE_PREFIX . "COST_MODEL clanmodels
-			LEFT JOIN
-				($clansql) 
-			" . GVLARP_TABLE_PREFIX . "DISCIPLINE discipline,
-			" . GVLARP_TABLE_PREFIX . "CLAN clans,
-			" . GVLARP_TABLE_PREFIX . "CLAN_DISCIPLINE clandisciplines
-		WHERE
-			steps.COST_MODEL_ID = models.ID
-			AND discipline.COST_MODEL_ID = models.ID
-			AND clans.ID = clandisciplines.CLAN_ID
-			AND discipline.ID = %s
-			AND steps.NEXT_VALUE > %s
-		ORDER BY steps.CURRENT_VALUE ASC";
-
-	$sql = $wpdb->prepare($sql, $tableid, $level);
-	
-	return $wpdb->get_results($sql); */
 	
 	return $result;
 
