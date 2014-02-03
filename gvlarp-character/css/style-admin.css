@@ -4,7 +4,18 @@
 nav {
 	display:block;
 }
-
+#Willpower-filter table.wp-list-table {
+	width: auto;
+}
+#Blood-filter table.wp-list-table {
+	width: auto;
+}
+#generation_form table.wp-list-table {
+	width: auto;
+}
+#player-filter table.wp-list-table {
+	width: auto;
+}
 .gvadmin_content{
 	clear:both;
 }

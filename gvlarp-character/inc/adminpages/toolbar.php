@@ -114,6 +114,15 @@ function toolbar_link_gvadmin( $wp_admin_bar ) {
 		$wp_admin_bar->add_node( $args );
 
 		$args = array(
+			'id'    => 'gvstat',
+			'title' => 'Stat Changes',
+			'href'  => admin_url('admin.php?page=gvcharacter-stats'),
+			'parent' => 'gvcharacters',
+			'meta'  => array( 'class' => 'my-toolbar-page' )
+		); 
+		$wp_admin_bar->add_node( $args );
+
+		$args = array(
 			'id'    => 'gvdata',
 			'title' => 'Data Tables',
 			'href'  => admin_url('admin.php?page=gvcharacter-data'),
