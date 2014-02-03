@@ -3,16 +3,16 @@ require_once GVLARP_CHARACTER_URL . 'lib/fpdf.php';
 require_once GVLARP_CHARACTER_URL . 'inc/classes.php';
 
 /* read these from config options or use defaults */
-$title       = 'Character Sheet';
+$printtitle  = 'Character Sheet';
 $footer      = 'plugin.gvlarp.com';
-$titlefont   = 'Arial';
-$titlecolour = array(0,0,0); /* RGB BB0506 */
+$printtitlefont   = 'Arial';
+$printtitlecolour = array(0,0,0); /* RGB BB0506 */
 $dividerlinecolor = array(187,05,06); /* RGB */
 $dividertextcolor = array(187,05,06); /* RGB */
 $dividerlinewidth = 0.5;
 
 /* Not read from config options */
-$titlesize     = 16;
+$printtitlesize     = 16;
 $textfont      = 'Arial';
 $textcolour    = array(0,0,0); /* RGB */
 $textsize      = 9; /* points */
@@ -28,7 +28,7 @@ $dotmaximum = 5;  /* get this from character */
 			
 function gv_print_redirect()
 {
-	global $title;
+	global $printtitle;
 	global $margin;
 	global $wpdb;
 	global $textsize;
@@ -52,7 +52,7 @@ function gv_print_redirect()
 
 			$pdf = new PDFcsheet('P','mm','A4');
 			$pdf->LoadOptions();
-			$pdf->SetTitle($title);
+			$pdf->SetTitle($printtitle);
 			$pdf->AliasNbPages();
 			$pdf->SetMargins($margin, $margin , $margin);
 			$pdf->AddPage();
@@ -347,20 +347,20 @@ class PDFcsheet extends FPDF
 {
 
 	function LoadOptions() {
-		global $title;
+		global $printtitle;
 		global $footer;
-		global $titlefont;
-		global $titlecolour; 
+		global $printtitlefont;
+		global $printtitlecolour; 
 		global $dividerlinecolor; /* RGB */
 		global $dividertextcolor; /* RGB */
 		global $dividerlinewidth;
 		
-		$title     = get_option('gvcharacter_pdf_title');
-		$titlefont = get_option('gvcharacter_pdf_titlefont');
+		$printtitle     = get_option('gvcharacter_pdf_title');
+		$printtitlefont = get_option('gvcharacter_pdf_titlefont');
 		$footer    = get_option('gvcharacter_pdf_footer');
 		$dividerlinewidth = get_option('gvcharacter_pdf_divlinewidth');
 		
-		$titlecolour      = hex2rgb(get_option('gvcharacter_pdf_titlecolour'));
+		$printtitlecolour      = hex2rgb(get_option('gvcharacter_pdf_titlecolour'));
 		$dividerlinecolor = hex2rgb(get_option('gvcharacter_pdf_divcolour'));
 		$dividertextcolor = hex2rgb(get_option('gvcharacter_pdf_divtextcolour'));
 	
@@ -368,14 +368,14 @@ class PDFcsheet extends FPDF
 
 	function Header()
 	{
-		global $title;
-		global $titlefont;
-		global $titlecolour;
-		global $titlesize;
+		global $printtitle;
+		global $printtitlefont;
+		global $printtitlecolour;
+		global $printtitlesize;
 
-		$this->SetFont($titlefont,'B',$titlesize);
-		$this->SetTextColor($titlecolour[0],$titlecolour[1],$titlecolour[2]);
-		$this->Cell(0,10,$title,0,1,'C');
+		$this->SetFont($printtitlefont,'B',$printtitlesize);
+		$this->SetTextColor($printtitlecolour[0],$printtitlecolour[1],$printtitlecolour[2]);
+		$this->Cell(0,10,$printtitle,0,1,'C');
 
 		$this->Ln(2);
 	}
