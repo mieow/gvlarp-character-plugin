@@ -118,6 +118,7 @@ require_once GVLARP_CHARACTER_URL . 'inc/profile.php';
 //require_once GVLARP_CHARACTER_URL . 'inc/shortcodes.php';
 //require_once GVLARP_CHARACTER_URL . 'inc/tables.php';
 
+$title = "V:tM Character Management";
 
 /* STYLESHEETS
 ------------------------------------------------------ */
