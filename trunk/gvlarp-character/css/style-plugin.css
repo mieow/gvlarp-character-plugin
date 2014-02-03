@@ -3,6 +3,14 @@
 .gvplugin {
 	/* font-family: "Courier New"; */
 }
+div.gvspendbutton  {
+	/* border: 1px dotted #666666; */
+	padding: 5px;
+	margin: 5px;
+}
+div.gvspendbutton input.gvxp_submit {
+	float: none;
+}
 
 /* =Character Sheet
 -------------------------------------------------------------- */

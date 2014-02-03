@@ -973,18 +973,25 @@ function print_character_offices($atts, $content=null) {
 add_shortcode('character_offices_block', 'print_character_offices');
 
 function print_character_temp_stats($atts, $content=null) {
-	extract(shortcode_atts(array ("character" => "null", "stat" => "Willpower"), $atts));
+	extract(shortcode_atts(
+		array ("character" => "null", "stat" => "Willpower", "showtable" => "0", "limit" => "5")
+		, $atts)
+	);
 	$character = establishCharacter($character);
+	$characterID = establishCharacterID($character);
 
 	if (!is_user_logged_in()) {
 		return "You must be logged in to view this content";
+	}
+	if (!isset($characterID) || $characterID == "") {
+		return "Please select a character to view";
 	}
 	
 	global $wpdb;
 	$table_prefix = GVLARP_TABLE_PREFIX;
 
 	$sqlOutput = "";
-	$sql = "SELECT char_temp_stat.character_id, SUM(char_temp_stat.amount) total_temp_stat
+	$sql = "SELECT SUM(char_temp_stat.amount)
 			FROM " . $table_prefix . "CHARACTER_TEMPORARY_STAT char_temp_stat,
 				 " . $table_prefix . "CHARACTER chara,
 				 " . $table_prefix . "TEMPORARY_STAT tstat
@@ -994,24 +1001,57 @@ function print_character_temp_stats($atts, $content=null) {
 			  AND chara.WORDPRESS_ID = %s
 			GROUP BY char_temp_stat.character_id, char_temp_stat.temporary_stat_id";
 
-	$character_temp_stats = $wpdb->get_results($wpdb->prepare($sql, $stat, $character));
+	$totalstat = $wpdb->get_var($wpdb->prepare($sql, $stat, $character));
 
-	foreach ($character_temp_stats as $current_temp_stat) {
-		$sqlOutput = $current_temp_stat->total_temp_stat;
-	}
-
-	$output = "";
-	if ($sqlOutput != "") {
-		if ($stat == "Willpower") {
-			$output = "<span id=\"" . get_shortcode_id("gvid_ctw_willpower") . "\" class=\"gvcol_val\">" . $sqlOutput . "</span>";
+	$output = "<div id=\"" . get_shortcode_id("gvid_ctw_" . esc_attr($stat)) . "\">";
+	if ($showtable) {
+		$sql = "SELECT 
+					chartemp.AMOUNT,
+					reasons.NAME,
+					chartemp.AWARDED,
+					chartemp.COMMENT
+				FROM
+					" . $table_prefix . "CHARACTER_TEMPORARY_STAT chartemp,
+					" . $table_prefix . "TEMPORARY_STAT tempstat,
+					" . $table_prefix . "TEMPORARY_STAT_REASON reasons
+				WHERE
+					chartemp.TEMPORARY_STAT_ID = tempstat.ID
+					AND chartemp.TEMPORARY_STAT_REASON_ID = reasons.ID
+					AND chartemp.CHARACTER_ID = %s
+					AND tempstat.NAME = %s
+				ORDER BY chartemp.AWARDED DESC, chartemp.ID DESC
+				LIMIT 0 , %d";
+		$sql = $wpdb->prepare($sql, $characterID, $stat, $limit);
+		$result = $wpdb->get_results($sql);
+		//echo "<p>$character - SQL: $sql</p>";
+		//print_r($result);
+		
+		$output .= "<table>
+		<tr>
+			<th class=\"gvthead gvcol_1\">Reason for Change</th>
+			<th class=\"gvthead gvcol_2\">Amount</th>
+			<th class=\"gvthead gvcol_3\">Date</th>
+			<th class=\"gvthead gvcol_4\">Comment</th>
+		</tr>";
+		
+		foreach ($result as $row) {
+			$output .= sprintf("<tr><td class=\"gvcol_1 gvcol_key\">%s</td>
+									<td class=\"gvcol_2 gvcol_val\">%d</td>
+									<td class=\"gvcol_3 gvcol_val\">%s</td>
+									<td class=\"gvcol_4 gvcol_val\">%s</td>
+								</tr>\n",
+						$row->NAME, $row->AMOUNT, $row->AWARDED, $row->COMMENT);
 		}
-		else if ($stat == "Blood") {
-			$output = "<span id=\"" . get_shortcode_id("gvid_ctw_bloodpool") . "\" class=\"gvcol_val\">" . $sqlOutput . "</span>";
-		}
+		$output .= "<tr><td colspan=2 class=\"gvsummary\">Current $stat</td>
+							<td colspan=2 class=\"gvsummary\">$totalstat</td></tr>\n";
+		$output .= "</table>";
+		
+	} else {
+		$output .= $totalstat;
 	}
-	else {
-		$output = "";
-	}
+	
+	
+	$output .= "</div>";
 
 	return $output;
 }
@@ -1088,6 +1128,95 @@ function print_office_block($atts, $content=null) {
 }
 add_shortcode('office_block', 'print_office_block');
 
+function print_spend_button($atts, $content=null) {
+	global $wpdb;
+	extract(shortcode_atts(array ("character" => "null", "stat" => "Willpower"), $atts));
+
+	$character = establishCharacter($character);
+	$characterID = establishCharacterID($character);
+
+	if (!is_user_logged_in()) {
+		return "You must be logged in to view this content";
+	}
+	if (!isset($characterID) || $characterID == "") {
+		return "";
+	}
+	$buttonID  = get_shortcode_id("gv" . esc_attr($stat) . "sbut");
+	$stagename = 'stage_' . $buttonID;
+	$stage     = $_REQUEST[$stagename];
+	$amount    = 1;
+	$comment   = '';
+	
+	$output = "<div id=\"$buttonID\" class=\"gvspendbutton\">";
+	$output .= "<form method='post' id='form_$buttonID'>";
+	
+	switch($stage) {
+		case "validate":
+			$amount  = $_REQUEST["amount_$buttonID"];
+			$comment = $_REQUEST["comment_$buttonID"];
+			
+			// amount must be a number > 0 and comment cannot be blank
+			$spendok = 1;
+			if (!is_numeric($amount) || $amount <= 0) {
+				$spendok = 0;
+				$output .= "<p>Change in $stat should be a number greater than zero</p>";
+			}
+			if (empty($comment)) {
+				$spendok = 0;
+				$output .= "<p>Please enter a comment on what you are spending your $stat on</p>";
+			}
+			
+			if ($spendok) {
+				$wpdb->show_errors();
+				
+				$sql = "SELECT ID FROM " . GVLARP_TABLE_PREFIX . "TEMPORARY_STAT WHERE NAME = %s";
+				$statID = $wpdb->get_var($wpdb->prepare($sql, $stat));
+				$sql = "SELECT ID FROM " . GVLARP_TABLE_PREFIX . "TEMPORARY_STAT_REASON WHERE NAME = %s";
+				$reasonID = $wpdb->get_var($wpdb->prepare($sql, 'Game spend'));
+				
+				// update database
+				$data = array (
+					'CHARACTER_ID'             => $characterID,
+					'TEMPORARY_STAT_ID'        => $statID,
+					'TEMPORARY_STAT_REASON_ID' => $reasonID,
+					'AWARDED'                  => Date('Y-m-d'),
+					'AMOUNT'                   => $amount * -1,
+					'COMMENT'                  => $comment
+				);
+				$wpdb->insert(GVLARP_TABLE_PREFIX . "CHARACTER_TEMPORARY_STAT",
+					$data,
+					array ('%d', '%d', '%d', '%s', '%d', '%s')
+				);
+				
+				// report done
+				if ($wpdb->insert_id == 0) {
+					$output .= "<p style='color:red'><b>Error:</b>Could not update $stat</p>";
+				} else {
+					$output .= "<p style='color:green'>Updated $stat</p>";
+				}
+				// spend again button
+				$output .= "<input type='hidden' name='$stagename' value='detail'>";
+				$output .= "<input type='submit' name='dospend_$buttonID' value='Spend more $stat' class='gvxp_submit'>";
+				
+				break;
+			}
+		case "detail":
+			$output .= "<input type='hidden' name='$stagename' value='validate'>";
+			$output .= "<label>I am spending</label><input type='text' name='amount_$buttonID' value='$amount' size=5 >
+						<label>point(s) of $stat on:</label><input type='text' name='comment_$buttonID' value='$comment' size=30 >";
+			$output .= "<input type='submit' name='confirm_$buttonID' value='Confirm $stat spend' class='gvxp_submit'>";
+			break;
+		default:
+			$output .= "<input type='hidden' name='$stagename' value='detail'>";
+			$output .= "<input type='submit' name='dospend_$buttonID' value='Spend $stat' class='gvxp_submit'>";
+		
+	}
+	
+
+	$output .= "</form></div>";
+	return $output;
+}
+add_shortcode('spend_button', 'print_spend_button');
 
 
 ?>
