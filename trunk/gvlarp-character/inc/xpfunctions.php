@@ -1050,7 +1050,7 @@ function render_combo($characterID, $pendingSpends, $xp_avail) {
     //echo "<p>SQL: $sql</p>";
 	$character_data = $wpdb->get_results($sql);
 	
-	print_r($character_data);
+	//print_r($character_data);
 	
 	$rowoutput = render_combo_spend_table('combo', $character_data, $xp_avail);
 	
