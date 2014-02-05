@@ -117,7 +117,6 @@ function character_config() {
 					?>
 				</select>
 				<td>Specify if a background (e.g. Status) is displayed on the character profile.</td>
-			</tr>
 			</tr><tr>
 				<td>Default Character Generation</td>
 				<td>
