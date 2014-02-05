@@ -152,7 +152,7 @@ function get_editbackgrounds_tab($characterID) {
 		$content .= ($background->COMMENT) ? " ({$background->COMMENT})" : "";
 		$content .= "</p>\n";
 		if (!empty($background->BACKGROUND_QUESTION))
-			$content .= "<p class='gvext_ques'>" . wpautop($background->BACKGROUND_QUESTION) . "</p>\n";
+			$content .= "<div class='gvext_ques'>" . wpautop($background->BACKGROUND_QUESTION) . "</div>\n";
 		$content .= "<div class='gvext_section'>";
 		$content .= "<input type='hidden' name='charbgID[$i]' value='{$background->charbgsID}' />\n";
 		$content .= "<input type='hidden' name='charbgName[$i]' value='{$background->NAME}' />\n";
@@ -280,7 +280,7 @@ function get_editmerits_tab($characterID) {
 	
 		$content .= "<p class='gvext_name'>" . $merit->NAME;
 		$content .= ($merit->COMMENT) ? " ({$merit->COMMENT})" : "";
-		$content .= "</p>\n<p class='gvext_ques'>" . wpautop($merit->BACKGROUND_QUESTION) . "</p>\n";
+		$content .= "</p>\n<div class='gvext_ques'>" . wpautop($merit->BACKGROUND_QUESTION) . "</div>\n";
 		$content .= "<div class='gvext_section'>";
 		$content .= "<input type='hidden' name='meritID[$i]' value='{$merit->meritID}' />\n";
 		$content .= "<input type='hidden' name='charmeritName[$i]' value='{$merit->NAME}' />\n";
@@ -422,7 +422,7 @@ function get_editmisc_tab($characterID) {
 	foreach ($questions as $question) {
 	
 		$content .= "<p class='gvext_name'>" . $question->TITLE . "</p>\n";
-		$content .= "<p class='gvext_ques'>" . wpautop($question->BACKGROUND_QUESTION) . "</p>\n";
+		$content .= "<div class='gvext_ques'>" . wpautop($question->BACKGROUND_QUESTION) . "</div>\n";
 		$content .= "<div class='gvext_section'>";
 		$content .= "<input type='hidden' name='miscID[$i]' value='{$question->miscID}' />\n";
 		$content .= "<input type='hidden' name='miscformID[$i]' value='{$i}' />\n";

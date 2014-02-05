@@ -49,8 +49,7 @@ function get_viewcharacter_content() {
 		$content .= "<td>Demeanour</td><td>" . htmlentities($mycharacter->demeanour) . "</td>";
 	else
 		$content .= "<td>Date of Embrace</td><td>" . htmlentities($mycharacter->date_of_embrace) . "</td>";
-	$content .= "	</tr><tr>
-		</tr>
+	$content .= "	</tr>
 		<tr><td class=\"gvhr\" colspan=6><hr /></td></tr>
 		<tr><td colspan=6><h3>Attributes</h3></td></tr>
 		<tr>
@@ -198,14 +197,14 @@ function get_viewcharacter_content() {
 	$merits = $mycharacter->meritsandflaws;
 	$virtues = $mycharacter->getAttributes("Virtue");
 	
-	$content .= "<tr><td colspan=4><h4>Merits and Flaws</h4></td><td colspan=2><h4>Virtues</h4></td></tr>";
+	$content .= "<tr><td colspan=4><h4>Merits and Flaws</h4></td><td colspan=2><h4>Virtues</h4></td></tr>\n";
 	$content .= "<tr>";
 	if (count($merits) > 0) {
 		$content .= "<td colspan=4><table>";
 		foreach ($merits as $merit) {
 			$content .= "<tr><td class='gvcol_key'>" . stripslashes($merit->name) . "</td>";
 			$content .= "<td class='gvcol_spec'>" . (empty($merit->comment) ? "&nbsp;" : stripslashes($merit->comment)) . "</td>";
-			$content .= "<td>" . $merit->level . "</td></tr>";
+			$content .= "<td>" . $merit->level . "</td></tr>\n";
 		}
 		$content .= "</table></td>";
 	} else {
@@ -218,33 +217,33 @@ function get_viewcharacter_content() {
 				<td class='gvcol_key'>" . $virtues[$i]->name . "</td>
 				<td class='gvcol_spec'>&nbsp;</td>
 				<td class='gvdot_{$maxrating}_{$virtues[$i]->level}'>&nbsp;</td>
-			</tr>";
+			</tr>\n";
 	}
-	$content .= "<tr><td colspan=3><hr /></td></tr>";
-	$content .= "<tr><td colspan=3><h4>Willpower</h4></td></tr>";
-	$content .= "<tr><td colspan=3 class='gvdot_10_{$mycharacter->willpower} gvdotwide'>&nbsp;</td></tr>";
-	$content .= "<tr><td colspan=2 class='gvcol_key'>Current</td><td>" . $mycharacter->current_willpower . "</td></tr>";
-	$content .= "<tr><td colspan=3><hr /></td></tr>";
-	$content .= "<tr><td colspan=2><h4>" . $mycharacter->path_of_enlightenment . "</h4></td><td><h4>" . $mycharacter->path_rating . "</h4></td></tr>";
-	$content .= "<tr><td colspan=3><hr /></td></tr>";
-	$content .= "<tr><td colspan=2><h4>Bloodpool</h4></td><td><h4>" . $mycharacter->bloodpool . "</h4></td></tr>";
+	$content .= "<tr><td colspan=3><hr /></td></tr>\n";
+	$content .= "<tr><td colspan=3><h4>Willpower</h4></td></tr>\n";
+	$content .= "<tr><td colspan=3 class='gvdot_10_{$mycharacter->willpower} gvdotwide'>&nbsp;</td></tr>\n";
+	$content .= "<tr><td colspan=2 class='gvcol_key'>Current</td><td>" . $mycharacter->current_willpower . "</td></tr>\n";
+	$content .= "<tr><td colspan=3><hr /></td></tr>\n";
+	$content .= "<tr><td colspan=2><h4>" . $mycharacter->path_of_enlightenment . "</h4></td><td><h4>" . $mycharacter->path_rating . "</h4></td></tr>\n";
+	$content .= "<tr><td colspan=3><hr /></td></tr>\n";
+	$content .= "<tr><td colspan=2><h4>Bloodpool</h4></td><td><h4>" . $mycharacter->bloodpool . "</h4></td></tr>\n";
 	
-	$content .= "</table></td></tr>";
-	$content .= "<tr><td class=\"gvhr\" colspan=6><hr /></td></tr>";
+	$content .= "</table></td></tr>\n";
+	$content .= "<tr><td class=\"gvhr\" colspan=6><hr /></td></tr>\n";
 
 	//---- MAGIK ----
 	
 	$rituals = $mycharacter->rituals;
 	$majikpaths  = $mycharacter->paths;
 	
-	$content .= "<tr><td colspan=4><h4>Rituals</h4></td><td colspan=2><h4>Paths</h4></td></tr>";
+	$content .= "<tr><td colspan=4><h4>Rituals</h4></td><td colspan=2><h4>Paths</h4></td></tr>\n";
 	$content .= "<tr>";
 	if (count($rituals) > 0) {
 		$content .= "<td colspan=4><table>";
 		foreach ($rituals as $majikdiscipline => $rituallist) {
-			$content .= "<tr><td colspan=2><strong>" . $majikdiscipline . " Rituals</strong></td></tr>";
+			$content .= "<tr><td colspan=2><strong>" . $majikdiscipline . " Rituals</strong></td></tr>\n";
 			foreach ($rituallist as $ritual) {
-				$content .= "<tr><td class='gvcol_key'>Level " . $ritual[level] . "</td><td>" . $ritual[name] . "</td></tr>";
+				$content .= "<tr><td class='gvcol_key'>Level " . $ritual[level] . "</td><td>" . $ritual[name] . "</td></tr>\n";
 			} 
 		}
 		$content .= "</table></td>";
@@ -253,21 +252,21 @@ function get_viewcharacter_content() {
 	}
 	$content .= "<td colspan=2>";
 	if (count($majikpaths) > 0) {
-		$content .= "<table>";
+		$content .= "<table>\n";
 		foreach ($majikpaths as $discipline => $paths) {
-			$content .= "<tr><td><strong>$discipline</strong></td></tr>";
+			$content .= "<tr><td colspan=2><strong>$discipline</strong></td></tr>\n";
 			foreach ($paths as $path => $level) {
 				$content .= "<tr><td class='gvcol_key'>$path</td><td class='gvdot_5_$level'>&nbsp;</td></tr>";
 			}
 		}
-		$content .= "</table>";
+		$content .= "</table>\n";
 	} else {
 		$content .= "&nbsp;";
 	}
 	
-	$content .= "</td></tr>";
-	$content .= "</table>";
-	$content .= "</div>";
+	$content .= "</td></tr>\n";
+	$content .= "</table>\n";
+	$content .= "</div>\n";
 	return $content;
 }
 

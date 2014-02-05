@@ -419,7 +419,7 @@ function render_details_section($type) {
 		if ($level != 0) {
 			
 			// Hidden fields
-			$rowoutput .= "<tr style='display:none'><td colspan=4>";
+			$rowoutput .= "<tr style='display:none'><td colspan=5>";
 			$rowoutput .= "<input type='hidden' name='{$type}_level[" . $index . "]' value='$level' >\n";
 			$rowoutput .= "<input type='hidden' name='{$type}_name[" . $index . "]' value='{$names[$index]}' >\n";
 			$rowoutput .= "<input type='hidden' name='{$type}_id[" . $index . "]' value='{$ids[$index]}' >\n";
@@ -656,7 +656,7 @@ function render_skills_row ($type, $rownum, $max2display, $maxRating, $datarow, 
 
 	$rowoutput = "";
 		// Hidden fields
-	$rowoutput .= "<tr style='display:none'><td>\n";
+	$rowoutput .= "<tr style='display:none'><td colspan=" . (2 + $max2display) . ">\n";
 	$rowoutput .= "<input type='hidden' name='{$type}_spec_at[" . $rownum . "]' value='" . $datarow->spec_at . "' >";
 	$rowoutput .= "<input type='hidden' name='{$type}_spec[" . $rownum . "]'    value='" . $datarow->comment . "' >";
 	$rowoutput .= "<input type='hidden' name='{$type}_curr[" . $rownum . "]'    value='" . $datarow->level . "' >\n";
@@ -688,19 +688,20 @@ function render_skills_row ($type, $rownum, $max2display, $maxRating, $datarow, 
 	$xpcost = 0;
 	$rowoutput .= "<tr><th class='gvthleft'><span";
 	if ($datarow->comment)
-		$rowoutput .= " alt='{$datarow->comment}' title='{$datarow->comment}' class='gvxp_spec' ";
+		$rowoutput .= " title='{$datarow->comment}' class='gvxp_spec' ";
+		//$rowoutput .= " alt='{$datarow->comment}' title='{$datarow->comment}' class='gvxp_spec' ";
 	$rowoutput .= ">{$datarow->name}</span></th>";
 	for ($i=1;$i<=$max2display;$i++) {
 	
 		if ($datarow->level >= $i)
-			$rowoutput .= "<td class='gvxp_dot'><img src='$fulldoturl'></td>";
+			$rowoutput .= "<td class='gvxp_dot'><img alt='*' src='$fulldoturl'></td>";
 		elseif ($maxRating < $i)
-			$rowoutput .= "<td class='gvxp_dot'><img src='$emptydoturl'></td>";
+			$rowoutput .= "<td class='gvxp_dot'><img alt='O' src='$emptydoturl'></td>";
 		elseif ($datarow->CHARTABLE_LEVEL)
 			if ($datarow->CHARTABLE_LEVEL >= $i)
-				$rowoutput .= "<td class='gvxp_dot'><img src='$pendingdoturl'></td>";
+				$rowoutput .= "<td class='gvxp_dot'><img alt='X' src='$pendingdoturl'></td>";
 			else
-				$rowoutput .= "<td class='gvxp_dot'><img src='$emptydoturl'></td>";
+				$rowoutput .= "<td class='gvxp_dot'><img alt='O' src='$emptydoturl'></td>";
 		else
 			if ($datarow->NEXT_VALUE == $i) {
 			
@@ -720,10 +721,10 @@ function render_skills_row ($type, $rownum, $max2display, $maxRating, $datarow, 
 					$rowoutput .= "</td>";
 				}
 				else
-					$rowoutput .= "<td class='gvxp_dot'><img src='$emptydoturl'></td>";
+					$rowoutput .= "<td class='gvxp_dot'><img alt='O' src='$emptydoturl'></td>";
 			}
 			else
-				$rowoutput .= "<td class='gvxp_dot'><img src='$emptydoturl'></td>";
+				$rowoutput .= "<td class='gvxp_dot'><img alt='O' src='$emptydoturl'></td>";
 				
 	}
 	
@@ -1161,7 +1162,9 @@ function render_spend_table($type, $allxpdata, $maxRating, $columns, $xp_avail) 
 
 	$max2display = get_max_dots($xpdata, $maxRating);
 	$colspan = 2 + $max2display;
-	$grp = "";
+	$grp      = "";
+	$grpcount = 0;
+	$extracols = 0;
 	$col = 0;
 	$rowoutput = "";
 	if (count($allxpdata)>0) {
@@ -1200,8 +1203,28 @@ function render_spend_table($type, $allxpdata, $maxRating, $columns, $xp_avail) 
 			}
 			$colspan = 2 + $tmp_max2display;
 			
+			// start column / new column
+			if (isset($xpdata->grp)) {
+				if ($grp != $xpdata->grp) {
+					$grpcount++;
+					if (empty($grp)) {
+						$rowoutput .= "<tr><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$xpdata->grp}</th></tr>\n";
+						$col++;
+					} 
+					elseif ($col == $columns) {
+						$rowoutput .= "</table>\n</td></tr>\n<tr><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$xpdata->grp}</th></tr>\n";
+						$col = 1;
+					}
+					else {
+						$rowoutput .= "</table>\n</td><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$xpdata->grp}</th></tr>\n";
+						$col++;
+					}
+					$grp = $xpdata->grp;
+				}
+			}
+			
 			// Hidden fields
-			$rowoutput .= "<tr style='display:none'><td>\n";
+			$rowoutput .= "<tr style='display:none'><td colspan=$colspan>\n";
 			$rowoutput .= "<input type='hidden' name='{$type}_spec_at[" . $id . "]' value='" . $xpdata->spec_at . "' >";
 			$rowoutput .= "<input type='hidden' name='{$type}_spec[" . $id . "]'    value='" . $xpdata->comment . "' >";
 			$rowoutput .= "<input type='hidden' name='{$type}_curr[" . $id . "]'    value='" . $xpdata->level . "' >\n";
@@ -1210,43 +1233,26 @@ function render_spend_table($type, $allxpdata, $maxRating, $columns, $xp_avail) 
 			$rowoutput .= "<input type='hidden' name='{$type}_name[" . $id . "]'    value='" . $xpdata->name . "' >\n";
 			$rowoutput .= "</td></tr>\n";
 			
-			// start column / new column
-			if (isset($xpdata->grp)) {
-				if ($grp != $xpdata->grp) {
-					if (empty($grp)) {
-						$rowoutput .= "<tr><td class='gvxp_col'><table><tr><th colspan=$colspan>{$xpdata->grp}</th></tr>";
-						$col++;
-					} 
-					elseif ($col == $columns) {
-						$rowoutput .= "</table></td></tr><tr><td class='gvxp_col'><table><tr><th colspan=$colspan>{$xpdata->grp}</th></tr>";
-						$col = 1;
-					}
-					else {
-						$rowoutput .= "</table></td><td class='gvxp_col'><table><tr><th colspan=$colspan>{$xpdata->grp}</th></tr>";
-						$col++;
-					}
-					$grp = $xpdata->grp;
-				}
-			}
 			
 			//dots row
 			$xpcost = 0;
 			$rowoutput .= "<tr><th class='gvthleft'><span";
 			if ($xpdata->comment)
-				$rowoutput .= " alt='{$xpdata->comment}' title='{$xpdata->comment}' class='gvxp_spec' ";
-			$rowoutput .= ">" . stripslashes($xpdata->name) . "</span></th>";
+				$rowoutput .= " title='{$xpdata->comment}' class='gvxp_spec' ";
+				//$rowoutput .= " alt='{$xpdata->comment}' title='{$xpdata->comment}' class='gvxp_spec' ";
+			$rowoutput .= ">" . stripslashes($xpdata->name) . "</span></th>\n";
 			
 			for ($i=1;$i<=$tmp_max2display;$i++) {
 			
 				if ($xpdata->level >= $i)
-					$rowoutput .= "<td class='gvxp_dot'><img src='$fulldoturl'></td>";
+					$rowoutput .= "<td class='gvxp_dot'><img alt='*' src='$fulldoturl'></td>\n";
 				elseif ($maxRating < $i)
-					$rowoutput .= "<td class='gvxp_dot'><img src='$emptydoturl'></td>";
+					$rowoutput .= "<td class='gvxp_dot'><img alt='O' src='$emptydoturl'></td>\n";
 				elseif ($xpdata->CHARTABLE_LEVEL)
 					if ($xpdata->CHARTABLE_LEVEL >= $i)
-						$rowoutput .= "<td class='gvxp_dot'><img src='$pendingdoturl'></td>";
+						$rowoutput .= "<td class='gvxp_dot'><img alt='X' src='$pendingdoturl'></td>\n";
 					else
-						$rowoutput .= "<td class='gvxp_dot'><img src='$emptydoturl'></td>";
+						$rowoutput .= "<td class='gvxp_dot'><img alt='O' src='$emptydoturl'></td>\n";
 				else
 					if ($xpdata->NEXT_VALUE == $i) {
 						
@@ -1264,13 +1270,13 @@ function render_spend_table($type, $allxpdata, $maxRating, $columns, $xp_avail) 
 							if (isset($levelsdata[$id]) && $i == $levelsdata[$id])
 								$rowoutput .= "checked";
 							$rowoutput .= ">";
-							$rowoutput .= "</td>";
+							$rowoutput .= "</td>\n";
 						}
 						else
-							$rowoutput .= "<td class='gvxp_dot'><img src='$emptydoturl'></td>";
+							$rowoutput .= "<td class='gvxp_dot'><img alt='O' src='$emptydoturl'></td>\n";
 					}
 					else
-						$rowoutput .= "<td class='gvxp_dot'><img src='$emptydoturl'></td>";
+						$rowoutput .= "<td class='gvxp_dot'><img alt='O' src='$emptydoturl'></td>\n";
 						
 			}
 			
@@ -1281,13 +1287,24 @@ function render_spend_table($type, $allxpdata, $maxRating, $columns, $xp_avail) 
 				$rowoutput .= "<td class='gvcol_cost'><input class='gvxp_clear' type='submit' name=\"{$type}_cancel[{$xpdata->pending_id}]\" value=\"Clear\"></td>";
 			else
 				$rowoutput .= "<td class='gvcol_cost'>$xpcost</td>";
+				
+			$id++;
+			if ($id == count($allxpdata)) {
+				$remaining = $grpcount % $columns;
+				if ($remaining)
+					$extracols = $columns - $remaining;
+			}
+			
 			$rowoutput .= "</tr>\n";
 			
-			$id++;
 		}
 	}
 	if ($rowoutput != "")
-		$rowoutput .= "</table></td></tr>\n";
+		$rowoutput .= "</table></td>\n";
+	//if ($extracols)
+	//	$rowoutput .= "<td colspan=$extracols><span>&nbsp;</span></td>\n";
+	
+	$rowoutput .= "</tr>\n";
 
 	return $rowoutput;
 }
@@ -1301,15 +1318,18 @@ function render_skill_spend_table($type, $list, $allxpdata, $maxRating, $columns
 	$colspan = 2 + $max2display;
 	$multipleonce = array();
 	$grp = "";
+	$grpcount = 0;
 	$col = 0;
 	$rowoutput = "";
 	//print_r($allxpdata);
 	if (count($list)>0) {
 		$id = 0;
+		$count = 0;
 		foreach ($list as $skill) {
 		
 			if (isset($skill->grp)) {
 				if ($grp != $skill->grp) {
+					$grpcount++;
 					if (empty($grp)) {
 						$rowoutput .= "<tr><td class='gvxp_col'><table><tr><th colspan=$colspan>{$skill->grp}</th></tr>";
 						$col++;
@@ -1345,9 +1365,21 @@ function render_skill_spend_table($type, $list, $allxpdata, $maxRating, $columns
 				}
 			}
 			
+			$count++;
+			
+			if ($count == count($list)) {
+				$remaining = $grpcount % $columns;
+				if ($remaining)
+					$extracols = $columns - $remaining;
+			}
+			
+			
 		}
 	}
-	$rowoutput .= "</table></td></tr>\n";
+	$rowoutput .= "</table></td>";
+	//if ($extracols)
+	//	$rowoutput .= "<td colspan=$extracols>&nbsp;</td>\n";	
+	$rowoutput .= "</tr>\n";
 
 	return $rowoutput;
 }
@@ -1360,8 +1392,10 @@ function render_ritual_spend_table($type, $allxpdata, $columns, $xp_avail) {
 	$levelsdata    = $_REQUEST[$type . '_level'];
 
 	$max2display = get_max_dots($xpdata, $maxRating);
-	$colspan = 2 + $max2display;
+	$colspan = 3;
 	$grp = "";
+	$grpcount = 0;
+	$extracols = 0;
 	$col = 0;
 	$rowoutput = "";
 	if (count($allxpdata)>0) {
@@ -1369,17 +1403,10 @@ function render_ritual_spend_table($type, $allxpdata, $columns, $xp_avail) {
 		foreach ($allxpdata as $xpdata) {
 			//$id = $xpdata->id;
 			
-			// Hidden fields
-			$rowoutput .= "<tr style='display:none'><td>\n";
-			$rowoutput .= "<input type='hidden' name='{$type}_curr[" . $id . "]'    value='" . $xpdata->level . "' >\n";
-			$rowoutput .= "<input type='hidden' name='{$type}_itemid[" . $id . "]'  value='" . $xpdata->item_id . "' >\n";
-			$rowoutput .= "<input type='hidden' name='{$type}_id[" . $id . "]'      value='" . $xpdata->id . "' >\n";
-			$rowoutput .= "<input type='hidden' name='{$type}_name[" . $id . "]'    value='" . $xpdata->name . "' >\n";
-			$rowoutput .= "</td></tr>\n";
-			
 			// start column / new column
 			if (isset($xpdata->grp)) {
 				if ($grp != $xpdata->grp) {
+					$grpcount++;
 					if (empty($grp)) {
 						$rowoutput .= "<tr><td class='gvxp_col'><table><tr><th colspan=$colspan>{$xpdata->grp}</th></tr>";
 						$col++;
@@ -1396,30 +1423,39 @@ function render_ritual_spend_table($type, $allxpdata, $columns, $xp_avail) {
 				}
 			}
 			
+			// Hidden fields
+			$rowoutput .= "<tr style='display:none'><td colspan=$colspan>\n";
+			$rowoutput .= "<input type='hidden' name='{$type}_curr[" . $id . "]'    value='" . $xpdata->level . "' >\n";
+			$rowoutput .= "<input type='hidden' name='{$type}_itemid[" . $id . "]'  value='" . $xpdata->item_id . "' >\n";
+			$rowoutput .= "<input type='hidden' name='{$type}_id[" . $id . "]'      value='" . $xpdata->id . "' >\n";
+			$rowoutput .= "<input type='hidden' name='{$type}_name[" . $id . "]'    value=\"" . htmlentities($xpdata->name) . "\" >\n";
+			$rowoutput .= "</td></tr>\n";
+			
+			
 			//dots row
 			$xpcost = 0;
 			$rowoutput .= "<tr><th class='gvthleft'><span>(Level {$xpdata->rituallevel}) {$xpdata->name}</span></th>";
 			
 			if ($xpdata->level || $xpdata->level === 0)
-				$rowoutput .= "<td class='gvxp_dot'><img src='$fulldoturl'></td>";
+				$rowoutput .= "<td class='gvxp_dot'><img alt='*' src='$fulldoturl'></td>\n";
 			elseif ($xpdata->CHARTABLE_LEVEL)
-				$rowoutput .= "<td class='gvxp_dot'><img src='$pendingdoturl'></td>";
+				$rowoutput .= "<td class='gvxp_dot'><img alt='X' src='$pendingdoturl'></td>\n";
 			else {
 				$xpcost = $xpdata->XP_COST;
 				
 				if ($xp_avail >= $xpcost) {
-					$comment    = "Learn Level {$xpdata->rituallevel} {$xpdata->grp} ritual {$xpdata->name}";
+					$comment    = htmlentities("Learn Level {$xpdata->rituallevel} {$xpdata->grp} ritual {$xpdata->name}");
 				
-					$rowoutput .= "<td class='gvxp_checkbox'>";
+					$rowoutput .= "<td class='gvxp_checkbox'>\n";
 					$rowoutput .= "<input type='hidden'   name='{$type}_cost[" . $id . "]'    value='" . $xpcost . "' >";
-					$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $id . "]' value='$comment' >";
+					$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $id . "]' value=\"$comment\" >";
 					$rowoutput .= "<input type='CHECKBOX' name='{$type}_level[" . $id . "]'   value='{$xpdata->rituallevel}' ";
 					if (isset($levelsdata[$id]))
 						$rowoutput .= "checked";
 					$rowoutput .= ">";
-					$rowoutput .= "</td>";
+					$rowoutput .= "</td>\n";
 				} else
-					$rowoutput .= "<td class='gvxp_dot'><img src='$emptydoturl'></td>";
+					$rowoutput .= "<td class='gvxp_dot'><img alt='O' src='$emptydoturl'></td>\n";
 				
 			}
 						
@@ -1429,14 +1465,23 @@ function render_ritual_spend_table($type, $allxpdata, $columns, $xp_avail) {
 			if ($xpdata->has_pending)
 				$rowoutput .= "<td class='gvcol_cost'><input class='gvxp_clear' type='submit' name=\"{$type}_cancel[{$xpdata->pending_id}]\" value=\"Clear\"></td>";
 			else
-				$rowoutput .= "<td class='gvcol_cost'>$xpcost</td>";
+				$rowoutput .= "<td class='gvcol_cost'>$xpcost</td>\n";
 			$rowoutput .= "</tr>\n";
 			
 			$id++;
+			
+			if ($id == count($allxpdata)) {
+				$remaining = $grpcount % $columns;
+				if ($remaining)
+					$extracols = $columns - $remaining;
+			}
 		}
 	}
 	if ($rowoutput != "")
-		$rowoutput .= "</table></td></tr>\n";
+		$rowoutput .= "</table></td>\n";
+	if ($extracols)
+		$rowoutput .= "<td colspan=$extracols>&nbsp;</td>\n";	
+	$rowoutput .= "</tr>\n";
 
 	return $rowoutput;
 }
@@ -1469,7 +1514,7 @@ function render_combo_spend_table($type, $allxpdata, $xp_avail) {
 				continue;
 			
 			// Hidden fields
-			$rowoutput .= "<tr style='display:none'><td>\n";
+			$rowoutput .= "<tr style='display:none'><td colspan=3>\n";
 			$rowoutput .= "<input type='hidden' name='{$type}_curr[" . $id . "]'    value='" . $xpdata->level . "' >\n";
 			$rowoutput .= "<input type='hidden' name='{$type}_itemid[" . $id . "]'  value='" . $xpdata->item_id . "' >\n";
 			$rowoutput .= "<input type='hidden' name='{$type}_id[" . $id . "]'      value='0' >\n";
@@ -1481,9 +1526,9 @@ function render_combo_spend_table($type, $allxpdata, $xp_avail) {
 			$rowoutput .= "<tr><th class='gvthleft'><span>{$xpdata->name}</span></th>";
 			
 			if ($xpdata->level)
-				$rowoutput .= "<td class='gvxp_dot'><img src='$fulldoturl'></td>";
+				$rowoutput .= "<td class='gvxp_dot'><img alt='*' src='$fulldoturl'></td>";
 			elseif ($xpdata->CHARTABLE_LEVEL)
-				$rowoutput .= "<td class='gvxp_dot'><img src='$pendingdoturl'></td>";
+				$rowoutput .= "<td class='gvxp_dot'><img alt='X' src='$pendingdoturl'></td>";
 			else {
 				$xpcost = $xpdata->XP_COST;
 				
@@ -1499,7 +1544,7 @@ function render_combo_spend_table($type, $allxpdata, $xp_avail) {
 					$rowoutput .= ">";
 					$rowoutput .= "</td>";
 				} else
-					$rowoutput .= "<td class='gvxp_dot'><img src='$emptydoturl'></td>";
+					$rowoutput .= "<td class='gvxp_dot'><img alt='O' src='$emptydoturl'></td>";
 				
 			}
 						
@@ -1515,8 +1560,8 @@ function render_combo_spend_table($type, $allxpdata, $xp_avail) {
 			$id++;
 		}
 	}
-	if ($rowoutput != "")
-		$rowoutput .= "</table></td></tr>\n";
+	//if ($rowoutput != "")
+	//	$rowoutput .= "</table>\n";
 
 	return $rowoutput;
 }
@@ -1538,15 +1583,15 @@ function render_merit_spend_table($type, $list, $allxpdata, $columns, $xp_avail)
 			if (isset($merit->grp)) {
 				if ($grp != $merit->grp) {
 					if (empty($grp)) {
-						$rowoutput .= "<tr><td class='gvxp_col'><table><tr><th colspan=$colspan>{$merit->grp}</th></tr>";
+						$rowoutput .= "<tr><td class='gvxp_col'><table><tr><th colspan=$colspan>{$merit->grp}</th></tr>\n";
 						$col++;
 					} 
 					elseif ($col == $columns) {
-						$rowoutput .= "</table></td></tr><tr><td class='gvxp_col'><table><tr><th colspan=$colspan>{$merit->grp}</th></tr>";
+						$rowoutput .= "</table></td></tr>\n<tr><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$merit->grp}</th></tr>\n";
 						$col = 1;
 					}
 					else {
-						$rowoutput .= "</table></td><td class='gvxp_col'><table><tr><th colspan=$colspan>{$merit->grp}</th></tr>";
+						$rowoutput .= "</table>\n</td><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$merit->grp}</th></tr>\n";
 						$col++;
 					}
 					$grp = $merit->grp;
@@ -1571,8 +1616,9 @@ function render_merit_spend_table($type, $list, $allxpdata, $columns, $xp_avail)
 					}
 				}
 			} else {
+				//if ($merit->XP_COST > 0)
+					//$rowoutput .= "<tr><td><li>$id : {$merit->name} : ({$merit->VISIBLE} / lvl {$merit->level}) {$merit->comment}</li></td><tr>";
 				if ($merit->VISIBLE == 'Y' && $merit->level >= 0 && $merit->XP_COST > 0 ) {
-					//echo "<li>$id : {$merit->name} : {$merit->comment}</li>";
 					$rowoutput .= render_merits_row($type, $id, $merit, $levelsdata, $xp_avail);
 					$id++;
 				}
@@ -1580,7 +1626,7 @@ function render_merit_spend_table($type, $list, $allxpdata, $columns, $xp_avail)
 			
 		}
 	}
-	$rowoutput .= "</table></td></tr>\n";
+	$rowoutput .= "</table>\n</td></tr>\n";
 
 	return $rowoutput;
 }
@@ -1594,13 +1640,13 @@ function render_merits_row ($type, $id, $xpdata, $levelsdata, $xp_avail) {
 	$rowoutput = "";
 
 	// Hidden fields
-	$rowoutput .= "<tr style='display:none'><td>\n";
+	$rowoutput .= "<tr style='display:none'><td colspan=3>\n";
 	$rowoutput .= "<input type='hidden' name='{$type}_curr[" . $id . "]'    value='" . $xpdata->level . "' >\n";
 	$rowoutput .= "<input type='hidden' name='{$type}_itemid[" . $id . "]'  value='" . $xpdata->item_id . "' >\n";
 	$rowoutput .= "<input type='hidden' name='{$type}_id[" . $id . "]'      value='" . $xpdata->id . "' >\n";
 	$rowoutput .= "<input type='hidden' name='{$type}_name[" . $id . "]'    value='" . $xpdata->name . "' >\n";
 	$rowoutput .= "<input type='hidden' name='{$type}_spec_at[" . $id . "]' value='" . $xpdata->has_specialisation . "' >\n";
-	$rowoutput .= "<input type='hidden' name='{$type}_spec[" . $id . "]'    value='" . $xpdata->comment . "' >";
+	$rowoutput .= "<input type='hidden' name='{$type}_spec[" . $id . "]'    value='" . $xpdata->comment . "' >\n";
 	$rowoutput .= "</td></tr>\n";
 	
 	
@@ -1610,53 +1656,53 @@ function render_merits_row ($type, $id, $xpdata, $levelsdata, $xp_avail) {
 	$rowoutput .= "<tr><th class='gvthleft'><span>(Level {$xpdata->level}) {$xpdata->name}";
 	if ($xpdata->comment)
 		$rowoutput .= " - {$xpdata->comment}";
-	$rowoutput .= "</span></th>";
+	$rowoutput .= "</span></th>\n";
 	
 	if ($xpdata->has_pending)
-		$rowoutput .= "<td class='gvxp_dot'><img src='$pendingdoturl'></td>";
+		$rowoutput .= "<td class='gvxp_dot'><img alt='X' src='$pendingdoturl'></td>\n";
 	elseif ($xpdata->level < 0)  // flaw
 		if($xpcost) {
 			if ($xp_avail >= $xpcost) {
 				$comment    = "Buy off level " . ($xpdata->level * -1) . " Flaw {$xpdata->name}";
-				$rowoutput .= "<td class='gvxp_checkbox'>";
-				$rowoutput .= "<input type='hidden'   name='{$type}_cost[" . $id . "]'    value='" . $xpcost . "' >";
-				$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $id . "]' value='$comment' >";
+				$rowoutput .= "<td class='gvxp_checkbox'>\n";
+				$rowoutput .= "<input type='hidden'   name='{$type}_cost[" . $id . "]'    value='" . $xpcost . "' >\n";
+				$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $id . "]' value='$comment' >\n";
 				$rowoutput .= "<input type='CHECKBOX' name='{$type}_level[" . $id . "]'   value='{$xpdata->level}' ";
 				if (isset($levelsdata[$id]))
 					$rowoutput .= "checked";
 				$rowoutput .= ">";
-				$rowoutput .= "</td>";
+				$rowoutput .= "</td>\n";
 			}
 			else
-				$rowoutput .= "<td class='gvxp_dot'><img src='$emptydoturl'></td>";
+				$rowoutput .= "<td class='gvxp_dot'><img alt='O' src='$emptydoturl'></td>\n";
 		} else
-			$rowoutput .= "<td></td>";
+			$rowoutput .= "<td></td>\n";
 	else
 		if ($xpdata->id)
-			$rowoutput .= "<td></td>";
+			$rowoutput .= "<td></td>\n";
 		else {
 			if ($xp_avail >= $xpcost) {
 				$comment    = "Buy level {$xpdata->level} Merit {$xpdata->name}";
-				$rowoutput .= "<td class='gvxp_checkbox'>";
-				$rowoutput .= "<input type='hidden'   name='{$type}_cost[" . $id . "]'    value='" . $xpcost . "' >";
-				$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $id . "]' value='$comment' >";
+				$rowoutput .= "<td class='gvxp_checkbox'>\n";
+				$rowoutput .= "<input type='hidden'   name='{$type}_cost[" . $id . "]'    value='" . $xpcost . "' >\n";
+				$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $id . "]' value='$comment' >\n";
 				$rowoutput .= "<input type='CHECKBOX' name='{$type}_level[" . $id . "]'   value='{$xpdata->level}' ";
 				if (isset($levelsdata[$id]))
 					$rowoutput .= "checked";
 				$rowoutput .= ">";
-				$rowoutput .= "</td>";
+				$rowoutput .= "</td>\n";
 			}
 			else
-				$rowoutput .= "<td class='gvxp_dot'><img src='$emptydoturl'></td>";
+				$rowoutput .= "<td class='gvxp_dot'><img alt='O' src='$emptydoturl'></td>\n";
 		} 
 		
 	$xpcost = ($xpdata->XP_COST && $xp_avail >= $xpcost) ? "(" . $xpdata->XP_COST . " XP)" : "";
 	if ($xpdata->has_pending)
-		$rowoutput .= "<td class='gvcol_cost'><input class='gvxp_clear' type='submit' name=\"{$type}_cancel[{$xpdata->pending_id}]\" value=\"Clear\"></td>";
+		$rowoutput .= "<td class='gvcol_cost'><input class='gvxp_clear' type='submit' name=\"{$type}_cancel[{$xpdata->pending_id}]\" value=\"Clear\"></td>\n";
 	elseif ($xpdata->id && $xpdata->level >= 0)
-		$rowoutput .= "<td class='gvcol_cost'></td>";
+		$rowoutput .= "<td class='gvcol_cost'></td>\n";
 	else
-		$rowoutput .= "<td class='gvcol_cost'>$xpcost</td>";
+		$rowoutput .= "<td class='gvcol_cost'>$xpcost</td>\n";
 	$rowoutput .= "</tr>\n";
 
 	return $rowoutput;
@@ -1790,7 +1836,7 @@ function render_ritual_row($xpdata, $pending, $levelsdata,
 	for ($i=1;$i<=$max2display;$i++){
 		if ($i == $xpdata->level) {
 			if ($pendinglvl) {
-				$output .= "<td class='gvxp_dot'><img src='$pendingdoturl'></td><td>&nbsp;</td>";
+				$output .= "<td class='gvxp_dot'><img alt='X' src='$pendingdoturl'></td><td>&nbsp;</td>";
 			} else {
 				$output .= "<td class='gvxp_radio'><input type='RADIO' name='$radiogroup' value='$radiovalue' ";
 				if (isset($levelsdata[$id]))
