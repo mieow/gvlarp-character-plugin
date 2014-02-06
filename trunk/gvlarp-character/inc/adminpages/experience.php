@@ -481,6 +481,7 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
 					'%d', '%d', '%d', '%s'
 				)
 			);
+			touch_last_updated($data2update->CHARACTER_ID);
 		}
 	
 		return $result;
@@ -510,6 +511,7 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
 					'%d', '%d', '%d', '%s'
 				)
 			);
+			touch_last_updated($data2update->CHARACTER_ID);
 		}
 		elseif ($data2update->CHARTABLE_ID != 0 && $data2update->CHARTABLE_LEVEL < 0) { /* remove flaw */
 			$sql = "DELETE FROM " . GVLARP_TABLE_PREFIX . "CHARACTER_MERIT where ID = %d;";
@@ -539,7 +541,7 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
 				'%d', '%d', '%s'
 			)
 		);
-	
+		touch_last_updated($data2update->CHARACTER_ID);
 		return $result;
 	}
 	

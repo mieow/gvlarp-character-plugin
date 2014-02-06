@@ -78,8 +78,9 @@ function render_temp_stat_page($stat) {
 	$tmpreasons  = $_REQUEST['temp_reason'];
 	$ids      = $_REQUEST['charID'];
 	
-	$err = 0;
+	$errstat = 0;
 	if (isset($_REQUEST['apply2all'])) {
+		$errstat = 2;
 		for ($i=0;$i<count($ids);$i++) {
 			if (!update_temp_stat($ids[$i], $amount, $stat, $statID, $reasonID, 
 							$maximums[$i], $currents[$i], $names[$i], ''))
@@ -87,6 +88,7 @@ function render_temp_stat_page($stat) {
 		}
 	}
 	elseif (isset($_REQUEST['applychanges'])) {
+		$errstat = 2;
 		for ($i=0;$i<count($ids);$i++) {
 			if (!empty($amounts[$i]))
 				if (!update_temp_stat($ids[$i], $amounts[$i], $stat, $statID, $tmpreasons[$i], 
@@ -94,8 +96,8 @@ function render_temp_stat_page($stat) {
 					$err = 1;
 		}
 	}
-	if (!$err) {
-		echo "<p style='color:green'>$stat updates completed successfully";
+	if ($errstat == 2) {
+		echo "<p style='color:green'>$stat updates completed successfully</p>";
 	}
 
 	//Get the data from the database
@@ -242,6 +244,8 @@ function update_temp_stat($selectedID, $amount, $stat, $statID, $reasonID,
 
 	if ($wpdb->insert_id == 0) {
 		echo "<p style='color:red'><b>Error:</b>$stat update for character $char failed";
+	} else {
+		 touch_last_updated($characterID);
 	}
 	
 	return ($wpdb->insert_id != 0);
