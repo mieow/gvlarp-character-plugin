@@ -977,6 +977,7 @@ function render_rituals($characterID, $maxRating, $pendingSpends, $xp_avail) {
 				disc.ID = ritual.DISCIPLINE_ID
 				AND char_disc.level >= ritual.level
 				AND ritual.VISIBLE = 'Y'
+				AND (NOT(ISNULL(cha_ritual.level)) OR ritual.COST > 0)
 		   ORDER BY grp, ritual.level, ritual.name";
 	$sql = $wpdb->prepare($sql, $characterID,$characterID,$characterID,$characterID);
     //echo "<p>SQL: $sql</p>";
@@ -1300,11 +1301,7 @@ function render_spend_table($type, $allxpdata, $maxRating, $columns, $xp_avail) 
 		}
 	}
 	if ($rowoutput != "")
-		$rowoutput .= "</table></td>\n";
-	//if ($extracols)
-	//	$rowoutput .= "<td colspan=$extracols><span>&nbsp;</span></td>\n";
-	
-	$rowoutput .= "</tr>\n";
+		$rowoutput .= "</table></td></tr>\n";
 
 	return $rowoutput;
 }
@@ -1477,11 +1474,12 @@ function render_ritual_spend_table($type, $allxpdata, $columns, $xp_avail) {
 			}
 		}
 	}
-	if ($rowoutput != "")
+	if ($rowoutput != "") {
 		$rowoutput .= "</table></td>\n";
-	if ($extracols)
-		$rowoutput .= "<td colspan=$extracols>&nbsp;</td>\n";	
-	$rowoutput .= "</tr>\n";
+		if ($extracols)
+			$rowoutput .= "<td colspan=$extracols>&nbsp;</td>\n";	
+		$rowoutput .= "</tr>\n";
+	}
 
 	return $rowoutput;
 }
@@ -1626,7 +1624,10 @@ function render_merit_spend_table($type, $list, $allxpdata, $columns, $xp_avail)
 			
 		}
 	}
-	$rowoutput .= "</table>\n</td></tr>\n";
+	if ($id == 0)
+		$rowoutput = "";
+	else
+		$rowoutput .= "</table>\n</td></tr>\n";
 
 	return $rowoutput;
 }
