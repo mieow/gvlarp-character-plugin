@@ -515,6 +515,8 @@ function print_character_xp_table($atts, $content=null) {
 	$config = getConfig();
 	$filteron = $config->ASSIGN_XP_BY_PLAYER == 'Y' ? "PLAYER_ID" : "CHARACTER_ID";
 	$filterid = $config->ASSIGN_XP_BY_PLAYER == 'Y' ? $playerID   : $characterID;
+	
+	$xp_total = get_total_xp($playerID, $characterID);
 
 	if ($group != "total" && $group != "TOTAL") {
 		$sqlSpent = "SELECT 
@@ -601,7 +603,7 @@ function print_character_xp_table($atts, $content=null) {
 	}
 	else {
 
-		$output = get_total_xp($playerID, $characterID);
+		$output = $xp_total;
 
 	}
 
@@ -850,7 +852,8 @@ function print_character_details($atts, $content=null) {
 						   domains.name domain,
 						   path.name path_name,
 						   path_totals.path_value,
-						   chara.ID 
+						   chara.ID,
+						   chara.last_updated
 					FROM " . $table_prefix . "CHARACTER chara,
 						 " . $table_prefix . "CLAN pub_clan,
 						 " . $table_prefix . "CLAN priv_clan,
@@ -908,9 +911,10 @@ function print_character_details($atts, $content=null) {
 		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Sire's Name</td><td class=\"gvcol_2 gvcol_val\">"           . $character_details->sire            . "</td></tr>";
 		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Character Status</td><td class=\"gvcol_2 gvcol_val\">"      . $character_details->status          . "</td></tr>";
 		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Status Comment</td><td class=\"gvcol_2 gvcol_val\">"        . $character_details->status_comment  . "</td></tr>";
-		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Current Domain</td><td class=\"gvcol_2 gvcol_val\">"        . $character_details->domain           . "</td></tr>";
+		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Current Domain</td><td class=\"gvcol_2 gvcol_val\">"        . $character_details->domain          . "</td></tr>";
 		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Road or Path name</td><td class=\"gvcol_2 gvcol_val\">"     . $character_details->path_name       . "</td></tr>";
 		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Road or Path rating</td><td class=\"gvcol_2 gvcol_val\">"   . $character_details->path_value      . "</td></tr>";
+		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Last Updated</td><td class=\"gvcol_2 gvcol_val\">"          . $character_details->last_updated    . "</td></tr>";
 		
 		if ($config->USE_NATURE_DEMEANOUR == 'Y') {
 			
@@ -1130,6 +1134,8 @@ add_shortcode('office_block', 'print_office_block');
 
 function print_spend_button($atts, $content=null) {
 	global $wpdb;
+	$wpdb->show_errors();
+
 	extract(shortcode_atts(array ("character" => "null", "stat" => "Willpower"), $atts));
 
 	$character = establishCharacter($character);
@@ -1150,6 +1156,16 @@ function print_spend_button($atts, $content=null) {
 	$output = "<div id=\"$buttonID\" class=\"gvspendbutton\">";
 	$output .= "<form method='post' id='form_$buttonID'>";
 	
+	$sql = "SELECT SUM(char_temp_stat.amount)
+		FROM " . GVLARP_TABLE_PREFIX . "CHARACTER_TEMPORARY_STAT char_temp_stat,
+			 " . GVLARP_TABLE_PREFIX . "TEMPORARY_STAT tstat
+		WHERE 
+			char_temp_stat.temporary_stat_id = tstat.id
+			AND tstat.name  = %s
+			AND char_temp_stat.character_id    = %s";
+	$sql = $wpdb->prepare($sql, $stat, $characterID);
+	$currentstat = $wpdb->get_var($sql);
+	
 	switch($stage) {
 		case "validate":
 			$amount  = $_REQUEST["amount_$buttonID"];
@@ -1161,13 +1177,17 @@ function print_spend_button($atts, $content=null) {
 				$spendok = 0;
 				$output .= "<p>Change in $stat should be a number greater than zero</p>";
 			}
-			if (empty($comment)) {
+			elseif (empty($comment)) {
 				$spendok = 0;
 				$output .= "<p>Please enter a comment on what you are spending your $stat on</p>";
 			}
+			// Can't spend all the points
+			elseif ($currentstat - $amount <= 0) {
+				$spendok = 0;
+				$output .= "<p>You don't have enough $stat points to spend that much</p>";
+			}
 			
 			if ($spendok) {
-				$wpdb->show_errors();
 				
 				$sql = "SELECT ID FROM " . GVLARP_TABLE_PREFIX . "TEMPORARY_STAT WHERE NAME = %s";
 				$statID = $wpdb->get_var($wpdb->prepare($sql, $stat));
@@ -1192,6 +1212,7 @@ function print_spend_button($atts, $content=null) {
 				if ($wpdb->insert_id == 0) {
 					$output .= "<p style='color:red'><b>Error:</b>Could not update $stat</p>";
 				} else {
+					touch_last_updated($characterID);
 					$output .= "<p style='color:green'>Updated $stat</p>";
 				}
 				// spend again button
@@ -1203,7 +1224,7 @@ function print_spend_button($atts, $content=null) {
 		case "detail":
 			$output .= "<input type='hidden' name='$stagename' value='validate'>";
 			$output .= "<label>I am spending</label><input type='text' name='amount_$buttonID' value='$amount' size=5 >
-						<label>point(s) of $stat on:</label><input type='text' name='comment_$buttonID' value='$comment' size=30 >";
+						<label> of my $currentstat $stat points on:</label><input type='text' name='comment_$buttonID' value='$comment' size=30 >";
 			$output .= "<input type='submit' name='confirm_$buttonID' value='Confirm $stat spend' class='gvxp_submit'>";
 			break;
 		default:

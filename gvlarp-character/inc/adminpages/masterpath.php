@@ -58,9 +58,9 @@ function render_master_path_page(){
 					echo ")</p>";
 				} else {
 					echo "<p style='color:green'>Path change made for character $characterID</p>";
+					touch_last_updated($characterID);
 				}
 				
-				touch_last_updated($characterID);
 
 			}
 		

@@ -39,6 +39,7 @@ class larpcharacter {
 	var $char_status_comment;
 	var $char_status;
 	var $offices;
+	var $last_updated;
 	
 	function load ($characterID){
 		global $wpdb;
@@ -52,6 +53,7 @@ class larpcharacter {
 					   chara.character_status_comment  cstat_comment,
 					   cstatus.name                    cstat,
 					   chara.wordpress_id              wpid,
+					   chara.last_updated			   last_updated,
 					   player.name                     pname,
 					   player.id                       player_id,
 					   domains.name                    domain,
@@ -108,6 +110,7 @@ class larpcharacter {
 		$this->bloodpool    = $result[0]->bloodpool;
 		$this->sire         = $result[0]->sire;
 		$this->char_status  = $result[0]->cstat;
+		$this->last_updated = $result[0]->last_updated;
 		$this->blood_per_round = $result[0]->blood_per_round;
 		$this->date_of_birth   = $result[0]->date_of_birth;
 		$this->date_of_embrace = $result[0]->date_of_embrace;

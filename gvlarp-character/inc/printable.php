@@ -75,7 +75,7 @@ function gv_print_redirect()
 				$pdf->BasicInfoTableRow(array(
 						'Nature:', $mycharacter->nature,
 						'Demeanour:', $mycharacter->demeanour,
-						'', '',
+						'Updated', date_i18n(get_option('date_format'),strtotime($mycharacter->last_updated)),
 						)
 				);
 
@@ -247,8 +247,8 @@ function gv_print_redirect()
 			/* Dates, Sire */
 			$pdf->Divider('Character Information');
 			$pdf->BasicInfoTableRow( array(
-					'Date of Birth', date_i18n(get_option('date_format'),$mycharacter->date_of_birth),
-					'Date of Embrace', date_i18n(get_option('date_format'),$mycharacter->date_of_embrace),
+					'Date of Birth', date_i18n(get_option('date_format'),strtotime($mycharacter->date_of_birth)),
+					'Date of Embrace', date_i18n(get_option('date_format'),strtotime($mycharacter->date_of_embrace)),
 					'Sire',          $mycharacter->sire
 				)
 			);
