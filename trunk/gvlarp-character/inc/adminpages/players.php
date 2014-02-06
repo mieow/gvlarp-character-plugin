@@ -152,7 +152,7 @@ function player_input_validation() {
 	if ($doaction == "add-$type") {
 		$sql = 'SELECT NAME FROM ' . GVLARP_TABLE_PREFIX . 'PLAYER WHERE NAME = %s';
 		$result = $wpdb->get_col($wpdb->prepare($sql,$_REQUEST[$type . '_name'] ));
-		print_r($result);
+		//print_r($result);
 		$countmatch = count($result);
 		if ($countmatch > 0) {
 			echo "<p style='color:red'>ERROR: Player name already exists</p>";
