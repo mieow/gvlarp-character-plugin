@@ -4,7 +4,7 @@ register_activation_hook(__FILE__, "gvlarp_character_install");
 register_activation_hook( __FILE__, 'gvlarp_character_install_data' );
 
 global $gvlarp_character_db_version;
-$gvlarp_character_db_version = "1.9.9"; 
+$gvlarp_character_db_version = "1.9.10c"; 
 
 function gvlarp_update_db_check() {
     global $gvlarp_character_db_version;
