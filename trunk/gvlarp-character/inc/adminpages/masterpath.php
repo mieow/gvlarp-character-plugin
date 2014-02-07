@@ -111,6 +111,7 @@ function render_master_path_data () {
 				" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
 				" . GVLARP_TABLE_PREFIX . "PLAYER player,
 				" . GVLARP_TABLE_PREFIX . "PLAYER_STATUS pstatus,
+				" . GVLARP_TABLE_PREFIX . "CHARACTER_TYPE ctype,
 				" . GVLARP_TABLE_PREFIX . "CHARACTER_STATUS cstatus,
 				" . GVLARP_TABLE_PREFIX . "CHARACTER_ROAD_OR_PATH charpaths,
 				" . GVLARP_TABLE_PREFIX . "ROAD_OR_PATH paths
@@ -120,8 +121,10 @@ function render_master_path_data () {
 				AND cstatus.ID = chara.CHARACTER_STATUS_ID
 				AND charpaths.CHARACTER_ID = chara.ID
 				AND paths.ID = chara.ROAD_OR_PATH_ID
+				AND ctype.ID = chara.CHARACTER_TYPE_ID
 				AND pstatus.NAME = 'Active'
-				AND cstatus.NAME != 'Dead'
+				AND cstatus.NAME = 'Alive'
+				AND ctype.NAME   = 'PC'
 				AND chara.DELETED != 'Y'
 				AND chara.VISIBLE = 'Y'
 			GROUP BY chara.ID
