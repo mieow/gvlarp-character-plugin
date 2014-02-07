@@ -785,7 +785,7 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
 			$description .= ($tablerow->sector) ? " ({$tablerow->sector})" : "";
 			$description .= ($tablerow->COMMENT) ? " ({$tablerow->COMMENT})" : "";
 			$description .= "</strong><br /><span>" . stripslashes($tablerow->PENDING_DETAIL) . "</span>";
-			$description = str_replace("\n", "<br>", $description);
+			$description = wpautop($description);
 			
 			$data[$row] = array (
 				'ID'          => $row,
@@ -795,7 +795,7 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
 				'TABLE.DETAIL' => $tablerow->PENDING_DETAIL,
 				'DESCRIPTION'  => $description,
 				'COMMENT'      => $tablerow->COMMENT,
-				'TABLE.OLD'    => str_replace("\n", "<br>", "<span>" . stripslashes($tablerow->APPROVED_DETAIL) . "</span>")
+				'TABLE.OLD'    => wpautop("<span>" . stripslashes($tablerow->APPROVED_DETAIL) . "</span>")
 			);
 			$row++;
 		}
@@ -822,7 +822,7 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
 			$description = "<strong>{$tablerow->merit}";
 			$description .= ($tablerow->COMMENT) ? " ({$tablerow->COMMENT})" : "";
 			$description .= "</strong><br />
-				<span>" . stripslashes($tablerow->PENDING_DETAIL) . "</span>";
+				<span>" . wpautop(stripslashes($tablerow->PENDING_DETAIL)) . "</span>";
 			
 			$data[$row] = array (
 				'ID'          => $row,
@@ -832,7 +832,7 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
 				'TABLE.DETAIL' => $tablerow->PENDING_DETAIL,
 				'DESCRIPTION'  => $description,
 				'COMMENT'      => $tablerow->COMMENT,
-				'TABLE.OLD'    => str_replace("\n", "<br>", "<span>" . stripslashes($tablerow->APPROVED_DETAIL) . "</span>")
+				'TABLE.OLD'    => wpautop("<span>" . stripslashes($tablerow->APPROVED_DETAIL) . "</span>")
 			);
 			$row++;
 		}
@@ -855,7 +855,7 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
 		//print_r($tempdata);
 		foreach ($tempdata as $tablerow) {
 			$description = "<strong>{$tablerow->TITLE} ({$tablerow->GROUPING})</strong><br />
-				<span>" . stripslashes($tablerow->PENDING_DETAIL) . "</span>";
+				<span>" . wpautop(stripslashes($tablerow->PENDING_DETAIL)) . "</span>";
 			
 			$data[$row] = array (
 				'ID'          => $row,
@@ -865,7 +865,7 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
 				'TABLE.DETAIL' => $tablerow->PENDING_DETAIL,
 				'DESCRIPTION'  => $description,
 				'COMMENT'      => '',
-				'TABLE.OLD'    => str_replace("\n", "<br>", "<span>" . stripslashes($tablerow->APPROVED_DETAIL) . "</span>")
+				'TABLE.OLD'    => wpautop("<span>" . stripslashes($tablerow->APPROVED_DETAIL) . "</span>")
 			);
 			$row++;
 		}
