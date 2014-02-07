@@ -592,7 +592,8 @@ class gvreport_signin extends GVReport_ListTable {
 		
 		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']))
 			$sql .= " ORDER BY {$_REQUEST['orderby']} {$_REQUEST['order']}";
-
+		else
+			$sql .= " ORDER BY PLAYERNAME, CHARACTERNAME";
 		
 		$this->_column_headers = array($columns, $hidden, $sortable);
         $this->process_bulk_action();
