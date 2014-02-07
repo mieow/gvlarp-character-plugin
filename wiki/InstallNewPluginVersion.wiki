@@ -1,6 +1,6 @@
 #summary Instructions on installing the plugin
 
-= Instructions =
+= Instructions Using Wordpress =
 
 1) Export the latest release
 
@@ -14,4 +14,22 @@ svn export http://gvlarp-character-plugin.googlecode.com/svn/tags/version1-8 gvl
 
 4) De-activate the character plugin, if already installed
 
-5) Add New Plugin -> upload
+5) Delete the plugin entirely (don't worry - you aren't deleting the database tables so nothing will be lost)
+
+6) Add New Plugin -> upload
+
+7) Activate Plugin
+
+= Instructions Using FTP =
+
+1) Deactivate the plugin via Wordpress admin
+
+2) Export the latest release
+
+{{{
+svn export http://gvlarp-character-plugin.googlecode.com/svn/tags/version1-8 gvlarp-character
+}}}
+
+3) Upload the exported files to {{{/public_html/wp-content/plugins/gvlarp-character/}}}
+
+4) Re-activate the plugin
