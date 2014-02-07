@@ -849,13 +849,16 @@ function render_xp_by_player () {
 				" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
 				" . GVLARP_TABLE_PREFIX . "PLAYER player,
 				" . GVLARP_TABLE_PREFIX . "PLAYER_STATUS pstatus,
-				" . GVLARP_TABLE_PREFIX . "CHARACTER_STATUS cstatus
+				" . GVLARP_TABLE_PREFIX . "CHARACTER_STATUS cstatus,
+				" . GVLARP_TABLE_PREFIX . "CHARACTER_TYPE ctype
 			WHERE
 				chara.PLAYER_ID = player.ID
 				AND pstatus.ID = player.PLAYER_STATUS_ID
 				AND cstatus.ID = chara.CHARACTER_STATUS_ID
+				AND ctype.ID   = chara.CHARACTER_TYPE_ID
 				AND pstatus.NAME = 'Active'
 				AND cstatus.NAME != 'Dead'
+				AND ctype.NAME   = 'PC'
 				AND chara.DELETED != 'Y'
 				AND chara.VISIBLE = 'Y'
 			GROUP BY chara.ID
@@ -910,15 +913,18 @@ function render_xp_by_character () {
 				" . GVLARP_TABLE_PREFIX . "PLAYER player,
 				" . GVLARP_TABLE_PREFIX . "PLAYER_STATUS pstatus,
 				" . GVLARP_TABLE_PREFIX . "CHARACTER_STATUS cstatus,
+				" . GVLARP_TABLE_PREFIX . "CHARACTER_TYPE ctype,
 				" . GVLARP_TABLE_PREFIX . "PLAYER_XP xp
 			WHERE
 				chara.PLAYER_ID = player.ID
 				AND pstatus.ID = player.PLAYER_STATUS_ID
 				AND cstatus.ID = chara.CHARACTER_STATUS_ID
+				AND ctype.ID   = chara.CHARACTER_TYPE_ID
 				AND xp.CHARACTER_ID = chara.ID
 				AND xp.PLAYER_ID = player.ID
 				AND pstatus.NAME = 'Active'
 				AND cstatus.NAME != 'Dead'
+				AND ctype.NAME   = 'PC'
 				AND chara.DELETED != 'Y'
 				AND chara.VISIBLE = 'Y'
 			GROUP BY chara.ID
@@ -951,138 +957,6 @@ function render_xp_by_character () {
 
 }
 
-
-/* 
------------------------------------------------
-XP APPROVALS TABLE
------------------------------------------------- */
-class gvadmin_xpassign_table extends GVMultiPage_ListTable {
-   
-    function __construct(){
-        global $status, $page;
-                
-        parent::__construct( array(
-            'singular'  => 'assignment',     
-            'plural'    => 'assignments',    
-            'ajax'      => false        
-        ) );
-    }
-  
-    function column_default($item, $column_name){
-        switch($column_name){
-            case 'PLAYER':
-                return $item->$column_name;
-            case 'CHARACTER':
-                return $item->$column_name;
-            case 'CSTATUS':
-                return $item->$column_name;
-            case 'CURRENT_XP':
-                return $item->$column_name;
-          default:
-                return print_r($item,true); 
-        }
-    }
- 
-	function column_xp_reason($item) {
-	
-		$output = '<select name="xp_reason[%s]">\n';
-		foreach (listXpReasons() as $reason) {
-			$output .= "<option value='{$reason->id}'>{$reason->name}</option>\n";
-		}
-		$output .= "</select>\n";
-	
-		return sprintf($output, $item->ID);
-	}
-	function column_xp_change($item) {
-		$output = '<input name="xp_change[%s]" value="" type="text" size=4 />';
-	
-		return sprintf($output, $item->ID);
-	}
-	function column_comment($item) {
-		$output = '<input name="comment[%s]" value="" type="text" size=15 />';
-	
-		return sprintf($output, $item->ID);
-	}
- 
-    function column_charactername($item){
-                
-        return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>',
-            $item->CHARACTERNAME,
-            $item->ID
-        );
-    }
-   
-    function get_columns(){
-        $columns = array(
-            'PLAYER'         => 'Player',
-            'CHARACTERNAME'  => 'Character',
-			'CSTATUS'        => 'Character Status',
-            'CURRENT_XP'     => 'Current XP',
-            'XP_REASON'      => 'Reason for change',
-			'XP_CHANGE'      => 'XP Change',
-			'COMMENT'        => 'Comment'
-        );
-        return $columns;
-		
-    }
-    
-	        
-    function prepare_items() {
-		global $wpdb;
-        
-        $columns  = $this->get_columns();
-        $hidden   = array();
-        $sortable = array();
-		
-		$type = "xpassign";
-        			
-		$this->_column_headers = array($columns, $hidden, $sortable);
-        
-		$this->type = $type;
-		
-        //$this->process_bulk_action();
-		
-		
-		/* get table data */
-		$sql = "SELECT
-					chara.ID as ID,
-					chara.name as CHARACTERNAME,
-					player.name as PLAYER,
-					cstatus.name as CSTATUS,
-					0 as CHARACTER_XP
-				FROM
-					" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
-					" . GVLARP_TABLE_PREFIX . "PLAYER player,
-					" . GVLARP_TABLE_PREFIX . "PLAYER_STATUS pstatus,
-					" . GVLARP_TABLE_PREFIX . "CHARACTER_STATUS cstatus
-				WHERE
-					chara.PLAYER_ID = player.ID
-					AND pstatus.ID = player.PLAYER_STATUS_ID
-					AND cstatus.ID = chara.CHARACTER_STATUS_ID
-					AND pstatus.NAME = 'Active'
-					AND cstatus.NAME != 'Dead'
-					AND chara.DELETED != 'Y'
-				ORDER BY PLAYER, CHARACTERNAME, cstatus.ID, CHARACTER_XP";
-		
-		//echo "<p>SQL: $sql</p>";
-		$data =$wpdb->get_results($sql);
-		$this->items = $data;
-        
-
-        $current_page = $this->get_pagenum();
-        $total_items = count($data);
-
-        
-        $this->items = $data;
-        
-        $this->set_pagination_args( array(
-            'total_items' => $total_items,                  
-            'per_page'    => $total_items,                  
-            'total_pages' => 1
-        ) );
-    }
-
-}
 
 
 ?>
