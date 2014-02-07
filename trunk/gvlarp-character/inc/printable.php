@@ -695,7 +695,7 @@ class PDFcsheet extends FPDF
 		
 		$this->SetTextColor($textcolour[0],$textcolour[1],$textcolour[2]);
 		$this->SetFont($textfont,$textweight,$textsize);
-		$this->WriteWordWrap($text, $sectionwidth, $textrowheight);
+		$this->Write($textrowheight, $text);
 		$this->Ln();
 		
 	}
@@ -772,11 +772,13 @@ class PDFcsheet extends FPDF
 	
 	function WriteWordWrap ($text, $columnwidth, $rowheight) {
 	
+		//$text .= "($columnwidth / " . $this->GetStringWidth($text) . " / " .strlen($text) . ")";
+	
 		if ($columnwidth < $this->GetStringWidth($text)) {
 			$approxcharwidth = $this->GetStringWidth($text) / strlen($text);
-			$approxwrapwidth = ($columnwidth - 1) / $approxcharwidth;
+			$approxwrapwidth = (int) ($columnwidth - 1) / $approxcharwidth;
 			
-			$text = wordwrap($text, $approxwrapwidth, "\n  ", true);
+			$text = wordwrap($text, $approxwrapwidth, "\n", true);
 		}
 		
 		$this->Write($rowheight, $text);
