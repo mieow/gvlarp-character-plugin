@@ -38,7 +38,7 @@
 	<?php endif; ?>
 </head>
 <body>
-<p style="text-align: center;"><strong>- <?php bloginfo('name'); ?> - <span dir="ltr"><?php bloginfo('url')?></span> -</strong></p>
+<p style="text-align: center;"><strong>- <?php bloginfo('name'); ?> - <span dir="ltr"><?php echo home_url(); ?></span> -</strong></p>
 <div class="Center">
 	<div id="Outline">
 		<?php if (have_posts()): ?>
@@ -51,7 +51,7 @@
 			<?php if(print_can('comments')): ?>
 				<?php comments_template(); ?>
 			<?php endif; ?> -->
-			<!-- <p><?php _e('Article printed from', 'wp-print'); ?> <?php bloginfo('name'); ?>: <strong dir="ltr"><?php bloginfo('url'); ?></strong></p>
+			<!-- <p><?php _e('Article printed from', 'wp-print'); ?> <?php bloginfo('name'); ?>: <strong dir="ltr"><?php echo home_url(); ?></strong></p>
 			<p><?php _e('URL to article', 'wp-print'); ?>: <strong dir="ltr"><?php the_permalink(); ?></strong></p> -->
 			<?php if(print_can('links')): ?>
 				<p><?php print_links(); ?></p>

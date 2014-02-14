@@ -1,8 +1,9 @@
 /*	Theme Name: GVLarp Theme
-	URI: http://plugin.gvlarp.com
+	Theme URI: http://plugin.gvlarp.com
+	Author URI: http://www.mieow.co.uk
 	Author: Jane Houston
 	Description: Customised theme for the www.gvlarp.com website
-	Version: 1.0
+	Version: 1.1
 	License: GNU General Public License
 	License URI: license.txt
 	Tags: white, black, red
@@ -414,4 +415,21 @@ ol.commentlist {
 
 .gallery-item {
 	margin: 0;
+}
+
+/* Set Required Style */
+.wp-caption {
+
+}
+.wp-caption-text {
+
+}
+.sticky {
+
+}
+.gallery-caption {
+
+}
+.bypostauthor {
+
 }
