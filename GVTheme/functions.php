@@ -6,7 +6,7 @@ require_once( get_template_directory() . '/theme-options.php' );
 if ( function_exists('register_sidebar') )
 	register_sidebar(array('name' => 'gvsidebar'));
 if ( function_exists('register_nav_menu') )
-	register_nav_menu( 'primary', __( 'Primary Menu', 'gvtheme' ) );
+	register_nav_menu( 'primary', 'Primary Menu' );
 
 /* Custom Header
 ------------------------------------------------ */
@@ -32,7 +32,29 @@ if ( function_exists( 'add_theme_support' ) ) {
 	add_theme_support( 'post-thumbnails' );
 	set_post_thumbnail_size( 150, 150 );
 }
-	
+
+/* Theme Support - Customer Backgrounds
+------------------------------------------------ */
+$themedefaults = array(
+	'default-color'          => '#000000',
+	'default-image'          => '',
+	'wp-head-callback'       => '_custom_background_cb',
+	'admin-head-callback'    => '',
+	'admin-preview-callback' => ''
+);
+add_theme_support( 'custom-background', $themedefaults );
+
+/* Theme Support - HTML5
+------------------------------------------------ */
+add_theme_support( 'html5', array( 'comment-list', 'comment-form', 'search-form' ) );
+
+/* Editor Style
+------------------------------------------------ */
+function gvtheme_add_editor_styles() {
+    add_editor_style( 'css/custom-editor-style.css' );
+}
+add_action( 'init', 'gvtheme_add_editor_styles' );	
+
 /* Login Skinning
 ------------------------------------------------ */
 function my_login_logo() { 
@@ -49,7 +71,7 @@ add_action( 'login_enqueue_scripts', 'my_login_logo' );
 add_theme_support( 'automatic-feed-links' );
 
 function my_login_logo_url() {
-    return get_bloginfo( 'url' );
+    return home_url();
 }
 add_filter( 'login_headerurl', 'my_login_logo_url' );
 
@@ -59,7 +81,7 @@ function my_login_logo_url_title() {
 add_filter( 'login_headertitle', 'my_login_logo_url_title' );
 
 function my_login_stylesheet() { ?>
-    <link rel="stylesheet" id="custom_wp_admin_css"  href="<?php echo get_bloginfo( 'stylesheet_directory' ) . '/css/style-login.css'; ?>" type="text/css" media="all" />
+    <link rel="stylesheet" id="custom_wp_admin_css"  href="<?php echo get_stylesheet_directory_uri() . '/css/style-login.css'; ?>" type="text/css" media="all" />
 <?php }
 add_action( 'login_enqueue_scripts', 'my_login_stylesheet' );
 
@@ -88,5 +110,7 @@ function get_user_role() {
 
 	return $user_role;
 }
+
+if ( ! isset( $content_width ) ) $content_width = 750;
 
 ?>

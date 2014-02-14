@@ -19,10 +19,10 @@ get_header(); ?>
 				<?php
     				$args = array(
 				        'form_id' => 'loginform-custom',
-				        'label_username' => __( 'Login Name:' ),
-				        'label_password' => __( 'Password:' ),
-				        'label_remember' => __( 'Remember Me' ),
-				        'label_log_in' => __( 'Log In' ),
+				        'label_username' => 'Login Name:' ,
+				        'label_password' => 'Password:',
+				        'label_remember' => 'Remember Me',
+				        'label_log_in' => 'Log In',
 				        'remember' => true
 				);
 			    	wp_login_form( $args );

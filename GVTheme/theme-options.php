@@ -19,11 +19,11 @@ function register_gv_settings() {
 	add_settings_field('gv_credits',   'Website Credits',   'gv_options_input_credits',   'gvadmin_slug', 'gv_options_section_main');
 	
 	/* By Role Settings */
-	add_settings_section('gv_options_section_roles', 'Role Settings', 'gv_options_section_role_text', 'gvadmin_slug');
+/* 	add_settings_section('gv_options_section_roles', 'Role Settings', 'gv_options_section_role_text', 'gvadmin_slug');
 	foreach( $wp_roles->role_objects as $role => $roleclass ) {
   		add_settings_field('gv_rolelink_' . $role, $role . " Link Name:", "gv_options_input_rolelink", 'gvadmin_slug', 'gv_options_section_roles', $role);
   		add_settings_field('gv_roleurl_' . $role, $role . " Page URL:", "gv_options_input_roleurl", 'gvadmin_slug', 'gv_options_section_roles', $role);
-	}
+	} */
 	
 } 
 add_action( 'admin_init', 'register_gv_settings' );

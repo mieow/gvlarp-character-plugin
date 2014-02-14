@@ -10,7 +10,7 @@
 ?></title>
 <link rel="stylesheet" type="text/css" media="all" href="<?php bloginfo( 'stylesheet_url' ); ?>" />
 <link rel="profile" href="http://gmpg.org/xfn/11" />
-<?php wp_head();?>
+<?php if ( is_singular() ) wp_enqueue_script( 'comment-reply' );wp_head();?>
 </head>
 
 <body <?php body_class(); ?>>
