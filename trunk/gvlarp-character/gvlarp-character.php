@@ -7,7 +7,7 @@
         Author URI: http://www.gvlarp.com
     */
 
-    /*  Copyright 2013 Lambert Behnke and Jane Houston
+    /*  Copyright 2014 Lambert Behnke and Jane Houston
 
         This program is free software; you can redistribute it and/or modify
         it under the terms of the GNU General Public License, version 2, as
@@ -64,6 +64,14 @@
 					  (e.g. Anarch Status). Removed shortcode ‘xp_spend_table’. Page now generated with content 
 					  filter. XP Spend page re-written to allow multiple spends at the one time. Also shows 
 					  pending spends and allows them to be cancelled.
+		Version 1.9.0 Admin-related shortcodes have been moved to WP admin pages. Generation table can now be
+					  managed and the default gen for new characters defined.  Sort fixed on XP Approval page
+					  and you can only assign XP to visible characters.  On Xp spend page, only get check-boxes
+					  if the character has enough XP. Can buy over WP 5. Thaum paths now show up on printable
+					  sheet. Combo-disciplines can be purchased with XP. Ritual descriptions show up  on
+					  printable sheet. Character info doesn't get displayed if you aren't logged in. Pending
+					  XP changes don't get deleted if approval fails. Extended Background widget added. Show
+					  Feeding domains in a googlemaps api shortcode
         Comments:
 
 	*/
@@ -71,38 +79,21 @@
     /*
         DB Changes: 
 		
-		Version 1.8.28
-			All constraints explicitly named
-			Table CLAN,				Added column CLAN_COST_MODEL_ID
-			Table CLAN,				Added column NONCLAN_COST_MODEL_ID
-			Renamed table COURT to DOMAIN
-			Added table SECT
-			Added table NATURE
-			Table CHARACTER,		Renamed COURT_ID to DOMAIN_ID
-			Table CHARACTER,		Added column SECT_ID
-			Table CHARACTER,		Added column NATURE_ID
-			Table CHARACTER,		Added column DEMEANOUR_ID
-			Table CHARACTER,		Added column LAST_UPDATED
-			Table CHARACTER_OFFICE,	Renamed COURT_ID to DOMAIN_ID
-			Table PENDING_XP_SPEND,	Added column CHARTABLE
-			Table PENDING_XP_SPEND,	Added column CHARTABLE_ID
-			Table PENDING_XP_SPEND,	Added column CHARTABLE_LEVEL
-			Table PENDING_XP_SPEND,	Added column ITEMTABLE
-			Table PENDING_XP_SPEND,	Added column ITEMNAME
-			Table PENDING_XP_SPEND,	Added column ITEMTABLE_ID
-			Table PENDING_XP_SPEND,	Removed column CODE
-			Table DISCIPLINE,		Removed COST_MODEL_ID
-			Table CONFIG,			Added column HOME_DOMAIN_ID
-			Table CONFIG,			Added column HOME_SECT_ID
-			Table CONFIG,			Added column ASSIGN_XP_BY_PLAYER
-			Table CONFIG,			Added column USE_NATURE_DEMEANOUR
-			Table CONFIG,			Removed column PROFILE_LINK
-			Table CONFIG,			Removed column CLAN_DISCIPLINE_DISCOUNT
+		Version 1.9.10
+			Table GENERATION,			Removed column COST
+			Table MERIT,				Added column PROFILE_DISPLAY_ID
+			Table CONFIG,				Added column DISPLAY_BACKGROUND_IN_PROFILE
+			Table CHARACTER,			Restored column VISIBLE
+			Table CHARACTER,			Constraint on NATURE_ID removed
+			Table CHARACTER,			Constraint on DEMEANOUR_ID removed
+			Table CHARACTER_BACKGROUND,	Constraint on SECTOR_ID removed
+			Added PROFILE_DISPLAY Table
+			Added MAPOWNER Table
+			Added MAPDOMAIN Table
 			
          */
 define( 'GVLARP_CHARACTER_URL', plugin_dir_path(__FILE__) );
 define( 'GVLARP_TABLE_PREFIX', $wpdb->prefix . "GVLARP_" );
-//define( 'FEEDINGMAP_TABLE_PREFIX', $wpdb->prefix . "gvfeedingmap_" );
 require_once GVLARP_CHARACTER_URL . 'inc/printable.php';
 require_once GVLARP_CHARACTER_URL . 'inc/install.php';
 require_once GVLARP_CHARACTER_URL . 'inc/extendedbackground.php';
@@ -113,10 +104,6 @@ require_once GVLARP_CHARACTER_URL . 'inc/shortcodes.php';
 require_once GVLARP_CHARACTER_URL . 'inc/adminpages.php';
 require_once GVLARP_CHARACTER_URL . 'inc/viewcharacter.php';
 require_once GVLARP_CHARACTER_URL . 'inc/profile.php';
-
-//require_once GVLARP_CHARACTER_URL . 'inc/install.php';
-//require_once GVLARP_CHARACTER_URL . 'inc/shortcodes.php';
-//require_once GVLARP_CHARACTER_URL . 'inc/tables.php';
 
 $title = "V:tM Character Management";
 
