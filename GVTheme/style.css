@@ -256,6 +256,31 @@ input[type="password"] {
 	width:100px;
 	display: block;
 	float: left;}
+	
+/* =Header
+-------------------------------------------------------------- */
+
+#site-info {
+	margin: 5px 0px 0px 20px;
+	z-index: 1;
+	position:absolute;
+}
+#site-title a {
+	font-weight: bold;
+	text-decoration: none;
+	color:inherit;
+}
+#site-title a:hover,
+#site-title a:focus,
+#site-title a:active {
+	color: darkred;
+}
+#site-description {
+	font-size: 14px;
+}
+#site-image {
+
+}
 
 /* =Menu
 -------------------------------------------------------------- */
