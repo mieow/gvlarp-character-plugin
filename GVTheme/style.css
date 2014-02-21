@@ -41,7 +41,7 @@ a:link {
 }
 
 a:visited {color:#787878;} /* visited link */
-a:hover {color:#8A1717;text-decoration:underline;}
+a:hover {text-decoration:underline;}
 a:active {color:#8A1717;}  /* selected link */
 
  #page {
@@ -135,7 +135,7 @@ h3, h4, h5, h6 {
 	list-style: none;
     /* padding: 8px 24px 7px 10px; */
 	}
-#side ul ul {	color: red;	list-style: disc;}
+#side ul ul {list-style: disc;}
 
 /* =Text Elements
 -------------------------------------------------------------- */
@@ -213,20 +213,9 @@ input[type="submit"] {
 	font-weight: normal;
 	margin: 0;
 	padding: 3px 15px;
-	background: #BB0506;
-	background: -moz-linear-gradient(#770506, #BB0506);
-	background: -o-linear-gradient(#770506, #BB0506);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#BB0506)); /* Older webkit syntax */
-	background: -webkit-linear-gradient(#770506, #BB0506);
 	color: #FFFFFF;
 }
 
-input[type="submit"]:hover {
-	background: #880506;
-	background: -moz-linear-gradient(#770506, #880506);
-	background: -o-linear-gradient(#770506, #880506);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#880506)); /* Older webkit syntax */
-	background: -webkit-linear-gradient(#770506, #880506);	}
 input[type="text"] {
 	border-radius: 5px 5px 5px 5px;
 	border: 1px solid #222222;
@@ -270,11 +259,7 @@ input[type="password"] {
 	text-decoration: none;
 	color:inherit;
 }
-#site-title a:hover,
-#site-title a:focus,
-#site-title a:active {
-	color: darkred;
-}
+
 #site-description {
 	font-size: 14px;
 }
@@ -327,28 +312,13 @@ input[type="password"] {
 	width: 150px; /* 168px */
 }
 #mainnavbar li:hover > a,#mainnavbar ul ul :hover > a,#mainnavbar a:focus {
-	background: #BB0506;
-	background: -moz-linear-gradient(#770506, #BB0506);
-	background: -o-linear-gradient(#770506, #BB0506);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#BB0506)); /* Older webkit syntax */
-	background: -webkit-linear-gradient(#770506, #BB0506);
 	border-top-left-radius: 0px;
 	border-top-right-radius: 0px;}
 #mainnavbar li:hover > a,#mainnavbar a:focus {
-	background: #BB0506;
- 	background: -moz-linear-gradient(#770506, #BB0506);
-	background: -o-linear-gradient(#770506, #BB0506);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#BB0506)); /* Older webkit syntax */
-	background: -webkit-linear-gradient(#770506, #BB0506);
 	border-top-left-radius: 5px;
 	border-top-right-radius: 5px;}
 #mainnavbar ul ul :hover > ul,#mainnavbar ul li:hover > ul {	display: block;}
 #mainnavbar .current-menu-item > a,#mainnavbar .current-menu-ancestor > a,#mainnavbar .current_page_item > a,#mainnavbar .current_page_ancestor > a {
-	background: #BB0506;
- 	background: -moz-linear-gradient(#770506, #BB0506);
-	background: -o-linear-gradient(#770506, #BB0506);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#BB0506)); /* Older webkit syntax */
-	background: -webkit-linear-gradient(#770506, #BB0506);
 	border-top-left-radius: 5px;
 	border-top-right-radius: 5px;}
 
@@ -457,4 +427,197 @@ ol.commentlist {
 }
 .bypostauthor {
 
+}
+
+/*
+------------------------------------------------------------
+STYLES FOR THEME COLOUR OPTIONS - RED
+------------------------------------------------------------
+*/
+.redtheme a:hover {color:#8A1717;}
+.redtheme #side ul ul {color: red;}
+
+.redtheme input[type="submit"] {
+	background: #BB0506;
+}
+.redtheme input[type="submit"]:hover {
+	background: #FF0506;
+}
+.gradienttheme.redtheme input[type="submit"] {
+	background: -moz-linear-gradient(#770506, #BB0506);
+	background: -o-linear-gradient(#770506, #BB0506);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#BB0506)); 
+	background: -webkit-linear-gradient(#770506, #BB0506);
+}
+
+.gradienttheme.redtheme input[type="submit"]:hover {
+	background: -moz-linear-gradient(#770506, #FF0506);
+	background: -o-linear-gradient(#770506, #FF0506);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#FF0506));
+	background: -webkit-linear-gradient(#770506, #FF0506);
+}
+#site-title.redtheme a:hover,
+#site-title.redtheme a:focus,
+#site-title.redtheme a:active {
+	color: darkred;
+}
+
+#mainnavbar.redtheme li:hover > a,#mainnavbar ul ul :hover > a,#mainnavbar a:focus {
+	background: #BB0506;
+}
+#mainnavbar.redtheme li:hover > a,#mainnavbar a:focus {
+	background: #BB0506;
+}
+#mainnavbar.redtheme .current-menu-item > a,#mainnavbar .current-menu-ancestor > a,#mainnavbar .current_page_item > a,#mainnavbar .current_page_ancestor > a {
+	background: #BB0506;
+} 
+
+.gradienttheme #mainnavbar.redtheme li:hover > a,#mainnavbar ul ul :hover > a,#mainnavbar a:focus {
+	background: -moz-linear-gradient(#770506, #BB0506);
+	background: -o-linear-gradient(#770506, #BB0506);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#BB0506)); 
+	background: -webkit-linear-gradient(#770506, #BB0506);
+}
+.gradienttheme #mainnavbar.redtheme li:hover > a,#mainnavbar a:focus {
+ 	background: -moz-linear-gradient(#770506, #BB0506);
+	background: -o-linear-gradient(#770506, #BB0506);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#BB0506)); 
+	background: -webkit-linear-gradient(#770506, #BB0506);
+}
+.gradienttheme #mainnavbar.redtheme .current-menu-item > a,#mainnavbar .current-menu-ancestor > a,#mainnavbar .current_page_item > a,#mainnavbar .current_page_ancestor > a {
+ 	background: -moz-linear-gradient(#770506, #BB0506);
+	background: -o-linear-gradient(#770506, #BB0506);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#BB0506));
+	background: -webkit-linear-gradient(#770506, #BB0506);
+} 
+
+/*
+------------------------------------------------------------
+STYLES FOR THEME COLOUR OPTIONS - BLUE
+------------------------------------------------------------
+*/
+
+.bluetheme a:hover {color:deepskyblue;}
+.bluetheme #side ul ul {color: royalblue;}
+
+.bluetheme input[type="submit"] {
+	background: royalblue;
+}
+
+.bluetheme input[type="submit"]:hover {
+	background: dodgerblue;
+}
+.gradienttheme.bluetheme input[type="submit"] {
+	background: -moz-linear-gradient(navy, royalblue);
+	background: -o-linear-gradient(navy, royalblue);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(navy), to(royalblue)); 
+	background: -webkit-linear-gradient(navy, royalblue);
+}
+
+.gradienttheme.bluetheme input[type="submit"]:hover {
+	background: -moz-linear-gradient(navy, dodgerblue);
+	background: -o-linear-gradient(navy, dodgerblue);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(navy), to(dodgerblue)); 
+	background: -webkit-linear-gradient(navy, dodgerblue);
+}
+
+#site-title.bluetheme a:hover,
+#site-title.bluetheme a:focus,
+#site-title.bluetheme a:active {
+	color: blue;
+}
+
+#mainnavbar.bluetheme li:hover > a,#mainnavbar ul ul :hover > a,#mainnavbar a:focus {
+	background: royalblue;
+}
+#mainnavbar.bluetheme li:hover > a,#mainnavbar a:focus {
+	background: royalblue;
+}
+#mainnavbar.bluetheme .current-menu-item > a,#mainnavbar .current-menu-ancestor > a,#mainnavbar .current_page_item > a,#mainnavbar .current_page_ancestor > a {
+	background: royalblue;
+}
+
+.gradienttheme #mainnavbar.bluetheme li:hover > a,#mainnavbar ul ul :hover > a,#mainnavbar a:focus {
+	background: -moz-linear-gradient(navy, royalblue);
+	background: -o-linear-gradient(navy, royalblue);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(navy), to(royalblue)); 
+	background: -webkit-linear-gradient(navy, royalblue);
+}
+.gradienttheme #mainnavbar.bluetheme li:hover > a,#mainnavbar a:focus {
+ 	background: -moz-linear-gradient(navy, royalblue);
+	background: -o-linear-gradient(navy, royalblue);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(navy), to(royalblue)); 
+	background: -webkit-linear-gradient(navy, royalblue);
+}
+.gradienttheme #mainnavbar.bluetheme .current-menu-item > a,#mainnavbar .current-menu-ancestor > a,#mainnavbar .current_page_item > a,#mainnavbar .current_page_ancestor > a {
+ 	background: -moz-linear-gradient(navy, royalblue);
+	background: -o-linear-gradient(navy, royalblue);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(navy), to(royalblue));
+	background: -webkit-linear-gradient(navy, royalblue);
+}
+
+
+/*
+------------------------------------------------------------
+STYLES FOR THEME COLOUR OPTIONS - GREEN
+------------------------------------------------------------
+*/
+
+.greentheme a:hover {color:forestgreen;}
+.greentheme #side ul ul {color: darkgreen;}
+
+.greentheme input[type="submit"] {
+	background: darkgreen;
+}
+
+.greentheme input[type="submit"]:hover {
+	background: green;
+}
+.gradienttheme.greentheme input[type="submit"] {
+	background: -moz-linear-gradient(#002900, darkgreen);
+	background: -o-linear-gradient(#002900, darkgreen);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#002900), to(darkgreen)); 
+	background: -webkit-linear-gradient(#002900, darkgreen);
+}
+
+.gradienttheme.greentheme input[type="submit"]:hover {
+	background: -moz-linear-gradient(#002900, green);
+	background: -o-linear-gradient(#002900, green);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#002900), to(green)); 
+	background: -webkit-linear-gradient(#002900, green);
+}
+
+#site-title.greentheme a:hover,
+#site-title.greentheme a:focus,
+#site-title.greentheme a:active {
+	color: green;
+}
+
+#mainnavbar.greentheme li:hover > a,#mainnavbar ul ul :hover > a,#mainnavbar a:focus {
+	background: darkgreen;
+}
+#mainnavbar.greentheme li:hover > a,#mainnavbar a:focus {
+	background: darkgreen;
+}
+#mainnavbar.greentheme .current-menu-item > a,#mainnavbar .current-menu-ancestor > a,#mainnavbar .current_page_item > a,#mainnavbar .current_page_ancestor > a {
+	background: darkgreen;
+}
+
+.gradienttheme #mainnavbar.greentheme li:hover > a,#mainnavbar ul ul :hover > a,#mainnavbar a:focus {
+	background: -moz-linear-gradient(#002900, darkgreen);
+	background: -o-linear-gradient(#002900, darkgreen);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#002900), to(darkgreen)); 
+	background: -webkit-linear-gradient(#002900, darkgreen);
+}
+.gradienttheme #mainnavbar.greentheme li:hover > a,#mainnavbar a:focus {
+ 	background: -moz-linear-gradient(#002900, darkgreen);
+	background: -o-linear-gradient(#002900, darkgreen);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#002900), to(darkgreen)); 
+	background: -webkit-linear-gradient(#002900, darkgreen);
+}
+.gradienttheme #mainnavbar.greentheme .current-menu-item > a,#mainnavbar .current-menu-ancestor > a,#mainnavbar .current_page_item > a,#mainnavbar .current_page_ancestor > a {
+ 	background: -moz-linear-gradient(#002900, darkgreen);
+	background: -o-linear-gradient(#002900, darkgreen);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#002900), to(darkgreen));
+	background: -webkit-linear-gradient(#002900, darkgreen);
 }
