@@ -20,6 +20,7 @@ function register_nocturnus_settings() {
 	add_settings_field('nocturnus_colours',   'Theme Colour',     'nocturnus_options_input_colour',    'nocturnus_admin_slug', 'nocturnus_options_section_main');
 	add_settings_field('nocturnus_gradient',  'Button/Nav Gradient', 'nocturnus_options_input_gradient', 'nocturnus_admin_slug', 'nocturnus_options_section_main');
 	add_settings_field('nocturnus_corners',   'Corners',          'nocturnus_options_input_corners',   'nocturnus_admin_slug', 'nocturnus_options_section_main');
+	add_settings_field('nocturnus_sidebar',   'Sidebar Location', 'nocturnus_options_input_sidebar',   'nocturnus_admin_slug', 'nocturnus_options_section_main');
 		
 } 
 add_action( 'admin_init', 'register_nocturnus_settings' );
@@ -57,6 +58,13 @@ function nocturnus_options_input_corners() {
 	echo "<option value='square' " . selected($options['corners'], 'square', false) . ">Square</option>";
 	echo "</select>";
 }
+function nocturnus_options_input_sidebar() {
+	$options = get_option('nocturnus_options');
+	echo "<select id='nocturnus_corners' name='nocturnus_options[sidebar]'>\n";
+	echo "<option value='left' " . selected($options['sidebar'], 'left', false) . ">Left</option>";
+	echo "<option value='right' " . selected($options['sidebar'], 'right', false) . ">Right</option>";
+	echo "</select>";
+}
 
 
 function nocturnus_admin_function() {
@@ -88,6 +96,7 @@ function nocturnus_options_validate($input) {
 	$options['colours']   = trim($input['colours']);
 	$options['gradient']  = trim($input['gradient']);
 	$options['corners']   = trim($input['corners']);
+	$options['sidebar']   = trim($input['sidebar']);
 
 	return $options;
 }
