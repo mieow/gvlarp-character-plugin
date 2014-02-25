@@ -449,11 +449,15 @@ STYLES FOR THEME CORNERS OPTIONS - ROUNDED
 	border-radius: 3px;
 }
 
-.roundtheme #mainnavbar li:hover > a,#mainnavbar a:focus {
+.roundtheme #mainnavbar li:hover > a,
+.roundtheme #mainnavbar a:focus {
 	border-top-left-radius: 5px;
 	border-top-right-radius: 5px;
 }
-.roundtheme #mainnavbar .current-menu-item > a,#mainnavbar .current-menu-ancestor > a,#mainnavbar .current_page_item > a,#mainnavbar .current_page_ancestor > a {
+.roundtheme #mainnavbar .current-menu-item > a,
+.roundtheme #mainnavbar .current-menu-ancestor > a,
+.roundtheme #mainnavbar .current_page_item > a,
+.roundtheme #mainnavbar .current_page_ancestor > a {
 	border-top-left-radius: 5px;
 	border-top-right-radius: 5px;
 }
@@ -485,11 +489,15 @@ STYLES FOR THEME CORNERS OPTIONS - SQUARE
 	border-radius: 0px;
 }
 
-.squaretheme #mainnavbar li:hover > a,#mainnavbar a:focus {
+.squaretheme #mainnavbar li:hover > a,
+.squaretheme #mainnavbar a:focus {
 	border-top-left-radius: 0px;
 	border-top-right-radius: 0px;
 }
-.squaretheme #mainnavbar .current-menu-item > a,#mainnavbar .current-menu-ancestor > a,#mainnavbar .current_page_item > a,#mainnavbar .current_page_ancestor > a {
+.squaretheme #mainnavbar .current-menu-item > a,
+.squaretheme #mainnavbar .current-menu-ancestor > a,
+.squaretheme #mainnavbar .current_page_item > a,
+.squaretheme #mainnavbar .current_page_ancestor > a {
 	border-top-left-radius: 0px;
 	border-top-right-radius: 0px;
 }
@@ -558,29 +566,41 @@ STYLES FOR THEME COLOUR OPTIONS - RED
 	color: darkred;
 }
 
-#mainnavbar.redtheme li:hover > a,#mainnavbar ul ul :hover > a,#mainnavbar a:focus {
+#mainnavbar.redtheme li:hover > a,
+#mainnavbar.redtheme ul ul :hover > a,
+#mainnavbar.redtheme a:focus {
 	background: #BB0506;
 }
-#mainnavbar.redtheme li:hover > a,#mainnavbar a:focus {
+#mainnavbar.redtheme li:hover > a,
+#mainnavbar.redtheme a:focus {
 	background: #BB0506;
 }
-#mainnavbar.redtheme.current-menu-item > a,#mainnavbar .current-menu-ancestor > a,#mainnavbar .current_page_item > a,#mainnavbar .current_page_ancestor > a {
+#mainnavbar.redtheme .current-menu-item > a,
+#mainnavbar.redtheme .current-menu-ancestor > a,
+#mainnavbar.redtheme .current_page_item > a,
+#mainnavbar.redtheme .current_page_ancestor > a {
 	background: #BB0506;
 } 
 
-#mainnavbar.redtheme.gradienttheme li:hover > a,#mainnavbar ul ul :hover > a,#mainnavbar a:focus {
+#mainnavbar.redtheme.gradienttheme li:hover > a,
+#mainnavbar.redtheme.gradienttheme ul ul :hover > a,
+#mainnavbar.redtheme.gradienttheme a:focus {
 	background: -moz-linear-gradient(#770506, #BB0506);
 	background: -o-linear-gradient(#770506, #BB0506);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#BB0506)); 
 	background: -webkit-linear-gradient(#770506, #BB0506);
 }
-#mainnavbar.redtheme.gradienttheme li:hover > a,#mainnavbar a:focus {
+#mainnavbar.redtheme.gradienttheme li:hover > a,
+#mainnavbar.redtheme.gradienttheme a:focus {
  	background: -moz-linear-gradient(#770506, #BB0506);
 	background: -o-linear-gradient(#770506, #BB0506);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#BB0506)); 
 	background: -webkit-linear-gradient(#770506, #BB0506);
 }
-#mainnavbar.redtheme.gradienttheme.current-menu-item > a,#mainnavbar .current-menu-ancestor > a,#mainnavbar .current_page_item > a,#mainnavbar .current_page_ancestor > a {
+#mainnavbar.redtheme.gradienttheme .current-menu-item > a,
+#mainnavbar.redtheme.gradienttheme .current-menu-ancestor > a,
+#mainnavbar.redtheme.gradienttheme .current_page_item > a,
+#mainnavbar.redtheme.gradienttheme .current_page_ancestor > a {
  	background: -moz-linear-gradient(#770506, #BB0506);
 	background: -o-linear-gradient(#770506, #BB0506);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#BB0506));
@@ -623,29 +643,41 @@ STYLES FOR THEME COLOUR OPTIONS - BLUE
 	color: blue;
 }
 
-#mainnavbar.bluetheme li:hover > a,#mainnavbar ul ul :hover > a,#mainnavbar a:focus {
+#mainnavbar.bluetheme li:hover > a,
+#mainnavbar.bluetheme ul ul :hover > a,
+#mainnavbar.bluetheme a:focus {
 	background: royalblue;
 }
-#mainnavbar.bluetheme li:hover > a,#mainnavbar a:focus {
+#mainnavbar.bluetheme li:hover > a,
+#mainnavbar.bluetheme a:focus {
 	background: royalblue;
 }
-#mainnavbar.bluetheme.current-menu-item > a,#mainnavbar .current-menu-ancestor > a,#mainnavbar .current_page_item > a,#mainnavbar .current_page_ancestor > a {
+#mainnavbar.bluetheme .current-menu-item > a,
+#mainnavbar.bluetheme .current-menu-ancestor > a,
+#mainnavbar.bluetheme .current_page_item > a,
+#mainnavbar.bluetheme .current_page_ancestor > a {
 	background: royalblue;
 }
 
-#mainnavbar.bluetheme.gradienttheme li:hover > a,#mainnavbar ul ul :hover > a,#mainnavbar a:focus {
+#mainnavbar.bluetheme.gradienttheme li:hover > a,
+#mainnavbar.bluetheme.gradienttheme ul ul :hover > a,
+#mainnavbar.bluetheme.gradienttheme a:focus {
 	background: -moz-linear-gradient(navy, royalblue);
 	background: -o-linear-gradient(navy, royalblue);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(navy), to(royalblue)); 
 	background: -webkit-linear-gradient(navy, royalblue);
 }
-#mainnavbar.bluetheme.gradienttheme li:hover > a,#mainnavbar a:focus {
+#mainnavbar.bluetheme.gradienttheme li:hover > a,
+#mainnavbar.bluetheme.gradienttheme a:focus {
  	background: -moz-linear-gradient(navy, royalblue);
 	background: -o-linear-gradient(navy, royalblue);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(navy), to(royalblue)); 
 	background: -webkit-linear-gradient(navy, royalblue);
 }
-#mainnavbar.bluetheme.gradienttheme.current-menu-item > a,#mainnavbar .current-menu-ancestor > a,#mainnavbar .current_page_item > a,#mainnavbar .current_page_ancestor > a {
+#mainnavbar.bluetheme.gradienttheme .current-menu-item > a,
+#mainnavbar.bluetheme.gradienttheme .current-menu-ancestor > a,
+#mainnavbar.bluetheme.gradienttheme .current_page_item > a,
+#mainnavbar.bluetheme.gradienttheme .current_page_ancestor > a {
  	background: -moz-linear-gradient(navy, royalblue);
 	background: -o-linear-gradient(navy, royalblue);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(navy), to(royalblue));
@@ -689,29 +721,42 @@ STYLES FOR THEME COLOUR OPTIONS - GREEN
 	color: green;
 }
 
-#mainnavbar.greentheme li:hover > a,#mainnavbar ul ul :hover > a,#mainnavbar a:focus {
+#mainnavbar.greentheme li:hover > a,
+#mainnavbar.greentheme ul ul :hover > a,
+#mainnavbar.greentheme a:focus {
 	background: darkgreen;
 }
-#mainnavbar.greentheme li:hover > a,#mainnavbar a:focus {
+#mainnavbar.greentheme li:hover > a,
+#mainnavbar.greentheme a:focus {
 	background: darkgreen;
 }
-.greentheme #mainnavbar.current-menu-item > a,#mainnavbar .current-menu-ancestor > a,#mainnavbar .current_page_item > a,#mainnavbar .current_page_ancestor > a {
+#mainnavbar.greentheme .current-menu-item > a,
+#mainnavbar.greentheme .current-menu-ancestor > a,
+#mainnavbar.greentheme .current_page_item > a,
+#mainnavbar.greentheme .current_page_ancestor > a {
 	background: darkgreen;
 }
 
-#mainnavbar.greentheme.gradienttheme li:hover > a,#mainnavbar ul ul :hover > a,#mainnavbar a:focus {
+
+#mainnavbar.greentheme.gradienttheme li:hover > a,
+#mainnavbar.greentheme.gradienttheme ul ul :hover > a,
+#mainnavbar.greentheme.gradienttheme a:focus {
 	background: -moz-linear-gradient(#002900, darkgreen);
 	background: -o-linear-gradient(#002900, darkgreen);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#002900), to(darkgreen)); 
 	background: -webkit-linear-gradient(#002900, darkgreen);
 }
-#mainnavbar.greentheme.gradienttheme li:hover > a,#mainnavbar a:focus {
+#mainnavbar.greentheme.gradienttheme li:hover > a,
+#mainnavbar.greentheme.gradienttheme a:focus {
  	background: -moz-linear-gradient(#002900, darkgreen);
 	background: -o-linear-gradient(#002900, darkgreen);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#002900), to(darkgreen)); 
 	background: -webkit-linear-gradient(#002900, darkgreen);
 }
-#mainnavbar.greentheme.gradienttheme.current-menu-item > a,#mainnavbar .current-menu-ancestor > a,#mainnavbar .current_page_item > a,#mainnavbar .current_page_ancestor > a {
+#mainnavbar.greentheme.gradienttheme .current-menu-item > a,
+#mainnavbar.greentheme.gradienttheme .current-menu-ancestor > a,
+#mainnavbar.greentheme.gradienttheme .current_page_item > a,
+#mainnavbar.greentheme.gradienttheme .current_page_ancestor > a {
  	background: -moz-linear-gradient(#002900, darkgreen);
 	background: -o-linear-gradient(#002900, darkgreen);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#002900), to(darkgreen));
