@@ -43,11 +43,13 @@ get_header(); ?>
 	
 
 		<?php
-		$show = array(true, false, false);
+		$show = array(false, true, false);
 		if (isset($_REQUEST['page']) && $_REQUEST['page'] == 'rwpm_inbox') {
 			$show = array(false, true, false);
 		} elseif (isset($_REQUEST['page']) && $_REQUEST['page'] == 'rwpm_outbox') {
 			$show = array(false, false, true);
+		} elseif (isset($_REQUEST['page']) && $_REQUEST['page'] == 'rwpm_send') {
+			$show = array(true, false, false);
 		}
 		?>
 		<div id="pm-send" <?php if (!$show[0]) echo 'style="display:none"'; ?>><?php rwpm_send();?></div>

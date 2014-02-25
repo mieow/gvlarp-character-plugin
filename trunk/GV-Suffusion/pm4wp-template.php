@@ -56,13 +56,7 @@ if (have_posts()) {
 	
 
 		<?php
-		$show = array(true, false, false);
-		if (isset($_REQUEST['page']) && $_REQUEST['page'] == 'rwpm_inbox') {
-			$show = array(false, true, false);
-		} elseif (isset($_REQUEST['page']) && $_REQUEST['page'] == 'rwpm_outbox') {
-			$show = array(false, false, true);
-		}
-		?>
+		$show = array(false, true, false);		if (isset($_REQUEST['page']) && $_REQUEST['page'] == 'rwpm_inbox') {			$show = array(false, true, false);		} elseif (isset($_REQUEST['page']) && $_REQUEST['page'] == 'rwpm_outbox') {			$show = array(false, false, true);		} elseif (isset($_REQUEST['page']) && $_REQUEST['page'] == 'rwpm_send') {			$show = array(true, false, false);		}		?>
 		<div id="pm-send" <?php if (!$show[0]) echo 'style="display:none"'; ?>><?php rwpm_send();?></div>
 		<div id="pm-inbox" <?php if (!$show[1]) echo 'style="display:none"'; ?>><?php rwpm_inbox();?></div>
 		<div id="pm-outbox" <?php if (!$show[2]) echo 'style="display:none"'; ?>><?php rwpm_outbox();?></div>
