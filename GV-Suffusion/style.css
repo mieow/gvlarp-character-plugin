@@ -6,3 +6,6 @@
  * Template: suffusion
  */
 
+.wp_themeSkin span.mceIcon, .wp_themeSkin img.mceIcon {
+    background: none repeat scroll 0 0 #FFFFFF;
+}
