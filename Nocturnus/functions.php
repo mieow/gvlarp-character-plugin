@@ -33,7 +33,7 @@ if ( function_exists( 'add_theme_support' ) ) {
 	set_post_thumbnail_size( 150, 150 );
 }
 
-/* Theme Support - Customer Backgrounds
+/* Theme Support - Custom Backgrounds
 ------------------------------------------------ */
 $themedefaults = array(
 	'default-color'          => '#000000',

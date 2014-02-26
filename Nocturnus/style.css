@@ -139,7 +139,10 @@ h3, h4, h5, h6 {
 	list-style: none;
     /* padding: 8px 24px 7px 10px; */
 	}
-#side ul ul {list-style: disc;}
+#side ul ul {
+	list-style: disc;
+	padding: 0;
+}
 
 /* =Text Elements
 -------------------------------------------------------------- */
@@ -272,37 +275,43 @@ input[type="password"] {
 /* =Menu
 -------------------------------------------------------------- */
 #mainnavbar{
-	background: #000;
+	/* background: #000; */
 	clear: both;
 	display: block;
 	float: left;
 	margin: 0 2%;
 	width: 100%;
-	padding: 10px 0 0 0;}
+	padding: 10px 0 0 0;
+}
 #mainnavbar ul {
 	font-size: 13px;
 	list-style: none;
 	margin: 0;
 	padding-left: 0;
-	z-index:1;}
+	z-index:1;
+}
 #mainnavbar li {
 	float: left;
-	position: relative;}
+	position: relative;
+}
 #mainnavbar a {
 	color: #B8B8B8;
 	display: block;
 	line-height: 2.3em; /* 2.5em */
 	padding: 0 1.2125em;
 	text-decoration: none;
-	font-weight:bold;}
+	font-weight:bold;
+}
 #mainnavbar ul ul {
 	display: none;
 	float: left;
-	position: absolute;	z-index:1;}
+	position: absolute;	z-index:1;
+}
 #mainnavbar ul ul ul {
 	left: 100%;
 	top: 0;
-	z-index:1;}
+	z-index:1;
+}
 #mainnavbar ul ul a {
 	background: #111; /* 000 */
 	color: #CCC;
