@@ -101,4 +101,83 @@ function nocturnus_options_validate($input) {
 	return $options;
 }
 
+/* THEME CUSTOMISER
+--------------------------------- */
+
+add_action( 'customize_register', 'nocturnus_customize_register' );
+function nocturnus_customize_register($wp_customize) {
+
+	$wp_customize->add_section( 'nocturnus_custom_theme_options', array(
+		'title'          => 'Nocturnus Options',
+		'priority'       => 35,
+	) );
+	$wp_customize->add_setting( 'nocturnus_options[colours]', array(
+    'default'        => 'red',
+    'type'           => 'option',
+    'capability'     => 'edit_theme_options',
+	) );
+	$wp_customize->add_setting( 'nocturnus_options[gradient]', array(
+    'default'        => 'sidebar',
+    'type'           => 'option',
+    'capability'     => 'edit_theme_options',
+	) );
+	$wp_customize->add_setting( 'nocturnus_options[corners]', array(
+    'default'        => 'round',
+    'type'           => 'option',
+    'capability'     => 'edit_theme_options',
+	) );
+	$wp_customize->add_setting( 'nocturnus_options[sidebar]', array(
+    'default'        => 'right',
+    'type'           => 'option',
+    'capability'     => 'edit_theme_options',
+	) );
+
+	$wp_customize->add_control( 'nocturnus_options[colours]', array(
+		'label'   => 'Theme Colour:',
+		'section' => 'nocturnus_custom_theme_options',
+		'type'    => 'select',
+		'choices'    => array(
+			'red'   => 'Red',
+			'green' => 'Green',
+			'blue'  => 'Blue',
+			),
+	) );
+	$wp_customize->add_control( 'nocturnus_options[gradient]', array(
+		'label'      => 'Button/Nav Gradient:',
+		'section'    => 'nocturnus_custom_theme_options',
+		'settings'   => 'nocturnus_options[gradient]',
+		'type'       => 'radio',
+		'choices'    => array(
+			'flat' => 'Flat',
+			'gradient' => 'Gradient'
+			),
+	) );
+	$wp_customize->add_control( 'nocturnus_options[corners]', array(
+		'label'      => 'Corners:',
+		'section'    => 'nocturnus_custom_theme_options',
+		'settings'   => 'nocturnus_options[corners]',
+		'type'       => 'radio',
+		'choices'    => array(
+			'round' => 'Round',
+			'square' => 'Square'
+			),
+	) );
+	$wp_customize->add_control( 'nocturnus_options[sidebar]', array(
+		'label'      => 'Sidebar Location:',
+		'section'    => 'nocturnus_custom_theme_options',
+		'settings'   => 'nocturnus_options[sidebar]',
+		'type'       => 'radio',
+		'choices'    => array(
+			'left' => 'Left',
+			'right' => 'Right'
+			),
+	) );
+	
+	
+	
+}
+
+
+
+
 ?>
