@@ -541,6 +541,17 @@ function displayUpdateCharacter($characterID) {
 		
 		$output .= "</table>";
 
+		// Initialise Stat information for new characters
+		$sql = "SELECT name, grouping, id FROM " . $table_prefix . "STAT";
+		$result =  $wpdb->get_results($sql);
+		$arr = array();
+		foreach ($result as $statinfo) {
+			$arr[$statinfo->name] = $statinfo;
+			$arr[$statinfo->name]->level   = 0;
+			$arr[$statinfo->name]->comment = '';
+			$arr[$statinfo->name]->cstatid = 0;
+		}
+		
 		$sql = "SELECT stat.name,
 							   stat.grouping,
 							   stat.id statid,
@@ -555,7 +566,6 @@ function displayUpdateCharacter($characterID) {
 
 		$characterStats = $wpdb->get_results($wpdb->prepare($sql, $characterID));
 
-		$arr = array("0" => "0");
 		foreach ($characterStats as $characterStat) {
 			$arr[$characterStat->name] = $characterStat;
 		}

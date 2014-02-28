@@ -94,31 +94,56 @@ class larpcharacter {
 		$result = $wpdb->get_results($sql);
 		/* print_r($result); */
 		
-		$this->name         = $result[0]->cname;
-		$this->clan         = $result[0]->public_clan;
-		$this->private_clan = $result[0]->private_clan;
-		$this->public_icon  = $result[0]->public_icon;
-		$this->private_icon = $result[0]->private_icon;
-		$this->domain       = $result[0]->domain;
-		$this->player       = $result[0]->pname;
-		$this->wordpress_id = $result[0]->wpid;
-		$this->generation   = $result[0]->generation;
-		$this->max_rating   = $result[0]->max_rating;
-		$this->player_id    = $result[0]->player_id;
-		$this->clan_flaw    = $result[0]->clan_flaw;
-		$this->sect         = $result[0]->sect;
-		$this->bloodpool    = $result[0]->bloodpool;
-		$this->sire         = $result[0]->sire;
-		$this->char_status  = $result[0]->cstat;
-		$this->last_updated = $result[0]->last_updated;
-		$this->blood_per_round = $result[0]->blood_per_round;
-		$this->date_of_birth   = $result[0]->date_of_birth;
-		$this->date_of_embrace = $result[0]->date_of_embrace;
-		$this->char_status_comment   = $result[0]->cstat_comment;
-		$this->path_of_enlightenment = $result[0]->path;
+		if (count($result) > 0) {
+			$this->name         = $result[0]->cname;
+			$this->clan         = $result[0]->public_clan;
+			$this->private_clan = $result[0]->private_clan;
+			$this->public_icon  = $result[0]->public_icon;
+			$this->private_icon = $result[0]->private_icon;
+			$this->domain       = $result[0]->domain;
+			$this->player       = $result[0]->pname;
+			$this->wordpress_id = $result[0]->wpid;
+			$this->generation   = $result[0]->generation;
+			$this->max_rating   = $result[0]->max_rating;
+			$this->player_id    = $result[0]->player_id;
+			$this->clan_flaw    = $result[0]->clan_flaw;
+			$this->sect         = $result[0]->sect;
+			$this->bloodpool    = $result[0]->bloodpool;
+			$this->sire         = $result[0]->sire;
+			$this->char_status  = $result[0]->cstat;
+			$this->last_updated = $result[0]->last_updated;
+			$this->blood_per_round = $result[0]->blood_per_round;
+			$this->date_of_birth   = $result[0]->date_of_birth;
+			$this->date_of_embrace = $result[0]->date_of_embrace;
+			$this->char_status_comment   = $result[0]->cstat_comment;
+			$this->path_of_enlightenment = $result[0]->path;
+		} else {
+			$this->name         = 'No character selected';
+			$this->clan         = '';
+			$this->private_clan = '';
+			$this->public_icon  = '';
+			$this->private_icon = '';
+			$this->domain       = '';
+			$this->player       = 'No player selected';
+			$this->wordpress_id = '';
+			$this->generation   = '';
+			$this->max_rating   = 5;
+			$this->player_id    = 0;
+			$this->clan_flaw    = '';
+			$this->sect         = '';
+			$this->bloodpool    = 10;
+			$this->sire         = '';
+			$this->char_status  = '';
+			$this->last_updated = '';
+			$this->blood_per_round = 1;
+			$this->date_of_birth   = '';
+			$this->date_of_embrace = '';
+			$this->char_status_comment   = '';
+			$this->path_of_enlightenment = '';
+		}
 		
-        $user = get_userdatabylogin($this->name);
-        $this->display_name = $user->display_name;
+        $user = get_user_by('login',$this->name);
+        $this->display_name = isset($user->display_name) ? $user->display_name : 'No character selected';
 		
 		// Profile
 		$sql = "SELECT QUOTE, PORTRAIT
@@ -127,7 +152,7 @@ class larpcharacter {
 				WHERE
 					CHARACTER_ID = %s";
 		$result = $wpdb->get_row($wpdb->prepare($sql, $characterID));
-		$this->quote    = $result->QUOTE;
+		$this->quote    = isset($result->QUOTE) ? $result->QUOTE : '';
 		if (empty($result->PORTRAIT))
 			$this->portrait = $config->PLACEHOLDER_IMAGE;
 		else
@@ -148,8 +173,8 @@ class larpcharacter {
 						AND chara.ID = %s";
 			$result = $wpdb->get_row($wpdb->prepare($sql, $characterID));
 			
-			$this->nature    = $result->nature;
-			$this->demeanour = $result->demeanour;
+			$this->nature    = isset($result->nature) ? $result->nature : '';
+			$this->demeanour = isset($result->demeanour) ? $result->demeanour : '';
 		}
 		
 		/* Attributes */
@@ -296,8 +321,8 @@ class larpcharacter {
 					AND charstat.STAT_ID = stat.ID
 					AND stat.name = 'Willpower';";
 		$sql = $wpdb->prepare($sql, $characterID);
-		$result = $wpdb->get_results($sql);
-		$this->willpower = $result[0]->level;
+		$result = $wpdb->get_var($sql);
+		$this->willpower = isset($result) ? $result : 0;
 		
 		/* Current Willpower */
         $sql = "SELECT SUM(char_temp_stat.amount) currentwp
@@ -307,16 +332,16 @@ class larpcharacter {
 					AND char_temp_stat.temporary_stat_id = tstat.id
 					AND tstat.name = 'Willpower';";
 		$sql = $wpdb->prepare($sql, $characterID);
-		$result = $wpdb->get_results($sql);
-		$this->current_willpower = $result[0]->currentwp;
+		$result = $wpdb->get_var($sql);
+		$this->current_willpower = isset($result) ? $result : 0;
 		
 		/* Humanity */
 		$sql = "SELECT SUM(cpath.AMOUNT) path_rating
 				FROM " . GVLARP_TABLE_PREFIX . "CHARACTER_ROAD_OR_PATH cpath
 				WHERE cpath.CHARACTER_ID = %s;";	
 		$sql = $wpdb->prepare($sql, $characterID);
-		$result = $wpdb->get_results($sql);
-		$this->path_rating = $result[0]->path_rating;
+		$result = $wpdb->get_var($sql);
+		$this->path_rating = isset($result) ? $result : 0;
 		
 		/* Rituals */
 		$sql = "SELECT disciplines.name as discname, rituals.name as ritualname, rituals.level,
@@ -382,18 +407,19 @@ class larpcharacter {
 		$result = array();
 		if ($group == "")
 			return $this->attributes;
-		else
+		elseif (isset($this->attributegroups[$group]))
 			return $this->attributegroups[$group];
+		else
+			return array();
 	}
 	function getAbilities($group = "") {
 		$result = array();
 		if ($group == "")
 			return $this->abilities;
+		elseif (isset($this->abilitygroups[$group]))
+			return $this->abilitygroups[$group];
 		else
-			if (isset($this->abilitygroups[$group]))
-				return $this->abilitygroups[$group];
-			else
-				return array();
+			return array();
 	}
 	function getBackgrounds() {
 		return $this->backgrounds;

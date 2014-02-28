@@ -491,6 +491,8 @@ function render_book_add_form($addaction) {
 
 function merit_input_validation($type) {
 
+	$doaction = '';
+
 	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == $type)
 		$doaction = "edit-$type"; 
 		
@@ -549,6 +551,7 @@ function merit_input_validation($type) {
 function ritual_input_validation() {
 
 	$type = "ritual";
+	$doaction = '';
 
 	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == $type)
 		$doaction = "edit-$type"; 
@@ -606,6 +609,7 @@ function ritual_input_validation() {
 function book_input_validation() {
 
 	$type = "book";
+	$doaction = '';
 
 	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == $type)
 		$doaction = "edit-$type";

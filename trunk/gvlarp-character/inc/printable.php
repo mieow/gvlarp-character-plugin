@@ -88,10 +88,21 @@ function gv_print_redirect()
 			$mental   = $mycharacter->getAttributes("Mental");
 			
 			for ($i=0;$i<3;$i++) {
+			
+				$physicalname = isset($physical[$i]->name)      ? $physical[$i]->name                    : '';
+				$physicalspec = isset($physical[$i]->specialty) ? stripslashes($physical[$i]->specialty) : '';
+				$physicallvl  = isset($physical[$i]->level)     ? $physical[$i]->level                   : 0;
+				$socialname   = isset($social[$i]->name)        ? $social[$i]->name                    : '';
+				$socialspec   = isset($social[$i]->specialty)   ? stripslashes($social[$i]->specialty) : '';
+				$sociallvl    = isset($social[$i]->level)       ? $social[$i]->level                   : 0;
+				$mentalname   = isset($mental[$i]->name)        ? $mental[$i]->name                    : '';
+				$mentalspec   = isset($mental[$i]->specialty)   ? stripslashes($mental[$i]->specialty) : '';
+				$mentallvl    = isset($mental[$i]->level)       ? $mental[$i]->level                   : 0;
+			
 				$data = array(
-						$physical[$i]->name,stripslashes($physical[$i]->specialty),$physical[$i]->level,
-						$social[$i]->name,stripslashes($social[$i]->specialty),$social[$i]->level,
-						$mental[$i]->name,stripslashes($mental[$i]->specialty),$mental[$i]->level,
+						$physicalname,$physicalspec,$physicallvl,
+						$socialname,  $socialspec,  $sociallvl,
+						$mentalname,  $mentalspec,  $mentallvl,
 						);
 				if ($i==0)
 					array_push($data, "Physical", "Social", "Mental");
@@ -111,10 +122,19 @@ function gv_print_redirect()
 			if ($abilrows < count($knowledge)) $abilrows = count($knowledge);
 			
 			for ($i=0;$i<$abilrows;$i++) {
+				$talentname    = isset($talent[$i]->skillname)    ? $talent[$i]->skillname                    : '';
+				$talentspec    = isset($talent[$i]->specialty)    ? stripslashes($talent[$i]->specialty) : '';
+				$talentlvl     = isset($talent[$i]->level)        ? $talent[$i]->level                   : 0;
+				$skillname     = isset($skill[$i]->skillname)     ? $skill[$i]->skillname                    : '';
+				$skillspec     = isset($skill[$i]->specialty)     ? stripslashes($skill[$i]->specialty) : '';
+				$skilllvl      = isset($skill[$i]->level)         ? $skill[$i]->level                   : 0;
+				$knowledgename = isset($knowledge[$i]->skillname) ? $knowledge[$i]->skillname                    : '';
+				$knowledgespec = isset($knowledge[$i]->specialty) ? stripslashes($knowledge[$i]->specialty) : '';
+				$knowledgelvl  = isset($knowledge[$i]->level)     ? $knowledge[$i]->level                   : 0;
 				$data = array(
-						$talent[$i]->skillname,stripslashes($talent[$i]->specialty),$talent[$i]->level,
-						$skill[$i]->skillname,stripslashes($skill[$i]->specialty),$skill[$i]->level,
-						$knowledge[$i]->skillname,stripslashes($knowledge[$i]->specialty),$knowledge[$i]->level
+						$talentname,   $talentspec,   $talentlvl,
+						$skillname,    $skillspec,    $skilllvl,
+						$knowledgename,$knowledgespec,$knowledgelvl
 						);
 				if ($i==0)
 					array_push($data, "Talents", "Skills", "Knowledges");
@@ -163,18 +183,29 @@ function gv_print_redirect()
 			if ($rows < count($secondary))   $rows = count($secondary);
 			
 			for ($i=0;$i<$rows;$i++) {
+			
+				if (isset($backgrounds[$i]->sector))
+					$sector = $backgrounds[$i]->sector;
+				elseif (isset($backgrounds[$i]->comment))
+					$sector = stripslashes($backgrounds[$i]->comment);
+				else
+					$sector = '';
+					
+				$is_discipline = isset($alldisciplines[$i]);
+				$is_skill      = isset($secondary[$i]);
+			
 				$data = array (
-					$backgrounds[$i]->background,
-					(!empty($backgrounds[$i]->sector)) ?  $backgrounds[$i]->sector : stripslashes($backgrounds[$i]->comment),
-					$backgrounds[$i]->level,
+					isset($backgrounds[$i]->background) ? $backgrounds[$i]->background : '',
+					$sector,
+					isset($backgrounds[$i]->level)      ? $backgrounds[$i]->level      : 0,
 					
-					$alldisciplines[$i][0],
-					$alldisciplines[$i][1],
-					$alldisciplines[$i][2],
+					$is_discipline ? $alldisciplines[$i][0] : '',
+					$is_discipline ? $alldisciplines[$i][1] : '',
+					$is_discipline ? $alldisciplines[$i][2] : 0,
 					
-					$secondary[$i]->skillname,
-					stripslashes($secondary[$i]->specialty),
-					$secondary[$i]->level
+					$is_skill ? $secondary[$i]->skillname : '',
+					$is_skill ? stripslashes($secondary[$i]->specialty) : '',
+					$is_skill ? $secondary[$i]->level : 0
 				);
 				if ($i==0)
 					array_push($data, "Backgrounds", "Disciplines", "Secondary Abilities");
@@ -266,7 +297,7 @@ function gv_print_redirect()
 				foreach ($rituals as $majikdiscipline => $rituallist) {
 				$pdf->Divider($majikdiscipline . ' Rituals');
 					foreach ($rituallist as $ritual) {
-						$pdf->FullWidthText("(Level " . $ritual[level] . ") " . $ritual[name] . " - " . $ritual[description]);
+						$pdf->FullWidthText("(Level " . $ritual['level'] . ") " . $ritual['name'] . " - " . $ritual['description']);
 					} 
 				}
 			}
@@ -673,7 +704,7 @@ class PDFcsheet extends FPDF
 		global $textcolour;
 	
 		$sectionwidth = ($pagewidth - 2 * $margin) / 3;
-		$x1 = $this->GetX;
+		$x1 = $this->GetX();
 		
 		$this->SetTextColor($textcolour[0],$textcolour[1],$textcolour[2]);
 		$this->SetFont($textfont,'',$textsize);
@@ -691,7 +722,7 @@ class PDFcsheet extends FPDF
 		global $textcolour;
 	
 		$sectionwidth = $pagewidth - 2 * $margin;
-		$x1 = $this->GetX;
+		$x1 = $this->GetX();
 		
 		$this->SetTextColor($textcolour[0],$textcolour[1],$textcolour[2]);
 		$this->SetFont($textfont,$textweight,$textsize);

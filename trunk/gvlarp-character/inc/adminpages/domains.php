@@ -34,7 +34,7 @@ function render_domain_page(){
 function render_domain_add_form($type, $addaction) {
 	global $wpdb;
 
-	$id   = $_REQUEST['domain'];
+	$id   = isset($_REQUEST['domain']) ? $_REQUEST['domain'] : '';
 		
 	if ('fix-' . $type == $addaction) {
 		$name          = $_REQUEST[$type . "_name"];
@@ -99,6 +99,7 @@ function render_domain_add_form($type, $addaction) {
 
 function domain_input_validation($type) {
 	
+	$doaction = '';
 	
 	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == $type)
 		$doaction = "edit-$type";

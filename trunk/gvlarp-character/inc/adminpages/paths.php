@@ -34,7 +34,7 @@ function render_paths_page(){
 function render_path_add_form($type, $addaction) {
 	global $wpdb;
 
-	$id   = $_REQUEST['path'];
+	$id   = isset($_REQUEST['path']) ? $_REQUEST['path'] : '';
 		
 	if ('fix-' . $type == $addaction) {
 		$name          = $_REQUEST[$type . "_name"];
@@ -120,7 +120,7 @@ function render_path_add_form($type, $addaction) {
 					<?php
 						foreach (get_booknames() as $book) {
 							print "<option value='{$book->ID}' ";
-							($book->ID == $bookid) ? print "selected" : print "";
+							($book->ID == $sourcebook_id) ? print "selected" : print "";
 							echo ">{$book->NAME}</option>";
 						}
 					?>

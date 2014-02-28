@@ -159,7 +159,7 @@ function get_tabhighlight($tab){
 	return "";
 }
 
-function get_tablink($tab, $text){
+function get_tablink($tab, $text, $default = ""){
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'tab', $current_url );
 	$current_url = remove_query_arg( 'action', $current_url );
@@ -210,7 +210,9 @@ function character_datatables() {
 		<div class="gvadmin_content">
 		<?php
 		
-		switch ($_REQUEST['tab']) {
+		$tabselect = isset($_REQUEST['tab']) ? $_REQUEST['tab'] : '';
+		
+		switch ($tabselect) {
 			case 'stat':
 				render_stat_page("stat");
 				break;

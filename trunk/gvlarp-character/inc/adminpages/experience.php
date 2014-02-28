@@ -49,8 +49,10 @@ function render_costmodel_page($type){
 
 	$wpdb->show_errors();
 	
+	$thisaction = isset($_REQUEST['action']) ? $_REQUEST['action'] : '';
+	
 	$id = 0;
-	switch ($_REQUEST['action']) {
+	switch ($thisaction) {
 		case "loadmodel":
 			$id = $_REQUEST['costmodel'];			
 			break;
@@ -313,14 +315,19 @@ function render_costmodel_page($type){
 		for ($i=0;$i<11;$i++) {
 			echo "<tr>\n";
 			echo "<td class='costmodels'>$i";
-			echo "<input type='hidden' name='rowids[" . $i . "]'    value='" . $result[$i]->ID . "'>";
-			echo "</td>\n";
-			if (isset($result[$i]))
+			if (isset($result[$i])) {
+				echo "<input type='hidden' name='rowids[" . $i . "]'    value='" . $result[$i]->ID . "'>";
+				echo "</td>\n";
 				echo "<td class='costmodels'><input type='text' name='nextvals[" . $i . "]'    value='" . $result[$i]->NEXT_VALUE . "' size=5 ></td>\n";
-			else
+				echo "<td class='costmodels'><input type='text' name='freebie[" . $i . "]'    value='" . $result[$i]->FREEBIE_COST . "' size=5 ></td>\n";
+				echo "<td class='costmodels'><input type='text' name='xpcost[" . $i . "]'    value='" . $result[$i]->XP_COST . "' size=5 ></td>\n";
+			} else {
+				echo "<input type='hidden' name='rowids[" . $i . "]'    value='" . 0 . "'>";
+				echo "</td>\n";
 				echo "<td class='costmodels'><input type='text' name='nextvals[" . $i . "]'    value='" . ($i == 10 ? 10 : $i + 1) . "' size=5 ></td>\n";
-			echo "<td class='costmodels'><input type='text' name='freebie[" . $i . "]'    value='" . $result[$i]->FREEBIE_COST . "' size=5 ></td>\n";
-			echo "<td class='costmodels'><input type='text' name='xpcost[" . $i . "]'    value='" . $result[$i]->XP_COST . "' size=5 ></td>\n";
+				echo "<td class='costmodels'><input type='text' name='freebie[" . $i . "]'    value='" . 0 . "' size=5 ></td>\n";
+				echo "<td class='costmodels'><input type='text' name='xpcost[" . $i . "]'    value='" . 0 . "' size=5 ></td>\n";
+			}
 			echo "</tr>";
 		}
 	
@@ -758,7 +765,7 @@ function render_xp_assign_page(){
 
 	$type = "xpassign";
 	
-	if ($_REQUEST['do_update']) {
+	if (isset($_REQUEST['do_update']) && $_REQUEST['do_update']) {
 		//echo "<p>Saving...</p>";
 		//print_r($_REQUEST['xp_reason']);
 		//print_r($_REQUEST['xp_change']);

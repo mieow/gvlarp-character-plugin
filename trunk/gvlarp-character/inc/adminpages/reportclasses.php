@@ -371,6 +371,8 @@ class gvreport_prestige extends GVReport_ListTable {
 		if (isset($this->active_filter_clan) && $this->active_filter_clan != 'all') {
 			$clanfilter = " AND (characters.PUBLIC_CLAN_ID = %s OR characters.PRIVATE_CLAN_ID = %s)";
 			$args = array($this->active_filter_clan, $this->active_filter_clan);
+		} else {
+			$clanfilter = "";
 		}
 		$args = array_merge($args, $filterinfo[1]);
 		
@@ -710,6 +712,8 @@ class gvreport_sect extends GVReport_ListTable {
 		if (isset($this->active_filter_selectsect) && $this->active_filter_selectsect != 'all') {
 			$sectfilter = " AND sects.id = %d";
 			$args = array($this->active_filter_selectsect);
+		} else {
+			$sectfilter = "";
 		}
 		$args = array_merge($args, $filterinfo[1]);
 		

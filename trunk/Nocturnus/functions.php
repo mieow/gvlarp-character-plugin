@@ -4,7 +4,7 @@ require_once( get_template_directory() . '/theme-options.php' );
 ?>
 <?php 
 if ( function_exists('register_sidebar') )
-	register_sidebar(array('name' => 'nocturnus_sidebar'));
+	register_sidebar(array('name' => 'Nocturnus Sidebar'));
 if ( function_exists('register_nav_menu') )
 	register_nav_menu( 'primary', 'Primary Menu' );
 

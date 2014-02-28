@@ -33,6 +33,11 @@ function  get_loggedinclan($characterID) {
 				AND chara.PRIVATE_CLAN_ID = privclan.ID";
 	$result = $wpdb->get_results($wpdb->prepare($sql, $characterID));
 	
+	if (count($result) == 0) {
+		$result[0]->priv = '';
+		$result[0]->pub = '';
+	}
+	
 	return $result;
 }
 function  get_loggedindomain($characterID) {
@@ -754,6 +759,8 @@ function print_character_road_or_path_table($atts, $content=null) {
 	}
 	
 	$character = establishCharacter($character);
+	
+	$output = "";
 
 	global $wpdb;
 	$table_prefix = GVLARP_TABLE_PREFIX;
@@ -878,7 +885,7 @@ function print_character_details($atts, $content=null) {
 
 	$config = getConfig();
 	
-	if ($config->USE_NATURE_DEMEANOUR == 'Y') {
+	if ($config->USE_NATURE_DEMEANOUR == 'Y' && count($character_details) > 0) {
 			
 		$sql = "SELECT 
 					natures.name as nature,
@@ -898,35 +905,36 @@ function print_character_details($atts, $content=null) {
 		
 	}
 
-	
-	if ($group == "") {
-		$output  = "<table class='gvplugin' id=\"" . get_shortcode_id("gvid_cdb") . "\"><tr><td class=\"gvcol_1 gvcol_key\">Character_name</td><td class=\"gvcol_2 gvcol_val\">" . $character_details->char_name       . "</td></tr>";
-		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Public Clan</td><td class=\"gvcol_2 gvcol_val\">"           . $character_details->pub_clan        . "</td></tr>";
-		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Private Clan</td><td class=\"gvcol_2 gvcol_val\">"          . $character_details->priv_clan       . "</td></tr>";
-		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Date of Birth</td><td class=\"gvcol_2 gvcol_val\">"         . $character_details->date_of_birth   . "</td></tr>";
-		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Date of Embrace</td><td class=\"gvcol_2 gvcol_val\">"       . $character_details->date_of_embrace . "</td></tr>";
-		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Generation</td><td class=\"gvcol_2 gvcol_val\">"            . $character_details->gen             . "th</td></tr>";
-		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Max Bloodpool</td><td class=\"gvcol_2 gvcol_val\">"         . $character_details->bloodpool       . "</td></tr>";
-		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Max blood per round</td><td class=\"gvcol_2 gvcol_val\">"   . $character_details->blood_per_round . "</td></tr>";
-		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Sire's Name</td><td class=\"gvcol_2 gvcol_val\">"           . $character_details->sire            . "</td></tr>";
-		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Character Status</td><td class=\"gvcol_2 gvcol_val\">"      . $character_details->status          . "</td></tr>";
-		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Status Comment</td><td class=\"gvcol_2 gvcol_val\">"        . $character_details->status_comment  . "</td></tr>";
-		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Current Domain</td><td class=\"gvcol_2 gvcol_val\">"        . $character_details->domain          . "</td></tr>";
-		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Road or Path name</td><td class=\"gvcol_2 gvcol_val\">"     . $character_details->path_name       . "</td></tr>";
-		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Road or Path rating</td><td class=\"gvcol_2 gvcol_val\">"   . $character_details->path_value      . "</td></tr>";
-		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Last Updated</td><td class=\"gvcol_2 gvcol_val\">"          . $character_details->last_updated    . "</td></tr>";
-		
-		if ($config->USE_NATURE_DEMEANOUR == 'Y') {
+	if (count($character_details) > 0) {
+		if ($group == "") {
+			$output  = "<table class='gvplugin' id=\"" . get_shortcode_id("gvid_cdb") . "\"><tr><td class=\"gvcol_1 gvcol_key\">Character_name</td><td class=\"gvcol_2 gvcol_val\">" . $character_details->char_name       . "</td></tr>";
+			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Public Clan</td><td class=\"gvcol_2 gvcol_val\">"           . $character_details->pub_clan        . "</td></tr>";
+			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Private Clan</td><td class=\"gvcol_2 gvcol_val\">"          . $character_details->priv_clan       . "</td></tr>";
+			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Date of Birth</td><td class=\"gvcol_2 gvcol_val\">"         . $character_details->date_of_birth   . "</td></tr>";
+			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Date of Embrace</td><td class=\"gvcol_2 gvcol_val\">"       . $character_details->date_of_embrace . "</td></tr>";
+			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Generation</td><td class=\"gvcol_2 gvcol_val\">"            . $character_details->gen             . "th</td></tr>";
+			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Max Bloodpool</td><td class=\"gvcol_2 gvcol_val\">"         . $character_details->bloodpool       . "</td></tr>";
+			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Max blood per round</td><td class=\"gvcol_2 gvcol_val\">"   . $character_details->blood_per_round . "</td></tr>";
+			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Sire's Name</td><td class=\"gvcol_2 gvcol_val\">"           . $character_details->sire            . "</td></tr>";
+			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Character Status</td><td class=\"gvcol_2 gvcol_val\">"      . $character_details->status          . "</td></tr>";
+			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Status Comment</td><td class=\"gvcol_2 gvcol_val\">"        . $character_details->status_comment  . "</td></tr>";
+			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Current Domain</td><td class=\"gvcol_2 gvcol_val\">"        . $character_details->domain          . "</td></tr>";
+			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Road or Path name</td><td class=\"gvcol_2 gvcol_val\">"     . $character_details->path_name       . "</td></tr>";
+			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Road or Path rating</td><td class=\"gvcol_2 gvcol_val\">"   . $character_details->path_value      . "</td></tr>";
+			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Last Updated</td><td class=\"gvcol_2 gvcol_val\">"          . $character_details->last_updated    . "</td></tr>";
 			
-			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Nature</td><td class=\"gvcol_2 gvcol_val\">" . $character_details->nature      . "</td></tr>";
-			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Demeanour</td><td class=\"gvcol_2 gvcol_val\">" . $character_details->demeanour      . "</td></tr>";
-		
+			if ($config->USE_NATURE_DEMEANOUR == 'Y') {
+				
+				$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Nature</td><td class=\"gvcol_2 gvcol_val\">" . $character_details->nature      . "</td></tr>";
+				$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Demeanour</td><td class=\"gvcol_2 gvcol_val\">" . $character_details->demeanour      . "</td></tr>";
+			
+			}
+			
+			$output .= "</table>";
 		}
-		
-		$output .= "</table>";
-	}
-	else {
-		$output = "<span class=\"gvcol_val\" id=\"gvid_cdeb_" . $group . "\">" . $character_details->$group . "</span>";
+		else {
+			$output = "<span class=\"gvcol_val\" id=\"gvid_cdeb_" . $group . "\">" . $character_details->$group . "</span>";
+		}
 	}
 
 	return $output;
@@ -1149,7 +1157,11 @@ function print_spend_button($atts, $content=null) {
 	}
 	$buttonID  = get_shortcode_id("gv" . esc_attr($stat) . "sbut");
 	$stagename = 'stage_' . $buttonID;
-	$stage     = $_REQUEST[$stagename];
+	
+	if (isset($_REQUEST[$stagename]))
+		$stage = $_REQUEST[$stagename];
+	else
+		$stage = '';
 	$amount    = 1;
 	$comment   = '';
 	

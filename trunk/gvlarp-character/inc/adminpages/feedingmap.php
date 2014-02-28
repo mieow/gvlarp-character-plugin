@@ -74,7 +74,9 @@ function render_domain_data(){
 function render_owner_add_form() {
 	global $wpdb;
 
-	switch ($_REQUEST['action']) {
+	$thisaction = isset($_REQUEST['action']) ? $_REQUEST['action'] : '';
+	
+	switch ($thisaction) {
 	case "edit":
 		$id          = $_REQUEST['owner'];
 		
@@ -141,7 +143,7 @@ function render_feedingdomain_add_form($inputsok) {
 			// $ownerid     = $_REQUEST['domain_owner'];
 	// } 
 	// else
-	if ($_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == 'mapdomain') {
+	if (isset($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == 'mapdomain') {
 			$id          = $_REQUEST['mapdomain'];
 			
 			$sql = "SELECT * FROM " . GVLARP_TABLE_PREFIX . "MAPDOMAIN WHERE ID = %d";
@@ -748,7 +750,7 @@ class domain_table extends WP_List_Table {
 		// Assign to Owner
 		$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "MAPOWNER ORDER BY NAME";
 		$this->ownerlist = $wpdb->get_results($sql);
-		$this->ownerselect = sanitize_key($_REQUEST['ownerselect']);
+		$this->ownerselect = isset($_REQUEST['ownerselect']) ? sanitize_key($_REQUEST['ownerselect']) : '';
 		        			
 		$this->_column_headers = array($columns, $hidden, $sortable);
 		

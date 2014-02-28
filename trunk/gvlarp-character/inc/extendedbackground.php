@@ -93,6 +93,8 @@ function get_editbackgrounds_tab($characterID) {
 	$character = establishCharacter("");
 	$characterID = establishCharacterID($character);
 	
+	$content = "";
+	
 	/* Save backgrounds */
 	if (isset($_REQUEST['save_bgform'])) {
 	
@@ -226,6 +228,8 @@ function get_editmerits_tab($characterID) {
 	$character = establishCharacter("");
 	$characterID = establishCharacterID($character);
 	
+	$content = "";
+	
 	/* Save Merits and Flaws */
 	if (isset($_REQUEST['save_meritform'])) {
 	
@@ -329,10 +333,12 @@ function get_editmisc_tab($characterID) {
 	$characterID = establishCharacterID($character);
 	$wpdb->show_errors();
 	
-	$miscids  = $_REQUEST['miscID'];
-	$questids = $_REQUEST['questID'];
-	$pendingmisc = $_REQUEST['pendingmisc'];
-	$namesmisc    = $_REQUEST['charmiscTitle'];
+	$content = "";
+	
+	$miscids      = isset($_REQUEST['miscID'])        ? $_REQUEST['miscID'] : array();
+	$questids     = isset($_REQUEST['questID'])       ? $_REQUEST['questID'] : array();
+	$pendingmisc  = isset($_REQUEST['pendingmisc'])   ? $_REQUEST['pendingmisc'] : array();
+	$namesmisc    = isset($_REQUEST['charmiscTitle']) ? $_REQUEST['charmiscTitle'] : array();
 	
 	/* Save Misc Extended Background Answers */
 	if (isset($_REQUEST['miscID'])) {

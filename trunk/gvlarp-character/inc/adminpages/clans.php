@@ -1,42 +1,5 @@
 <?php
-/* function character_clans() {
-	if ( !current_user_can( 'manage_options' ) )  {
-		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
-	}
-	?>
-	<div class="wrap">
-		<h2>Clans and Disciplines</h2>
-		<script type="text/javascript">
-			function tabSwitch(tab) {
-				setSwitchState('clans', tab == 'clans');
-				setSwitchState('disc', tab == 'disc');
-				return false;
-			}
-			function setSwitchState(tab, show) {
-				document.getElementById('gv-'+tab).style.display = show ? 'block' : 'none';
-				document.getElementById('gvm-'+tab).className = show ? 'shown' : '';
-			}
-		</script>
-		<div class="gvadmin_nav">
-			<ul>
-				<li><?php echo get_tabanchor('clans', 'Clans', 'clans'); ?></li>
-				<li><?php echo get_tabanchor('disc', 'Disciplines', 'clans'); ?></li>
-			</ul>
-		</div>
-		<div class="gvadmin_content">
-			<div id="gv-clans" <?php echo get_tabdisplay("clans", "clans"); ?>>
-				<h1>Clans</h1>
-				<?php render_clan_page(); ?>
-			</div>
-			<div id="gv-disc" <?php echo get_tabdisplay("disc", "clans"); ?>>
-				<h1>Disciplines</h1>
-				<?php render_discipline_page(); ?>
-			</div>
-		</div>
-	</div>
-	
-	<?php
-} */
+
 
 function render_clan_page(){
 
@@ -261,6 +224,7 @@ function render_clan_add_form($addaction) {
 function clan_input_validation() {
 
 	$type = "clan";
+	$doaction = '';
 
 	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == 'clans')
 		$doaction = "edit-$type"; 
@@ -705,14 +669,14 @@ function render_discipline_add_form($addaction) {
 					<?php
 						foreach (get_booknames() as $book) {
 							print "<option value='{$book->ID}' ";
-							($book->ID == $bookid) ? print "selected" : print "";
+							($book->ID == $sourcebook_id) ? print "selected" : print "";
 							echo ">{$book->NAME}</option>";
 						}
 					?>
 				</select>
 			</td>
 			<td>Page Number: </td>
-			<td><input type="number" name="<?php print $type; ?>_pagenum" value="<?php print $pagenum; ?>" /></td>
+			<td><input type="number" name="<?php print $type; ?>_pagenum" value="<?php print $pagenum; ?>" size=4 /></td>
 		</tr>
 		<tr>
 			<td>Description:  </td>
@@ -735,6 +699,7 @@ function render_discipline_add_form($addaction) {
 function discipline_input_validation() {
 
 	$type = "disc";
+	$doaction = '';
 
 	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == $type)
 		$doaction = "edit-$type"; 

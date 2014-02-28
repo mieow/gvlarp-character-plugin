@@ -42,6 +42,9 @@ function render_temp_stat_page($stat) {
 
 	$sql = "SELECT ID FROM " . GVLARP_TABLE_PREFIX . "TEMPORARY_STAT WHERE NAME = %s";
 	$statID = $wpdb->get_var($wpdb->prepare($sql, $stat));
+	
+	$sql = "SELECT ID FROM " . GVLARP_TABLE_PREFIX . "TEMPORARY_STAT_REASON WHERE NAME = %s";
+	$default_bulk_reason = $wpdb->get_var($wpdb->prepare($sql, 'Game spend'));
  
  // List of stats
 	$sql = "SELECT ID FROM " . GVLARP_TABLE_PREFIX . "STAT WHERE NAME = %s";
@@ -54,6 +57,7 @@ function render_temp_stat_page($stat) {
 		$filterstat = "Willpower";
 		$maxcol = "MAX" . strtoupper($stat);
 	}
+	
 	
 	$reasons = listTemporaryStatReasons();
 
@@ -70,13 +74,13 @@ function render_temp_stat_page($stat) {
 	}
 	
 	// DO UPDATES
-	$maximums = $_REQUEST['max'];
-	$currents = $_REQUEST['current'];
-	$names    = $_REQUEST['charname'];
-	$amounts  = $_REQUEST['amount'];
-	$comments = $_REQUEST['comment'];
-	$tmpreasons  = $_REQUEST['temp_reason'];
-	$ids      = $_REQUEST['charID'];
+	$maximums   = isset($_REQUEST['max'])         ? $_REQUEST['max']         : array();
+	$currents   = isset($_REQUEST['current'])     ? $_REQUEST['current']     : array();
+	$names      = isset($_REQUEST['charname'])    ? $_REQUEST['charname']    : array();
+	$amounts    = isset($_REQUEST['amount'])      ? $_REQUEST['amount']      : array();
+	$comments   = isset($_REQUEST['comment'])     ? $_REQUEST['comment']     : array();
+	$tmpreasons = isset($_REQUEST['temp_reason']) ? $_REQUEST['temp_reason'] : array();
+	$ids        = isset($_REQUEST['charID'])      ? $_REQUEST['charID']      : array();
 	
 	$errstat = 0;
 	if (isset($_REQUEST['apply2all'])) {
@@ -153,7 +157,7 @@ function render_temp_stat_page($stat) {
 		<?php
 			foreach ($reasons as $reason) {
 				echo "<option value='{$reason->id}'";
-				selected($reason->id, $selectedreason);
+				selected($reason->id, $reasonID);
 				echo ">" . stripslashes($reason->name) . "</option>";
 			}
 		?>

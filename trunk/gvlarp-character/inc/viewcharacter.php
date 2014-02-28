@@ -65,26 +65,35 @@ function get_viewcharacter_content() {
 	
 	$content .= "<tr><td colspan=2><table>\n";
 	for ($i=0;$i<3;$i++) {
+		$statname = isset($physical[$i]->name)      ? $physical[$i]->name : '';
+		$statspec = isset($physical[$i]->specialty) ? stripslashes($physical[$i]->specialty) : '';
+		$statlvl  = isset($physical[$i]->level)     ? $physical[$i]->level : '';
 		$content .= "<tr>
-				<td class='gvcol_key'>" . $physical[$i]->name                    . "</td>
-				<td class='gvcol_spec'>" . stripslashes($physical[$i]->specialty) . "</td>
-				<td class='gvdot_{$maxrating}_{$physical[$i]->level}'>&nbsp;</td>
+				<td class='gvcol_key'>$statname</td>
+				<td class='gvcol_spec'>$statspec </td>
+				<td class='gvdot_{$maxrating}_$statlvl'>&nbsp;</td>
 			</tr>";
 	}
 	$content .= "</table></td><td colspan=2><table>";
 	for ($i=0;$i<3;$i++) {
+		$statname = isset($social[$i]->name)      ? $social[$i]->name : '';
+		$statspec = isset($social[$i]->specialty) ? stripslashes($social[$i]->specialty) : '';
+		$statlvl  = isset($social[$i]->level)     ? $social[$i]->level : '';
 		$content .= "<tr>
-				<td class='gvcol_key'>" . $social[$i]->name                    . "</td>
-				<td class='gvcol_spec'>" . stripslashes($social[$i]->specialty) . "</td>
-				<td class='gvdot_{$maxrating}_{$social[$i]->level}'>&nbsp;</td>
+				<td class='gvcol_key'>$statname</td>
+				<td class='gvcol_spec'>$statspec </td>
+				<td class='gvdot_{$maxrating}_$statlvl'>&nbsp;</td>
 			</tr>";
 	}
 	$content .= "</table></td><td colspan=2><table>";
 	for ($i=0;$i<3;$i++) {
+		$statname = isset($mental[$i]->name)      ? $mental[$i]->name : '';
+		$statspec = isset($mental[$i]->specialty) ? stripslashes($mental[$i]->specialty) : '';
+		$statlvl  = isset($mental[$i]->level)     ? $mental[$i]->level : '';
 		$content .= "<tr>
-				<td class='gvcol_key'>" . $mental[$i]->name                    . "</td>
-				<td class='gvcol_spec'>" . stripslashes($mental[$i]->specialty) . "</td>
-				<td class='gvdot_{$maxrating}_{$mental[$i]->level}'>&nbsp;</td>
+				<td class='gvcol_key'>$statname</td>
+				<td class='gvcol_spec'>$statspec </td>
+				<td class='gvdot_{$maxrating}_$statlvl'>&nbsp;</td>
 			</tr>";
 	}
 	$content .= "</table></td></tr>";
@@ -213,10 +222,12 @@ function get_viewcharacter_content() {
 	
 	$content .= "<td colspan=2><table>";
 	for ($i=0;$i<3;$i++) {
+		$statname = isset($virtues[$i]->name)      ? $virtues[$i]->name : '';
+		$statlvl  = isset($virtues[$i]->level)     ? $virtues[$i]->level : '';
 		$content .= "<tr>
-				<td class='gvcol_key'>" . $virtues[$i]->name . "</td>
+				<td class='gvcol_key'>" . $statname . "</td>
 				<td class='gvcol_spec'>&nbsp;</td>
-				<td class='gvdot_{$maxrating}_{$virtues[$i]->level}'>&nbsp;</td>
+				<td class='gvdot_{$maxrating}_$statlvl'>&nbsp;</td>
 			</tr>\n";
 	}
 	$content .= "<tr><td colspan=3><hr /></td></tr>\n";
@@ -243,7 +254,7 @@ function get_viewcharacter_content() {
 		foreach ($rituals as $majikdiscipline => $rituallist) {
 			$content .= "<tr><td colspan=2><strong>" . $majikdiscipline . " Rituals</strong></td></tr>\n";
 			foreach ($rituallist as $ritual) {
-				$content .= "<tr><td class='gvcol_key'>Level " . $ritual[level] . "</td><td>" . $ritual[name] . "</td></tr>\n";
+				$content .= "<tr><td class='gvcol_key'>Level " . $ritual['level'] . "</td><td>" . $ritual['name'] . "</td></tr>\n";
 			} 
 		}
 		$content .= "</table></td>";

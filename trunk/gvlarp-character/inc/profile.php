@@ -42,8 +42,8 @@ function get_profile_content() {
 				AND chars.ID = %s";
 	$result = $wpdb->get_row($wpdb->prepare($sql, $currentCharacterID));
 	
-	$observerClanPub  = $result->pubclan;
-	$observerClanPriv = $result->privclan;
+	$observerClanPub  = isset($result->pubclan) ? $result->pubclan : '';
+	$observerClanPriv = isset($result->privclan) ? $result->privclan : '';
 	
 	// Show full character details to STs and if you are viewing your own profile
 	if (isST() || $character == $currentCharacter)
@@ -64,13 +64,14 @@ function get_profile_content() {
 
 	// Update display name
 	if (isST() || $currentCharacter == $character) {
-		$user = get_userdatabylogin($character);
+		$user = get_user_by('login', $character);
 		$displayName = $user->display_name;
 		$userID = $user->ID;
 	
-		$newDisplayName = $_POST['displayName'];
-		if ($_POST['GVLARP_FORM'] == 'updateDisplayName' && isset($newDisplayName) 
-			&& !empty($newDisplayName) && $newDisplayName != $displayName) {
+		if (isset($_POST['GVLARP_FORM']) && $_POST['GVLARP_FORM'] == 'updateDisplayName' && isset($_POST['displayName']) 
+			&& !empty($_POST['displayName']) && $_POST['displayName'] != $displayName) {
+			
+			$newDisplayName = $_POST['displayName'];
 			
 			$output .= "<p>Changed display name to <i>$newDisplayName</i></p>";
 			changeDisplayNameByID ($userID, $newDisplayName);
@@ -79,8 +80,8 @@ function get_profile_content() {
 	}
 	
 	// Update password
-	if (isST() || $currentCharacter == $character) {
-		$user = get_userdatabylogin($character);
+	if (isset($_POST['newPassword1']) && (isST() || $currentCharacter == $character)) {
+		$user = get_user_by('login', $character);
 		$userID = $user->ID;
 	
 		$newPassword1 = $_POST['newPassword1'];
@@ -209,7 +210,7 @@ function get_profile_content() {
 	
 	// change password and display name form
 	if (isST() || $currentCharacter == $character) {
-		$user = get_userdatabylogin($character);
+		$user = get_user_by('login', $character);
 		$displayName = $user->display_name;
 		$userID = $user->ID;
 		
