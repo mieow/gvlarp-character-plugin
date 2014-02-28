@@ -6,7 +6,6 @@ function count_XP4approval() {
 	$sql = "SELECT COUNT(ID) as count
 			FROM 
 				" . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND";
-	$sql = $wpdb->prepare($sql, $characterID, $table);
 	$result = $wpdb->get_results($sql);
 	
 	return $result[0]->count;
@@ -14,13 +13,11 @@ function count_XP4approval() {
 function count_BG4approval() {
 	global $wpdb;
 	
-	$count = 0;
-	
+	$count = 0;	
 	$sql = "SELECT COUNT(ID) as count
 			FROM 
 				" . GVLARP_TABLE_PREFIX . "CHARACTER_BACKGROUND
 			WHERE NOT(PENDING_DETAIL = '') AND DENIED_DETAIL = ''";
-	$sql = $wpdb->prepare($sql, $characterID, $table);
 	$result = $wpdb->get_results($sql);
 	$count += $result[0]->count;
 	
@@ -28,7 +25,6 @@ function count_BG4approval() {
 			FROM 
 				" . GVLARP_TABLE_PREFIX . "CHARACTER_MERIT
 			WHERE NOT(PENDING_DETAIL = '') AND DENIED_DETAIL = ''";
-	$sql = $wpdb->prepare($sql, $characterID, $table);
 	$result = $wpdb->get_results($sql);
 	$count += $result[0]->count;
 	
@@ -36,7 +32,6 @@ function count_BG4approval() {
 			FROM 
 				" . GVLARP_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND
 			WHERE NOT(PENDING_DETAIL = '') AND DENIED_DETAIL = ''";
-	$sql = $wpdb->prepare($sql, $characterID, $table);
 	$result = $wpdb->get_results($sql);
 	$count += $result[0]->count;
 	//echo "<p>SQL: $sql</p>";

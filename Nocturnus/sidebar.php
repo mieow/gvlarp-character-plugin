@@ -4,7 +4,7 @@
 			<?php get_search_form( ); ?> 
 		</div>
 		<ul id="nsidebar1">
-			<?php if ( !function_exists('dynamic_sidebar') || !dynamic_sidebar('nocturnus_sidebar') ) : ?>
+			<?php if ( !function_exists('dynamic_sidebar') || !dynamic_sidebar('Nocturnus Sidebar') ) : ?>
 			<?php endif; ?>
 		</ul>
 	</div>

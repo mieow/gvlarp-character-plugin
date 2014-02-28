@@ -34,7 +34,7 @@ function render_enlightenment_page(){
 function render_enlighten_add_form($type, $addaction) {
 	global $wpdb;
 
-	$id   = $_REQUEST['road'];
+	$id   = isset($_REQUEST['road']) ? $_REQUEST['road'] : '';
 		
 	if ('fix-' . $type == $addaction) {
 		$name     = $_REQUEST[$type . "_name"];
@@ -152,6 +152,7 @@ function render_enlighten_add_form($type, $addaction) {
 
 function enlighten_input_validation($type) {
 	
+	$doaction = '';
 	
 	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == $type)
 		$doaction = "edit-$type";

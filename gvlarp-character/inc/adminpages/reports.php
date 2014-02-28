@@ -10,9 +10,12 @@ function character_reports () {
 	<div class="wrap">
 		<h2>Reports</h2>
 	<?php
-	render_select_report();
+	$report = isset($_REQUEST['report']) ? $_REQUEST['report'] : '';
 	
-	switch ($_REQUEST['report']) {
+	render_select_report($report);
+	
+	
+	switch ($report) {
 		case 'meritflaw_report':
 			render_report(new gvreport_flaws());
 			break;
@@ -38,7 +41,7 @@ function character_reports () {
 }
 
 
-function render_select_report() {
+function render_select_report($report) {
 
 	echo "<h3>Select Report</h3>";
 	echo "<form id='select_report_form' method='post'>\n";
@@ -46,23 +49,23 @@ function render_select_report() {
 	echo "<option value='0'>[Select Report]</option>\n";
 	
 	echo "<option value='meritflaw_report' ";
-	selected($_REQUEST['report'],'meritflaw_report');
+	selected($report,'meritflaw_report');
 	echo ">Merits and Flaws</option>\n";
 	
 	echo "<option value='quotes_report' ";
-	selected($_REQUEST['report'],'quotes_report');
+	selected($report,'quotes_report');
 	echo ">Profile Quotes</option>\n";
 	
 	echo "<option value='prestige_report' ";
-	selected($_REQUEST['report'],'prestige_report');
+	selected($report,'prestige_report');
 	echo ">Clan Prestige</option>\n";
 	
 	echo "<option value='signin_report' ";
-	selected($_REQUEST['report'],'signin_report');
+	selected($report,'signin_report');
 	echo ">Signin Sheet</option>\n";
 	
 	echo "<option value='sect_report' ";
-	selected($_REQUEST['report'],'sect_report');
+	selected($report,'sect_report');
 	echo ">Sect List</option>\n";
 
 	echo "</select>\n";

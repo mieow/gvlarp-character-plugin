@@ -34,7 +34,7 @@ function render_office_page(){
 function render_office_add_form($type, $addaction) {
 	global $wpdb;
 
-	$id   = $_REQUEST['office'];
+	$id   = isset($_REQUEST['office']) ? $_REQUEST['office'] : '';
 		
 	if ('fix-' . $type == $addaction) {
 		$name          = $_REQUEST[$type . "_name"];
@@ -104,6 +104,7 @@ function render_office_add_form($type, $addaction) {
 
 function office_input_validation($type) {
 	
+	$doaction = '';
 	
 	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == $type)
 		$doaction = "edit-$type";

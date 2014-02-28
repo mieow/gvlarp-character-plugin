@@ -141,6 +141,8 @@ function player_input_validation() {
 	
 	//echo "<p>Requested action: " . $_REQUEST['action'] . ", " . $type . "_name: " . $_REQUEST[$type . '_name']; 
 
+	$doaction = "";
+	
 	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit')
 		$doaction = "edit-$type";
 		

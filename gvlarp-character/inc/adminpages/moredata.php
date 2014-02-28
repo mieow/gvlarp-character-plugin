@@ -1,48 +1,5 @@
 <?php
 
-/*
-function character_datatables2() {
-	if ( !current_user_can( 'manage_options' ) )  {
-		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
-	}
-	?>
-	<div class="wrap">
-		<h2>Database Tables</h2>
-		<script type="text/javascript">
-			function tabSwitch(tab) {
-				setSwitchState('stat', tab == 'stat');
-				setSwitchState('skill', tab == 'skill');
-				setSwitchState('disc', tab == 'disc');
-				return false;
-			}
-			function setSwitchState(tab, show) {
-				document.getElementById('gv-'+tab).style.display = show ? 'block' : 'none';
-				document.getElementById('gvm-'+tab).className = show ? 'shown' : '';
-			}
-		</script>
-		<div class="gvadmin_nav">
-			<ul>
-				<li><?php echo get_tabanchor('stat',  'Attributes', 'stat'); ?></li>
-				<li><?php echo get_tabanchor('skill', 'Abilities', 'skill'); ?></li>
-				<li>
-			</ul>
-		</div>
-		<div class="gvadmin_content">
-			<div id="gv-stat" <?php echo get_tabdisplay('stat', 'stat'); ?>>
-				<h1>Attributes and Stats</h1>
-				<?php render_stat_page("stat"); ?>
-			</div>
-			<div id="gv-skill" <?php echo get_tabdisplay("skill", 'stat'); ?>>
-				<h1>Abilities</h1>
-				<?php render_skill_page("skill"); ?>
-			</div>
-		</div>
-
-	</div>
-	
-	<?php
-} */
-
 function render_stat_page($type){
 
 
@@ -105,7 +62,7 @@ function render_skill_page(){
 function render_skill_add_form($type, $addaction) {
 	global $wpdb;
 
-	$id   = $_REQUEST['ability'];
+	$id   = isset($_REQUEST['ability']) ? $_REQUEST['ability'] : '';
 		
 	if ('fix-' . $type == $addaction) {
 		$name = $_REQUEST[$type . "_name"];
@@ -300,6 +257,7 @@ function stat_input_validation($type) {
 }
 function skill_input_validation($type) {
 	
+	$doaction = '';
 	
 	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == $type)
 		$doaction = "edit-$type";

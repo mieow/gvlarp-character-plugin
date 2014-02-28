@@ -34,7 +34,7 @@ function render_combo_page(){
 function render_combo_add_form($type, $addaction) {
 	global $wpdb;
 
-	$id   = $_REQUEST['combo'];
+	$id   = isset($_REQUEST['combo']) ? $_REQUEST['combo'] : '';
 		
 	if ('fix-' . $type == $addaction) {
 		$name          = $_REQUEST[$type . "_name"];
@@ -102,7 +102,7 @@ function render_combo_add_form($type, $addaction) {
 						<?php
 							foreach (get_booknames() as $book) {
 								print "<option value='{$book->ID}' ";
-								($book->ID == $bookid) ? print "selected" : print "";
+								($book->ID == $sourcebook) ? print "selected" : print "";
 								echo ">{$book->NAME}</option>";
 							}
 						?>
@@ -133,7 +133,10 @@ function render_combo_add_form($type, $addaction) {
 			<?php
 				$col = 1;
 				foreach(get_disciplines() as $disc) {
-					$prereq = $prerequisites[$disc->ID]->DISCIPLINE_LEVEL ? $prerequisites[$disc->ID]->DISCIPLINE_LEVEL : "0";
+
+					$prereq = (isset($prerequisites[$disc->ID]->DISCIPLINE_LEVEL) && $prerequisites[$disc->ID]->DISCIPLINE_LEVEL) 
+								? $prerequisites[$disc->ID]->DISCIPLINE_LEVEL 
+								: "0";
 				
 					if ($col == 1) echo "<tr>\n";
 					echo "<td>{$disc->NAME}</td>\n";
@@ -160,6 +163,7 @@ function render_combo_add_form($type, $addaction) {
 
 function combo_input_validation($type) {
 	
+	$doaction = '';
 	
 	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == $type)
 		$doaction = "edit-$type";

@@ -69,6 +69,10 @@ function render_approvals_data(){
 
 		$showform = 1;
 	}
+	else {
+		$id = 0;
+		$data = array();
+	}
 
 	render_approve_form($showform, $id, $data);
 	
@@ -257,7 +261,7 @@ function render_bgdata_add_form($addaction) {
 				<select name="<?php print $type; ?>_costmodel">
 					<?php
 						print "<option value='0' ";
-						selected($costmodel->ID, $costmodel_id);
+						selected(0, $costmodel_id);
 						echo ">[Select]</option>";
 						
 						foreach (get_costmodels() as $costmodel) {
@@ -513,6 +517,7 @@ function render_approve_form($showform, $id, $data) {
 function bgdata_input_validation() {
 
 	$type = "bgdata";
+	$doaction = '';
 
 	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == $type)
 		$doaction = "edit-$type";
@@ -546,6 +551,7 @@ function bgdata_input_validation() {
 function sector_input_validation() {
 
 	$type = "sector";
+	$doaction = '';
 	
 	/* echo "<p>Requested action: " . $_REQUEST['action'] . ", " . $type . "_name: " . $_REQUEST[$type . '_name']; */
 
@@ -574,6 +580,7 @@ function sector_input_validation() {
 function question_input_validation() {
 
 	$type = "question";
+	$doaction = '';
 
 	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == $type)
 		$doaction = "edit-$type";
@@ -680,8 +687,8 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
         
         
         return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
-            $item[NAME],
-            $item[ID],
+            $item['NAME'],
+            $item['ID'],
             $this->row_actions($actions)
         );
     }
@@ -690,7 +697,7 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
         return sprintf(
             '<input type="checkbox" name="%1$s[]" value="%2$s" />',
             $this->_args['singular'],  
-            $item[ID]
+            $item['ID']
         );
     }
 
@@ -893,10 +900,10 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
 		
 		$data = $this->read_data();
 		$this->items = $data;
-		
+
         function usort_reorder($a,$b){
 
-            $orderby = (!empty($_REQUEST['orderby'])) ? $_REQUEST['orderby'] : 'name';
+            $orderby = (!empty($_REQUEST['orderby'])) ? $_REQUEST['orderby'] : 'NAME';
             $order = (!empty($_REQUEST['order'])) ? $_REQUEST['order'] : 'asc'; 
             $result = strcmp($a[$orderby], $b[$orderby]); 
             return ($order==='asc') ? $result : -$result; 

@@ -20,7 +20,7 @@ function render_master_path_page(){
 
 	$type = "masterpath";
 	
-	if ($_REQUEST['do_update']) {
+	if (isset($_REQUEST['do_update']) && $_REQUEST['do_update']) {
 		//echo "<p>Saving...</p>";
 		//print_r($_REQUEST['masterpath_change']);
 		//print_r($_REQUEST['comment']);

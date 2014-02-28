@@ -34,7 +34,7 @@ function render_nature_page(){
 function render_nature_add_form($type, $addaction) {
 	global $wpdb;
 
-	$id   = $_REQUEST['nature'];
+	$id   = isset($_REQUEST['nature']) ? $_REQUEST['nature'] : '';
 		
 	if ('fix-' . $type == $addaction) {
 		$name          = $_REQUEST[$type . "_name"];
@@ -89,6 +89,7 @@ function render_nature_add_form($type, $addaction) {
 
 function nature_input_validation($type) {
 	
+	$doaction = '';
 	
 	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == $type)
 		$doaction = "edit-$type";
