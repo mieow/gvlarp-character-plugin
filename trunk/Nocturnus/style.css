@@ -52,6 +52,9 @@ a:active {color:#8A1717;}  /* selected link */
 #primary {
 	width: 755px;
 }
+#primary img {
+	max-width: 755px;
+}
 .page-template-nosidebar-php #primary {
 	margin: 0 0 0 0;
 	width: 100%;
@@ -129,12 +132,7 @@ h3, h4, h5, h6 {
 .posttitle {
 	border-bottom: 1px dotted #222222;
 	margin: 3px 0 2px;}
-.widgettitle {
-	border-bottom: 1px dotted #222222;
-	font-size: 13px;
-	font-weight: bold;
-	padding: 4px;
-	color: #999999;}
+
 #side ul {
 	list-style: none;
     /* padding: 8px 24px 7px 10px; */
@@ -172,14 +170,15 @@ dd {
 	margin-bottom: 1.625em;}
 strong {
 	font-weight: bold;}
-cite, em, i {
+cite, em, i, q {
 	font-style: italic;}
 blockquote {
 	background: url("images/blockquote-l.png") no-repeat scroll left top transparent;
 	font-size: 1em;
 	margin: 0 3em 1em;
 	padding: 10px 15px;
-	text-indent: 2em;}
+	text-indent: 2em;
+}
 sup,sub {
 	font-size: 10px;
 	height: 0;
@@ -198,7 +197,23 @@ textarea {
     height: 140px;
     line-height: 1.5em;
     padding: 5px 3px 3px 7px;}
-	
+
+address {
+	font-size: 0.9em;
+	line-height: 1.2em;
+	padding-bottom: 2px;
+	color: #BBBBBB;
+}
+code, pre, kbd, var {
+	font-family: courier;
+	word-wrap: break-word;
+	white-space: pre-wrap;
+
+}
+abbr {
+	color: #BBBBBB;
+	border-bottom: 1px dotted darkgrey;
+}
 
 /* =Tables
 -------------------------------------------------------------- */
@@ -358,22 +373,28 @@ input#search.searchbox {
     color: #666;
 	padding-top: 10px;
 }
+.widgettitle {
+	border-bottom: 1px dotted #222222;
+	font-size: 13px;
+	font-weight: bold;
+    padding: 10px 0 4px;
+	color: #999999;
+}
 
 /* =Blogroll
 -------------------------------------------------------------- */
 .comment {
 	border: 1px solid #222;
 	padding: 5px;
-	margin: 5px;}
-	
+	margin: 5px;
+}
 ol.commentlist {
-	/* border: 1px solid grey; */
 	list-style-type: none;
 	padding-left: 0px;}
 .comment-author {
 	background-color: #222;
-	padding-left: 5px;
-	font-weight: bold;}
+	font-weight: bold;
+}
 	
 .comment-meta {
 	font-size: 0.8em;
@@ -420,22 +441,56 @@ ol.commentlist {
 	margin: 0;
 }
 
+.avatar {
+	border: 1px solid green;
+	margin: 5px;
+	vertical-align:middle;
+}
+
 /* Set Required Style */
 .wp-caption {
 
 }
-.wp-caption-text {
-
+.gallery-caption, .wp-caption-text {
+	font-size: 0.8em;
+	color: #BBBBBB;
+	line-height: 1.2em;
 }
 .sticky {
-
-}
-.gallery-caption {
-
+	 padding: 10px;
+	 margin-bottom: 20px;
 }
 .bypostauthor {
 
 }
+
+/* =Calendar
+-------------------------------------------------------------- */
+ #wp-calendar tfoot #next {
+     text-align: right;
+}
+#wp-calendar tfoot td {
+	background: #111111;
+	border-bottom: 1px solid #222222;
+	border-top: 1px solid #222222;
+	padding: 0px;
+}
+#wp-calendar th {
+	background: #111111;
+	border-bottom: 1px solid #222222;
+	border-top: 1px solid #222222;
+}
+#wp-calendar a {
+	font-weight: bold;
+}
+#wp-calendar tbody td {
+     padding: 2px 0 3px;
+     text-align: center;
+	line-height: 1.3em;
+	border: none;
+	color: #B8B8B8;
+}
+
 
 /*
 ------------------------------------------------------------
@@ -453,6 +508,9 @@ STYLES FOR THEME CORNERS OPTIONS - ROUNDED
 }
 .roundtheme input[type="password"] {
 	border-radius: 5px 5px 5px 5px;
+}
+.roundtheme .sticky {
+	 border-radius: 10px;
 }
 .roundtheme #loginform-custom {
 	border-radius: 3px;
@@ -497,7 +555,9 @@ STYLES FOR THEME CORNERS OPTIONS - SQUARE
 .squaretheme #loginform-custom {
 	border-radius: 0px;
 }
-
+.squaretheme .sticky {
+	 border-radius: 0px;
+}
 .squaretheme #mainnavbar li:hover > a,
 .squaretheme #mainnavbar a:focus {
 	border-top-left-radius: 0px;
@@ -569,6 +629,12 @@ STYLES FOR THEME COLOUR OPTIONS - RED
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#FF0506));
 	background: -webkit-linear-gradient(#770506, #FF0506);
 }
+.redtheme .sticky {
+	 border: 3px solid darkred;
+}
+.redtheme .sticky .posttitle {
+	border-bottom: 1px dotted darkred;
+}
 #site-title.redtheme a:hover,
 #site-title.redtheme a:focus,
 #site-title.redtheme a:active {
@@ -615,7 +681,15 @@ STYLES FOR THEME COLOUR OPTIONS - RED
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#BB0506));
 	background: -webkit-linear-gradient(#770506, #BB0506);
 } 
-
+.redtheme #wp-calendar a {
+	color: darkred;
+}
+.redtheme #wp-calendar caption {
+	color: darkred;
+}
+.comment-author {
+	border: 1px solid #330000;
+}
 /*
 ------------------------------------------------------------
 STYLES FOR THEME COLOUR OPTIONS - BLUE
@@ -644,6 +718,12 @@ STYLES FOR THEME COLOUR OPTIONS - BLUE
 	background: -o-linear-gradient(navy, dodgerblue);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(navy), to(dodgerblue)); 
 	background: -webkit-linear-gradient(navy, dodgerblue);
+}
+.bluetheme .sticky {
+	 border: 3px solid royalblue;
+}
+.bluetheme .sticky .posttitle {
+	border-bottom: 1px dotted royalblue;
 }
 
 #site-title.bluetheme a:hover,
@@ -692,7 +772,15 @@ STYLES FOR THEME COLOUR OPTIONS - BLUE
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(navy), to(royalblue));
 	background: -webkit-linear-gradient(navy, royalblue);
 }
-
+.bluetheme #wp-calendar a {
+	color: royalblue;
+}
+.bluetheme #wp-calendar caption {
+	color: royalblue;
+}
+.comment-author {
+	border: 1px solid #000033;
+}
 
 /*
 ------------------------------------------------------------
@@ -722,6 +810,12 @@ STYLES FOR THEME COLOUR OPTIONS - GREEN
 	background: -o-linear-gradient(#002900, green);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#002900), to(green)); 
 	background: -webkit-linear-gradient(#002900, green);
+}
+.greentheme .sticky {
+	 border: 3px solid green;
+}
+.greentheme .sticky .posttitle {
+	border-bottom: 1px dotted green;
 }
 
 #site-title.greentheme a:hover,
@@ -771,4 +865,12 @@ STYLES FOR THEME COLOUR OPTIONS - GREEN
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#002900), to(darkgreen));
 	background: -webkit-linear-gradient(#002900, darkgreen);
 } 
-
+.greentheme #wp-calendar a {
+	color: green;
+}
+.greentheme #wp-calendar caption {
+	color:green;
+}
+.comment-author {
+	border: 1px solid #003300;
+}
