@@ -130,12 +130,10 @@ div#csheet {
 }
 
 .gvbgmenu {
-	background: #000;
 	clear: both;
 	display: block;
 	float: left;
 	width: 100%;
-	border-bottom: 1px dotted #666666;
 	margin-bottom: 10px;
 	padding: 0px;
 	
@@ -151,41 +149,30 @@ div#csheet {
 	position: relative;
 }
 .gvbgmenu a {
-	color: #B8B8B8;
 	display: block;
 	text-decoration: none;
 	font-weight:bold;
 	padding: 5px;
-	border: 1px dotted #666666;
+	border: 1px solid #666666;
 	border-top-left-radius: 5px;
 	border-top-right-radius: 5px;
 }
 .gvbgmenu li:hover > a,.gvbgmenu ul ul :hover > a,.gvbgmenu a:focus {
-	background: #BB0506;
+	/* background: #BB0506;
+	border-top-left-radius: 0px;
+	border-top-right-radius: 0px;
 	background: -moz-linear-gradient(#770506, #BB0506);
 	background: -o-linear-gradient(#770506, #BB0506);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#BB0506)); 
-	background: -webkit-linear-gradient(#770506, #BB0506);
-	border-top-left-radius: 0px;
-	border-top-right-radius: 0px;}
-.gvbgmenu  li:hover > a,.gvbgmenu a:focus,.gvbgmenu a.shown {
-	background: #BB0506;
- 	background: -moz-linear-gradient(#770506, #BB0506);
-	background: -o-linear-gradient(#770506, #BB0506);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#BB0506)); 
-	background: -webkit-linear-gradient(#770506, #BB0506);
-	border-top-left-radius: 5px;
-	border-top-right-radius: 5px;
+	background: -webkit-linear-gradient(#770506, #BB0506); */
+}
+.gvbgmenu  li:hover > a {
+	background: #222;
 }
 .gvbgmenu  ul ul :hover > ul,.gvbgmenu ul li:hover > ul {	display: block;}
-.gvbgmenu .current-menu-item > a,.gvbgmenu .current-menu-ancestor > a,.gvbgmenu .current_page_item > a,.gvbgmenu .current_page_ancestor > a {
-	background: #BB0506;
- 	background: -moz-linear-gradient(#770506, #BB0506);
-	background: -o-linear-gradient(#770506, #BB0506);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#BB0506)); 
-	background: -webkit-linear-gradient(#770506, #BB0506);
-	border-top-left-radius: 5px;
-	border-top-right-radius: 5px;}
+.gvbgmenu .shown,.gvbgmenu a:focus  {
+	border-bottom: none;
+}
 
 
 /* =DOTS
@@ -369,7 +356,7 @@ div#csheet {
 }
 #gvid_xpst .gvthleft {
     text-align: left;
-    background-color: #000000;
+    background-color: inherit;
     padding: 0px 3px 0px 3px;
 	width: auto;
 	font-size:0.9em;

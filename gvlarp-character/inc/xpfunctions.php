@@ -76,6 +76,7 @@ function print_xp_spend_table() {
 	$playerID    = establishPlayerID($character);
 	
 	$output = "";
+	$outputError = "";
 	$step = isset($_REQUEST['step']) ? $_REQUEST['step'] : '';
 		
 	// Cancel Spends
@@ -175,7 +176,7 @@ function render_supply_details($character) {
 	$output .= "<input class='gvxp_submit' type='submit' name=\"xSubmit\" value=\"Spend XP\">\n";
 	$output .= "<input class='gvxp_submit' type='submit' name=\"xCancel\" value=\"Back\">\n";
 
-	if ($_POST['GVLARP_CHARACTER'] != "")
+	if (isset($_POST['GVLARP_CHARACTER']) && $_POST['GVLARP_CHARACTER'] != "")
 		$output .= "<input type='HIDDEN' name=\"GVLARP_CHARACTER\" value=\"" . $_POST['GVLARP_CHARACTER'] . "\" />\n";
 	$output .= "<input type='HIDDEN' name=\"character\" value=\"" . $character . "\">\n";
 	$output .= "<input type='HIDDEN' name=\"step\" value=\"submit_spend\">\n";
@@ -401,15 +402,15 @@ function render_details_section($type) {
 	$output = "";
 	$rowoutput = "";
 	
-	$ids      = $_REQUEST[$type . '_id'];
-	$levels   = $_REQUEST[$type . '_level'];
-	$names    = $_REQUEST[$type . '_name'];
-	$specats  = $_REQUEST[$type . '_spec_at'];
-	$specs    = $_REQUEST[$type . '_spec'];
-	$itemids  = $_REQUEST[$type . '_itemid'];
-	$trains   = $_REQUEST[$type . '_training'];
-	$xpcosts  = $_REQUEST[$type . '_cost'];
-	$comments = $_REQUEST[$type . '_comment'];
+	$ids      = isset($_REQUEST[$type . '_id'])      ? $_REQUEST[$type . '_id'] : array();
+	$levels   = isset($_REQUEST[$type . '_level'])   ? $_REQUEST[$type . '_level'] : array();
+	$names    = isset($_REQUEST[$type . '_name'])    ? $_REQUEST[$type . '_name'] : array();
+	$specats  = isset($_REQUEST[$type . '_spec_at']) ? $_REQUEST[$type . '_spec_at'] : array();
+	$specs    = isset($_REQUEST[$type . '_spec'])    ? $_REQUEST[$type . '_spec'] : array();
+	$itemids  = isset($_REQUEST[$type . '_itemid'])  ? $_REQUEST[$type . '_itemid'] : array();
+	$trains   = isset($_REQUEST[$type . '_training']) ? $_REQUEST[$type . '_training'] : array();
+	$xpcosts  = isset($_REQUEST[$type . '_cost'])    ? $_REQUEST[$type . '_cost'] : array();
+	$comments = isset($_REQUEST[$type . '_comment']) ? $_REQUEST[$type . '_comment'] : array();
 	
 	//print_r($specs);
 	//print_r($levels);
@@ -455,7 +456,8 @@ function render_details_section($type) {
 			$rowoutput .= "<td>{$xpcosts[$index]}</td>";
 			
 			// Training
-			$rowoutput .= "<td><input type='text'  name='{$type}_training[$index]' value='{$trains[$index]}' size=30 maxlength=160 /></td></tr>";
+			$train = isset($trains[$index])? $trains[$index] : '';
+			$rowoutput .= "<td><input type='text'  name='{$type}_training[$index]' value='$train' size=30 maxlength=160 /></td></tr>";
 		}
 	}
 
@@ -2133,6 +2135,9 @@ function validate_details($characterID) {
 		$statlevels   = $_REQUEST['stat_level'];
 		$stattraining = $_REQUEST['stat_training'];
 		$stat_specialisations = $_REQUEST['stat_spec'];
+		$stat_spec_error = array();
+		$stat_train_error = array();
+		
 		if (isset($stat_specialisations))
 			foreach ($stat_specialisations as $id => $specialisation) {
 				if ($spec_at[$id] <= $statlevels[$id] &&
@@ -2160,6 +2165,9 @@ function validate_details($characterID) {
 		$skilllevels   = $_REQUEST['skill_level'];
 		$skilltraining = $_REQUEST['skill_training'];
 		$skill_specialisations = $_REQUEST['skill_spec'];
+		$skill_spec_error = array();
+		$skill_train_error = array();
+		
 		if (isset($skill_specialisations))
 			foreach ($skill_specialisations as $id => $specialisation) {
 				if ($spec_at[$id] <= $skilllevels[$id] &&
@@ -2173,7 +2181,7 @@ function validate_details($characterID) {
 			
 		foreach ($skilltraining as $id => $trainingnote) {
 			if ($skilllevels[$id] &&
-				($trainingnote == "" || $trainingnote == $defaultTrainingString)) {
+				($trainingnote == "")) {
 				$skill_train_error[$id] = 1;
 			}
 		}
@@ -2184,10 +2192,11 @@ function validate_details($characterID) {
 	if (isset($_REQUEST['disc_level'])) {
 		$levels   = $_REQUEST['disc_level'];
 		$training = $_REQUEST['disc_training'];
+		$disc_train_error = array();
 					
 		foreach ($training as $id => $trainingnote) {
 			if ($levels[$id] &&
-				($trainingnote == "" || $trainingnote == $defaultTrainingString)) {
+				($trainingnote == "")) {
 				$disc_train_error[$id] = 1;
 			}
 		}
@@ -2198,10 +2207,11 @@ function validate_details($characterID) {
 	if (isset($_REQUEST['path_level'])) {
 		$levels   = $_REQUEST['path_level'];
 		$training = $_REQUEST['path_training'];
+		$path_train_error = array();
 					
 		foreach ($training as $id => $trainingnote) {
 			if ($levels[$id] &&
-				($trainingnote == "" || $trainingnote == $defaultTrainingString)) {
+				($trainingnote == "")) {
 				$path_train_error[$id] = 1;
 			}
 		}
@@ -2212,10 +2222,11 @@ function validate_details($characterID) {
 	if (isset($_REQUEST['ritual_level'])) {
 		$levels   = $_REQUEST['ritual_level'];
 		$training = $_REQUEST['ritual_training'];
+		$ritual_train_error = array();
 					
 		foreach ($training as $id => $trainingnote) {
 			if ($levels[$id] &&
-				($trainingnote == "" || $trainingnote == $defaultTrainingString)) {
+				($trainingnote == "")) {
 				$ritual_train_error[$id] = 1;
 			}
 		}
@@ -2228,11 +2239,13 @@ function validate_details($characterID) {
 		$training = $_REQUEST['merit_training'];
 		$has_spec = $_REQUEST['merit_spec_at'];
 		$specialisations = $_REQUEST['merit_spec'];
+		$merit_spec_error = array();
+		$merit_train_error = array();
 					
 		if (isset($specialisations))
 			foreach ($specialisations as $id => $specialisation) {
 				if ($has_spec[$id] &&
-					($specialisation == "" || $specialisation == $defaultSpecialisation)) {
+					($specialisation == "")) {
 					$merit_spec_error[$id] = 1;
 				}
 			}
@@ -2242,7 +2255,7 @@ function validate_details($characterID) {
 
 		foreach ($training as $id => $trainingnote) {
 			if ($levels[$id] &&
-				($trainingnote == "" || $trainingnote == $defaultTrainingString)) {
+				($trainingnote == "")) {
 				$merit_train_error[$id] = 1;
 			}
 		}
