@@ -1271,11 +1271,11 @@ function processCharacterUpdate($characterID) {
 	foreach ($stats as $stat) {
 		$currentStat = str_replace(" ", "_", $stat->name);
 		if ($_POST[$currentStat] != "" && $_POST[$currentStat] != "-100") {
-			if ((int) $_POST[$currentStat . "Delete"] > 0) {
+			if (isset($_POST[$currentStat . "Delete"]) && (int) $_POST[$currentStat . "Delete"] > 0) {
 				$sql = "DELETE FROM " . $table_prefix . "CHARACTER_STAT WHERE id = %d";
 				$sql = $wpdb->prepare($sql, $_POST[$currentStat . "Delete"]);
 			}
-			elseif ((int) $_POST[$currentStat . "ID"] > 0) {
+			elseif (isset($_POST[$currentStat . "ID"]) && (int) $_POST[$currentStat . "ID"] > 0) {
 				$sql = "UPDATE " . $table_prefix . "CHARACTER_STAT
 								SET level   =  %d,
 									comment =  %s
@@ -1308,11 +1308,11 @@ function processCharacterUpdate($characterID) {
 		$currentSkill = "skill" . $skillCounter;
 		if ($_POST[$currentSkill] != "" && $_POST[$currentSkill] != "-100") {
 			if ($skillCounter < $maxOldSkillCount) {
-				if ((int) $_POST[$currentSkill . "Delete"] > 0) {
+				if (isset($_POST[$currentSkill . "Delete"]) && (int) $_POST[$currentSkill . "Delete"] > 0) {
 					$sql = "DELETE FROM " . $table_prefix . "CHARACTER_SKILL WHERE id = %d";
 					$sql = $wpdb->prepare($sql, $_POST[$currentSkill . "Delete"]);
 				}
-				elseif ((int) $_POST[$currentSkill . "ID"] > 0) {
+				elseif (isset($_POST[$currentSkill . "ID"]) && (int) $_POST[$currentSkill . "ID"] > 0) {
 					$sql = "UPDATE " . $table_prefix . "CHARACTER_SKILL
 									SET level   = %d,
 										comment = %s
@@ -1337,13 +1337,13 @@ function processCharacterUpdate($characterID) {
 
 	while ($disciplineCounter < $maxDisciplineCount) {
 		$currentDiscipline = "discipline" . $disciplineCounter;
-		if ($_POST[$currentDiscipline] != "" && $_POST[$currentDiscipline] != "-100") {
+		if (isset($_POST[$currentDiscipline]) && $_POST[$currentDiscipline] != "" && $_POST[$currentDiscipline] != "-100") {
 			if ($disciplineCounter < $maxOldDisciplineCount) {
-				if ((int) $_POST[$currentDiscipline . "Delete"] > 0) {
+				if (isset($_POST[$currentDiscipline . "Delete"]) && (int) $_POST[$currentDiscipline . "Delete"] > 0) {
 					$sql = "DELETE FROM " . $table_prefix . "CHARACTER_DISCIPLINE WHERE id = %d";
 					$sql = $wpdb->prepare($sql, $_POST[$currentDiscipline . "Delete"]);
 				}
-				elseif ((int) $_POST[$currentDiscipline . "ID"] > 0) {
+				elseif (isset($_POST[$currentDiscipline . "ID"]) && (int) $_POST[$currentDiscipline . "ID"] > 0) {
 					$sql = "UPDATE " . $table_prefix . "CHARACTER_DISCIPLINE
 									SET level   = %d,
 										comment = %s
@@ -1367,13 +1367,13 @@ function processCharacterUpdate($characterID) {
 	$currentComboDiscipline = "";
 	while ($comboDisciplineCounter < $maxComboDisciplineCount) {
 		$currentComboDiscipline = "comboDiscipline" . $comboDisciplineCounter;
-		if ($_POST[$currentComboDiscipline] != "" && $_POST[$currentComboDiscipline] != "-100") {
+		if (isset($_POST[$currentComboDiscipline]) && $_POST[$currentComboDiscipline] != "" && $_POST[$currentComboDiscipline] != "-100") {
 			if ($comboDisciplineCounter < $maxOldComboDisciplineCount) {
-				if ((int) $_POST[$currentComboDiscipline . "Delete"] > 0) {
+				if (isset($_POST[$currentComboDiscipline . "Delete"]) && (int) $_POST[$currentComboDiscipline . "Delete"] > 0) {
 					$sql = "DELETE FROM " . $table_prefix . "CHARACTER_COMBO_DISCIPLINE WHERE id = %d";
 					$sql = $wpdb->prepare($sql, $_POST[$currentComboDiscipline . "Delete"]);
 				}
-				elseif ((int) $_POST[$currentComboDiscipline . "ID"] > 0) {
+				elseif (isset($_POST[$currentComboDiscipline . "ID"]) && (int) $_POST[$currentComboDiscipline . "ID"] > 0) {
 					$sql = "UPDATE " . $table_prefix . "CHARACTER_COMBO_DISCIPLINE
 									SET comment = %s
 									WHERE id = %d";
@@ -1398,13 +1398,13 @@ function processCharacterUpdate($characterID) {
 
 	while ($pathCounter < $maxPathCount) {
 		$currentPath = "path" . $pathCounter;
-		if ($_POST[$currentPath] != "" && $_POST[$currentPath] != "-100") {
+		if (isset($_POST[$currentPath]) && $_POST[$currentPath] != "" && $_POST[$currentPath] != "-100") {
 			if ($pathCounter < $maxOldPathCount) {
-				if ((int) $_POST[$currentPath . "Delete"] > 0) {
+				if (isset($_POST[$currentPath . "Delete"]) && (int) $_POST[$currentPath . "Delete"] > 0) {
 					$sql = "DELETE FROM " . $table_prefix . "CHARACTER_PATH WHERE id = %d";
 					$sql = $wpdb->prepare($sql, $_POST[$currentPath . "Delete"]);
 				}
-				elseif ((int) $_POST[$currentPath . "ID"] > 0) {
+				elseif (isset( $_POST[$currentPath . "ID"]) && (int) $_POST[$currentPath . "ID"] > 0) {
 					$sql = "UPDATE " . $table_prefix . "CHARACTER_PATH
 									SET level   = %d,
 										comment = %s
@@ -1432,13 +1432,13 @@ function processCharacterUpdate($characterID) {
 
 	while ($ritualCounter < $maxRitualCount) {
 		$currentRitual = "ritual" . $ritualCounter;
-		if ($_POST[$currentRitual] != "" && $_POST[$currentRitual] != "-100") {
+		if (isset($_POST[$currentRitual]) && $_POST[$currentRitual] != "" && $_POST[$currentRitual] != "-100") {
 			if ($ritualCounter < $maxOldRitualCount) {
-				if ((int) $_POST[$currentRitual . "Delete"] > 0) {
+				if (isset($_POST[$currentRitual . "Delete"]) && (int) $_POST[$currentRitual . "Delete"] > 0) {
 					$sql = "DELETE FROM " . $table_prefix . "CHARACTER_RITUAL WHERE id = %d";
 					$sql = $wpdb->prepare($sql, $_POST[$currentRitual . "Delete"]);
 				}
-				elseif ((int) $_POST[$currentRitual . "ID"] > 0) {
+				elseif (isset($_POST[$currentRitual . "ID"]) && (int) $_POST[$currentRitual . "ID"] > 0) {
 					$sql = "UPDATE " . $table_prefix . "CHARACTER_RITUAL
 									SET level   = %d,
 										comment = %s
@@ -1463,13 +1463,13 @@ function processCharacterUpdate($characterID) {
 
 	while ($backgroundCounter < $maxBackgroundCount) {
 		$currentBackground = "background" . $backgroundCounter;
-		if ($_POST[$currentBackground] != "" && $_POST[$currentBackground] != "-100") {
+		if (isset($_POST[$currentBackground]) && $_POST[$currentBackground] != "" && $_POST[$currentBackground] != "-100") {
 			if ($backgroundCounter < $maxOldBackgroundCount) {
-				if ((int) $_POST[$currentBackground . "Delete"] > 0) {
+				if (isset($_POST[$currentBackground . "Delete"]) && (int) $_POST[$currentBackground . "Delete"] > 0) {
 					$sql = "DELETE FROM " . $table_prefix . "CHARACTER_BACKGROUND WHERE id = %d";
 					$sql = $wpdb->prepare($sql, $_POST[$currentBackground . "Delete"]);
 				}
-				elseif ((int) $_POST[$currentBackground . "ID"] > 0) {
+				elseif (isset($_POST[$currentBackground . "ID"]) && (int) $_POST[$currentBackground . "ID"] > 0) {
 					$sql = "UPDATE " . $table_prefix . "CHARACTER_BACKGROUND
 									SET level   = %d,
 										comment = %s
@@ -1494,13 +1494,13 @@ function processCharacterUpdate($characterID) {
 
 	while ($meritCounter < $maxMeritCount) {
 		$currentMerit = "merit" . $meritCounter;
-		if ($_POST[$currentMerit] != "" && $_POST[$currentMerit] != "-100") {
+		if (isset($_POST[$currentMerit]) && $_POST[$currentMerit] != "" && $_POST[$currentMerit] != "-100") {
 			if ($meritCounter < $maxOldMeritCount) {
-				if ((int) $_POST[$currentMerit . "Delete"] > 0) {
+				if (isset( $_POST[$currentMerit . "Delete"]) && (int) $_POST[$currentMerit . "Delete"] > 0) {
 					$sql = "DELETE FROM " . $table_prefix . "CHARACTER_MERIT WHERE id =  %d";
 					$sql = $wpdb->prepare($sql, $_POST[$currentMerit . "Delete"]);
 				}
-				elseif ((int) $_POST[$currentMerit . "ID"] > 0) {
+				elseif (isset($_POST[$currentMerit . "ID"]) && (int) $_POST[$currentMerit . "ID"] > 0) {
 					$sql = "UPDATE " . $table_prefix . "CHARACTER_MERIT
 									SET level   = %d,
 										comment = %s
@@ -1525,12 +1525,12 @@ function processCharacterUpdate($characterID) {
 
 	while ($officeCounter < $maxOfficeCount) {
 		$currentOffice = "office" . $officeCounter;
-		if ($_POST[$currentOffice] != "" && $_POST[$currentOffice] != "-100") {
+		if (isset($_POST[$currentOffice]) && $_POST[$currentOffice] != "" && $_POST[$currentOffice] != "-100") {
 			if ($officeCounter < $maxOldOfficeCount) {
-				if ((int) $_POST[$currentOffice . "Delete"] > 0) {
+				if (isset( $_POST[$currentOffice . "Delete"]) && (int) $_POST[$currentOffice . "Delete"] > 0) {
 					$sql = "DELETE FROM " . $table_prefix . "CHARACTER_OFFICE WHERE id = " . $_POST[$currentOffice . "Delete"];
 				}
-				elseif ((int) $_POST[$currentOffice . "ID"] > 0) {
+				elseif (isset($_POST[$currentOffice . "ID"]) && (int) $_POST[$currentOffice . "ID"] > 0) {
 					$sql = "UPDATE " . $table_prefix . "CHARACTER_OFFICE
 									SET comment = '" . $_POST[$currentOffice . "Comment"]  . "'
 									WHERE id = " . $_POST[$currentOffice . "ID"];
