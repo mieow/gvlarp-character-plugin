@@ -1,29 +1,29 @@
-=== GVTheme ===
+=== Nocturnus ===
 Contributors: Jane Houston
 Donate link: 
-Tags: by night, black, red, blue, green, fixed width
+Tags: dark, black, red, blue, green, fixed width, left-sidebar, right-sidebar, custom-background,
+custom-colors, custom-menu, theme-options
 Requires at least: 3.8.1
 Tested up to: 3.8.1
 Stable tag: 3.8.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Theme originally developed for GVLARP (www.gvlarp.com)
+Neat and unobtrusive dark theme, ideal for Clubs and Societies.
 
 == Description ==
 
-Theme originally developed for GVLARP (www.gvlarp.com) then expanded to be more generally
-useful and configurable
+This theme was originally created for a clubs and societies website to look like one specific configuration
+of the Suffusion theme.  Then it was modified to provide some basic layout and customisation options.
+
+Nocturnus is suitable for content-focused websites that want the navigation and headers to be neat and
+convenient and with a dark background.
 
 == Installation ==
 
-TBD
+As standard
 
 == Frequently Asked Questions ==
-
-= What is the meaning of life? =
-
-42
 
 == Screenshots ==
 
@@ -31,6 +31,8 @@ TBD
 
 = 2.0 =
 * Theme renamed to Nocturnus
+* Fixed required and recommended by Theme-check, with debug mode on
+* Updated CSS after importing and reviewing latest Theme Test Data
 
 = 1.1 =
 * Fixed required and recommended by Theme-check
