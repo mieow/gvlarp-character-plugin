@@ -8,6 +8,8 @@ if ( function_exists('register_sidebar') )
 if ( function_exists('register_nav_menu') )
 	register_nav_menu( 'primary', 'Primary Menu' );
 
+if ( ! isset( $content_width ) ) $content_width = 750;
+	
 /* Custom Header
 ------------------------------------------------ */
 $defaults = array(
@@ -85,33 +87,5 @@ function nocturnus_stylesheet() { ?>
 <?php }
 add_action( 'login_enqueue_scripts', 'nocturnus_stylesheet' );
 
-/*
-function nocturnus_redirect( $redirect_to, $request, $user ){
-    //is there a user to check?
-    if( is_array( $user->roles ) ) {
-        //check for admins
-        if( in_array( "administrator", $user->roles ) ) {
-            // redirect them to the default place
-            // EDIT THIS TO BE THE PROFILE IN THE FUTURE
-            return $redirect_to;
-        } else {
-            return home_url();
-        }
-    }}
-add_filter("login_redirect", "nocturnus_redirect", 10, 3); */
-
-/* USEFUL FUNCTIONS
------------------------------------------------- */
-
-function get_user_role() {
-	global $current_user;
-
-	$user_roles = $current_user->roles;
-	$user_role = array_shift($user_roles);
-
-	return $user_role;
-}
-
-if ( ! isset( $content_width ) ) $content_width = 750;
 
 ?>
