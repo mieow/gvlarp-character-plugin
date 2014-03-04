@@ -1,0 +1,876 @@
+/*	Theme Name: Nocturnus Theme
+	Theme URI: http://plugin.gvlarp.com
+	Author URI: http://www.mieow.co.uk
+	Author: Jane Houston
+	Description: Customised theme for the www.gvlarp.com website
+	Version: 2.0
+	License: GNU General Public License
+	License URI: license.txt
+	Tags: white, black, red
+*/
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, font, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend, input,
+table, caption, tbody, tfoot, thead, tr, th, td {
+	border: 0;
+	font-family: inherit;
+	font-size: 100%;
+	font-style: inherit;
+	font-weight: inherit;
+	margin: 0;
+	outline: 0;
+	padding: 0;
+	vertical-align: baseline;
+}
+
+body {
+	font-family: verdana;
+	color: #DEDEDE;
+	background-color: black;
+	font-size: 12px;
+	line-height: 1.5;
+	padding: 0 2em;
+}
+a:link {
+	color:#787878;
+	text-decoration:none;
+}
+
+a:visited {color:#787878;} /* visited link */
+a:hover {text-decoration:underline;}
+a:active {color:#8A1717;}  /* selected link */
+
+#page {
+	clear: both;
+	width: 1000px;
+	margin: 1em auto;
+}
+#primary {
+	width: 755px;
+}
+#primary img {
+	max-width: 755px;
+}
+.page-template-nosidebar-php #primary {
+	margin: 0 0 0 0;
+	width: 100%;
+}
+#side {
+	width: 240px;
+	padding: 0;
+}
+
+#nsidebar1 {
+	padding: 0;
+	margin: 5px;
+}
+
+#pageheader {}
+
+#content {
+	/* margin: 2% 4% 0; */
+	margin: 10px 5px 0px 5px;
+	/* width: 70%; */
+	font-size: 116%;
+}
+.page-template-nosidebar-php #content {
+	width: 95%;
+}
+
+article, aside, details, figcaption, figure,footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+
+#nocturnus_footer {
+	clear: both;
+	border-top: 1px solid #222222;
+	font-size: 0.8em;
+}
+.edit-link {
+	display:block;
+	clear:both;
+	text-align:right;
+	padding-right: 10px;
+	font-size: 0.8em;
+}
+.gvcred-right {
+	text-align:right;
+}
+.gvcred-center{
+	text-align:center;
+}
+hr {
+    border: 1px dotted #666666;
+    margin-bottom: 1.5em;
+}
+
+/* =Headings
+-------------------------------------------------------------- */
+h1, h2, h3, h4, h5, h6 {
+    color: #EEEEEE;
+    line-height: 1.1em;
+    margin: 0.5em 0;
+    padding: 0;
+}
+h1, h2 {
+    font-weight: normal;}
+h2 {
+    font-size: 183%;}
+h1 {	font-size:200%;	padding-bottom: 4px;}
+h3 {
+    font-size: 166%;}
+h4 {
+    font-size: 150%;}
+h5 {
+    font-size: 133%;}
+h3, h4, h5, h6 {
+    font-weight: bold;}
+.posttitle {
+	border-bottom: 1px dotted #222222;
+	margin: 3px 0 2px;}
+
+#side ul {
+	list-style: none;
+    /* padding: 8px 24px 7px 10px; */
+	}
+#side ul ul {
+	list-style: disc;
+	padding: 0;
+}
+
+/* =Text Elements
+-------------------------------------------------------------- */
+p {
+	margin-bottom: 1.5em;
+	text-align: left;}
+ul, ol {
+	margin: 0.5em 0 1.5em 1.5em;
+	padding-left: 20px;}
+ul {
+	list-style: disc;}
+ol {
+	list-style-type: decimal;}
+ol ol {
+	list-style: lower-alpha;}
+ol ol ol {
+	list-style: lower-roman;}
+ol ol ol ol {
+	list-style: lower-alpha;}
+ul ul, ol ol, ul ol, ol ul {
+	margin-bottom: 0;}
+dl {
+	margin: 0 1.625em;}
+dt {
+	font-weight: bold;}
+dd {
+	margin-bottom: 1.625em;}
+strong {
+	font-weight: bold;}
+cite, em, i, q {
+	font-style: italic;}
+blockquote {
+	background: url("images/blockquote-l.png") no-repeat scroll left top transparent;
+	font-size: 1em;
+	margin: 0 3em 1em;
+	padding: 10px 15px;
+	text-indent: 2em;
+}
+sup,sub {
+	font-size: 10px;
+	height: 0;
+	line-height: 1;
+	position: relative;
+	vertical-align: baseline;}
+sup {
+	bottom: 1ex;}
+sub {
+	top: .5ex;}
+textarea {
+    border: 1px solid #222222;
+    background-color: #333333;
+    border: 1px solid #555555;
+    color: #999999;
+    height: 140px;
+    line-height: 1.5em;
+    padding: 5px 3px 3px 7px;}
+
+address {
+	font-size: 0.9em;
+	line-height: 1.2em;
+	padding-bottom: 2px;
+	color: #BBBBBB;
+}
+code, pre, kbd, var {
+	font-family: courier;
+	word-wrap: break-word;
+	white-space: pre-wrap;
+
+}
+abbr {
+	color: #BBBBBB;
+	border-bottom: 1px dotted darkgrey;
+}
+
+/* =Tables
+-------------------------------------------------------------- */
+table {
+	border-collapse: collapse;
+	width: 100%;}
+td {	line-height: 1.6em;
+	border-bottom: 1px dotted #222222;
+	padding: 6px;}
+
+/* =Input and Form
+-------------------------------------------------------------- */
+
+input[type="submit"] {
+	border: 2px double #222222;
+	font-weight: normal;
+	margin: 0;
+	padding: 3px 15px;
+	color: #FFFFFF;
+}
+
+input[type="text"] {
+	border: 1px solid #222222;
+	background-color: #333333;
+	color: #999999;
+	padding: 5px 3px 3px 5px;}
+input[type="image"] {	vertical-align:top;}
+input[type="password"] {
+	border: 1px solid #222222;
+	background-color: #333333;
+	color: #999999;
+	padding: 5px 3px 3px 5px;}
+	
+#loginform-custom {
+	border: 1px solid #333;
+	width:325px;
+	margin:10px 10px 10px 50px;
+	padding:10px;}
+#loginform-custom p {
+	margin-bottom:5px;
+}
+#loginform-custom p.login-username label {
+	width:100px;
+	display: block;
+	float: left;
+}
+#loginform-custom p.login-password label {
+	width:100px;
+	display: block;
+	float: left;
+}
+
+/* =Header
+-------------------------------------------------------------- */
+
+#site-info {
+	margin: 5px 0px 0px 20px;
+	z-index: 1;
+	position:absolute;
+}
+#site-title a {
+	font-weight: bold;
+	text-decoration: none;
+	color:inherit;
+}
+
+#site-description {
+	font-size: 14px;
+}
+#site-image {
+
+}
+
+/* =Menu
+-------------------------------------------------------------- */
+#mainnavbar{
+	/* background: #000; */
+	clear: both;
+	display: block;
+	float: left;
+	margin: 0 2%;
+	width: 100%;
+	padding: 10px 0 0 0;
+}
+#mainnavbar ul {
+	font-size: 13px;
+	list-style: none;
+	margin: 0;
+	padding-left: 0;
+	z-index:1;
+}
+#mainnavbar li {
+	float: left;
+	position: relative;
+}
+#mainnavbar a {
+	color: #B8B8B8;
+	display: block;
+	line-height: 2.3em; /* 2.5em */
+	padding: 0 1.2125em;
+	text-decoration: none;
+	font-weight:bold;
+}
+#mainnavbar ul ul {
+	display: none;
+	float: left;
+	position: absolute;	z-index:1;
+}
+#mainnavbar ul ul ul {
+	left: 100%;
+	top: 0;
+	z-index:1;
+}
+#mainnavbar ul ul a {
+	background: #111; /* 000 */
+	color: #CCC;
+	font-size: 13px;
+	font-weight: normal;
+	height: auto;
+	line-height: 1.4em;
+	padding: 6px; /* 10px */
+	width: 150px; /* 168px */
+}
+#mainnavbar ul ul :hover > ul,#mainnavbar ul li:hover > ul {	display: block;}
+#mainnavbar li:hover > a,#mainnavbar ul ul :hover > a,#mainnavbar a:focus {
+	border-top-left-radius: 0px;
+	border-top-right-radius: 0px;
+}
+
+
+/* =Search Form
+-------------------------------------------------------------- */
+div#searchform.search-area {
+    /* padding: 8px 14px 7px 20px; */
+    margin: 5px 5px 10px 5px;
+}
+
+input#search.searchbox {
+    border: 1px solid #888888;
+    color: #999999;
+    line-height: 1.2em;
+    /* margin-top: 4px; */
+    /* padding: 4px 7px 2px 5px; */
+}
+
+/* =Widget
+------------------------------------------------------------- */
+.widget li {
+	padding-top: 4px;
+    padding-bottom: 4px;
+}
+.widget p {
+    padding-left:4px;
+    margin-bottom: 1.0em;
+}
+.solar {
+    color: #666;
+	padding-top: 10px;
+}
+.widgettitle {
+	border-bottom: 1px dotted #222222;
+	font-size: 13px;
+	font-weight: bold;
+    padding: 10px 0 4px;
+	color: #999999;
+}
+
+/* =Blogroll
+-------------------------------------------------------------- */
+.comment {
+	border: 1px solid #222;
+	padding: 5px;
+	margin: 5px;
+}
+ol.commentlist {
+	list-style-type: none;
+	padding-left: 0px;}
+.comment-author {
+	background-color: #222;
+	font-weight: bold;
+}
+	
+.comment-meta {
+	font-size: 0.8em;
+	color: #787878;
+	padding-bottom: 15px;}
+	
+.reply {
+	border-top: 1px dotted #222;
+	margin: 3px;
+	font-size: 0.8em;}
+
+.page-link {
+	padding-bottom:10px;
+	color:#787878;
+}
+
+.aligncenter {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.alignleft {
+	float:left;
+	margin: 0 10px 5px 0;
+}
+
+.alignright {
+	float:right;
+	margin: 0 0 5px 10px;
+}
+
+.attachment-thumbnail {
+	width: 150px;
+	height:auto;
+}
+
+.size-full {
+	width: auto;
+	height:auto;
+}
+
+.gallery-item {
+	margin: 0;
+}
+
+.avatar {
+	border: 1px solid green;
+	margin: 5px;
+	vertical-align:middle;
+}
+
+/* Set Required Style */
+.wp-caption {
+
+}
+.gallery-caption, .wp-caption-text {
+	font-size: 0.8em;
+	color: #BBBBBB;
+	line-height: 1.2em;
+}
+.sticky {
+	 padding: 10px;
+	 margin-bottom: 20px;
+}
+.bypostauthor {
+
+}
+
+/* =Calendar
+-------------------------------------------------------------- */
+ #wp-calendar tfoot #next {
+     text-align: right;
+}
+#wp-calendar tfoot td {
+	background: #111111;
+	border-bottom: 1px solid #222222;
+	border-top: 1px solid #222222;
+	padding: 0px;
+}
+#wp-calendar th {
+	background: #111111;
+	border-bottom: 1px solid #222222;
+	border-top: 1px solid #222222;
+}
+#wp-calendar a {
+	font-weight: bold;
+}
+#wp-calendar tbody td {
+     padding: 2px 0 3px;
+     text-align: center;
+	line-height: 1.3em;
+	border: none;
+	color: #B8B8B8;
+}
+
+
+/*
+------------------------------------------------------------
+STYLES FOR THEME CORNERS OPTIONS - ROUNDED
+------------------------------------------------------------
+*/
+.roundtheme textarea {
+    border-radius: 5px 5px 5px 5px;
+}
+.roundtheme input[type="submit"] {
+	border-radius: 20px 20px 20px 20px;
+}
+.roundtheme input[type="text"] {
+	border-radius: 5px 5px 5px 5px;
+}
+.roundtheme input[type="password"] {
+	border-radius: 5px 5px 5px 5px;
+}
+.roundtheme .sticky {
+	 border-radius: 10px;
+}
+.roundtheme #loginform-custom {
+	border-radius: 3px;
+}
+
+.roundtheme #mainnavbar li:hover > a,
+.roundtheme #mainnavbar a:focus {
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+}
+.roundtheme #mainnavbar .current-menu-item > a,
+.roundtheme #mainnavbar .current-menu-ancestor > a,
+.roundtheme #mainnavbar .current_page_item > a,
+.roundtheme #mainnavbar .current_page_ancestor > a {
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+}
+.roundtheme input#search.searchbox {
+    border-radius: 10px 10px 10px 10px;
+}
+.roundtheme .comment {
+	border-radius: 5px 5px 5px 5px;
+}
+
+/*
+------------------------------------------------------------
+STYLES FOR THEME CORNERS OPTIONS - SQUARE
+------------------------------------------------------------
+*/
+.squaretheme textarea {
+    border-radius: 0px;
+}
+.squaretheme input[type="submit"] {
+	border-radius: 0px;
+}
+.squaretheme input[type="text"] {
+	border-radius: 0px;
+}
+.squaretheme input[type="password"] {
+	border-radius: 0px;
+}
+.squaretheme #loginform-custom {
+	border-radius: 0px;
+}
+.squaretheme .sticky {
+	 border-radius: 0px;
+}
+.squaretheme #mainnavbar li:hover > a,
+.squaretheme #mainnavbar a:focus {
+	border-top-left-radius: 0px;
+	border-top-right-radius: 0px;
+}
+.squaretheme #mainnavbar .current-menu-item > a,
+.squaretheme #mainnavbar .current-menu-ancestor > a,
+.squaretheme #mainnavbar .current_page_item > a,
+.squaretheme #mainnavbar .current_page_ancestor > a {
+	border-top-left-radius: 0px;
+	border-top-right-radius: 0px;
+}
+.squaretheme input#search.searchbox {
+    border-radius: 0px;
+}
+.squaretheme.comment {
+	border-radius: 0px;
+}
+
+/*
+------------------------------------------------------------
+STYLES FOR THEME SIDEBAR OPTIONS - RIGHT
+------------------------------------------------------------
+*/
+.sidebarright #side {
+	float: right;
+}
+.sidebarright #primary {
+	float: left;
+	margin: 0 -245px 0 0;
+}
+
+/*
+------------------------------------------------------------
+STYLES FOR THEME SIDEBAR OPTIONS - LEFT
+------------------------------------------------------------
+*/
+.sidebarleft #side {
+	float: left;
+}
+.sidebarleft #primary {
+	float: right;
+}
+
+/*
+------------------------------------------------------------
+STYLES FOR THEME COLOUR OPTIONS - RED
+------------------------------------------------------------
+*/
+.redtheme a:hover {color:#8A1717;}
+.redtheme #side ul ul {color: red;}
+
+.redtheme input[type="submit"] {
+	background: #BB0506;
+}
+.redtheme input[type="submit"]:hover {
+	background: #FF0506;
+}
+.gradienttheme.redtheme input[type="submit"] {
+	background: -moz-linear-gradient(#770506, #BB0506);
+	background: -o-linear-gradient(#770506, #BB0506);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#BB0506)); 
+	background: -webkit-linear-gradient(#770506, #BB0506);
+}
+
+.gradienttheme.redtheme input[type="submit"]:hover {
+	background: -moz-linear-gradient(#770506, #FF0506);
+	background: -o-linear-gradient(#770506, #FF0506);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#FF0506));
+	background: -webkit-linear-gradient(#770506, #FF0506);
+}
+.redtheme .sticky {
+	 border: 3px solid darkred;
+}
+.redtheme .sticky .posttitle {
+	border-bottom: 1px dotted darkred;
+}
+#site-title.redtheme a:hover,
+#site-title.redtheme a:focus,
+#site-title.redtheme a:active {
+	color: darkred;
+}
+
+#mainnavbar.redtheme li:hover > a,
+#mainnavbar.redtheme ul ul :hover > a,
+#mainnavbar.redtheme a:focus {
+	background: #BB0506;
+}
+#mainnavbar.redtheme li:hover > a,
+#mainnavbar.redtheme a:focus {
+	background: #BB0506;
+}
+#mainnavbar.redtheme .current-menu-item > a,
+#mainnavbar.redtheme .current-menu-ancestor > a,
+#mainnavbar.redtheme .current_page_item > a,
+#mainnavbar.redtheme .current_page_ancestor > a {
+	background: #BB0506;
+} 
+
+#mainnavbar.redtheme.gradienttheme li:hover > a,
+#mainnavbar.redtheme.gradienttheme ul ul :hover > a,
+#mainnavbar.redtheme.gradienttheme a:focus {
+	background: -moz-linear-gradient(#770506, #BB0506);
+	background: -o-linear-gradient(#770506, #BB0506);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#BB0506)); 
+	background: -webkit-linear-gradient(#770506, #BB0506);
+}
+#mainnavbar.redtheme.gradienttheme li:hover > a,
+#mainnavbar.redtheme.gradienttheme a:focus {
+ 	background: -moz-linear-gradient(#770506, #BB0506);
+	background: -o-linear-gradient(#770506, #BB0506);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#BB0506)); 
+	background: -webkit-linear-gradient(#770506, #BB0506);
+}
+#mainnavbar.redtheme.gradienttheme .current-menu-item > a,
+#mainnavbar.redtheme.gradienttheme .current-menu-ancestor > a,
+#mainnavbar.redtheme.gradienttheme .current_page_item > a,
+#mainnavbar.redtheme.gradienttheme .current_page_ancestor > a {
+ 	background: -moz-linear-gradient(#770506, #BB0506);
+	background: -o-linear-gradient(#770506, #BB0506);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#BB0506));
+	background: -webkit-linear-gradient(#770506, #BB0506);
+} 
+.redtheme #wp-calendar a {
+	color: darkred;
+}
+.redtheme #wp-calendar caption {
+	color: darkred;
+}
+.comment-author {
+	border: 1px solid #330000;
+}
+/*
+------------------------------------------------------------
+STYLES FOR THEME COLOUR OPTIONS - BLUE
+------------------------------------------------------------
+*/
+
+.bluetheme a:hover {color:deepskyblue;}
+.bluetheme #side ul ul {color: royalblue;}
+
+.bluetheme input[type="submit"] {
+	background: royalblue;
+}
+
+.bluetheme input[type="submit"]:hover {
+	background: dodgerblue;
+}
+.gradienttheme.bluetheme input[type="submit"] {
+	background: -moz-linear-gradient(navy, royalblue);
+	background: -o-linear-gradient(navy, royalblue);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(navy), to(royalblue)); 
+	background: -webkit-linear-gradient(navy, royalblue);
+}
+
+.gradienttheme.bluetheme input[type="submit"]:hover {
+	background: -moz-linear-gradient(navy, dodgerblue);
+	background: -o-linear-gradient(navy, dodgerblue);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(navy), to(dodgerblue)); 
+	background: -webkit-linear-gradient(navy, dodgerblue);
+}
+.bluetheme .sticky {
+	 border: 3px solid royalblue;
+}
+.bluetheme .sticky .posttitle {
+	border-bottom: 1px dotted royalblue;
+}
+
+#site-title.bluetheme a:hover,
+#site-title.bluetheme a:focus,
+#site-title.bluetheme a:active {
+	color: blue;
+}
+
+#mainnavbar.bluetheme li:hover > a,
+#mainnavbar.bluetheme ul ul :hover > a,
+#mainnavbar.bluetheme a:focus {
+	background: royalblue;
+}
+#mainnavbar.bluetheme li:hover > a,
+#mainnavbar.bluetheme a:focus {
+	background: royalblue;
+}
+#mainnavbar.bluetheme .current-menu-item > a,
+#mainnavbar.bluetheme .current-menu-ancestor > a,
+#mainnavbar.bluetheme .current_page_item > a,
+#mainnavbar.bluetheme .current_page_ancestor > a {
+	background: royalblue;
+}
+
+#mainnavbar.bluetheme.gradienttheme li:hover > a,
+#mainnavbar.bluetheme.gradienttheme ul ul :hover > a,
+#mainnavbar.bluetheme.gradienttheme a:focus {
+	background: -moz-linear-gradient(navy, royalblue);
+	background: -o-linear-gradient(navy, royalblue);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(navy), to(royalblue)); 
+	background: -webkit-linear-gradient(navy, royalblue);
+}
+#mainnavbar.bluetheme.gradienttheme li:hover > a,
+#mainnavbar.bluetheme.gradienttheme a:focus {
+ 	background: -moz-linear-gradient(navy, royalblue);
+	background: -o-linear-gradient(navy, royalblue);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(navy), to(royalblue)); 
+	background: -webkit-linear-gradient(navy, royalblue);
+}
+#mainnavbar.bluetheme.gradienttheme .current-menu-item > a,
+#mainnavbar.bluetheme.gradienttheme .current-menu-ancestor > a,
+#mainnavbar.bluetheme.gradienttheme .current_page_item > a,
+#mainnavbar.bluetheme.gradienttheme .current_page_ancestor > a {
+ 	background: -moz-linear-gradient(navy, royalblue);
+	background: -o-linear-gradient(navy, royalblue);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(navy), to(royalblue));
+	background: -webkit-linear-gradient(navy, royalblue);
+}
+.bluetheme #wp-calendar a {
+	color: royalblue;
+}
+.bluetheme #wp-calendar caption {
+	color: royalblue;
+}
+.comment-author {
+	border: 1px solid #000033;
+}
+
+/*
+------------------------------------------------------------
+STYLES FOR THEME COLOUR OPTIONS - GREEN
+------------------------------------------------------------
+*/
+
+.greentheme a:hover {color:forestgreen;}
+.greentheme #side ul ul {color: darkgreen;}
+
+.greentheme input[type="submit"] {
+	background: darkgreen;
+}
+
+.greentheme input[type="submit"]:hover {
+	background: green;
+}
+.gradienttheme.greentheme input[type="submit"] {
+	background: -moz-linear-gradient(#002900, darkgreen);
+	background: -o-linear-gradient(#002900, darkgreen);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#002900), to(darkgreen)); 
+	background: -webkit-linear-gradient(#002900, darkgreen);
+}
+
+.gradienttheme.greentheme input[type="submit"]:hover {
+	background: -moz-linear-gradient(#002900, green);
+	background: -o-linear-gradient(#002900, green);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#002900), to(green)); 
+	background: -webkit-linear-gradient(#002900, green);
+}
+.greentheme .sticky {
+	 border: 3px solid green;
+}
+.greentheme .sticky .posttitle {
+	border-bottom: 1px dotted green;
+}
+
+#site-title.greentheme a:hover,
+#site-title.greentheme a:focus,
+#site-title.greentheme a:active {
+	color: green;
+}
+
+#mainnavbar.greentheme li:hover > a,
+#mainnavbar.greentheme ul ul :hover > a,
+#mainnavbar.greentheme a:focus {
+	background: darkgreen;
+}
+#mainnavbar.greentheme li:hover > a,
+#mainnavbar.greentheme a:focus {
+	background: darkgreen;
+}
+#mainnavbar.greentheme .current-menu-item > a,
+#mainnavbar.greentheme .current-menu-ancestor > a,
+#mainnavbar.greentheme .current_page_item > a,
+#mainnavbar.greentheme .current_page_ancestor > a {
+	background: darkgreen;
+}
+
+
+#mainnavbar.greentheme.gradienttheme li:hover > a,
+#mainnavbar.greentheme.gradienttheme ul ul :hover > a,
+#mainnavbar.greentheme.gradienttheme a:focus {
+	background: -moz-linear-gradient(#002900, darkgreen);
+	background: -o-linear-gradient(#002900, darkgreen);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#002900), to(darkgreen)); 
+	background: -webkit-linear-gradient(#002900, darkgreen);
+}
+#mainnavbar.greentheme.gradienttheme li:hover > a,
+#mainnavbar.greentheme.gradienttheme a:focus {
+ 	background: -moz-linear-gradient(#002900, darkgreen);
+	background: -o-linear-gradient(#002900, darkgreen);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#002900), to(darkgreen)); 
+	background: -webkit-linear-gradient(#002900, darkgreen);
+}
+#mainnavbar.greentheme.gradienttheme .current-menu-item > a,
+#mainnavbar.greentheme.gradienttheme .current-menu-ancestor > a,
+#mainnavbar.greentheme.gradienttheme .current_page_item > a,
+#mainnavbar.greentheme.gradienttheme .current_page_ancestor > a {
+ 	background: -moz-linear-gradient(#002900, darkgreen);
+	background: -o-linear-gradient(#002900, darkgreen);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#002900), to(darkgreen));
+	background: -webkit-linear-gradient(#002900, darkgreen);
+} 
+.greentheme #wp-calendar a {
+	color: green;
+}
+.greentheme #wp-calendar caption {
+	color:green;
+}
+.comment-author {
+	border: 1px solid #003300;
+}
