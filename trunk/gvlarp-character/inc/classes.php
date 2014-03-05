@@ -523,6 +523,13 @@ class GVReport_ListTable extends WP_List_Table {
 
 	var $pagewidth;
 	var $lineheight;
+	var $columnstartX;		// array of X values where table columns start
+	var $dotable = false;	// outputting table?
+	var $ytop_page;
+	var $ytop_cell;
+	var $ytop_data;
+	var $ybottom_page;
+	var $row = 0;
       
     function __construct(){
         global $status, $page;
@@ -761,6 +768,16 @@ class GVReport_ListTable extends WP_List_Table {
 			}
 		return $colwidths;
 	}
+	function get_column_names($columns = "") {
+		$colnames = array();
+		$col = 0;
+		if (!empty($columns))
+			foreach ($columns as $column => $coldesc) {
+				$colnames[$col] = $column;
+				$col++;
+			}
+		return $colnames;
+	}
 	function set_column_alignment($columns = "") {
 		$colwidths = array();
 		$count = count($columns);
@@ -770,6 +787,7 @@ class GVReport_ListTable extends WP_List_Table {
 			}
 		return $colwidths;
 	}
+ 
 	
 	function output_report ($title, $orientation = 'L') {
 		
@@ -784,18 +802,28 @@ class GVReport_ListTable extends WP_List_Table {
 		$pdf->SetMargins(5, 5, 5);
 		$pdf->AddPage();
 		
+		$this->ytop_page = $pdf->GetY();
+		$pdf->SetY(-15);
+		$this->ybottom_page = $pdf->GetY();
+		$pdf->SetY($this->ytop_page);
+		
 		$columns = $this->get_columns();
 		$this->pagewidth = $pdf->pagewidth;
 		$colwidths  = $this->set_column_widths($columns);
 		$colalign   = $this->set_column_alignment($columns);
+		$colnames   = $this->get_column_names($columns);
 		$lineheight = isset($this->lineheight) ? $this->lineheight : 5;
 		
 		$pdf->SetFont('Arial','B',9);
 		$pdf->SetTextColor(255,255,255);
 		$pdf->SetFillColor(255,0,0);
 		
+		$pdf->autobreak = false;
+		$col = 0;
 		foreach ($columns as $columnname => $columndesc) {
+			$this->columnstartX[$col] = $pdf->GetX();
 			$pdf->Cell($colwidths[$columnname],$lineheight,$columndesc,1,0,'C',1);
+			$col++;
 		}
 		$pdf->Ln();
 		
@@ -805,25 +833,86 @@ class GVReport_ListTable extends WP_List_Table {
 		$row = 0;
 		
 		if (count($this->items) > 0) {
-		
+				
+			// get row heights
+			$rowheights = array();
+			$row = 0;
 			foreach ($this->items as $datarow) {
 				$rowheight = 0;
-				
-				/* get row height */
 				foreach ($columns as $columnname => $columndesc) {
 					$text = $pdf->PrepareText($datarow->$columnname);
 					$cellheight = $pdf->GetCellHeight($text, $colwidths[$columnname], $lineheight);
 					if ($cellheight > $rowheight) $rowheight = $cellheight;
 				}
+				$rowheights[$row] = $rowheight;
+				$row++;
+			}
 			
-				foreach ($columns as $columnname => $columndesc) {
-					$x = $pdf->GetX();
-					$y = $pdf->GetY();
+			// Print page-by-page
+			//		And column-by-column
+			//			And row-by-row
+			$pagestartrow = 0;
+			$pageendrow   = count($this->items) - 1;
+			$tableendrow  = count($this->items) - 1;
+			$this->row = $pagestartrow;
+			$pdf->col = 0;
+			$pdf->tablecols = count($columns);
+			$this->ytop_data = $pdf->GetY();
+			
+			$ybottomcell = 0;
+		
+			
+			while ($this->row <= $tableendrow) {
+				$datarow = $this->items[$this->row];
+				$columnname = $colnames[$pdf->col];
+				$text    = $pdf->PrepareText($datarow->$columnname);
+				
+				if ($pdf->col == 0)
+					$this->ytop_cell = $pdf->GetY();
+				
+				$cellheight = $pdf->GetCellHeight($text, $colwidths[$columnname], $lineheight);
+				$rowheight = $rowheights[$this->row];
+				
+				if ($cellheight == $rowheight)
+					$h = $lineheight;
+				elseif ($cellheight = $lineheight)
+					$h = $rowheight;
+				else
+					$h = $rowheight / $cellheight;
+				
+				//$text .= $pdf->tablecols;
+				if ( ($this->ytop_cell + $rowheight) > $this->ybottom_page && $pdf->col == 0) {
+					$this->ytop_cell = $this->ytop_page;
+					$pdf->AddPage();
+				}
+				
+				$pdf->SetX($this->columnstartX[$pdf->col]);
+				$pdf->MultiCell($colwidths[$columnname],$h,$text,1,$colalign[$columnname], $this->row % 2);
+				$ybottomcell =  $pdf->GetY();
+				
+				if ($pdf->col < $pdf->tablecols - 1) {
+					//if ($pdf->col == 1) {$this->row = $tableendrow+1;}
+					$pdf->col = $pdf->col+1;
+					$pdf->SetY($this->ytop_cell);
+				} else {
+					$pdf->col = 0;
+					$pdf->SetX($this->columnstartX[$pdf->col]);
+					$this->row++;
 					
+				}
+				
+			}
+			
+		
+			/* $this->ytop_data = $pdf->GetY();
+			// output table, column by column
+			foreach ($columns as $columnname => $columndesc) {
+				$row = 0;
+				foreach ($this->items as $datarow) {
+				
 					$text = $pdf->PrepareText($datarow->$columnname);
 					
-					$cellheight = $pdf->GetCellHeight($text, $colwidths[$columnname], $lineheight);
-					
+					$cellheight = $rowheights[$row];
 					if ($cellheight == $rowheight)
 						$h = $lineheight;
 					elseif ($cellheight = $lineheight)
@@ -832,13 +921,15 @@ class GVReport_ListTable extends WP_List_Table {
 						$h = $rowheight / $cellheight;
 					
 					$pdf->MultiCell($colwidths[$columnname],$h,$text,1,$colalign[$columnname], $row % 2);
-					$pdf->SetXY($x + $colwidths[$columnname], $y);
+					$row++;
 				}
-				$pdf->SetY($y + $rowheight);
 				
-				$row++;
+				$pdf->SetY($this->ytop_data);
 			}
-		}
+			*/
+		
+		} 
+		$pdf->autobreak = false;
 		
 		$pdf->Output(GVLARP_CHARACTER_URL . 'tmp/report.pdf', 'F');
 		
@@ -889,6 +980,9 @@ class PDFreport extends FPDF {
 
 	var $title;
 	var $pagewidth = 297;
+	var $col = 0;
+	var $tablecols = 0;
+	var $autobreak = true;
 
 	function Header()
 	{
@@ -896,7 +990,6 @@ class PDFreport extends FPDF {
 		$this->SetFont('Arial','B',16);
 		$this->SetTextColor(0,0,0);
 		$this->Cell(0,10,$this->title,0,1,'C');
-
 		$this->Ln(2);
 	}
 
@@ -938,6 +1031,23 @@ class PDFreport extends FPDF {
 	
 		return $text;
 	}
+	
+	function AcceptPageBreak()
+	{
+		if ($this->autobreak)
+			return true;
+			
+		// Method accepting or not automatic page break
+		if($this->col < $this->tablecols)
+		{
+			// Keep on page
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	} 
 
 }
 
