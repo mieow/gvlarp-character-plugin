@@ -1,9 +1,9 @@
-/*	Theme Name: Nocturnus Theme
+/*	Theme Name: Nocturnus
 	Theme URI: http://plugin.gvlarp.com
 	Author URI: http://www.mieow.co.uk
 	Author: Jane Houston
 	Description: Neat and unobtrusive dark theme, ideal for Clubs and Societies.
-	Version: 2.0
+	Version: 2.1
 	License: GNU General Public License
 	License URI: http://www.gnu.org/licenses/gpl-2.0.html
 	Tags: dark, black, red, blue, green, fixed width, left-sidebar, right-sidebar, custom-background,
@@ -267,6 +267,33 @@ input[type="password"] {
 	float: left;
 }
 
+/* =Calendar
+-------------------------------------------------------------- */
+#wp-calendar tfoot #next {
+    text-align: right;
+}
+#wp-calendar tfoot td {
+	background: #111111;
+	border-bottom: 1px solid #222222;
+	border-top: 1px solid #222222;
+	padding: 0px;
+}
+#wp-calendar th {
+	background: #111111;
+	border-bottom: 1px solid #222222;
+	border-top: 1px solid #222222;
+}
+#wp-calendar a {
+	font-weight: bold;
+}
+#wp-calendar tbody td {
+    padding: 2px 0 3px;
+    text-align: center;
+	line-height: 1.3em;
+	border: none;
+	color: #B8B8B8;
+}
+
 /* =Header
 -------------------------------------------------------------- */
 
@@ -464,7 +491,7 @@ ol.commentlist {
 .bypostauthor {
 
 }
-
+	color: magenta;
 /* =Calendar
 -------------------------------------------------------------- */
  #wp-calendar tfoot #next {
@@ -681,7 +708,13 @@ STYLES FOR THEME COLOUR OPTIONS - RED
 	background: -o-linear-gradient(#770506, #BB0506);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#BB0506));
 	background: -webkit-linear-gradient(#770506, #BB0506);
-} 
+}
+.redtheme #wp-calendar a {
+	color: darkred;
+}
+.redtheme #wp-calendar caption {
+	color: darkred;
+}
 .redtheme #wp-calendar a {
 	color: darkred;
 }
