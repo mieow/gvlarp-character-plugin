@@ -1,7 +1,7 @@
 === Nocturnus ===
 Contributors: Jane Houston
 Donate link: 
-Tags: dark, black, red, blue, green, fixed width, left-sidebar, right-sidebar, custom-background,
+Tags: dark, black, red, blue, green, left-sidebar, right-sidebar, custom-background,
 custom-colors, custom-menu, theme-options
 Requires at least: 3.8.1
 Tested up to: 3.8.1
