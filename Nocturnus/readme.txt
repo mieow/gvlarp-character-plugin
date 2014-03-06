@@ -29,6 +29,9 @@ As standard
 
 == Changelog ==
 
+= 2.1 = 
+* Name updated in style.css to remove the word "Theme", as per feedback from submission
+
 = 2.0 =
 * Theme renamed to Nocturnus
 * Fixed required and recommended by Theme-check, with debug mode on
