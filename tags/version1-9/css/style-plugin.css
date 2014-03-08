@@ -1,0 +1,445 @@
+/* =Plugin CSS
+-------------------------------------------------------------- */
+.gvplugin {
+	/* font-family: "Courier New"; */
+}
+div.gvspendbutton  {
+	/* border: 1px dotted #666666; */
+	padding: 5px;
+	margin: 5px;
+}
+div.gvspendbutton input.gvxp_submit {
+	float: none;
+}
+
+/* =Character Sheet
+-------------------------------------------------------------- */
+div#csheet {
+    float: left;
+    width: 100%;
+    display: block;
+	font-family: "Courier New";
+}
+	
+#csheet h3 {
+    text-align:center;
+}
+	
+#csheet h4 {
+    text-align:center;
+}
+
+#csheet .gvhr hr {
+    margin-bottom: 10px;
+    margin-top: 20px;
+	padding:1px;
+	border: 1px solid #666666;
+}
+
+#csheet td {
+    font-size:10pt;
+    padding:1px;
+	border:none;
+}
+
+#csheet .gvcol_spec {
+	border-bottom: 1px dashed #999999;
+	font-size:8pt;
+	text-align:center;
+}
+#csheet .gvcol_key {
+    width: 100px;
+}
+
+/* Willpower */
+#csheet #gvid_cstb_Willpower .gvcol_spec {
+   border-bottom: none;
+   width: 1px;  
+}
+#csheet .gvdotwide {
+   background-size:auto;
+}
+#csheet #gvid_cstb_Willpower .gvcol_key {
+   font-size:12pt;
+   text-align: left;
+}
+#csheet #gvid_cstb_Willpower .gvcol_3 {
+   width: 145px;
+   background-size:140px;
+   background-position:right;
+}
+
+/* Combined Discipline */
+#csheet #gvid_ccb .gvcol_spec {
+    border-bottom: none;
+}
+#csheet #gvid_ccb .gvcol_key {
+	width: 100%;
+}
+
+/* Merits & Flaws */
+#csheet #gvid_cmb td.gvcol_key {
+   width: auto;
+}
+#csheet #gvid_cmb td.gvcol_val {
+   width: 10%;
+}
+
+/* Rituals */
+#csheet #gvid_crb td.gvcol_key {
+   width: auto;
+}
+#csheet #gvid_crb td.gvcol_val {
+   width: 10%;
+}
+
+/* Paths */
+#csheet #gvid_cpb td.gvcol_key {
+   width: auto;
+}
+
+
+/* =EXTENDED BACKGROUNDS
+-------------------------------------------------------------- */
+.gvext_name {
+    font-weight:bold;
+	font-size:1.1em;
+	padding-top:20px;
+	margin-bottom: 0;
+}
+.gvext_ques {
+    font-style:italic;
+	margin-bottom: 0;
+}
+.gvext_section {
+	background-color:#111;
+	border-radius:5px;
+	border: 1px solid #222;
+	margin:10px 10px 10px 10px;
+	padding:10px;
+}
+.gvext_section th {
+	font-weight:bold;
+	text-align:left;
+}
+.gvext_approved {
+	color:green;
+}
+.gvext_denied {
+	color:red;
+}
+
+.gvbgmenu {
+	clear: both;
+	display: block;
+	float: left;
+	width: 100%;
+	margin-bottom: 10px;
+	padding: 0px;
+	
+}
+.gvbgmenu ul {
+	list-style: none;
+	z-index:1;
+	margin: 0;
+	padding: 0;
+}
+.gvbgmenu li {
+	float: left;
+	position: relative;
+}
+.gvbgmenu a {
+	display: block;
+	text-decoration: none;
+	font-weight:bold;
+	padding: 5px;
+	border: 1px solid #666666;
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+}
+.gvbgmenu li:hover > a,.gvbgmenu ul ul :hover > a,.gvbgmenu a:focus {
+	/* background: #BB0506;
+	border-top-left-radius: 0px;
+	border-top-right-radius: 0px;
+	background: -moz-linear-gradient(#770506, #BB0506);
+	background: -o-linear-gradient(#770506, #BB0506);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#BB0506)); 
+	background: -webkit-linear-gradient(#770506, #BB0506); */
+}
+.gvbgmenu  li:hover > a {
+	background: #222;
+}
+.gvbgmenu  ul ul :hover > ul,.gvbgmenu ul li:hover > ul {	display: block;}
+.gvbgmenu .shown,.gvbgmenu a:focus  {
+	border-bottom: none;
+}
+
+
+/* =DOTS
+-------------------------------------------------------------- */
+
+.gvdot_5_1 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-5-1.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center;
+}
+.gvdot_5_2 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-5-2.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center;
+}
+.gvdot_5_3 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-5-3.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_5_4 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-5-4.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_5_5 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-5-5.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_10_1 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-1.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_10_2 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-2.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_10_3 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-3.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_10_4 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-4.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_10_5 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-5.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_10_6 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-6.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_10_7 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-7.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_10_8 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-8.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}.gvdot_10_9 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-9.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; }
+.gvdot_10_10 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-10.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_5_6 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-6.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_5_7 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-7.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_5_8 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-8.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_5_9 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-9.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+.gvdot_5_10 {
+    width:90px;
+    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-10.gif');
+    background-repeat:no-repeat;
+    background-size:76px;
+    background-position:center; 
+}
+
+/* PROFILE 
+-------------------------------------------------------------- */
+.gvprofile th.gvthhead {
+    text-align: left;
+    font-weight: bold;
+    font-size: 1.8em !important;
+}
+
+.gvprofile .gvcol_1 {
+    vertical-align:top;
+}
+.gvprofile .gvcol_key {
+    font-weight: bold;
+}
+
+.gvprofile .gvcol_img img {
+	width: 150px;
+}
+
+/* =XP Spend Page
+-------------------------------------------------------------- */
+
+#gvid_xpst td {
+    padding: 0px;
+	text-align: center;
+	border: none;
+}
+#gvid_xpst th {
+    font-weight: bold;
+    background-color: #222;
+    padding: 3px;
+	margin: 5px 1px 0px 0px;
+}
+
+#gvid_xpst .gvxp_col {
+	padding: 5px;
+}
+#gvid_xpst .gvthleft {
+    text-align: left;
+    background-color: inherit;
+    padding: 0px 3px 0px 3px;
+	width: auto;
+	font-size:0.9em;
+}
+#gvid_xpst .gvcol_cost {
+	font-size:0.7em;
+	width: 52px;
+}
+
+#gvid_xpst .gvcol_val {
+	width: 40px;
+	padding: 0px 5px 0px 5px;
+}
+#gvid_xpst .gvxp_spec {
+	border-bottom: 1px dashed red;
+}
+#gvid_xpst .gvxp_dot {
+    width:15px;
+	font-size: 0.7em;
+	margin: 0px;
+	padding: 0px;
+}
+.gvxp_dot {
+    width:15px;
+	font-size: 0.7em;
+	margin: 0px;
+	padding: 0px;
+}
+.gvxp_checkbox {
+    width:15px;
+	font-size: 0.7em;
+	margin: 0px;
+	padding: 0px;
+}
+#gvid_xpst td.gvxp_dot img{
+	width:12px;
+}
+input[type="submit"].gvxp_clear {
+	margin: 0px 0px 2px 0px;
+	padding: 0px 2px 0px 2px;
+	font-size: 0.9em;
+}
+input[type="submit"].gvxp_submit {
+	float:right;
+	margin: 5px;
+}
+
+div.gvxp_error {
+	border: 2px solid red;
+	padding: 10px;
+}
+.gvxp_error li {
+	list-style: none;
+}
+
+p.gvxp_xpstatus {
+	padding-top: 10px !important;
+	margin: 0px;
+}
+
+h4.gvxp_head  {
+	padding-top:15px;
+	
+}
+
+.gvcol_error {
+	background-color: #ff0000;
+}
+
+.gvxp_radio {
+    font-size:10px;
+	margin: 0px;
+	padding: 0px;
+
+}
+.gvcol_radiohead {
+    width:20px;
+
+}
+
+/* =Feeding Map
+-------------------------------------------------------------- */
+#map-canvas { height: 100% }
+#map-canvas img {max-width: none;}
+table.feedingmapkey {width:auto;}
+#feedingmap_status {display:none;}

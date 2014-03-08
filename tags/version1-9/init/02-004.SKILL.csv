@@ -1,0 +1,31 @@
+NAME,DESCRIPTION,GROUPING,COST_MODEL_ID,MULTIPLE,SPECIALISATION_AT,VISIBLE
+Academics,How good your education was,Knowledges,2,N,4,Y
+Computer,"Hacking, cracking and running a website",Knowledges,2,N,4,Y
+Finance,Looking after the money and following the trail,Knowledges,2,N,4,Y
+Investigation,Following the clues ,Knowledges,2,N,4,Y
+Law,Knowing the laws and the ways around them,Knowledges,2,N,4,Y
+Medicine,Looking after the injured and knowing when you fed too much,Knowledges,2,N,4,Y
+Occult,Knowledge of the occult,Knowledges,2,N,4,Y
+Politics,Knowing politics and local politicians,Knowledges,2,N,4,Y
+Science,Chemistry/Physics/Biology,Knowledges,2,N,4,Y
+Technology,Knowledge of electronic systems and advanced alarms,Knowledges,2,N,4,Y
+Animal Ken,Being good with animals,Skills,2,N,4,Y
+Crafts,Being good at making things,Skills,2,N,4,Y
+Drive,Driving cars/bikes/trucks etc,Skills,2,N,4,Y
+Etiquette,Knowing your way around society,Skills,2,N,4,Y
+Firearms,Shooting guns,Skills,2,N,4,Y
+Larceny,"Thieving, hotwiring and slight of hand",Skills,2,N,4,Y
+Melee,Swords and knives,Skills,2,N,4,Y
+Performance,Singing/dancing/etc,Skills,2,N,4,Y
+Stealth,Sneaking around and hiding,Skills,2,N,4,Y
+Survival,Surviving in the wild,Skills,2,N,4,Y
+Alertness,How alert you are,Talents,2,N,4,Y
+Athletics,Running/jumping/climbing trees,Talents,2,N,4,Y
+Awareness,How aware you are of the supernatural,Talents,2,N,4,Y
+Brawl,Fisticuffs,Talents,2,N,4,Y
+Empathy,Picking up on how others feel,Talents,2,N,4,Y
+Expression,Getting your point across,Talents,2,N,1,Y
+Intimidation,Scaring people into submission,Talents,2,N,4,Y
+Leadership,Getting others to follow your lead,Talents,2,N,4,Y
+Streetwise,Knowing your way around the streets,Talents,2,N,4,Y
+Subterfuge,Lying and knowing when you are being deceived,Talents,2,N,4,Y
