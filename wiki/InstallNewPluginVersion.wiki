@@ -42,24 +42,14 @@ svn export http://gvlarp-character-plugin.googlecode.com/svn/tags/version1-8 gvl
 
 == V1.8 to V1.9 ==
 
-* New options in configuration to update
+  * New options in configuration to update
+  * google feeding map options
+  * Remove Player Admin page
+  * Remove Path Upadate page/shortcode
+  * Remove Change WP pages
+  * Empty page contents for View Character
+  * Empty page contents for Profile
+  * Add backgrounds widget
 
-* google feeding map options
-
-* Remove Player Admin page
-
-* Remove Path Upadate page/shortcode
-
-* Remove Change WP pages
-
-* Empty page contents for View Character
-
-* Empty page contents for Profile
-
-* Add backgrounds widget
-
-
-
-* Setup google map
-
-* Willpower Spend button?
+  * Setup google map
+  * Willpower Spend button and stat table
