@@ -33,3 +33,23 @@ svn export http://gvlarp-character-plugin.googlecode.com/svn/tags/version1-8 gvl
 3) Upload the exported files to {{{/public_html/wp-content/plugins/gvlarp-character/}}}
 
 4) Re-activate the plugin
+
+= After Installation =
+
+1) Go to Characters->Configuration. Check any new options and click \[save options\] and any other save button with new options/sections
+
+2) Go through version log and make any appropriate page content/data table/menu updates
+
+== V1.8 to V1.9 ==
+
+* New options in configuration to update
+* google feeding map options
+* Remove Player Admin page
+* Remove Path Upadate page/shortcode
+* Remove Change WP pages
+* Empty page contents for View Character
+* Empty page contents for Profile
+* Add backgrounds widget
+
+* Setup google map
+* Willpower Spend button?
