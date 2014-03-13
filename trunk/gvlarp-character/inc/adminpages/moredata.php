@@ -1,18 +1,18 @@
 <?php
 
-function render_stat_page($type){
+function vtm_render_stat_page($type){
 
 
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
-    $testListTable[$type] = new gvadmin_stats_table();
-	$doaction = stat_input_validation($type);
+    $testListTable[$type] = new vtmclass_admin_stats_table();
+	$doaction = vtm_stat_input_validation($type);
 	
 	if ($doaction == "save-$type") { 
 		$testListTable[$type]->edit_stat($type);
 	} 
 	
 	if (isset($_REQUEST['action']))
-		render_stat_form($type, $doaction); 
+		vtm_render_stat_form($type, $doaction); 
 	
     $testListTable[$type]->prepare_items($type);
 	$current_url = remove_query_arg( 'action', $current_url );
@@ -29,11 +29,11 @@ function render_stat_page($type){
     <?php 
 }
 
-function render_skill_page(){
+function vtm_render_skill_page(){
 
 
-    $testListTable["skill"] = new gvadmin_skills_table();
-	$doaction = skill_input_validation("skill");
+    $testListTable["skill"] = new vtmclass_admin_skills_table();
+	$doaction = vtm_skill_input_validation("skill");
 	
 	/* echo "<p>action: $doaction</p>"; */
 	
@@ -44,7 +44,7 @@ function render_skill_page(){
 		$testListTable["skill"]->edit_skill();				
 	}
 
-	render_skill_add_form("skill", $doaction);
+	vtm_render_skill_add_form("skill", $doaction);
 	$testListTable["skill"]->prepare_items();
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
@@ -59,7 +59,7 @@ function render_skill_page(){
     <?php 
 }
 
-function render_skill_add_form($type, $addaction) {
+function vtm_render_skill_add_form($type, $addaction) {
 	global $wpdb;
 
 	$id   = isset($_REQUEST['ability']) ? $_REQUEST['ability'] : '';
@@ -76,7 +76,7 @@ function render_skill_add_form($type, $addaction) {
 		$nextaction = $_REQUEST['action'];
 
 	} elseif ('edit-' . $type == $addaction) {
-		$sql = "SELECT * FROM " . GVLARP_TABLE_PREFIX . "SKILL WHERE ID = %s";
+		$sql = "SELECT * FROM " . VTM_TABLE_PREFIX . "SKILL WHERE ID = %s";
 		$sql = $wpdb->prepare($sql, $id);
 		$data =$wpdb->get_results($sql);
 		/* echo "<p>SQL: $sql</p>";
@@ -126,7 +126,7 @@ function render_skill_add_form($type, $addaction) {
 			<td>Cost Model:  </td>
 			<td><select name="<?php print $type; ?>_costmodel">
 					<?php
-						foreach (get_costmodels() as $costmodel) {
+						foreach (vtm_get_costmodels() as $costmodel) {
 							print "<option value='{$costmodel->ID}' ";
 							selected($costmodel->ID, $costmodel_id);
 							echo ">{$costmodel->NAME}</option>";
@@ -159,7 +159,7 @@ function render_skill_add_form($type, $addaction) {
 
 }
 
-function render_stat_form($type, $addaction) {
+function vtm_render_stat_form($type, $addaction) {
 	global $wpdb;
 
 	$id   = $_REQUEST['stat'];
@@ -174,7 +174,7 @@ function render_stat_form($type, $addaction) {
 
 	} else {
 	
-		$sql = "SELECT * FROM " . GVLARP_TABLE_PREFIX . "STAT WHERE ID = %s";
+		$sql = "SELECT * FROM " . VTM_TABLE_PREFIX . "STAT WHERE ID = %s";
 		$sql = $wpdb->prepare($sql, $id);
 		$data =$wpdb->get_results($sql);
 		/* echo "<p>SQL: $sql</p>";
@@ -214,7 +214,7 @@ function render_stat_form($type, $addaction) {
 			<td>Cost Model:  </td>
 			<td><select name="<?php print $type; ?>_costmodel">
 					<?php
-						foreach (get_costmodels() as $costmodel) {
+						foreach (vtm_get_costmodels() as $costmodel) {
 							print "<option value='{$costmodel->ID}' ";
 							selected($costmodel->ID, $costmodel_id);
 							echo ">{$costmodel->NAME}</option>";
@@ -238,7 +238,7 @@ function render_stat_form($type, $addaction) {
 
 }
 
-function stat_input_validation($type) {
+function vtm_stat_input_validation($type) {
 	$doaction = "save";
 	
 	if (!empty($_REQUEST[$type . '_name'])){
@@ -255,7 +255,7 @@ function stat_input_validation($type) {
 	return $doaction;
 
 }
-function skill_input_validation($type) {
+function vtm_skill_input_validation($type) {
 	
 	$doaction = '';
 	
@@ -294,7 +294,7 @@ STATS TABLE
 ------------------------------------------------ */
 
 
-class gvadmin_stats_table extends GVMultiPage_ListTable {
+class vtmclass_admin_stats_table extends vtmclass_MultiPage_ListTable {
    
     function __construct(){
         global $status, $page;
@@ -318,7 +318,7 @@ class gvadmin_stats_table extends GVMultiPage_ListTable {
 					);
 		
 		
-		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "STAT",
+		$result = $wpdb->update(VTM_TABLE_PREFIX . "STAT",
 					$dataarray,
 					array (
 						'ID' => $_REQUEST[$type . '_id']
@@ -424,8 +424,8 @@ class gvadmin_stats_table extends GVMultiPage_ListTable {
 		$sql = "select stats.ID, stats.NAME, stats.DESCRIPTION, stats.GROUPING, stats.ORDERING,
 					models.NAME as COST_MODEL, stats.SPECIALISATION_AT
 				from 
-					" . GVLARP_TABLE_PREFIX . "STAT stats,
-					" . GVLARP_TABLE_PREFIX . "COST_MODEL models
+					" . VTM_TABLE_PREFIX . "STAT stats,
+					" . VTM_TABLE_PREFIX . "COST_MODEL models
 				where models.ID = stats.COST_MODEL_ID";
 				
 		/* order the data according to sort columns */
@@ -460,7 +460,7 @@ SKILLS TABLE
 ------------------------------------------------ */
 
 
-class gvadmin_skills_table extends GVMultiPage_ListTable {
+class vtmclass_admin_skills_table extends vtmclass_MultiPage_ListTable {
    
     function __construct(){
         global $status, $page;
@@ -488,7 +488,7 @@ class gvadmin_skills_table extends GVMultiPage_ListTable {
 		
 		/* print_r($dataarray); */
 		
-		$wpdb->insert(GVLARP_TABLE_PREFIX . "SKILL",
+		$wpdb->insert(VTM_TABLE_PREFIX . "SKILL",
 					$dataarray,
 					array (
 						'%s',
@@ -510,7 +510,7 @@ class gvadmin_skills_table extends GVMultiPage_ListTable {
 		}
 	}
 
- 	function edit_skill() {
+ 	function vtm_edit_skill() {
 		global $wpdb;
 		
 		$wpdb->show_errors();
@@ -525,7 +525,7 @@ class gvadmin_skills_table extends GVMultiPage_ListTable {
 						'SPECIALISATION_AT' => $_REQUEST['skill_spec_at']
 					);
 		
-		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "SKILL",
+		$result = $wpdb->update(VTM_TABLE_PREFIX . "SKILL",
 					$dataarray,
 					array (
 						'ID' => $_REQUEST['skill_id']
@@ -548,9 +548,9 @@ class gvadmin_skills_table extends GVMultiPage_ListTable {
 		
 		/* Check if question in use */
 		$sql = "select characters.NAME
-				from " . GVLARP_TABLE_PREFIX . "CHARACTER_SKILL charskills, 
-					" . GVLARP_TABLE_PREFIX . "CHARACTER characters,
-					" . GVLARP_TABLE_PREFIX . "SKILL skills
+				from " . VTM_TABLE_PREFIX . "CHARACTER_SKILL charskills, 
+					" . VTM_TABLE_PREFIX . "CHARACTER characters,
+					" . VTM_TABLE_PREFIX . "SKILL skills
 				where charskills.SKILL_ID = skills.ID 
 					and characters.ID = charskills.CHARACTER_ID
 					and skills.ID = %d;";
@@ -566,7 +566,7 @@ class gvadmin_skills_table extends GVMultiPage_ListTable {
 			
 		} else {
 		
-			$sql = "delete from " . GVLARP_TABLE_PREFIX . "SKILL where ID = %d;";
+			$sql = "delete from " . VTM_TABLE_PREFIX . "SKILL where ID = %d;";
 			
 			$result = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
@@ -674,8 +674,8 @@ class gvadmin_skills_table extends GVMultiPage_ListTable {
 		$sql = "select skills.ID, skills.NAME, skills.DESCRIPTION, skills.GROUPING, skills.MULTIPLE,
 					models.NAME as COST_MODEL, skills.SPECIALISATION_AT, skills.VISIBLE
 				from 
-					" . GVLARP_TABLE_PREFIX . "SKILL skills,
-					" . GVLARP_TABLE_PREFIX . "COST_MODEL models
+					" . VTM_TABLE_PREFIX . "SKILL skills,
+					" . VTM_TABLE_PREFIX . "COST_MODEL models
 				where models.ID = skills.COST_MODEL_ID";
 				
 		/* order the data according to sort columns */

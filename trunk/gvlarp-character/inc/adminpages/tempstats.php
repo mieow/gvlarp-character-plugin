@@ -1,12 +1,12 @@
 <?php
 
-function character_temp_stats() {
+function vtm_character_temp_stats() {
 	global $wpdb;
 	if ( !current_user_can( 'manage_options' ) )  {
 		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 	}
 	
-	$sql = "SELECT NAME FROM " . GVLARP_TABLE_PREFIX . "TEMPORARY_STAT ORDER BY ID";
+	$sql = "SELECT NAME FROM " . VTM_TABLE_PREFIX . "TEMPORARY_STAT ORDER BY ID";
 	$tempstats = $wpdb->get_col($sql);
 	
 	?>
@@ -16,7 +16,7 @@ function character_temp_stats() {
 			<ul>
 			<?php
 				foreach ($tempstats as $stat) {
-					print "<li>" . get_tablink(esc_attr($stat), $stat) . "</li>";
+					print "<li>" . vtm_get_tablink(esc_attr($stat), $stat) . "</li>";
 				}
 			?>
 			</ul>
@@ -26,7 +26,7 @@ function character_temp_stats() {
 		
 		$stat = isset($_REQUEST['tab']) ? $_REQUEST['tab'] : "Willpower";
 		
-		render_temp_stat_page($stat);
+		vtm_render_temp_stat_page($stat);
 				
 		?>
 		</div>
@@ -35,19 +35,19 @@ function character_temp_stats() {
 	<?php	
 }
 
-function render_temp_stat_page($stat) {
+function vtm_render_temp_stat_page($stat) {
 	global $wpdb;
 
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 
-	$sql = "SELECT ID FROM " . GVLARP_TABLE_PREFIX . "TEMPORARY_STAT WHERE NAME = %s";
+	$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "TEMPORARY_STAT WHERE NAME = %s";
 	$statID = $wpdb->get_var($wpdb->prepare($sql, $stat));
 	
-	$sql = "SELECT ID FROM " . GVLARP_TABLE_PREFIX . "TEMPORARY_STAT_REASON WHERE NAME = %s";
+	$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "TEMPORARY_STAT_REASON WHERE NAME = %s";
 	$default_bulk_reason = $wpdb->get_var($wpdb->prepare($sql, 'Game spend'));
  
  // List of stats
-	$sql = "SELECT ID FROM " . GVLARP_TABLE_PREFIX . "STAT WHERE NAME = %s";
+	$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "STAT WHERE NAME = %s";
 	$sql = $wpdb->prepare($sql, $stat);
 	$result = $wpdb->get_results($sql);
 	if (count($result) > 0) {
@@ -59,7 +59,7 @@ function render_temp_stat_page($stat) {
 	}
 	
 	
-	$reasons = listTemporaryStatReasons();
+	$reasons = vtm_listTemporaryStatReasons();
 
 	// Setup extra tablenav default options
 	if ( isset( $_REQUEST[$stat . '_reason_bulk'] ) && array_key_exists( $_REQUEST[$stat . '_reason_bulk'], $reasons ) ) {
@@ -86,7 +86,7 @@ function render_temp_stat_page($stat) {
 	if (isset($_REQUEST['apply2all'])) {
 		$errstat = 2;
 		for ($i=0;$i<count($ids);$i++) {
-			if (!update_temp_stat($ids[$i], $amount, $stat, $statID, $reasonID, 
+			if (!vtm_update_temp_stat($ids[$i], $amount, $stat, $statID, $reasonID, 
 							$maximums[$i], $currents[$i], $names[$i], ''))
 				$err = 1;
 		}
@@ -95,7 +95,7 @@ function render_temp_stat_page($stat) {
 		$errstat = 2;
 		for ($i=0;$i<count($ids);$i++) {
 			if (!empty($amounts[$i]))
-				if (!update_temp_stat($ids[$i], $amounts[$i], $stat, $statID, $tmpreasons[$i], 
+				if (!vtm_update_temp_stat($ids[$i], $amounts[$i], $stat, $statID, $tmpreasons[$i], 
 							$maximums[$i], $currents[$i], $names[$i], $comments[$i]))
 					$err = 1;
 		}
@@ -112,16 +112,16 @@ function render_temp_stat_page($stat) {
 				cstat.LEVEL as MAXSTAT,
 				gen.BLOODPOOL as MAXBLOOD
 			FROM
-				" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
-				" . GVLARP_TABLE_PREFIX . "CHARACTER_STAT cstat,
-				" . GVLARP_TABLE_PREFIX . "STAT stat,
-				" . GVLARP_TABLE_PREFIX . "PLAYER player,
-				" . GVLARP_TABLE_PREFIX . "PLAYER_STATUS pstatus,
-				" . GVLARP_TABLE_PREFIX . "CHARACTER_TYPE ctype,
-				" . GVLARP_TABLE_PREFIX . "CHARACTER_STATUS cstatus,
-				" . GVLARP_TABLE_PREFIX . "GENERATION gen,
-				" . GVLARP_TABLE_PREFIX . "CHARACTER_TEMPORARY_STAT char_temp_stat,
-				" . GVLARP_TABLE_PREFIX . "TEMPORARY_STAT temp_stat
+				" . VTM_TABLE_PREFIX . "CHARACTER chara,
+				" . VTM_TABLE_PREFIX . "CHARACTER_STAT cstat,
+				" . VTM_TABLE_PREFIX . "STAT stat,
+				" . VTM_TABLE_PREFIX . "PLAYER player,
+				" . VTM_TABLE_PREFIX . "PLAYER_STATUS pstatus,
+				" . VTM_TABLE_PREFIX . "CHARACTER_TYPE ctype,
+				" . VTM_TABLE_PREFIX . "CHARACTER_STATUS cstatus,
+				" . VTM_TABLE_PREFIX . "GENERATION gen,
+				" . VTM_TABLE_PREFIX . "CHARACTER_TEMPORARY_STAT char_temp_stat,
+				" . VTM_TABLE_PREFIX . "TEMPORARY_STAT temp_stat
 			WHERE 
 				chara.id = cstat.character_id
 				AND cstat.stat_id = stat.id
@@ -205,7 +205,7 @@ function render_temp_stat_page($stat) {
     <?php
 }
 
-function update_temp_stat($selectedID, $amount, $stat, $statID, $reasonID, 
+function vtm_update_temp_stat($selectedID, $amount, $stat, $statID, $reasonID, 
 							$max, $current, $char, $comment) {
 	global $wpdb;
 	
@@ -223,7 +223,7 @@ function update_temp_stat($selectedID, $amount, $stat, $statID, $reasonID,
 	}
 	
 	if ($change != 0) {
-		touch_last_updated($selectedID);
+		vtm_touch_last_updated($selectedID);
 	}
 	
 	$data = array (
@@ -234,7 +234,7 @@ function update_temp_stat($selectedID, $amount, $stat, $statID, $reasonID,
 		'AMOUNT'   => $change,
 		'COMMENT'  => $comment
 	);
-	$wpdb->insert(GVLARP_TABLE_PREFIX . "CHARACTER_TEMPORARY_STAT",
+	$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_TEMPORARY_STAT",
 			$data,
 			array (
 				'%d',
@@ -249,7 +249,7 @@ function update_temp_stat($selectedID, $amount, $stat, $statID, $reasonID,
 	if ($wpdb->insert_id == 0) {
 		echo "<p style='color:red'><b>Error:</b>$stat update for character $char failed";
 	} else {
-		 touch_last_updated($characterID);
+		 vtm_touch_last_updated($characterID);
 	}
 	
 	return ($wpdb->insert_id != 0);

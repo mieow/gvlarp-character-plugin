@@ -1,57 +1,57 @@
 <?php
 
-function gv_xp_spend_content_filter($content) {
+function vtm_xp_spend_content_filter($content) {
 
-  if (is_page(get_stlink_page('viewXPSpend')) && is_user_logged_in()) {
-    $content .= print_xp_spend_table();
+  if (is_page(vtm_get_stlink_page('viewXPSpend')) && is_user_logged_in()) {
+    $content .= vtm_print_xp_spend_table();
   }
   // otherwise returns the database content
   return $content;
 }
-add_filter( 'the_content', 'gv_xp_spend_content_filter' );
+add_filter( 'the_content', 'vtm_xp_spend_content_filter' );
 
 /*
 	Called by print_xp_spend_table
 */
-function doPendingXPSpend($character) {
+function vtm_doPendingXPSpend($character) {
 	global $wpdb;
-	$characterID = establishCharacterID($character);
-	$playerID    = establishPlayerID($character);
+	$characterID = vtm_establishCharacterID($character);
+	$playerID    = vtm_establishPlayerID($character);
 		
 	/* Stats */
 	if (isset($_REQUEST['stat_level'])) {
-		$newid = save_to_pending('stat', 'CHARACTER_STAT', 'STAT', 'STAT_ID', $playerID, $characterID);
+		$newid = vtm_save_to_pending('stat', 'CHARACTER_STAT', 'STAT', 'STAT_ID', $playerID, $characterID);
 	}
 	if (isset($_REQUEST['skill_level'])) {
-		$newid = save_to_pending('skill', 'CHARACTER_SKILL', 'SKILL', 'SKILL_ID', $playerID, $characterID);
+		$newid = vtm_save_to_pending('skill', 'CHARACTER_SKILL', 'SKILL', 'SKILL_ID', $playerID, $characterID);
 	}
 	if (isset($_REQUEST['disc_level'])) {
-		$newid = save_to_pending('disc', 'CHARACTER_DISCIPLINE', 'DISCIPLINE', 'DISCIPLINE_ID', $playerID, $characterID);
+		$newid = vtm_save_to_pending('disc', 'CHARACTER_DISCIPLINE', 'DISCIPLINE', 'DISCIPLINE_ID', $playerID, $characterID);
 	}
 	if (isset($_REQUEST['path_level'])) {
-		$newid = save_to_pending('path', 'CHARACTER_PATH', 'PATH', 'PATH_ID', $playerID, $characterID);
+		$newid = vtm_save_to_pending('path', 'CHARACTER_PATH', 'PATH', 'PATH_ID', $playerID, $characterID);
 	}
 	if (isset($_REQUEST['ritual_level'])) {
-		$newid = save_to_pending('ritual', 'CHARACTER_RITUAL', 'RITUAL', 'RITUAL_ID', $playerID, $characterID);
+		$newid = vtm_save_to_pending('ritual', 'CHARACTER_RITUAL', 'RITUAL', 'RITUAL_ID', $playerID, $characterID);
 	}
 	if (isset($_REQUEST['merit_level'])) {
-		$newid = save_to_pending('merit', 'CHARACTER_MERIT', 'MERIT', 'MERIT_ID', $playerID, $characterID);
+		$newid = vtm_save_to_pending('merit', 'CHARACTER_MERIT', 'MERIT', 'MERIT_ID', $playerID, $characterID);
 	}
 	if (isset($_REQUEST['combo_level'])) {
-		$newid = save_to_pending('combo', 'CHARACTER_COMBO_DISCIPLINE', 'COMBO_DISCIPLINE', 'COMBO_DISCIPLINE_ID', $playerID, $characterID);
+		$newid = vtm_save_to_pending('combo', 'CHARACTER_COMBO_DISCIPLINE', 'COMBO_DISCIPLINE', 'COMBO_DISCIPLINE_ID', $playerID, $characterID);
 	}
 }
 	
 /*
-	master_xp_update GVLARP_FORM
+	master_xp_update VTM_FORM
 */
-function handleMasterXP() {
+function vtm_handleMasterXP() {
 	$counter = 1;
 	while (isset($_POST['counter_' . $counter])) {
 		$current_player_id = $_POST['counter_' . $counter];
 		$current_xp_value  = $_POST[$current_player_id . '_xp_value'];
 		if (is_numeric($current_xp_value) && ((int) $current_xp_value != 0)) {
-			addPlayerXP($current_player_id,
+			vtm_addPlayerXP($current_player_id,
 				$_POST[$current_player_id . '_character'],
 				$_POST[$current_player_id . '_xp_reason'],
 				$current_xp_value,
@@ -68,12 +68,12 @@ function handleMasterXP() {
 
 /* shortcode */
 
-function print_xp_spend_table() {
+function vtm_print_xp_spend_table() {
 	global $wpdb;
 	
-	$character   = establishCharacter('');
-	$characterID = establishCharacterID($character);
-	$playerID    = establishPlayerID($character);
+	$character   = vtm_establishCharacter('');
+	$characterID = vtm_establishCharacterID($character);
+	$playerID    = vtm_establishPlayerID($character);
 	
 	$output = "";
 	$outputError = "";
@@ -88,13 +88,13 @@ function print_xp_spend_table() {
 				|| isset($_REQUEST['ritual_cancel'])
 				|| isset($_REQUEST['merit_cancel'])
 				);
-	if (isset($_REQUEST['stat_cancel']))    cancel_pending($_REQUEST['stat_cancel']);
-	if (isset($_REQUEST['skill_cancel']))   cancel_pending($_REQUEST['skill_cancel']);
-	if (isset($_REQUEST['disc_cancel']))    cancel_pending($_REQUEST['disc_cancel']);
-	if (isset($_REQUEST['combo_cancel']))   cancel_pending($_REQUEST['combo_cancel']);
-	if (isset($_REQUEST['path_cancel']))    cancel_pending($_REQUEST['path_cancel']);
-	if (isset($_REQUEST['ritual_cancel']))  cancel_pending($_REQUEST['ritual_cancel']);
-	if (isset($_REQUEST['merit_cancel']))   cancel_pending($_REQUEST['merit_cancel']);
+	if (isset($_REQUEST['stat_cancel']))    vtm_cancel_pending($_REQUEST['stat_cancel']);
+	if (isset($_REQUEST['skill_cancel']))   vtm_cancel_pending($_REQUEST['skill_cancel']);
+	if (isset($_REQUEST['disc_cancel']))    vtm_cancel_pending($_REQUEST['disc_cancel']);
+	if (isset($_REQUEST['combo_cancel']))   vtm_cancel_pending($_REQUEST['combo_cancel']);
+	if (isset($_REQUEST['path_cancel']))    vtm_cancel_pending($_REQUEST['path_cancel']);
+	if (isset($_REQUEST['ritual_cancel']))  vtm_cancel_pending($_REQUEST['ritual_cancel']);
+	if (isset($_REQUEST['merit_cancel']))   vtm_cancel_pending($_REQUEST['merit_cancel']);
 	
 	// Back button
 	if (isset($_REQUEST['xCancel'])) $step = "";
@@ -102,14 +102,14 @@ function print_xp_spend_table() {
 	/* VALIDATE SPENDS */
 	switch ($step) {
 		case 'supply_details':
-			$outputError .= validate_spends($playerID, $characterID, $docancel);
+			$outputError .= vtm_validate_spends($playerID, $characterID, $docancel);
 			if (!empty($outputError)) {
 				$output .= "<div class='gvxp_error'>$outputError</div>";
 				$step = "";
 			}
 			break;
 		case 'submit_spend':
-			$outputError .= validate_details($characterID);
+			$outputError .= vtm_validate_details($characterID);
 			if (!empty($outputError)) {
 				$output .= "<div class='gvxp_error'>$outputError</div>";
 				$step = "supply_details";
@@ -118,12 +118,12 @@ function print_xp_spend_table() {
 	}
 	switch ($step) {
 		case 'supply_details':
-			$output .= render_supply_details($character);
+			$output .= vtm_render_supply_details($character);
 			break;
 		case 'submit_spend':
-			doPendingXPSpend($character);
+			vtm_doPendingXPSpend($character);
 		default:
-			$output .= render_select_spends($character);
+			$output .= vtm_render_select_spends($character);
 			break;
 	
 	}
@@ -131,20 +131,20 @@ function print_xp_spend_table() {
 	return $output;
 }
 
-function render_supply_details($character) {
+function vtm_render_supply_details($character) {
 
 	$output = "";
-	$character   = establishCharacter($character);
-	$characterID = establishCharacterID($character);
+	$character   = vtm_establishCharacter($character);
+	$characterID = vtm_establishCharacterID($character);
 
 	$spent = 0;
-	if (isset($_REQUEST['stat_level'])) $spent += calc_submitted_spend('stat');
-	if (isset($_REQUEST['skill_level'])) $spent += calc_submitted_spend('skill');
-	if (isset($_REQUEST['disc_level'])) $spent += calc_submitted_spend('disc');
-	if (isset($_REQUEST['combo_level'])) $spent += calc_submitted_spend('combo');
-	if (isset($_REQUEST['path_level'])) $spent += calc_submitted_spend('path');
-	if (isset($_REQUEST['ritual_level'])) $spent += calc_submitted_spend('ritual');
-	if (isset($_REQUEST['merit_level'])) $spent += calc_submitted_spend('merit');
+	if (isset($_REQUEST['stat_level']))   $spent += vtm_calc_submitted_spend('stat');
+	if (isset($_REQUEST['skill_level']))  $spent += vtm_calc_submitted_spend('skill');
+	if (isset($_REQUEST['disc_level']))   $spent += vtm_calc_submitted_spend('disc');
+	if (isset($_REQUEST['combo_level']))  $spent += vtm_calc_submitted_spend('combo');
+	if (isset($_REQUEST['path_level']))   $spent += vtm_calc_submitted_spend('path');
+	if (isset($_REQUEST['ritual_level'])) $spent += vtm_calc_submitted_spend('ritual');
+	if (isset($_REQUEST['merit_level']))  $spent += vtm_calc_submitted_spend('merit');
 	
 	$output .= "<p>Spending $spent experience points.</p>\n";
 	$output .= "<p>Please enter specialisations, if available, and enter a description of your learning method</p>";
@@ -153,47 +153,47 @@ function render_supply_details($character) {
 	$output .= "<form name=\"SPEND_XP_FORM\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">\n";
 	
 	if (isset($_REQUEST['stat_level'])) {
-		$output .= render_details_section('stat');
+		$output .= vtm_render_details_section('stat');
 	}
 	if (isset($_REQUEST['skill_level'])) {
-		$output .= render_details_section('skill');
+		$output .= vtm_render_details_section('skill');
 	}
 	if (isset($_REQUEST['disc_level'])) {
-		$output .= render_details_section('disc');
+		$output .= vtm_render_details_section('disc');
 	}
 	if (isset($_REQUEST['combo_level'])) {
-		$output .= render_details_section('combo');
+		$output .= vtm_render_details_section('combo');
 	}
 	if (isset($_REQUEST['path_level'])) {
-		$output .= render_details_section('path');
+		$output .= vtm_render_details_section('path');
 	}
 	if (isset($_REQUEST['ritual_level'])) {
-		$output .= render_details_section('ritual');
+		$output .= vtm_render_details_section('ritual');
 	}
 	if (isset($_REQUEST['merit_level'])) {
-		$output .= render_details_section('merit');
+		$output .= vtm_render_details_section('merit');
 	}
 	$output .= "<input class='gvxp_submit' type='submit' name=\"xSubmit\" value=\"Spend XP\">\n";
 	$output .= "<input class='gvxp_submit' type='submit' name=\"xCancel\" value=\"Back\">\n";
 
-	if (isset($_POST['GVLARP_CHARACTER']) && $_POST['GVLARP_CHARACTER'] != "")
-		$output .= "<input type='HIDDEN' name=\"GVLARP_CHARACTER\" value=\"" . $_POST['GVLARP_CHARACTER'] . "\" />\n";
+	if (isset($_POST['VTM_CHARACTER']) && $_POST['VTM_CHARACTER'] != "")
+		$output .= "<input type='HIDDEN' name=\"VTM_CHARACTER\" value=\"" . $_POST['VTM_CHARACTER'] . "\" />\n";
 	$output .= "<input type='HIDDEN' name=\"character\" value=\"" . $character . "\">\n";
 	$output .= "<input type='HIDDEN' name=\"step\" value=\"submit_spend\">\n";
-	$output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"applyXPSpend\" />\n";
+	$output .= "<input type='HIDDEN' name=\"VTM_FORM\" value=\"applyXPSpend\" />\n";
 	$output .= "</form></div>\n";
 	
 	return $output;
 }
 
-function render_select_spends($character) {
+function vtm_render_select_spends($character) {
 
-	$character   = establishCharacter($character);
-	$characterID = establishCharacterID($character);
-	$playerID    = establishPlayerID($character);
+	$character   = vtm_establishCharacter($character);
+	$characterID = vtm_establishCharacterID($character);
+	$playerID    = vtm_establishPlayerID($character);
 	
-	$xp_total      = get_total_xp($playerID, $characterID);
-	$xp_pending    = get_pending_xp($characterID);
+	$xp_total      = vtm_get_total_xp($playerID, $characterID);
+	$xp_pending    = vtm_get_pending_xp($characterID);
 	$xp_avail      = $xp_total - $xp_pending;
 	$fulldoturl    = plugins_url( 'gvlarp-character/images/viewfulldot.jpg' );
 	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
@@ -216,20 +216,20 @@ function render_select_spends($character) {
 	$output = "<p class='gvxp_xpstatus'>You have $xp_total experience in total, $xp_pending points currently pending and " . ($xp_total - $xp_pending) . " available to spend</p>";
 
 	/* work out the maximum ratings for this character based on generation */
-	$ratings = get_character_maximums($characterID);
+	$ratings = vtm_get_character_maximums($characterID);
 	$maxRating = $ratings[0];
 	$maxDiscipline = $ratings[1];
 	
 	/* get the current pending spends for this character */
-	$pendingSpends = get_pending($characterID);
+	$pendingSpends = vtm_get_pending($characterID);
 	
-	$sectioncontent['stat']   = render_stats($characterID, $maxRating, $pendingSpends, $xp_avail);
-	$sectioncontent['skill']  = render_skills($characterID, $maxRating, $pendingSpends, $xp_avail);
-	$sectioncontent['disc']   = render_disciplines($characterID, $maxDiscipline, $pendingSpends, $xp_avail);
-	$sectioncontent['combo']  = render_combo($characterID, $pendingSpends, $xp_avail);
-	$sectioncontent['path']   = render_paths($characterID, 5, $pendingSpends, $xp_avail);
-	$sectioncontent['ritual'] = render_rituals($characterID, 5, $pendingSpends, $xp_avail);
-	$sectioncontent['merit']  = render_merits($characterID, $pendingSpends, $xp_avail);
+	$sectioncontent['stat']   = vtm_render_stats($characterID, $maxRating, $pendingSpends, $xp_avail);
+	$sectioncontent['skill']  = vtm_render_skills($characterID, $maxRating, $pendingSpends, $xp_avail);
+	$sectioncontent['disc']   = vtm_render_disciplines($characterID, $maxDiscipline, $pendingSpends, $xp_avail);
+	$sectioncontent['combo']  = vtm_render_combo($characterID, $pendingSpends, $xp_avail);
+	$sectioncontent['path']   = vtm_render_paths($characterID, 5, $pendingSpends, $xp_avail);
+	$sectioncontent['ritual'] = vtm_render_rituals($characterID, 5, $pendingSpends, $xp_avail);
+	$sectioncontent['merit']  = vtm_render_merits($characterID, $pendingSpends, $xp_avail);
 	
 	
 	/* DISPLAY TABLES 
@@ -261,22 +261,22 @@ function render_select_spends($character) {
 	}
 
 
-	if (isset($_POST['GVLARP_CHARACTER']) && $_POST['GVLARP_CHARACTER'] != "") {
-		$output .= "<input type='HIDDEN' name=\"GVLARP_CHARACTER\" value=\"" . $_POST['GVLARP_CHARACTER'] . "\" />\n";
+	if (isset($_POST['VTM_CHARACTER']) && $_POST['VTM_CHARACTER'] != "") {
+		$output .= "<input type='HIDDEN' name=\"VTM_CHARACTER\" value=\"" . $_POST['VTM_CHARACTER'] . "\" />\n";
 	}
 
-	if (isset($_POST['GVLARP_CHARACTER']) && $_POST['GVLARP_CHARACTER'] != "")
-		$output .= "<input type='HIDDEN' name=\"GVLARP_CHARACTER\" value=\"" . $_POST['GVLARP_CHARACTER'] . "\" />\n";
+	if (isset($_POST['VTM_CHARACTER']) && $_POST['VTM_CHARACTER'] != "")
+		$output .= "<input type='HIDDEN' name=\"VTM_CHARACTER\" value=\"" . $_POST['VTM_CHARACTER'] . "\" />\n";
 	$output .= "<input type='HIDDEN' name=\"character\" value=\"" . $character . "\">\n";
 	$output .= "<input type='HIDDEN' name=\"step\" value=\"supply_details\">\n";
-	$output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"applyXPSpend\" />\n";
+	$output .= "<input type='HIDDEN' name=\"VTM_FORM\" value=\"applyXPSpend\" />\n";
 	$output .= "</form></div>\n";
 	
 	return $output;
 	
 }
 
-function get_xp_cost($dbdata, $current, $new) {
+function vtm_get_xp_cost($dbdata, $current, $new) {
 
 	$cost = 0;
 	
@@ -299,24 +299,24 @@ function get_xp_cost($dbdata, $current, $new) {
 	
 	return $cost;
 }
-function get_pending($characterID) {
+function vtm_get_pending($characterID) {
 	global $wpdb;
 
-	$sql = "SELECT * FROM " . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND WHERE CHARACTER_ID = %s";
+	$sql = "SELECT * FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND WHERE CHARACTER_ID = %s";
 	$sql = $wpdb->prepare($sql, $characterID);
 	
 	$result = $wpdb->get_results($sql);
 
 	return $result;
 }
-function get_xp_costs_per_level($table, $tableid, $level) {
+function vtm_get_xp_costs_per_level($table, $tableid, $level) {
 	global $wpdb;
 
 	$sql = "SELECT steps.CURRENT_VALUE, steps.NEXT_VALUE, steps.XP_COST
 		FROM
-			" . GVLARP_TABLE_PREFIX . "COST_MODEL_STEP steps,
-			" . GVLARP_TABLE_PREFIX . "COST_MODEL models,
-			" . GVLARP_TABLE_PREFIX . $table . " mytable
+			" . VTM_TABLE_PREFIX . "COST_MODEL_STEP steps,
+			" . VTM_TABLE_PREFIX . "COST_MODEL models,
+			" . VTM_TABLE_PREFIX . $table . " mytable
 		WHERE
 			steps.COST_MODEL_ID = models.ID
 			AND mytable.COST_MODEL_ID = models.ID
@@ -329,17 +329,17 @@ function get_xp_costs_per_level($table, $tableid, $level) {
 	return $wpdb->get_results($sql);
 
 }
-function get_discipline_xp_costs_per_level($disciplineid, $level, $clanid) {
+function vtm_get_discipline_xp_costs_per_level($disciplineid, $level, $clanid) {
 	global $wpdb;
 
 	/* clan cost model */
 	$clansql = "SELECT steps.CURRENT_VALUE, steps.NEXT_VALUE, steps.XP_COST
 				FROM 
-					" . GVLARP_TABLE_PREFIX . "COST_MODEL_STEP steps,
-					" . GVLARP_TABLE_PREFIX . "COST_MODEL cmodels,
-					" . GVLARP_TABLE_PREFIX . "CLAN cclans,
-					" . GVLARP_TABLE_PREFIX . "CLAN_DISCIPLINE cclandisciplines,
-					" . GVLARP_TABLE_PREFIX . "DISCIPLINE cdisciplines
+					" . VTM_TABLE_PREFIX . "COST_MODEL_STEP steps,
+					" . VTM_TABLE_PREFIX . "COST_MODEL cmodels,
+					" . VTM_TABLE_PREFIX . "CLAN cclans,
+					" . VTM_TABLE_PREFIX . "CLAN_DISCIPLINE cclandisciplines,
+					" . VTM_TABLE_PREFIX . "DISCIPLINE cdisciplines
 				WHERE
 					cclans.CLAN_COST_MODEL_ID = cmodels.ID
 					AND steps.COST_MODEL_ID = cmodels.ID
@@ -358,9 +358,9 @@ function get_discipline_xp_costs_per_level($disciplineid, $level, $clanid) {
 	if (!$result) {
 		$nonsql = "SELECT steps.CURRENT_VALUE, steps.NEXT_VALUE, steps.XP_COST
 					FROM 
-						" . GVLARP_TABLE_PREFIX . "COST_MODEL_STEP steps,
-						" . GVLARP_TABLE_PREFIX . "COST_MODEL ncmodels,
-						" . GVLARP_TABLE_PREFIX . "CLAN ncclans
+						" . VTM_TABLE_PREFIX . "COST_MODEL_STEP steps,
+						" . VTM_TABLE_PREFIX . "COST_MODEL ncmodels,
+						" . VTM_TABLE_PREFIX . "CLAN ncclans
 					WHERE
 						ncclans.NONCLAN_COST_MODEL_ID = ncmodels.ID
 						AND steps.COST_MODEL_ID = ncmodels.ID
@@ -376,15 +376,15 @@ function get_discipline_xp_costs_per_level($disciplineid, $level, $clanid) {
 	return $result;
 
 }
-function get_character_maximums($characterID) {
+function vtm_get_character_maximums($characterID) {
 	global $wpdb;
 	
 	$maxRating     = 5;
 	$maxDiscipline = 5;
 
 	$sql = "SELECT gen.max_rating, gen.max_discipline
-				FROM " . GVLARP_TABLE_PREFIX . "CHARACTER chara,
-					 " . GVLARP_TABLE_PREFIX . "GENERATION gen
+				FROM " . VTM_TABLE_PREFIX . "CHARACTER chara,
+					 " . VTM_TABLE_PREFIX . "GENERATION gen
 				WHERE chara.generation_id = gen.id
 				  AND chara.ID = %s";
 	$sql = $wpdb->prepare($sql, $characterID);
@@ -397,7 +397,7 @@ function get_character_maximums($characterID) {
 	return array($maxRating, $maxDiscipline);
 }
 
-function render_details_section($type) {
+function vtm_render_details_section($type) {
 	
 	$output = "";
 	$rowoutput = "";
@@ -470,7 +470,7 @@ function render_details_section($type) {
 	
 	return $output;
 }
-function render_stats($characterID, $maxRating, $pendingSpends, $xp_avail) {
+function vtm_render_stats($characterID, $maxRating, $pendingSpends, $xp_avail) {
 	global $wpdb;
 	
 	$output = "";
@@ -488,20 +488,20 @@ function render_stats($characterID, $maxRating, $pendingSpends, $xp_avail) {
 				steps.NEXT_VALUE,
 				NOT(ISNULL(CHARTABLE_LEVEL)) as has_pending, 
 				pendingspend.ID as pending_id
-			FROM " . GVLARP_TABLE_PREFIX . "CHARACTER_STAT cha_stat
+			FROM " . VTM_TABLE_PREFIX . "CHARACTER_STAT cha_stat
 				LEFT JOIN 
 					(SELECT ID, CHARTABLE_LEVEL, CHARTABLE_ID
 					FROM
-						" . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND pending
+						" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND pending
 					WHERE 
 						pending.CHARACTER_ID = %s
 						AND pending.CHARTABLE = 'CHARACTER_STAT'
 					) as pendingspend
 				ON
 					pendingspend.CHARTABLE_ID = cha_stat.id,
-				 " . GVLARP_TABLE_PREFIX . "STAT stat,
-				 " . GVLARP_TABLE_PREFIX . "COST_MODEL_STEP steps,
-				 " . GVLARP_TABLE_PREFIX . "COST_MODEL models
+				 " . VTM_TABLE_PREFIX . "STAT stat,
+				 " . VTM_TABLE_PREFIX . "COST_MODEL_STEP steps,
+				 " . VTM_TABLE_PREFIX . "COST_MODEL models
 			WHERE 
 				cha_stat.STAT_ID      = stat.ID
 				AND steps.COST_MODEL_ID = models.ID
@@ -513,7 +513,7 @@ function render_stats($characterID, $maxRating, $pendingSpends, $xp_avail) {
 	//echo "<p>SQL: $sql</p>";
 	$character_stats_xp = $wpdb->get_results($sql);
 	
-	$rowoutput = render_spend_table('stat', $character_stats_xp, $maxRating, 3, $xp_avail);
+	$rowoutput = vtm_render_spend_table('stat', $character_stats_xp, $maxRating, 3, $xp_avail);
 	
 	if (!empty($rowoutput)) {
 		$output .= "<table>\n";
@@ -524,7 +524,7 @@ function render_stats($characterID, $maxRating, $pendingSpends, $xp_avail) {
 	return $output;
 
 }
-function render_skills($characterID, $maxRating, $pendingSpends, $xp_avail) {
+function vtm_render_skills($characterID, $maxRating, $pendingSpends, $xp_avail) {
 	global $wpdb;
 	
 	$output = "";
@@ -551,20 +551,20 @@ function render_skills($characterID, $maxRating, $pendingSpends, $xp_avail) {
 					NOT(ISNULL(pending.CHARTABLE_LEVEL)) as has_pending, 
 					pending.ID as pending_id
 				FROM
-					" . GVLARP_TABLE_PREFIX . "CHARACTER_SKILL cha_skill
+					" . VTM_TABLE_PREFIX . "CHARACTER_SKILL cha_skill
 					LEFT JOIN
 						(SELECT ID, CHARTABLE_ID, CHARTABLE_LEVEL
 						FROM
-							" . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND
+							" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
 						WHERE
 							CHARACTER_ID = %s
 							AND CHARTABLE = 'CHARACTER_SKILL'
 						) as pending
 					ON
 						pending.CHARTABLE_ID = cha_skill.ID,
-					" . GVLARP_TABLE_PREFIX . "SKILL skill,
-					" . GVLARP_TABLE_PREFIX . "COST_MODEL_STEP steps,
-					" . GVLARP_TABLE_PREFIX . "COST_MODEL models
+					" . VTM_TABLE_PREFIX . "SKILL skill,
+					" . VTM_TABLE_PREFIX . "COST_MODEL_STEP steps,
+					" . VTM_TABLE_PREFIX . "COST_MODEL models
 				WHERE
 					cha_skill.CHARACTER_ID = %s
 					AND cha_skill.SKILL_ID = skill.ID
@@ -587,10 +587,10 @@ function render_skills($characterID, $maxRating, $pendingSpends, $xp_avail) {
 					1 as has_pending, 
 					pending.ID as pending_id
 				FROM
-					" . GVLARP_TABLE_PREFIX . "SKILL skill,
-					" . GVLARP_TABLE_PREFIX . "COST_MODEL_STEP steps,
-					" . GVLARP_TABLE_PREFIX . "COST_MODEL models,
-					" . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND pending
+					" . VTM_TABLE_PREFIX . "SKILL skill,
+					" . VTM_TABLE_PREFIX . "COST_MODEL_STEP steps,
+					" . VTM_TABLE_PREFIX . "COST_MODEL models,
+					" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND pending
 				WHERE
 					pending.CHARACTER_ID = %s
 					AND pending.CHARTABLE = 'CHARACTER_SKILL'
@@ -608,7 +608,7 @@ function render_skills($characterID, $maxRating, $pendingSpends, $xp_avail) {
 	
 	$sql = $wpdb->prepare($sql, $characterID, $characterID, $characterID, $characterID, $characterID);
     //echo "<p>SQL: $sql</p>";
-	$character_skills_xp = reformat_skills_xp($wpdb->get_results($sql));
+	$character_skills_xp = vtm_reformat_skills_xp($wpdb->get_results($sql));
 	
 	$sql = "SELECT
 				skill.name as name, 
@@ -628,9 +628,9 @@ function render_skills($characterID, $maxRating, $pendingSpends, $xp_avail) {
 				skill.VISIBLE,
 				skill.MULTIPLE
 			FROM
-				" . GVLARP_TABLE_PREFIX . "SKILL skill,
-				" . GVLARP_TABLE_PREFIX . "COST_MODEL_STEP steps,
-				" . GVLARP_TABLE_PREFIX . "COST_MODEL models
+				" . VTM_TABLE_PREFIX . "SKILL skill,
+				" . VTM_TABLE_PREFIX . "COST_MODEL_STEP steps,
+				" . VTM_TABLE_PREFIX . "COST_MODEL models
 			WHERE
 				steps.CURRENT_VALUE = 0
 				AND steps.COST_MODEL_ID = models.ID
@@ -641,7 +641,7 @@ function render_skills($characterID, $maxRating, $pendingSpends, $xp_avail) {
     //echo "<p>SQL: $sql</p>";
 	//print_r($skills_list);
 	
-	$rowoutput = render_skill_spend_table('skill', $skills_list, $character_skills_xp, 
+	$rowoutput = vtm_render_skill_spend_table('skill', $skills_list, $character_skills_xp, 
 						$maxRating, 3, $xp_avail);
 	
 	if (!empty($rowoutput)) {
@@ -654,7 +654,7 @@ function render_skills($characterID, $maxRating, $pendingSpends, $xp_avail) {
 
 }
 
-function render_skills_row ($type, $rownum, $max2display, $maxRating, $datarow, $levelsdata, $xp_avail) {
+function vtm_render_skills_row ($type, $rownum, $max2display, $maxRating, $datarow, $levelsdata, $xp_avail) {
 
 	$fulldoturl    = plugins_url( 'gvlarp-character/images/xpdot.jpg' );
 	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
@@ -748,7 +748,7 @@ function render_skills_row ($type, $rownum, $max2display, $maxRating, $datarow, 
 
 }
 
-function reformat_skills_xp ($input) {
+function vtm_reformat_skills_xp ($input) {
 
 	$arrayout = array();
 	
@@ -768,7 +768,7 @@ function reformat_skills_xp ($input) {
 }
 
 
-function render_disciplines($characterID, $maxRating, $pendingSpends, $xp_avail) {
+function vtm_render_disciplines($characterID, $maxRating, $pendingSpends, $xp_avail) {
 	global $wpdb;
 	
 	$output = "";
@@ -786,11 +786,11 @@ function render_disciplines($characterID, $maxRating, $pendingSpends, $xp_avail)
 				NOT(ISNULL(CHARTABLE_LEVEL)) as has_pending,
 				pendingspend.ID as pending_id
 			FROM
-				" . GVLARP_TABLE_PREFIX . "DISCIPLINE disc
+				" . VTM_TABLE_PREFIX . "DISCIPLINE disc
 				LEFT JOIN
 					(SELECT ID, LEVEL, CHARACTER_ID, DISCIPLINE_ID
 					FROM
-						" . GVLARP_TABLE_PREFIX . "CHARACTER_DISCIPLINE
+						" . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE
 					WHERE
 						CHARACTER_ID = %s
 					) cha_disc
@@ -799,7 +799,7 @@ function render_disciplines($characterID, $maxRating, $pendingSpends, $xp_avail)
 				LEFT JOIN
 					(SELECT ID, CHARTABLE_LEVEL, CHARTABLE_ID, ITEMTABLE_ID
 					FROM
-						" . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND pending
+						" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND pending
 					WHERE	
 						pending.CHARACTER_ID = %s
 						AND pending.CHARTABLE = 'CHARACTER_DISCIPLINE'
@@ -809,9 +809,9 @@ function render_disciplines($characterID, $maxRating, $pendingSpends, $xp_avail)
 				LEFT JOIN
 					(SELECT DISCIPLINE_ID, CLAN_ID
 					FROM
-						" . GVLARP_TABLE_PREFIX . "CLAN clans,
-						" . GVLARP_TABLE_PREFIX . "CLAN_DISCIPLINE cd,
-						" . GVLARP_TABLE_PREFIX . "CHARACTER chars
+						" . VTM_TABLE_PREFIX . "CLAN clans,
+						" . VTM_TABLE_PREFIX . "CLAN_DISCIPLINE cd,
+						" . VTM_TABLE_PREFIX . "CHARACTER chars
 					WHERE
 						chars.ID = %s
 						AND chars.PRIVATE_CLAN_ID = clans.ID
@@ -820,12 +820,12 @@ function render_disciplines($characterID, $maxRating, $pendingSpends, $xp_avail)
 				ON
 					clandisc.DISCIPLINE_ID = disc.id
 				,
-				" . GVLARP_TABLE_PREFIX . "CHARACTER chars,
-				" . GVLARP_TABLE_PREFIX . "CLAN clans,
-				" . GVLARP_TABLE_PREFIX . "COST_MODEL_STEP clansteps,
-				" . GVLARP_TABLE_PREFIX . "COST_MODEL clanmodels,
-				" . GVLARP_TABLE_PREFIX . "COST_MODEL_STEP nonclansteps,
-				" . GVLARP_TABLE_PREFIX . "COST_MODEL nonclanmodels
+				" . VTM_TABLE_PREFIX . "CHARACTER chars,
+				" . VTM_TABLE_PREFIX . "CLAN clans,
+				" . VTM_TABLE_PREFIX . "COST_MODEL_STEP clansteps,
+				" . VTM_TABLE_PREFIX . "COST_MODEL clanmodels,
+				" . VTM_TABLE_PREFIX . "COST_MODEL_STEP nonclansteps,
+				" . VTM_TABLE_PREFIX . "COST_MODEL nonclanmodels
 			WHERE
 				clansteps.COST_MODEL_ID = clanmodels.ID
 				AND clans.CLAN_COST_MODEL_ID = clanmodels.ID
@@ -847,7 +847,7 @@ function render_disciplines($characterID, $maxRating, $pendingSpends, $xp_avail)
     //echo "<p>SQL: $sql</p>";
 	$character_data = $wpdb->get_results($sql);
 	
-	$rowoutput = render_spend_table('disc', $character_data, $maxRating, 3, $xp_avail);
+	$rowoutput = vtm_render_spend_table('disc', $character_data, $maxRating, 3, $xp_avail);
 	
 	if (!empty($rowoutput)) {
 		$output .= "<table>\n";
@@ -858,7 +858,7 @@ function render_disciplines($characterID, $maxRating, $pendingSpends, $xp_avail)
 	return $output;
 
 }
-function render_paths($characterID, $maxRating, $pendingSpends, $xp_avail) {
+function vtm_render_paths($characterID, $maxRating, $pendingSpends, $xp_avail) {
 	global $wpdb;
 	
 	$output = "";
@@ -875,12 +875,12 @@ function render_paths($characterID, $maxRating, $pendingSpends, $xp_avail) {
 				NOT(ISNULL(CHARTABLE_LEVEL)) as has_pending,
 				pendingspend.ID as pending_id
 			FROM
-				" . GVLARP_TABLE_PREFIX . "DISCIPLINE disc,
-				" . GVLARP_TABLE_PREFIX . "PATH path
+				" . VTM_TABLE_PREFIX . "DISCIPLINE disc,
+				" . VTM_TABLE_PREFIX . "PATH path
 				LEFT JOIN
 					(SELECT ID, LEVEL, COMMENT, CHARACTER_ID, PATH_ID
 					FROM
-						" . GVLARP_TABLE_PREFIX . "CHARACTER_PATH
+						" . VTM_TABLE_PREFIX . "CHARACTER_PATH
 					WHERE
 						CHARACTER_ID = %s
 					) cha_path
@@ -889,7 +889,7 @@ function render_paths($characterID, $maxRating, $pendingSpends, $xp_avail) {
 				LEFT JOIN 
 					(SELECT ID, CHARTABLE_LEVEL, CHARTABLE_ID, ITEMTABLE_ID
 					FROM
-						" . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND pending
+						" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND pending
 					WHERE 
 						pending.CHARACTER_ID = %s
 						AND pending.CHARTABLE = 'CHARACTER_PATH'
@@ -899,15 +899,15 @@ function render_paths($characterID, $maxRating, $pendingSpends, $xp_avail) {
 				LEFT JOIN
 					(SELECT *
 					FROM
-						" . GVLARP_TABLE_PREFIX . "CHARACTER_DISCIPLINE 
+						" . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE 
 					WHERE
 						CHARACTER_ID = %s
 					) as char_disc
 				ON
 					char_disc.DISCIPLINE_ID = path.DISCIPLINE_ID
 				,
-				 " . GVLARP_TABLE_PREFIX . "COST_MODEL_STEP steps,
-				 " . GVLARP_TABLE_PREFIX . "COST_MODEL models
+				 " . VTM_TABLE_PREFIX . "COST_MODEL_STEP steps,
+				 " . VTM_TABLE_PREFIX . "COST_MODEL models
 			WHERE 
 				steps.COST_MODEL_ID = models.ID
 				AND path.COST_MODEL_ID = models.ID
@@ -927,7 +927,7 @@ function render_paths($characterID, $maxRating, $pendingSpends, $xp_avail) {
     //echo "<p>SQL: $sql</p>";
 	$character_data = $wpdb->get_results($sql);
 	
-	$rowoutput = render_spend_table('path', $character_data, $maxRating, 3, $xp_avail);
+	$rowoutput = vtm_render_spend_table('path', $character_data, $maxRating, 3, $xp_avail);
 	
 	if (!empty($rowoutput)) {
 		$output .= "<table>\n";
@@ -938,7 +938,7 @@ function render_paths($characterID, $maxRating, $pendingSpends, $xp_avail) {
 	return $output;
 
 }
-function render_rituals($characterID, $maxRating, $pendingSpends, $xp_avail) {
+function vtm_render_rituals($characterID, $maxRating, $pendingSpends, $xp_avail) {
 	global $wpdb;
 	
 	$output = "";
@@ -955,12 +955,12 @@ function render_rituals($characterID, $maxRating, $pendingSpends, $xp_avail) {
 				NOT(ISNULL(CHARTABLE_LEVEL)) as has_pending,
 				pendingspend.ID as pending_id
 			FROM
-				" . GVLARP_TABLE_PREFIX . "DISCIPLINE disc,
-				" . GVLARP_TABLE_PREFIX . "RITUAL ritual
+				" . VTM_TABLE_PREFIX . "DISCIPLINE disc,
+				" . VTM_TABLE_PREFIX . "RITUAL ritual
 				LEFT JOIN
 					(SELECT ID, LEVEL, COMMENT, CHARACTER_ID, RITUAL_ID
 					FROM
-						" . GVLARP_TABLE_PREFIX . "CHARACTER_RITUAL
+						" . VTM_TABLE_PREFIX . "CHARACTER_RITUAL
 					WHERE
 						CHARACTER_ID = %s
 					) cha_ritual
@@ -969,7 +969,7 @@ function render_rituals($characterID, $maxRating, $pendingSpends, $xp_avail) {
 				LEFT JOIN 
 					(SELECT ID, CHARTABLE_LEVEL, CHARTABLE_ID, ITEMTABLE_ID
 					FROM
-						" . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND pending
+						" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND pending
 					WHERE 
 						pending.CHARACTER_ID = %s
 						AND pending.CHARTABLE = 'CHARACTER_RITUAL'
@@ -979,7 +979,7 @@ function render_rituals($characterID, $maxRating, $pendingSpends, $xp_avail) {
 				LEFT JOIN
 					(SELECT *
 					FROM
-						" . GVLARP_TABLE_PREFIX . "CHARACTER_DISCIPLINE 
+						" . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE 
 					WHERE
 						CHARACTER_ID = %s
 					) as char_disc
@@ -995,7 +995,7 @@ function render_rituals($characterID, $maxRating, $pendingSpends, $xp_avail) {
     //echo "<p>SQL: $sql</p>";
 	$character_data = $wpdb->get_results($sql);
 	
-	$rowoutput = render_ritual_spend_table('ritual', $character_data, 2, $xp_avail);
+	$rowoutput = vtm_render_ritual_spend_table('ritual', $character_data, 2, $xp_avail);
 	
 	if (!empty($rowoutput)) {
 		$output .= "<table>\n";
@@ -1007,12 +1007,12 @@ function render_rituals($characterID, $maxRating, $pendingSpends, $xp_avail) {
 
 }
 
-function render_combo($characterID, $pendingSpends, $xp_avail) {
+function vtm_render_combo($characterID, $pendingSpends, $xp_avail) {
 	global $wpdb;
 	
 	$output = "";
 	
-//				" . GVLARP_TABLE_PREFIX . "CHARACTER_COMBO_DISCIPLINE charcombo
+//				" . VTM_TABLE_PREFIX . "CHARACTER_COMBO_DISCIPLINE charcombo
 //				IF(prereq.DISCIPLINE_LEVEL <= chardisc.LEVEL, 1,0) as meets_prereq,
 //				disciplines.NAME as prerequisite_discipline, 
 //				prereq.DISCIPLINE_LEVEL as prerequisite_level,
@@ -1030,11 +1030,11 @@ function render_combo($characterID, $pendingSpends, $xp_avail) {
 				pending.ID as pending_id,
 				combo.VISIBLE
 			FROM
-				" . GVLARP_TABLE_PREFIX . "DISCIPLINE disciplines,
-				" . GVLARP_TABLE_PREFIX . "COMBO_DISCIPLINE combo
+				" . VTM_TABLE_PREFIX . "DISCIPLINE disciplines,
+				" . VTM_TABLE_PREFIX . "COMBO_DISCIPLINE combo
 				LEFT JOIN
 					(SELECT ID, COMBO_DISCIPLINE_ID
-					FROM " . GVLARP_TABLE_PREFIX . "CHARACTER_COMBO_DISCIPLINE 
+					FROM " . VTM_TABLE_PREFIX . "CHARACTER_COMBO_DISCIPLINE 
 					WHERE CHARACTER_ID = %s
 					) as charcombo
 				ON
@@ -1042,7 +1042,7 @@ function render_combo($characterID, $pendingSpends, $xp_avail) {
 				LEFT JOIN
 					(SELECT ID, CHARTABLE_LEVEL, CHARTABLE_ID, ITEMTABLE_ID
 					FROM
-						" . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND
+						" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
 					WHERE 
 						CHARACTER_ID = %s
 						AND CHARTABLE = 'CHARACTER_COMBO_DISCIPLINE'
@@ -1050,10 +1050,10 @@ function render_combo($characterID, $pendingSpends, $xp_avail) {
 				ON
 					pending.ITEMTABLE_ID = combo.ID
 					,
-				" . GVLARP_TABLE_PREFIX . "COMBO_DISCIPLINE_PREREQUISITE prereq
+				" . VTM_TABLE_PREFIX . "COMBO_DISCIPLINE_PREREQUISITE prereq
 				LEFT JOIN
 					(SELECT DISCIPLINE_ID as ID, LEVEL 
-					FROM " . GVLARP_TABLE_PREFIX . "CHARACTER_DISCIPLINE
+					FROM " . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE
 					WHERE CHARACTER_ID = %s
 					) as chardisc
 				ON
@@ -1068,7 +1068,7 @@ function render_combo($characterID, $pendingSpends, $xp_avail) {
 	
 	//print_r($character_data);
 	
-	$rowoutput = render_combo_spend_table('combo', $character_data, $xp_avail);
+	$rowoutput = vtm_render_combo_spend_table('combo', $character_data, $xp_avail);
 	
 	if (!empty($rowoutput)) {
 		$output .= "<table>\n";
@@ -1080,7 +1080,7 @@ function render_combo($characterID, $pendingSpends, $xp_avail) {
 
 }
 
-function render_merits($characterID, $pendingSpends, $xp_avail) {
+function vtm_render_merits($characterID, $pendingSpends, $xp_avail) {
 	global $wpdb;
 	
 	$output = "";
@@ -1099,12 +1099,12 @@ function render_merits($characterID, $pendingSpends, $xp_avail) {
 				pendingspend.ID as pending_id,
 				merit.VISIBLE
 			FROM
-				" . GVLARP_TABLE_PREFIX . "MERIT merit,
-				" . GVLARP_TABLE_PREFIX . "CHARACTER_MERIT cha_merit
+				" . VTM_TABLE_PREFIX . "MERIT merit,
+				" . VTM_TABLE_PREFIX . "CHARACTER_MERIT cha_merit
 				LEFT JOIN 
 					(SELECT ID, CHARTABLE_LEVEL, CHARTABLE_ID, ITEMTABLE_ID, SPECIALISATION
 					FROM
-						" . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND pending
+						" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND pending
 					WHERE 
 						pending.CHARACTER_ID = %s
 						AND pending.CHARTABLE = 'CHARACTER_MERIT'
@@ -1129,8 +1129,8 @@ function render_merits($characterID, $pendingSpends, $xp_avail) {
 				pendingspend.ID as pending_id,
 				merit.VISIBLE
 			FROM
-				" . GVLARP_TABLE_PREFIX . "MERIT merit,
-				" . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND pendingspend
+				" . VTM_TABLE_PREFIX . "MERIT merit,
+				" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND pendingspend
 			WHERE
 				merit.ID = pendingspend.ITEMTABLE_ID
 				AND pendingspend.CHARACTER_ID = %s
@@ -1140,7 +1140,7 @@ function render_merits($characterID, $pendingSpends, $xp_avail) {
 			
 	$sql = $wpdb->prepare($sql, $characterID,$characterID,$characterID);
     //echo "<p>SQL: $sql</p>";
-	$character_merit_xp = reformat_skills_xp($wpdb->get_results($sql));
+	$character_merit_xp = vtm_reformat_skills_xp($wpdb->get_results($sql));
 	
 	$sql = "SELECT
 				merit.ID as item_id,
@@ -1153,12 +1153,12 @@ function render_merits($characterID, $pendingSpends, $xp_avail) {
 				merit.VISIBLE,
 				merit.MULTIPLE
 			FROM
-				" . GVLARP_TABLE_PREFIX . "MERIT merit
+				" . VTM_TABLE_PREFIX . "MERIT merit
 			ORDER BY grp DESC, level DESC, name";
 	$merits_list = $wpdb->get_results($sql);
     //echo "<p>SQL: $sql</p>";
 	
-	$rowoutput = render_merit_spend_table('merit', $merits_list, $character_merit_xp, 2, $xp_avail);
+	$rowoutput = vtm_render_merit_spend_table('merit', $merits_list, $character_merit_xp, 2, $xp_avail);
 	
 	if (!empty($rowoutput)) {
 		$output .= "<table>\n";
@@ -1170,14 +1170,14 @@ function render_merits($characterID, $pendingSpends, $xp_avail) {
 
 }
 
-function render_spend_table($type, $allxpdata, $maxRating, $columns, $xp_avail) {
+function vtm_render_spend_table($type, $allxpdata, $maxRating, $columns, $xp_avail) {
 
 	$fulldoturl    = plugins_url( 'gvlarp-character/images/xpdot.jpg' );
 	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
 	$pendingdoturl = plugins_url( 'gvlarp-character/images/pendingdot.jpg' );
 	$levelsdata    = isset($_REQUEST[$type . '_level']) ? $_REQUEST[$type . '_level'] : array();
 
-	$max2display = get_max_dots($allxpdata, $maxRating);
+	$max2display = vtm_get_max_dots($allxpdata, $maxRating);
 	$colspan = 2 + $max2display;
 	$grp      = "";
 	$grpcount = 0;
@@ -1327,11 +1327,11 @@ function render_spend_table($type, $allxpdata, $maxRating, $columns, $xp_avail) 
 }
 
 
-function render_skill_spend_table($type, $list, $allxpdata, $maxRating, $columns, $xp_avail) {
+function vtm_render_skill_spend_table($type, $list, $allxpdata, $maxRating, $columns, $xp_avail) {
 
 	$levelsdata    = isset($_REQUEST[$type . '_level']) ? $_REQUEST[$type . '_level'] : array();
 
-	$max2display = get_max_dots($allxpdata, $maxRating);
+	$max2display = vtm_get_max_dots($allxpdata, $maxRating);
 	$colspan = 2 + $max2display;
 	$multipleonce = array();
 	$grp = "";
@@ -1367,17 +1367,17 @@ function render_skill_spend_table($type, $list, $allxpdata, $maxRating, $columns
 				//loop through array
 				foreach ($allxpdata[$skill->item_id] as $xpdatarow) {
 					//echo "<li>$id : {$xpdatarow->name} : {$xpdatarow->comment}</li>";
-					$rowoutput .= render_skills_row($type, $id, $max2display, $maxRating, $xpdatarow, $levelsdata, $xp_avail);
+					$rowoutput .= vtm_render_skills_row($type, $id, $max2display, $maxRating, $xpdatarow, $levelsdata, $xp_avail);
 					$id++;
 					if ($skill->MULTIPLE == 'Y' && !array_key_exists($skill->item_id,$multipleonce)) {
 						$multipleonce[$skill->item_id] = 1;
-						$rowoutput .= render_skills_row($type, $id, $max2display, $maxRating, $skill, $levelsdata, $xp_avail);
+						$rowoutput .= vtm_render_skills_row($type, $id, $max2display, $maxRating, $skill, $levelsdata, $xp_avail);
 						$id++;
 					}
 				}
 			} else {
 				if ($skill->VISIBLE == 'Y') {
-					$rowoutput .= render_skills_row($type, $id, $max2display, $maxRating, $skill, $levelsdata, $xp_avail);
+					$rowoutput .= vtm_render_skills_row($type, $id, $max2display, $maxRating, $skill, $levelsdata, $xp_avail);
 					$id++;
 				}
 			}
@@ -1401,14 +1401,14 @@ function render_skill_spend_table($type, $list, $allxpdata, $maxRating, $columns
 	return $rowoutput;
 }
 
-function render_ritual_spend_table($type, $allxpdata, $columns, $xp_avail) {
+function vtm_render_ritual_spend_table($type, $allxpdata, $columns, $xp_avail) {
 
 	$fulldoturl    = plugins_url( 'gvlarp-character/images/xpdot.jpg' );
 	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
 	$pendingdoturl = plugins_url( 'gvlarp-character/images/pendingdot.jpg' );
 	$levelsdata    = isset($_REQUEST[$type . '_level']) ? $_REQUEST[$type . '_level'] : array();
 
-	$max2display = get_max_dots($allxpdata, 5);
+	$max2display = vtm_get_max_dots($allxpdata, 5);
 	$colspan = 3;
 	$grp = "";
 	$grpcount = 0;
@@ -1505,7 +1505,7 @@ function render_ritual_spend_table($type, $allxpdata, $columns, $xp_avail) {
 
 	return $rowoutput;
 }
-function render_combo_spend_table($type, $allxpdata, $xp_avail) {
+function vtm_render_combo_spend_table($type, $allxpdata, $xp_avail) {
 
 	$fulldoturl    = plugins_url( 'gvlarp-character/images/xpdot.jpg' );
 	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
@@ -1585,7 +1585,7 @@ function render_combo_spend_table($type, $allxpdata, $xp_avail) {
 
 	return $rowoutput;
 }
-function render_merit_spend_table($type, $list, $allxpdata, $columns, $xp_avail) {
+function vtm_render_merit_spend_table($type, $list, $allxpdata, $columns, $xp_avail) {
 
 	$levelsdata    = isset($_REQUEST[$type . '_level']) ? $_REQUEST[$type . '_level'] : array();
 
@@ -1622,7 +1622,7 @@ function render_merit_spend_table($type, $list, $allxpdata, $columns, $xp_avail)
 				//loop through array
 				foreach ($allxpdata[$merit->item_id] as $xpdatarow) {
 					//echo "<li>$id : {$xpdatarow->name} : {$xpdatarow->comment}</li>";
-					$rowoutput .= render_merits_row($type, $id, $xpdatarow, $levelsdata, $xp_avail);
+					$rowoutput .= vtm_render_merits_row($type, $id, $xpdatarow, $levelsdata, $xp_avail);
 					$id++;
 					if ($merit->MULTIPLE == 'Y' 
 						&& !array_key_exists($merit->item_id,$multipleonce)
@@ -1631,7 +1631,7 @@ function render_merit_spend_table($type, $list, $allxpdata, $columns, $xp_avail)
 						) {
 						//echo "<li>$id : {$merit->name} : {$merit->comment}</li>";
 						$multipleonce[$merit->item_id] = 1;
-						$rowoutput .= render_merits_row($type, $id, $merit, $levelsdata, $xp_avail);
+						$rowoutput .= vtm_render_merits_row($type, $id, $merit, $levelsdata, $xp_avail);
 						$id++;
 					}
 				}
@@ -1639,7 +1639,7 @@ function render_merit_spend_table($type, $list, $allxpdata, $columns, $xp_avail)
 				//if ($merit->XP_COST > 0)
 					//$rowoutput .= "<tr><td><li>$id : {$merit->name} : ({$merit->VISIBLE} / lvl {$merit->level}) {$merit->comment}</li></td><tr>";
 				if ($merit->VISIBLE == 'Y' && $merit->level >= 0 && $merit->XP_COST > 0 ) {
-					$rowoutput .= render_merits_row($type, $id, $merit, $levelsdata, $xp_avail);
+					$rowoutput .= vtm_render_merits_row($type, $id, $merit, $levelsdata, $xp_avail);
 					$id++;
 				}
 			}
@@ -1654,7 +1654,7 @@ function render_merit_spend_table($type, $list, $allxpdata, $columns, $xp_avail)
 	return $rowoutput;
 }
 
-function render_merits_row ($type, $id, $xpdata, $levelsdata, $xp_avail) {
+function vtm_render_merits_row ($type, $id, $xpdata, $levelsdata, $xp_avail) {
 
 	$fulldoturl    = plugins_url( 'gvlarp-character/images/xpdot.jpg' );
 	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
@@ -1733,7 +1733,7 @@ function render_merits_row ($type, $id, $xpdata, $levelsdata, $xp_avail) {
 	return $rowoutput;
 }
 
-function get_max_dots($data, $maxRating) {
+function vtm_get_max_dots($data, $maxRating) {
 	$max2display = 5;
 	if ($maxRating > 5)
 		$max2display = 10;
@@ -1756,7 +1756,7 @@ function get_max_dots($data, $maxRating) {
 	return $max2display;
 }
 
-function pending_level ($pendingdata, $chartableid, $itemid) {
+function vtm_pending_level ($pendingdata, $chartableid, $itemid) {
 
 	$result = 0;
 		
@@ -1778,7 +1778,7 @@ function pending_level ($pendingdata, $chartableid, $itemid) {
 	return $result;
 
 }
-function pending_id ($pendingdata, $chartableid, $itemid) {
+function vtm_pending_id ($pendingdata, $chartableid, $itemid) {
 
 	$result = 0;
 		
@@ -1801,7 +1801,7 @@ function pending_id ($pendingdata, $chartableid, $itemid) {
 
 }
 
-function pending_training ($pendingdata, $chartableid, $itemid) {
+function vtm_pending_training ($pendingdata, $chartableid, $itemid) {
 
 	$result = 0;
 		
@@ -1824,7 +1824,7 @@ function pending_training ($pendingdata, $chartableid, $itemid) {
 
 }
 
-function calc_submitted_spend($type) {
+function vtm_calc_submitted_spend($type) {
 	$spend = 0;
 
 	$costs =  $_REQUEST[$type . '_cost'];
@@ -1840,7 +1840,7 @@ function calc_submitted_spend($type) {
 	
 }
 
-function render_ritual_row($xpdata, $pending, $levelsdata,
+function vtm_render_ritual_row($xpdata, $pending, $levelsdata,
 						$training, $trainerrors, $traindefault, $max2display,
 						$pendingdoturl) {
 
@@ -1857,7 +1857,7 @@ function render_ritual_row($xpdata, $pending, $levelsdata,
 	$output .= "<th colspan=2 class='gvthleft'>" . $xpdata->name . "\n";
 	$output .= " </th>\n";
 
-	$pendinglvl = pending_level($pending, $xpdata->id, $xpdata->item_id);
+	$pendinglvl = vtm_pending_level($pending, $xpdata->id, $xpdata->item_id);
 
 	$radiogroup = "ritual_level[" . $id . "]";
 	$radiovalue = $xpdata->level;
@@ -1897,7 +1897,7 @@ function render_ritual_row($xpdata, $pending, $levelsdata,
 	if ($trainerrors[$id])
 		$output .= " class='gvcol_error'";
 	if ($pendinglvl)
-		$output .= ">" . pending_training($pending, $xpdata->id, $xpdata->item_id) . "</td></tr></td>";
+		$output .= ">" . vtm_pending_training($pending, $xpdata->id, $xpdata->item_id) . "</td></tr></td>";
 	else
 		$output .= "><input type='text'  name='ritual_training[" . $id . "]' value='" . $trainingString ."' size=30 maxlength=160 /></td></tr></td>";
 
@@ -1906,7 +1906,7 @@ function render_ritual_row($xpdata, $pending, $levelsdata,
 	return $output;
 }
 
-function save_to_pending ($type, $table, $itemtable, $itemidname, $playerID, $characterID) {
+function vtm_save_to_pending ($type, $table, $itemtable, $itemidname, $playerID, $characterID) {
 	global $wpdb;
 
 	$newid = "";
@@ -1943,7 +1943,7 @@ function save_to_pending ($type, $table, $itemtable, $itemidname, $playerID, $ch
 				'ITEMTABLE_ID'    => $itemid[$index]
 			);
 			
-			$wpdb->insert(GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND",
+			$wpdb->insert(VTM_TABLE_PREFIX . "PENDING_XP_SPEND",
 						$dataarray,
 						array (
 							'%d',
@@ -1977,7 +1977,7 @@ function save_to_pending ($type, $table, $itemtable, $itemidname, $playerID, $ch
 							
 }
 
-function save_merit_to_pending ($type, $table, $itemtable, $itemidname, $playerID, $characterID) {
+function vtm_save_merit_to_pending ($type, $table, $itemtable, $itemidname, $playerID, $characterID) {
 	global $wpdb;
 
 	$newid = "";
@@ -2014,7 +2014,7 @@ function save_merit_to_pending ($type, $table, $itemtable, $itemidname, $playerI
 				'ITEMTABLE_ID'    => $itemid[$index]
 			);
 			
-			$wpdb->insert(GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND",
+			$wpdb->insert(VTM_TABLE_PREFIX . "PENDING_XP_SPEND",
 						$dataarray,
 						array (
 							'%d',
@@ -2049,10 +2049,10 @@ function save_merit_to_pending ($type, $table, $itemtable, $itemidname, $playerI
 }
 
 
-/* function get_total_xp($characterID) {
+/* function vtm_get_total_xp($characterID) {
 	global $wpdb;
 	
-	$sql = "SELECT SUM(AMOUNT) as COST FROM " . GVLARP_TABLE_PREFIX . "PLAYER_XP WHERE CHARACTER_ID = %s";
+	$sql = "SELECT SUM(AMOUNT) as COST FROM " . VTM_TABLE_PREFIX . "PLAYER_XP WHERE CHARACTER_ID = %s";
 
 	$sql = $wpdb->prepare($sql, $characterID);
 	$result = $wpdb->get_results($sql);
@@ -2061,10 +2061,10 @@ function save_merit_to_pending ($type, $table, $itemtable, $itemidname, $playerI
 	return $xptotal;
 }
  */
-function get_pending_xp($characterID) {
+function vtm_get_pending_xp($characterID) {
 	global $wpdb;
 	
-	$sql = "SELECT SUM(AMOUNT) as COST FROM " . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND
+	$sql = "SELECT SUM(AMOUNT) as COST FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
 			WHERE CHARACTER_ID = %s";
 	$sql = $wpdb->prepare($sql, $characterID);
 	$result = $wpdb->get_results($sql);
@@ -2073,10 +2073,10 @@ function get_pending_xp($characterID) {
 	return $xp_pending;
 }
 
-function establishPrivateClanID($characterID) {
+function vtm_establishPrivateClanID($characterID) {
 	global $wpdb;
 	
-	$sql = "SELECT PRIVATE_CLAN_ID FROM " . GVLARP_TABLE_PREFIX . "CHARACTER WHERE ID = %s";
+	$sql = "SELECT PRIVATE_CLAN_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s";
 	$sql = $wpdb->prepare($sql, $characterID);
 	/* echo "<pre>$sql</pre>"; */
 	$result = $wpdb->get_results($sql);
@@ -2084,11 +2084,11 @@ function establishPrivateClanID($characterID) {
 	return $result[0]->PRIVATE_CLAN_ID;
 }
 
-function cancel_pending($data) {
+function vtm_cancel_pending($data) {
 	global $wpdb;
 	
 	foreach ($data as $pendingid => $button) {
-		$sql = "DELETE FROM " . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND
+		$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
 				WHERE ID = %d";
 		$sql = $wpdb->prepare($sql, $pendingid);
 		/* echo "<p>SQL: $sql</p>"; */
@@ -2096,7 +2096,7 @@ function cancel_pending($data) {
 	}
 }
 
-function validate_spends($playerID, $characterID, $docancel) {
+function vtm_validate_spends($playerID, $characterID, $docancel) {
 
 	$xp_total   = get_total_xp($playerID, $characterID);
 	$xp_pending = get_pending_xp($characterID);
@@ -2126,7 +2126,7 @@ function validate_spends($playerID, $characterID, $docancel) {
 	return $outputError;
 	
 }
-function validate_details($characterID) {
+function vtm_validate_details($characterID) {
 
 	$outputError = "";
 	

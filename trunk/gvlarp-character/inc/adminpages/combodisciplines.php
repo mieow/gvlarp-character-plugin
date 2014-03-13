@@ -1,11 +1,11 @@
 <?php
 
 
-function render_combo_page(){
+function vtm_render_combo_page(){
 
 
-    $testListTable["combo"] = new gvadmin_combo_table();
-	$doaction = combo_input_validation("combo");
+    $testListTable["combo"] = new vtmclass_admin_combo_table();
+	$doaction = vtm_combo_input_validation("combo");
 	
 	/* echo "<p>action: $doaction</p>"; */
 	
@@ -16,7 +16,7 @@ function render_combo_page(){
 		$testListTable["combo"]->edit();				
 	}
 
-	render_combo_add_form("combo", $doaction);
+	vtm_render_combo_add_form("combo", $doaction);
 	$testListTable["combo"]->prepare_items();
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
@@ -31,7 +31,7 @@ function render_combo_page(){
     <?php 
 }
 
-function render_combo_add_form($type, $addaction) {
+function vtm_render_combo_add_form($type, $addaction) {
 	global $wpdb;
 
 	$id   = isset($_REQUEST['combo']) ? $_REQUEST['combo'] : '';
@@ -48,7 +48,7 @@ function render_combo_add_form($type, $addaction) {
 		$nextaction = $_REQUEST['action'];
 
 	} elseif ('edit-' . $type == $addaction) {
-		$sql = "SELECT * FROM " . GVLARP_TABLE_PREFIX . "COMBO_DISCIPLINE WHERE ID = %s";
+		$sql = "SELECT * FROM " . VTM_TABLE_PREFIX . "COMBO_DISCIPLINE WHERE ID = %s";
 		$sql = $wpdb->prepare($sql, $id);
 		$data =$wpdb->get_row($sql);
 		
@@ -61,8 +61,8 @@ function render_combo_add_form($type, $addaction) {
 		
 		$sql = "SELECT  disc.ID, prereq.DISCIPLINE_LEVEL
 				FROM 
-					" . GVLARP_TABLE_PREFIX . "COMBO_DISCIPLINE_PREREQUISITE prereq,
-					" . GVLARP_TABLE_PREFIX . "DISCIPLINE disc
+					" . VTM_TABLE_PREFIX . "COMBO_DISCIPLINE_PREREQUISITE prereq,
+					" . VTM_TABLE_PREFIX . "DISCIPLINE disc
 				WHERE 
 					COMBO_DISCIPLINE_ID = %d
 					AND disc.ID = prereq.DISCIPLINE_ID";
@@ -100,7 +100,7 @@ function render_combo_add_form($type, $addaction) {
 			<td>
 				<select name="<?php print $type; ?>_sourcebook">
 						<?php
-							foreach (get_booknames() as $book) {
+							foreach (vtm_get_booknames() as $book) {
 								print "<option value='{$book->ID}' ";
 								($book->ID == $sourcebook) ? print "selected" : print "";
 								echo ">{$book->NAME}</option>";
@@ -132,7 +132,7 @@ function render_combo_add_form($type, $addaction) {
 			<table>
 			<?php
 				$col = 1;
-				foreach(get_disciplines() as $disc) {
+				foreach(vtm_get_disciplines() as $disc) {
 
 					$prereq = (isset($prerequisites[$disc->ID]->DISCIPLINE_LEVEL) && $prerequisites[$disc->ID]->DISCIPLINE_LEVEL) 
 								? $prerequisites[$disc->ID]->DISCIPLINE_LEVEL 
@@ -161,7 +161,7 @@ function render_combo_add_form($type, $addaction) {
 
 }
 
-function combo_input_validation($type) {
+function vtm_combo_input_validation($type) {
 	
 	$doaction = '';
 	
@@ -203,7 +203,7 @@ function combo_input_validation($type) {
 
 
 
-class gvadmin_combo_table extends GVMultiPage_ListTable {
+class vtmclass_admin_combo_table extends vtmclass_MultiPage_ListTable {
    
     function __construct(){
         global $status, $page;
@@ -228,7 +228,7 @@ class gvadmin_combo_table extends GVMultiPage_ListTable {
 						'VISIBLE'        => $_REQUEST['combo_visible']
 					);
 				
-		$wpdb->insert(GVLARP_TABLE_PREFIX . "COMBO_DISCIPLINE",
+		$wpdb->insert(VTM_TABLE_PREFIX . "COMBO_DISCIPLINE",
 					$dataarray,
 					array ('%s', '%s', '%d', '%d', '%d','%s')
 				);
@@ -251,7 +251,7 @@ class gvadmin_combo_table extends GVMultiPage_ListTable {
 						'DISCIPLINE_LEVEL'    => $value
 					);
 					
-					$wpdb->insert(GVLARP_TABLE_PREFIX . "COMBO_DISCIPLINE_PREREQUISITE",
+					$wpdb->insert(VTM_TABLE_PREFIX . "COMBO_DISCIPLINE_PREREQUISITE",
 						$dataarray, array ('%d', '%d', '%d')
 					);
 					
@@ -288,7 +288,7 @@ class gvadmin_combo_table extends GVMultiPage_ListTable {
 						'VISIBLE'        => $_REQUEST['combo_visible']
 					);
 		
-		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "COMBO_DISCIPLINE",
+		$result = $wpdb->update(VTM_TABLE_PREFIX . "COMBO_DISCIPLINE",
 					$dataarray,
 					array (
 						'ID' => $_REQUEST['combo']
@@ -304,7 +304,7 @@ class gvadmin_combo_table extends GVMultiPage_ListTable {
 		
 		if (!$fail) {
 			// remove all current pre-requisites for this combo-discipline
-			$sql = "DELETE FROM " . GVLARP_TABLE_PREFIX . "COMBO_DISCIPLINE_PREREQUISITE
+			$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "COMBO_DISCIPLINE_PREREQUISITE
 					WHERE COMBO_DISCIPLINE_ID = %d";
 			$sql = $wpdb->prepare($sql, $_REQUEST['combo']);
 			$result = $wpdb->get_results($sql);
@@ -318,7 +318,7 @@ class gvadmin_combo_table extends GVMultiPage_ListTable {
 						'DISCIPLINE_LEVEL'    => $value
 					);
 					
-					$wpdb->insert(GVLARP_TABLE_PREFIX . "COMBO_DISCIPLINE_PREREQUISITE",
+					$wpdb->insert(VTM_TABLE_PREFIX . "COMBO_DISCIPLINE_PREREQUISITE",
 						$dataarray, array ('%d', '%d', '%d')
 					);
 					
@@ -349,9 +349,9 @@ class gvadmin_combo_table extends GVMultiPage_ListTable {
 		
 		$sql = "select characters.NAME
 				from 
-					" . GVLARP_TABLE_PREFIX . "CHARACTER characters,
-					" . GVLARP_TABLE_PREFIX . "CHARACTER_COMBO_DISCIPLINE charcombos,
-					" . GVLARP_TABLE_PREFIX . "COMBO_DISCIPLINE combos
+					" . VTM_TABLE_PREFIX . "CHARACTER characters,
+					" . VTM_TABLE_PREFIX . "CHARACTER_COMBO_DISCIPLINE charcombos,
+					" . VTM_TABLE_PREFIX . "COMBO_DISCIPLINE combos
 				where 
 					characters.ID = charcombos.CHARACTER_ID 
 					and combos.ID = charcombos.COMBO_DISCIPLINE_ID
@@ -368,9 +368,9 @@ class gvadmin_combo_table extends GVMultiPage_ListTable {
 			
 		} else {
 		
-			$sql = "delete from " . GVLARP_TABLE_PREFIX . "COMBO_DISCIPLINE_PREREQUISITE where COMBO_DISCIPLINE_ID = %d;";
+			$sql = "delete from " . VTM_TABLE_PREFIX . "COMBO_DISCIPLINE_PREREQUISITE where COMBO_DISCIPLINE_ID = %d;";
 			$result = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
-			$sql = "delete from " . GVLARP_TABLE_PREFIX . "COMBO_DISCIPLINE where ID = %d;";
+			$sql = "delete from " . VTM_TABLE_PREFIX . "COMBO_DISCIPLINE where ID = %d;";
 			$result = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
 			echo "<p style='color:green'>Deleted combo $selectedID</p>";
@@ -500,8 +500,8 @@ class gvadmin_combo_table extends GVMultiPage_ListTable {
 		/* Get the data from the database */
 		$sql = "SELECT combo.*, books.name as BOOKNAME
 				FROM
-					" . GVLARP_TABLE_PREFIX . "COMBO_DISCIPLINE combo,
-					" . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books
+					" . VTM_TABLE_PREFIX . "COMBO_DISCIPLINE combo,
+					" . VTM_TABLE_PREFIX . "SOURCE_BOOK books
 				WHERE
 					books.ID = combo.SOURCE_BOOK_ID";
 							
@@ -514,8 +514,8 @@ class gvadmin_combo_table extends GVMultiPage_ListTable {
 		// Get the combo pre-requisite discipline data
 		$sql = "SELECT prereq.COMBO_DISCIPLINE_ID , dis.NAME as discipline, prereq.DISCIPLINE_LEVEL as level 
 				FROM 
-					" . GVLARP_TABLE_PREFIX . "COMBO_DISCIPLINE_PREREQUISITE prereq,
-					" . GVLARP_TABLE_PREFIX . "DISCIPLINE dis
+					" . VTM_TABLE_PREFIX . "COMBO_DISCIPLINE_PREREQUISITE prereq,
+					" . VTM_TABLE_PREFIX . "DISCIPLINE dis
 				WHERE dis.ID = prereq.DISCIPLINE_ID";
 		$pre = $wpdb->get_results($sql);
 		$this->prerequisites = $this->reformat_info($pre);

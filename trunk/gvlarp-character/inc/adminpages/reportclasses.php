@@ -1,7 +1,7 @@
 <?php
-require_once GVLARP_CHARACTER_URL . 'inc/classes.php';
+require_once VTM_CHARACTER_URL . 'inc/classes.php';
 
-class gvreport_flaws extends GVReport_ListTable {
+class vtmclass_report_flaws extends vtmclass_Report_ListTable {
 
     function column_default($item, $column_name){
         switch($column_name){
@@ -124,11 +124,11 @@ class gvreport_flaws extends GVReport_ListTable {
 		$sql = "SELECT players.NAME as PLAYERNAME, characters.NAME as CHARACTERNAME, merits.NAME as MERIT, charmerit.LEVEL, charmerit.COMMENT,
 					charmerit.APPROVED_DETAIL as DETAIL, CONCAT(sourcebooks.NAME, \", p\" , merits.PAGE_NUMBER) as SOURCEBOOK
 				FROM
-					" . GVLARP_TABLE_PREFIX. "PLAYER players,
-					" . GVLARP_TABLE_PREFIX. "CHARACTER characters,
-					" . GVLARP_TABLE_PREFIX. "MERIT merits,
-					" . GVLARP_TABLE_PREFIX. "CHARACTER_MERIT charmerit,
-					" . GVLARP_TABLE_PREFIX. "SOURCE_BOOK sourcebooks
+					" . VTM_TABLE_PREFIX. "PLAYER players,
+					" . VTM_TABLE_PREFIX. "CHARACTER characters,
+					" . VTM_TABLE_PREFIX. "MERIT merits,
+					" . VTM_TABLE_PREFIX. "CHARACTER_MERIT charmerit,
+					" . VTM_TABLE_PREFIX. "SOURCE_BOOK sourcebooks
 				WHERE
 					players.ID = characters.PLAYER_ID
 					AND characters.ID = charmerit.CHARACTER_ID
@@ -176,7 +176,7 @@ class gvreport_flaws extends GVReport_ListTable {
 	}
 }
 
-class gvreport_quotes extends GVReport_ListTable {
+class vtmclass_report_quotes extends vtmclass_Report_ListTable {
 
     function column_default($item, $column_name){
         switch($column_name){
@@ -245,10 +245,10 @@ class gvreport_quotes extends GVReport_ListTable {
 				
 		$sql = "SELECT players.NAME as PLAYERNAME, characters.NAME as CHARACTERNAME, profiles.QUOTE, clans.NAME as CLAN
 				FROM
-					" . GVLARP_TABLE_PREFIX. "PLAYER players,
-					" . GVLARP_TABLE_PREFIX. "CHARACTER characters,
-					" . GVLARP_TABLE_PREFIX. "CHARACTER_PROFILE profiles,
-					" . GVLARP_TABLE_PREFIX. "CLAN clans
+					" . VTM_TABLE_PREFIX. "PLAYER players,
+					" . VTM_TABLE_PREFIX. "CHARACTER characters,
+					" . VTM_TABLE_PREFIX. "CHARACTER_PROFILE profiles,
+					" . VTM_TABLE_PREFIX. "CLAN clans
 				WHERE
 					players.ID = characters.PLAYER_ID
 					AND characters.ID = profiles.CHARACTER_ID
@@ -287,7 +287,7 @@ class gvreport_quotes extends GVReport_ListTable {
 }
 
 
-class gvreport_prestige extends GVReport_ListTable {
+class vtmclass_report_prestige extends vtmclass_Report_ListTable {
 
     function column_default($item, $column_name){
         switch($column_name){
@@ -378,12 +378,12 @@ class gvreport_prestige extends GVReport_ListTable {
 		
 		$subtable = "SELECT charbgs.CHARACTER_ID as CHARACTER_ID, charbgs.LEVEL as LEVEL, charbgs.COMMENT as COMMENT
 						FROM
-							" . GVLARP_TABLE_PREFIX. "PLAYER players, 
-							" . GVLARP_TABLE_PREFIX. "CHARACTER_BACKGROUND charbgs,
-							" . GVLARP_TABLE_PREFIX. "BACKGROUND backgrounds,
-							" . GVLARP_TABLE_PREFIX. "CLAN pubclans, 
-							" . GVLARP_TABLE_PREFIX. "CLAN privclans, 
-							" . GVLARP_TABLE_PREFIX. "CHARACTER characters
+							" . VTM_TABLE_PREFIX. "PLAYER players, 
+							" . VTM_TABLE_PREFIX. "CHARACTER_BACKGROUND charbgs,
+							" . VTM_TABLE_PREFIX. "BACKGROUND backgrounds,
+							" . VTM_TABLE_PREFIX. "CLAN pubclans, 
+							" . VTM_TABLE_PREFIX. "CLAN privclans, 
+							" . VTM_TABLE_PREFIX. "CHARACTER characters
 						WHERE
 							charbgs.BACKGROUND_ID = backgrounds.ID
 							AND players.ID = characters.PLAYER_ID
@@ -398,10 +398,10 @@ class gvreport_prestige extends GVReport_ListTable {
 					pubclans.NAME as PUBLIC_CLAN, privclans.NAME as PRIVATE_CLAN, 
 					TBGRND.LEVEL, TBGRND.COMMENT
 				FROM 
-					" . GVLARP_TABLE_PREFIX. "PLAYER players, 
-					" . GVLARP_TABLE_PREFIX. "CLAN pubclans, 
-					" . GVLARP_TABLE_PREFIX. "CLAN privclans, 
-					" . GVLARP_TABLE_PREFIX. "CHARACTER characters
+					" . VTM_TABLE_PREFIX. "PLAYER players, 
+					" . VTM_TABLE_PREFIX. "CLAN pubclans, 
+					" . VTM_TABLE_PREFIX. "CLAN privclans, 
+					" . VTM_TABLE_PREFIX. "CHARACTER characters
 					LEFT JOIN 
 						($subtable) as TBGRND 
 					ON 
@@ -446,7 +446,7 @@ class gvreport_prestige extends GVReport_ListTable {
 	}
 }
 
-class gvreport_signin extends GVReport_ListTable {
+class vtmclass_report_signin extends vtmclass_Report_ListTable {
 
     function column_default($item, $column_name){
         switch($column_name){
@@ -462,19 +462,6 @@ class gvreport_signin extends GVReport_ListTable {
                 return print_r($item,true); 
         }
     }
-	
-	// function column_background($item) {
-		
-		// $alldone = $item->bgdone + $item->mfdone + $item->qdone;
-		// $all2do  = $item->bg2do + $item->mf2do + $this->totalqs;
-		
-		// if ($all2do <= 0)
-			// $out = "No questions";
-		// else
-			// $out = sprintf ("%.0f%% Complete", $alldone * 100 / $all2do);
-	
-		// return $out;
-	// }
 
     function get_columns(){
         $columns = array(
@@ -517,7 +504,7 @@ class gvreport_signin extends GVReport_ListTable {
         return $sortable_columns;
     }
 	
-	/* function set_line_height() {
+	/* function vtm_set_line_height() {
 		return 10;
 	} */
 
@@ -533,22 +520,22 @@ class gvreport_signin extends GVReport_ListTable {
 		
 		$filterinfo = $this->get_filter_sql();
 		
-		$sql = "SELECT COUNT(ID) as total2do FROM " . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND WHERE VISIBLE = 'Y'";
+		$sql = "SELECT COUNT(ID) as total2do FROM " . VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND WHERE VISIBLE = 'Y'";
 		$this->totalqs += $wpdb->get_var($sql);
 		
 		$sql = "SELECT characters.NAME as CHARACTERNAME, players.NAME as PLAYERNAME, \"\" as SIGNATURE,
 					CONCAT(FORMAT((IFNULL(SUM(bginfo.TOTALDONE),0) + IFNULL(SUM(mfinfo.TOTALDONE),0) + IFNULL(SUM(qinfo.TOTALDONE),0)) * 100 /
 					(IFNULL(SUM(bginfo.TOTAL2DO),0) + IFNULL(SUM(mfinfo.TOTAL2DO),0) + IFNULL(SUM(totalqs.TOTAL2DO),0)),0),'%%') as BACKGROUND 
 				FROM 
-					" . GVLARP_TABLE_PREFIX. "PLAYER players, 
-					" . GVLARP_TABLE_PREFIX. "CHARACTER characters
+					" . VTM_TABLE_PREFIX. "PLAYER players, 
+					" . VTM_TABLE_PREFIX. "CHARACTER characters
 					LEFT JOIN (
 						SELECT charbgs.CHARACTER_ID, 
 							COUNT(backgrounds.BACKGROUND_QUESTION) AS TOTAL2DO, 
 							COUNT(charbgs.APPROVED_DETAIL) AS TOTALDONE
 						FROM
-							" . GVLARP_TABLE_PREFIX . "BACKGROUND backgrounds,
-							" . GVLARP_TABLE_PREFIX . "CHARACTER_BACKGROUND charbgs
+							" . VTM_TABLE_PREFIX . "BACKGROUND backgrounds,
+							" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND charbgs
 						WHERE
 							backgrounds.ID = charbgs.BACKGROUND_ID
 							and	(backgrounds.BACKGROUND_QUESTION != '' OR charbgs.SECTOR_ID > 0)
@@ -561,8 +548,8 @@ class gvreport_signin extends GVReport_ListTable {
 							COUNT(charmerits.APPROVED_DETAIL) as TOTALDONE, 
 							COUNT(merits.BACKGROUND_QUESTION) as TOTAL2DO
 						FROM
-							" . GVLARP_TABLE_PREFIX . "MERIT merits,
-							" . GVLARP_TABLE_PREFIX . "CHARACTER_MERIT charmerits
+							" . VTM_TABLE_PREFIX . "MERIT merits,
+							" . VTM_TABLE_PREFIX . "CHARACTER_MERIT charmerits
 						WHERE
 							merits.ID = charmerits.MERIT_ID
 							AND	merits.BACKGROUND_QUESTION != ''
@@ -574,8 +561,8 @@ class gvreport_signin extends GVReport_ListTable {
 						SELECT charquest.CHARACTER_ID,
 							COUNT(questions.ID) AS TOTALDONE
 						FROM
-							" . GVLARP_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND as charquest,
-							" . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND as questions
+							" . VTM_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND as charquest,
+							" . VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND as questions
 						WHERE
 							charquest.QUESTION_ID = questions.ID
 							AND questions.VISIBLE = 'Y'
@@ -584,7 +571,7 @@ class gvreport_signin extends GVReport_ListTable {
 					) as qinfo
 					ON
 						characters.ID = qinfo.CHARACTER_ID,
-					(SELECT COUNT(ID) as total2do FROM " . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND WHERE VISIBLE = 'Y')
+					(SELECT COUNT(ID) as total2do FROM " . VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND WHERE VISIBLE = 'Y')
 					as totalqs
 				WHERE 
 					players.ID = characters.PLAYER_ID
@@ -626,7 +613,7 @@ class gvreport_signin extends GVReport_ListTable {
 }
 
 
-class gvreport_sect extends GVReport_ListTable {
+class vtmclass_report_sect extends vtmclass_Report_ListTable {
 
     function column_default($item, $column_name){
         switch($column_name){
@@ -699,9 +686,9 @@ class gvreport_sect extends GVReport_ListTable {
 		
 		$sql = "SELECT characters.NAME as CHARACTERNAME, players.NAME as PLAYERNAME, sects.NAME as SECT
 				FROM 
-					" . GVLARP_TABLE_PREFIX. "PLAYER players, 
-					" . GVLARP_TABLE_PREFIX. "CHARACTER characters,
-					" . GVLARP_TABLE_PREFIX. "SECT sects
+					" . VTM_TABLE_PREFIX. "PLAYER players, 
+					" . VTM_TABLE_PREFIX. "CHARACTER characters,
+					" . VTM_TABLE_PREFIX. "SECT sects
 				WHERE 
 					players.ID = characters.PLAYER_ID
 					AND sects.ID = characters.SECT_ID

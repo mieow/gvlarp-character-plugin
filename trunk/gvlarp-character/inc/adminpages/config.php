@@ -1,7 +1,7 @@
 <?php
 
 
-function character_config() {
+function vtm_character_config() {
 	global $wpdb;
 
 	if ( !current_user_can( 'manage_options' ) )  {
@@ -16,7 +16,7 @@ function character_config() {
 		
 			if (isset($_REQUEST['save_options'])) {
 			
-				$sql = "SELECT ID FROM " . GVLARP_TABLE_PREFIX . "CONFIG ORDER BY ID";
+				$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "CONFIG ORDER BY ID";
 				$configid = $wpdb->get_var($sql);
 			
 				$wpdb->show_errors();
@@ -31,7 +31,7 @@ function character_config() {
 					'DEFAULT_GENERATION_ID' => $_REQUEST['generation'],
 				);
 				
-				$result = $wpdb->update(GVLARP_TABLE_PREFIX . "CONFIG",
+				$result = $wpdb->update(VTM_TABLE_PREFIX . "CONFIG",
 					$dataarray,
 					array (
 						'ID' => $configid
@@ -49,7 +49,7 @@ function character_config() {
 				}
 				
 			}
-			$sql = "select * from " . GVLARP_TABLE_PREFIX . "CONFIG;";
+			$sql = "select * from " . VTM_TABLE_PREFIX . "CONFIG;";
 			$options = $wpdb->get_results($wpdb->prepare($sql,''));
 		?>
 
@@ -68,7 +68,7 @@ function character_config() {
 				<td>
 				<select name="homedomain">
 					<?php
-					foreach (get_domains() as $domain) {
+					foreach (vtm_get_domains() as $domain) {
 						echo '<option value="' . $domain->ID . '" ';
 						selected( $options[0]->HOME_DOMAIN_ID, $domain->ID );
 						echo '>' . $domain->NAME , '</option>';
@@ -82,7 +82,7 @@ function character_config() {
 				<td>
 				<select name="homesect">
 					<?php
-					foreach (get_sects() as $sect) {
+					foreach (vtm_get_sects() as $sect) {
 						echo '<option value="' . $sect->ID . '" ';
 						selected( $options[0]->HOME_SECT_ID, $sect->ID );
 						echo '>' . $sect->NAME , '</option>';
@@ -109,7 +109,7 @@ function character_config() {
 				<select name="displaybg">
 					<option value="0">Not displayed</option>
 					<?php
-					foreach (get_backgrounds() as $bg) {
+					foreach (vtm_get_backgrounds() as $bg) {
 						echo '<option value="' . $bg->ID . '" ';
 						selected( $options[0]->DISPLAY_BACKGROUND_IN_PROFILE, $bg->ID );
 						echo '>' . $bg->NAME , '</option>';
@@ -122,7 +122,7 @@ function character_config() {
 				<td>
 				<select name="generation">
 					<?php
-					foreach (get_generations() as $gen) {
+					foreach (vtm_get_generations() as $gen) {
 						echo '<option value="' . $gen->ID . '" ';
 						selected( $options[0]->DEFAULT_GENERATION_ID, $gen->ID );
 						echo '>' . $gen->NAME , '</option>';
@@ -141,7 +141,7 @@ function character_config() {
 				for ($i=0; $i<$_REQUEST['linecount']; $i++) {
 					if ($_REQUEST['selectpage' . $i] == "0")
 						$link = $_REQUEST['link' . $i];
-					else if ($_REQUEST['selectpage' . $i] == "gvnewpage") {
+					else if ($_REQUEST['selectpage' . $i] == "vtmnewpage") {
 					
 						/* check if page with name $_REQUEST['value' . $i] exists */
 					
@@ -166,7 +166,7 @@ function character_config() {
 						'LINK' => $link
 					);
 					
-					$result = $wpdb->update(GVLARP_TABLE_PREFIX . "ST_LINK",
+					$result = $wpdb->update(VTM_TABLE_PREFIX . "ST_LINK",
 						$dataarray,
 						array (
 							'ID' => $_REQUEST['id' . $i]
@@ -184,7 +184,7 @@ function character_config() {
 			
 				}
 			}
-			$sql = "select * from " . GVLARP_TABLE_PREFIX . "ST_LINK;";
+			$sql = "select * from " . VTM_TABLE_PREFIX . "ST_LINK;";
 			$stlinks = $wpdb->get_results($wpdb->prepare($sql,''));
 			
 			$args = array(
@@ -238,7 +238,7 @@ function character_config() {
 								if (!$match)
 									echo "selected";
 								echo ">[Specify Link]</option>";
-								echo "<option value='gvnewpage'>[New Page]</option>";
+								echo "<option value='vtmnewpage'>[New Page]</option>";
 							?>
 							</select>
 						</td>
@@ -297,15 +297,15 @@ function character_config() {
 		<form method="post" action="options.php">
 		<?php
 		
-		settings_fields( 'gvcharacter_options_group' );
-		do_settings_sections('gvcharacter_options_group');
+		settings_fields( 'vtm_options_group' );
+		do_settings_sections('vtm_options_group');
 		?>
 		<h4>View Character Sheet Graphics</h4>
 		<table>
 			<tr>
-				<td>View Background Colour (#RRGGBB)</td><td><input type="color" name="gvcharacter_view_bgcolour" value="<?php echo get_option('gvcharacter_view_bgcolour'); ?>" /></td>
-				<td>View Dot/Box Colour (#RRGGBB)</td><td><input type="color" name="gvcharacter_view_dotcolour" value="<?php echo get_option('gvcharacter_view_dotcolour'); ?>" /></td>
-				<td>View Dot/Box Line Width (mm)</td><td><input type="text" name="gvcharacter_view_dotlinewidth" value="<?php echo get_option('gvcharacter_view_dotlinewidth'); ?>" size=4 /></td>
+				<td>View Background Colour (#RRGGBB)</td><td><input type="color" name="vtm_view_bgcolour" value="<?php echo get_option('vtm_view_bgcolour'); ?>" /></td>
+				<td>View Dot/Box Colour (#RRGGBB)</td><td><input type="color" name="vtm_view_dotcolour" value="<?php echo get_option('vtm_view_dotcolour'); ?>" /></td>
+				<td>View Dot/Box Line Width (mm)</td><td><input type="text" name="vtm_view_dotlinewidth" value="<?php echo get_option('vtm_view_dotlinewidth'); ?>" size=4 /></td>
 				<td >
 					<table><tr>
 					<td><img alt="empty dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/viewemptydot.jpg' ); ?>'></td>
@@ -318,9 +318,9 @@ function character_config() {
 		<h4>Experience Spend Graphics</h4>
 		<table>
 			<tr>
-				<td>XP Spend Background Colour (#RRGGBB)</td><td><input type="color" name="gvcharacter_xp_bgcolour" value="<?php echo get_option('gvcharacter_xp_bgcolour'); ?>" /></td>
-				<td>XP Spend Dot/Box Colour (#RRGGBB)</td><td><input type="color" name="gvcharacter_xp_dotcolour" value="<?php echo get_option('gvcharacter_xp_dotcolour'); ?>" /></td>
-				<td>XP Spend Dot/Box Line Width (mm)</td><td><input type="text" name="gvcharacter_xp_dotlinewidth" value="<?php echo get_option('gvcharacter_xp_dotlinewidth'); ?>" size=4 /></td>
+				<td>XP Spend Background Colour (#RRGGBB)</td><td><input type="color" name="vtm_xp_bgcolour" value="<?php echo get_option('vtm_xp_bgcolour'); ?>" /></td>
+				<td>XP Spend Dot/Box Colour (#RRGGBB)</td><td><input type="color" name="vtm_xp_dotcolour" value="<?php echo get_option('vtm_xp_dotcolour'); ?>" /></td>
+				<td>XP Spend Dot/Box Line Width (mm)</td><td><input type="text" name="vtm_xp_dotlinewidth" value="<?php echo get_option('vtm_xp_dotlinewidth'); ?>" size=4 /></td>
 				<td ><img alt="xp dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/xpdot.jpg' ); ?>'></td>
 			</tr>
 		</table>
@@ -328,9 +328,9 @@ function character_config() {
 		<h4>Pending Experience Spend Graphics</h4>
 		<table>
 			<tr>
-				<td>Pending Background Colour (#RRGGBB)</td><td><input type="color" name="gvcharacter_pend_bgcolour" value="<?php echo get_option('gvcharacter_pend_bgcolour'); ?>" /></td>
-				<td>Pending Dot/Box Colour (#RRGGBB)</td><td><input type="color" name="gvcharacter_pend_dotcolour" value="<?php echo get_option('gvcharacter_pend_dotcolour'); ?>" /></td>
-				<td>Pending Dot/Box Line Width (mm)</td><td><input type="text" name="gvcharacter_pend_dotlinewidth" value="<?php echo get_option('gvcharacter_pend_dotlinewidth'); ?>" size=4 /></td>
+				<td>Pending Background Colour (#RRGGBB)</td><td><input type="color" name="vtm_pend_bgcolour" value="<?php echo get_option('vtm_pend_bgcolour'); ?>" /></td>
+				<td>Pending Dot/Box Colour (#RRGGBB)</td><td><input type="color" name="vtm_pend_dotcolour" value="<?php echo get_option('vtm_pend_dotcolour'); ?>" /></td>
+				<td>Pending Dot/Box Line Width (mm)</td><td><input type="text" name="vtm_pend_dotlinewidth" value="<?php echo get_option('vtm_pend_dotlinewidth'); ?>" size=4 /></td>
 				<td ><img alt="pending dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/pendingdot.jpg' ); ?>'></td>
 			</tr>
 		</table>
@@ -338,26 +338,26 @@ function character_config() {
 		<h4>PDF Character Sheet Options</h4>
 		<table>
 			<tr>
-				<td>Character Sheet Title</td><td><input type="text" name="gvcharacter_pdf_title" value="<?php echo get_option('gvcharacter_pdf_title'); ?>" size=30 /></td>
-				<td>Title Font</td><td><select name="gvcharacter_pdf_titlefont">
-					<option value="Arial"     <?php if ('Arial' == get_option('gvcharacter_pdf_titlefont')) echo "selected='selected'"; ?>>Arial</option>
-					<option value="Courier"   <?php if ('Courier' == get_option('gvcharacter_pdf_titlefont')) echo "selected='selected'"; ?>>Courier</option>
-					<option value="Helvetica" <?php if ('Helvetica' == get_option('gvcharacter_pdf_titlefont')) echo "selected='selected'"; ?>>Helvetica</option>
-					<option value="Times"     <?php if ('Times' == get_option('gvcharacter_pdf_titlefont')) echo "selected='selected'"; ?>>Times New Roman</option>
+				<td>Character Sheet Title</td><td><input type="text" name="vtm_pdf_title" value="<?php echo get_option('vtm_pdf_title'); ?>" size=30 /></td>
+				<td>Title Font</td><td><select name="vtm_pdf_titlefont">
+					<option value="Arial"     <?php if ('Arial' == get_option('vtm_pdf_titlefont')) echo "selected='selected'"; ?>>Arial</option>
+					<option value="Courier"   <?php if ('Courier' == get_option('vtm_pdf_titlefont')) echo "selected='selected'"; ?>>Courier</option>
+					<option value="Helvetica" <?php if ('Helvetica' == get_option('vtm_pdf_titlefont')) echo "selected='selected'"; ?>>Helvetica</option>
+					<option value="Times"     <?php if ('Times' == get_option('vtm_pdf_titlefont')) echo "selected='selected'"; ?>>Times New Roman</option>
 					</select>
 				</td>
-				<td>Title Text Colour (#RRGGBB)</td><td><input type="color" name="gvcharacter_pdf_titlecolour" value="<?php echo get_option('gvcharacter_pdf_titlecolour'); ?>" /></td>
+				<td>Title Text Colour (#RRGGBB)</td><td><input type="color" name="vtm_pdf_titlecolour" value="<?php echo get_option('vtm_pdf_titlecolour'); ?>" /></td>
 			</tr>
 			<tr>
-				<td>Divider Line Colour (#RRGGBB)</td><td><input type="color" name="gvcharacter_pdf_divcolour" value="<?php echo get_option('gvcharacter_pdf_divcolour'); ?>" /></td>
-				<td>Divider Text Colour (#RRGGBB)</td><td><input type="color" name="gvcharacter_pdf_divtextcolour" value="<?php echo get_option('gvcharacter_pdf_divtextcolour'); ?>" /></td>
-				<td>Divider Line Width (mm)</td><td><input type="text" name="gvcharacter_pdf_divlinewidth" value="<?php echo get_option('gvcharacter_pdf_divlinewidth'); ?>" size=4 /></td>
+				<td>Divider Line Colour (#RRGGBB)</td><td><input type="color" name="vtm_pdf_divcolour" value="<?php echo get_option('vtm_pdf_divcolour'); ?>" /></td>
+				<td>Divider Text Colour (#RRGGBB)</td><td><input type="color" name="vtm_pdf_divtextcolour" value="<?php echo get_option('vtm_pdf_divtextcolour'); ?>" /></td>
+				<td>Divider Line Width (mm)</td><td><input type="text" name="vtm_pdf_divlinewidth" value="<?php echo get_option('vtm_pdf_divlinewidth'); ?>" size=4 /></td>
 			</tr>
 			<tr>
-				<td>Character Sheet Footer</td><td><input type="text" name="gvcharacter_pdf_footer" value="<?php echo get_option('gvcharacter_pdf_footer'); ?>" size=30 /></td>
+				<td>Character Sheet Footer</td><td><input type="text" name="vtm_pdf_footer" value="<?php echo get_option('vtm_pdf_footer'); ?>" size=30 /></td>
 			<?php if (class_exists('Imagick')) { ?>
-				<td>Dot/Box Colour (#RRGGBB)</td><td><input type="color" name="gvcharacter_pdf_dotcolour" value="<?php echo get_option('gvcharacter_pdf_dotcolour'); ?>" /></td>
-				<td>Dot/Box Line Width (mm)</td><td><input type="text" name="gvcharacter_pdf_dotlinewidth" value="<?php echo get_option('gvcharacter_pdf_dotlinewidth'); ?>" size=4 /></td>
+				<td>Dot/Box Colour (#RRGGBB)</td><td><input type="color" name="vtm_pdf_dotcolour" value="<?php echo get_option('vtm_pdf_dotcolour'); ?>" /></td>
+				<td>Dot/Box Line Width (mm)</td><td><input type="text" name="vtm_pdf_dotlinewidth" value="<?php echo get_option('vtm_pdf_dotlinewidth'); ?>" size=4 /></td>
 			</tr>
 			<tr>
 				<td colspan = 6>
@@ -394,9 +394,9 @@ function character_config() {
 			$image = new Imagick();
 			
 			/* View Character Sheet Dots */
-			$drawbgcolour = get_option('gvcharacter_view_bgcolour');
-			$drawcolour   = get_option('gvcharacter_view_dotcolour');
-			$drawborder   = get_option('gvcharacter_view_dotlinewidth');
+			$drawbgcolour = get_option('vtm_view_bgcolour');
+			$drawcolour   = get_option('vtm_view_dotcolour');
+			$drawborder   = get_option('vtm_view_dotlinewidth');
 			
 			if (!$drawcolour)   $drawcolour = '#CCCCCC';
 			if (!$drawborder)   $drawborder = 2;
@@ -409,7 +409,7 @@ function character_config() {
 			$draw->setFillColor($drawbgcolour);
 			$draw->circle( ceil($drawwidth / 2), ceil($drawheight / 2), ceil($drawwidth / 2), $drawborder + $drawmargin);
 			$image->drawImage($draw);
-			$image->writeImage(GVLARP_CHARACTER_URL . 'images/viewemptydot.' . $imagetype);
+			$image->writeImage(VTM_CHARACTER_URL . 'images/viewemptydot.' . $imagetype);
 			
 			$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
 			$draw = new ImagickDraw();
@@ -418,12 +418,12 @@ function character_config() {
 			$draw->setFillColor($drawcolour);
 			$draw->circle( ceil($drawwidth / 2), ceil($drawheight / 2), ceil($drawwidth / 2), $drawborder + $drawmargin);
 			$image->drawImage($draw);
-			$image->writeImage(GVLARP_CHARACTER_URL . 'images/viewfulldot.' . $imagetype);
+			$image->writeImage(VTM_CHARACTER_URL . 'images/viewfulldot.' . $imagetype);
 
 			/* Pending XP Dots */
-			$drawbgcolour = get_option('gvcharacter_pend_bgcolour');
-			$drawcolour   = get_option('gvcharacter_pend_dotcolour');
-			$drawborder   = get_option('gvcharacter_pend_dotlinewidth');
+			$drawbgcolour = get_option('vtm_pend_bgcolour');
+			$drawcolour   = get_option('vtm_pend_dotcolour');
+			$drawborder   = get_option('vtm_pend_dotlinewidth');
 			
 			if (!$drawcolour)   $drawcolour = '#BB0506';
 			if (!$drawborder)   $drawborder = 2;
@@ -436,12 +436,12 @@ function character_config() {
 			$draw->setFillColor($drawcolour);
 			$draw->circle( ceil($drawwidth / 2), ceil($drawheight / 2), ceil($drawwidth / 2), $drawborder + $drawmargin);
 			$image->drawImage($draw);
-			$image->writeImage(GVLARP_CHARACTER_URL . 'images/pendingdot.' . $imagetype);
+			$image->writeImage(VTM_CHARACTER_URL . 'images/pendingdot.' . $imagetype);
 			
 			/* Spend XP Dots */
-			$drawbgcolour = get_option('gvcharacter_xp_bgcolour');
-			$drawcolour   = get_option('gvcharacter_xp_dotcolour');
-			$drawborder   = get_option('gvcharacter_xp_dotlinewidth');
+			$drawbgcolour = get_option('vtm_xp_bgcolour');
+			$drawcolour   = get_option('vtm_xp_dotcolour');
+			$drawborder   = get_option('vtm_xp_dotlinewidth');
 			
 			if (!$drawcolour)   $drawcolour = '#BB0506';
 			if (!$drawborder)   $drawborder = 2;
@@ -454,12 +454,12 @@ function character_config() {
 			$draw->setFillColor($drawcolour);
 			$draw->circle( ceil($drawwidth / 2), ceil($drawheight / 2), ceil($drawwidth / 2), $drawborder + $drawmargin);
 			$image->drawImage($draw);
-			$image->writeImage(GVLARP_CHARACTER_URL . 'images/xpdot.' . $imagetype);
+			$image->writeImage(VTM_CHARACTER_URL . 'images/xpdot.' . $imagetype);
 
 			/* PDF Dots */
 			$drawbgcolour = '#FFFFFF';
-			$drawcolour   = get_option('gvcharacter_pdf_dotcolour');
-			$drawborder   = get_option('gvcharacter_pdf_dotlinewidth');
+			$drawcolour   = get_option('vtm_pdf_dotcolour');
+			$drawborder   = get_option('vtm_pdf_dotlinewidth');
 			
 			if ($drawcolour == '') $drawcolour = '#000000';
 			if ($drawborder == '') $drawborder = 3;
@@ -471,7 +471,7 @@ function character_config() {
 			$draw->setFillColor($drawbgcolour);
 			$draw->circle( ceil($drawwidth / 2), ceil($drawheight / 2), ceil($drawwidth / 2), $drawborder + $drawmargin);
 			$image->drawImage($draw);
-			$image->writeImage(GVLARP_CHARACTER_URL . 'images/emptydot.' . $imagetype);
+			$image->writeImage(VTM_CHARACTER_URL . 'images/emptydot.' . $imagetype);
 			
 			$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
 			$draw = new ImagickDraw();
@@ -480,7 +480,7 @@ function character_config() {
 			$draw->setFillColor($drawcolour);
 			$draw->circle( ceil($drawwidth / 2), ceil($drawheight / 2), ceil($drawwidth / 2), $drawborder + $drawmargin);
 			$image->drawImage($draw);
-			$image->writeImage(GVLARP_CHARACTER_URL . 'images/fulldot.' . $imagetype);
+			$image->writeImage(VTM_CHARACTER_URL . 'images/fulldot.' . $imagetype);
 			
 			$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
 			$draw = new ImagickDraw();
@@ -489,7 +489,7 @@ function character_config() {
 			$draw->setFillColor($drawbgcolour);
 			$draw->rectangle( $drawborder, $drawborder, $drawwidth - $drawborder - 1, $drawheight - $drawborder - 1);
 			$image->drawImage($draw);
-			$image->writeImage(GVLARP_CHARACTER_URL . 'images/box.' . $imagetype);
+			$image->writeImage(VTM_CHARACTER_URL . 'images/box.' . $imagetype);
 			
 			/* Add a line */
 			$draw = new ImagickDraw();
@@ -498,7 +498,7 @@ function character_config() {
 			$draw->setFillColor($drawbgcolour);
 			$draw->line( $drawborder, $drawborder, $drawwidth - $drawborder - 1, $drawheight - $drawborder - 1);
 			$image->drawImage($draw);
-			$image->writeImage(GVLARP_CHARACTER_URL . 'images/boxcross1.' . $imagetype);
+			$image->writeImage(VTM_CHARACTER_URL . 'images/boxcross1.' . $imagetype);
 			/* Add another line */
 			$draw = new ImagickDraw();
 			$draw->setStrokeColor($drawcolour);
@@ -506,7 +506,7 @@ function character_config() {
 			$draw->setFillColor($drawbgcolour);
 			$draw->line( $drawborder, $drawheight - $drawborder - 1, $drawwidth - $drawborder - 1, $drawborder);
 			$image->drawImage($draw);
-			$image->writeImage(GVLARP_CHARACTER_URL . 'images/boxcross2.' . $imagetype);
+			$image->writeImage(VTM_CHARACTER_URL . 'images/boxcross2.' . $imagetype);
 			/* Add last line */
 			$draw = new ImagickDraw();
 			$draw->setStrokeColor($drawcolour);
@@ -514,7 +514,7 @@ function character_config() {
 			$draw->setFillColor($drawbgcolour);
 			$draw->line( $drawborder, $drawheight/2, $drawwidth - $drawborder - 1, $drawheight / 2);
 			$image->drawImage($draw);
-			$image->writeImage(GVLARP_CHARACTER_URL . 'images/boxcross3.' . $imagetype);
+			$image->writeImage(VTM_CHARACTER_URL . 'images/boxcross3.' . $imagetype);
 			
 
 		}

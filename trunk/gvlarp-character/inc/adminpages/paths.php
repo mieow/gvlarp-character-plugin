@@ -1,11 +1,11 @@
 <?php
 
 
-function render_paths_page(){
+function vtm_render_paths_page(){
 
 
-    $testListTable["path"] = new gvadmin_path_table();
-	$doaction = enlighten_input_validation("path");
+    $testListTable["path"] = new vtmclass_admin_path_table();
+	$doaction = vtm_enlighten_input_validation("path");
 	
 	/* echo "<p>action: $doaction</p>"; */
 	
@@ -16,7 +16,7 @@ function render_paths_page(){
 		$testListTable["path"]->edit();				
 	}
 
-	render_path_add_form("path", $doaction);
+	vtm_render_path_add_form("path", $doaction);
 	$testListTable["path"]->prepare_items();
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
@@ -31,7 +31,7 @@ function render_paths_page(){
     <?php 
 }
 
-function render_path_add_form($type, $addaction) {
+function vtm_render_path_add_form($type, $addaction) {
 	global $wpdb;
 
 	$id   = isset($_REQUEST['path']) ? $_REQUEST['path'] : '';
@@ -48,7 +48,7 @@ function render_path_add_form($type, $addaction) {
 		$nextaction = $_REQUEST['action'];
 
 	} elseif ('edit-' . $type == $addaction) {
-		$sql = "SELECT * FROM " . GVLARP_TABLE_PREFIX . "PATH WHERE ID = %s";
+		$sql = "SELECT * FROM " . VTM_TABLE_PREFIX . "PATH WHERE ID = %s";
 		$sql = $wpdb->prepare($sql, $id);
 		$data =$wpdb->get_row($sql);
 		/* echo "<p>SQL: $sql</p>";
@@ -93,7 +93,7 @@ function render_path_add_form($type, $addaction) {
 			<td>
 				<select name="<?php print $type; ?>_discipline">
 					<?php
-						foreach (get_disciplines() as $discipline) {
+						foreach (vtm_get_disciplines() as $discipline) {
 							print "<option value='{$discipline->ID}' ";
 							selected($discipline->ID, $discipline_id);
 							echo ">{$discipline->NAME}</option>";
@@ -104,7 +104,7 @@ function render_path_add_form($type, $addaction) {
 			<td>Cost Model:  </td>
 			<td><select name="<?php print $type; ?>_costmodel">
 					<?php
-						foreach (get_costmodels() as $costmodel) {
+						foreach (vtm_get_costmodels() as $costmodel) {
 							print "<option value='{$costmodel->ID}' ";
 							selected($costmodel->ID, $cost_model_id);
 							echo ">{$costmodel->NAME}</option>";
@@ -118,7 +118,7 @@ function render_path_add_form($type, $addaction) {
 			<td>
 			<select name="<?php print $type; ?>_sourcebook">
 					<?php
-						foreach (get_booknames() as $book) {
+						foreach (vtm_get_booknames() as $book) {
 							print "<option value='{$book->ID}' ";
 							($book->ID == $sourcebook_id) ? print "selected" : print "";
 							echo ">{$book->NAME}</option>";
@@ -148,7 +148,7 @@ function render_path_add_form($type, $addaction) {
 
 }
 
-function path_input_validation($type) {
+function vtm_path_input_validation($type) {
 	
 	
 	if (!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == $type)
@@ -185,7 +185,7 @@ ROAD/PATHS TABLE
 ------------------------------------------------ */
 
 
-class gvadmin_path_table extends GVMultiPage_ListTable {
+class vtmclass_admin_path_table extends vtmclass_MultiPage_ListTable {
    
     function __construct(){
         global $status, $page;
@@ -213,7 +213,7 @@ class gvadmin_path_table extends GVMultiPage_ListTable {
 		
 		/* print_r($dataarray); */
 		
-		$wpdb->insert(GVLARP_TABLE_PREFIX . "PATH",
+		$wpdb->insert(VTM_TABLE_PREFIX . "PATH",
 					$dataarray,
 					array (
 						'%s',
@@ -250,7 +250,7 @@ class gvadmin_path_table extends GVMultiPage_ListTable {
 						'VISIBLE'        => $_REQUEST['path_visible']
 					);
 		
-		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "PATH",
+		$result = $wpdb->update(VTM_TABLE_PREFIX . "PATH",
 					$dataarray,
 					array (
 						'ID' => $_REQUEST['path']
@@ -274,9 +274,9 @@ class gvadmin_path_table extends GVMultiPage_ListTable {
 		/* Check if question in use */
 		$sql = "select characters.NAME
 				from 
-					" . GVLARP_TABLE_PREFIX . "CHARACTER characters,
-					" . GVLARP_TABLE_PREFIX . "CHARACTER_PATH charpaths,
-					" . GVLARP_TABLE_PREFIX . "PATH paths
+					" . VTM_TABLE_PREFIX . "CHARACTER characters,
+					" . VTM_TABLE_PREFIX . "CHARACTER_PATH charpaths,
+					" . VTM_TABLE_PREFIX . "PATH paths
 				where 
 					characters.ID = charpaths.CHARACTER_ID 
 					and paths.ID = charpaths.PATH_ID
@@ -293,7 +293,7 @@ class gvadmin_path_table extends GVMultiPage_ListTable {
 			
 		} else {
 		
-			$sql = "delete from " . GVLARP_TABLE_PREFIX . "PATH where ID = %d;";
+			$sql = "delete from " . VTM_TABLE_PREFIX . "PATH where ID = %d;";
 			
 			$result = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
@@ -417,7 +417,7 @@ class gvadmin_path_table extends GVMultiPage_ListTable {
         $this->process_bulk_action();
 		
 		// FILTER ON DISCIPLINE
-		$this->filter_discipline = gvmake_filter(get_disciplines());
+		$this->filter_discipline = vtm_make_filter(vtm_get_disciplines());
 		if ( isset( $_REQUEST[$type . '_filter'] ) && array_key_exists( $_REQUEST[$type . '_filter'], $this->filter_discipline ) ) {
 			$this->active_filter_discipline = sanitize_key( $_REQUEST[$type . '_filter'] );
 		} else {
@@ -435,10 +435,10 @@ class gvadmin_path_table extends GVMultiPage_ListTable {
 					paths.PAGE_NUMBER,
 					paths.VISIBLE
 				FROM
-					" . GVLARP_TABLE_PREFIX . "PATH paths,
-					" . GVLARP_TABLE_PREFIX . "COST_MODEL models,
-					" . GVLARP_TABLE_PREFIX . "DISCIPLINE disciplines,
-					" . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books
+					" . VTM_TABLE_PREFIX . "PATH paths,
+					" . VTM_TABLE_PREFIX . "COST_MODEL models,
+					" . VTM_TABLE_PREFIX . "DISCIPLINE disciplines,
+					" . VTM_TABLE_PREFIX . "SOURCE_BOOK books
 				WHERE
 					paths.COST_MODEL_ID = models.ID
 					AND paths.DISCIPLINE_ID = disciplines.ID

@@ -1,5 +1,5 @@
 <?php
-function character_players() {
+function vtm_character_players() {
 	if ( !current_user_can( 'manage_options' ) )  {
 		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 	}
@@ -7,7 +7,7 @@ function character_players() {
 	<div class="wrap">
 		<h2>Players</h2>
 		<div class="gvadmin_content">
-			<?php render_player_data(); ?>
+			<?php vtm_render_player_data(); ?>
 		</div>
 
 	</div>
@@ -15,10 +15,10 @@ function character_players() {
 	<?php
 }
 
-function render_player_data(){
+function vtm_render_player_data(){
 
-    $testListTable = new gvadmin_players_table();
-	$doaction = player_input_validation();
+    $testListTable = new vtmclass_admin_players_table();
+	$doaction = vtm_player_input_validation();
 	
  	if ($doaction == "add-player") {
 		$testListTable->add($_REQUEST['player_name'], $_REQUEST['player_type'], $_REQUEST['player_active']);
@@ -27,7 +27,7 @@ function render_player_data(){
 		$testListTable->edit($_REQUEST['player_id'], $_REQUEST['player_name'], $_REQUEST['player_type'], $_REQUEST['player_active']);
 	}
 
-	render_player_add_form($doaction); 
+	vtm_render_player_add_form($doaction); 
 	
 	$testListTable->prepare_items();
  	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
@@ -45,7 +45,7 @@ function render_player_data(){
     <?php
 }
 
-function render_player_add_form($addaction) {
+function vtm_render_player_add_form($addaction) {
 
 	global $wpdb;
 	
@@ -65,7 +65,7 @@ function render_player_add_form($addaction) {
 		$id   = $_REQUEST['player'];
 		
 		$sql = "select *
-				from " . GVLARP_TABLE_PREFIX . "PLAYER 
+				from " . VTM_TABLE_PREFIX . "PLAYER 
 				where ID = %d;";
 		
 		/* echo "<p>$sql</p>"; */
@@ -106,7 +106,7 @@ function render_player_add_form($addaction) {
 			<td>
 				<select name='player_type'>
 					<?php 
-						foreach( get_player_type() as $pltype ) {
+						foreach( vtm_get_player_type() as $pltype ) {
 							echo '<option value="' . $pltype->ID . '" ';
 							selected( $typeid, $pltype->ID );
 							echo '>' . esc_attr( $pltype->NAME ) . '</option>';
@@ -118,7 +118,7 @@ function render_player_add_form($addaction) {
 			<td>
 				<select name='player_active'>
 					<?php 
-						foreach( get_player_status() as $plstat ) {
+						foreach( vtm_get_player_status() as $plstat ) {
 							echo '<option value="' . $plstat->ID . '" ';
 							selected( $activeid, $plstat->ID );
 							echo '>' . esc_attr( $plstat->NAME ) . '</option>';
@@ -134,7 +134,7 @@ function render_player_add_form($addaction) {
 	<?php
 }
 
-function player_input_validation() {
+function vtm_player_input_validation() {
 	global $wpdb;
 	
 	$type = "player";
@@ -152,7 +152,7 @@ function player_input_validation() {
 	}
 	
 	if ($doaction == "add-$type") {
-		$sql = 'SELECT NAME FROM ' . GVLARP_TABLE_PREFIX . 'PLAYER WHERE NAME = %s';
+		$sql = 'SELECT NAME FROM ' . VTM_TABLE_PREFIX . 'PLAYER WHERE NAME = %s';
 		$result = $wpdb->get_col($wpdb->prepare($sql,$_REQUEST[$type . '_name'] ));
 		//print_r($result);
 		$countmatch = count($result);
@@ -173,7 +173,7 @@ PLAYERS TABLE
 ------------------------------------------------ */
 
 
-class gvadmin_players_table extends GVMultiPage_ListTable {
+class vtmclass_admin_players_table extends vtmclass_MultiPage_ListTable {
    
     function __construct(){
         global $status, $page;
@@ -200,7 +200,7 @@ class gvadmin_players_table extends GVMultiPage_ListTable {
 		
 		/* print_r($dataarray); */
 		
-		$wpdb->insert(GVLARP_TABLE_PREFIX . "PLAYER",
+		$wpdb->insert(VTM_TABLE_PREFIX . "PLAYER",
 					$dataarray,
 					array (
 						'%s',
@@ -230,7 +230,7 @@ class gvadmin_players_table extends GVMultiPage_ListTable {
 		
 		/* print_r($dataarray); */
 		
-		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "PLAYER",
+		$result = $wpdb->update(VTM_TABLE_PREFIX . "PLAYER",
 					$dataarray,
 					array (
 						'ID' => $id
@@ -247,14 +247,14 @@ class gvadmin_players_table extends GVMultiPage_ListTable {
 		}
 	}
 
- 	function doactivate($selectedID, $activate) {
+ 	function vtm_doactivate($selectedID, $activate) {
 		global $wpdb;
 				
 		$wpdb->show_errors();
 		
 		//echo "<p>New player_status for $selectedID is $activate</p>";
 		
-		$result = $wpdb->update( GVLARP_TABLE_PREFIX . "PLAYER", 
+		$result = $wpdb->update( VTM_TABLE_PREFIX . "PLAYER", 
 			array (
 				'PLAYER_STATUS_ID' => $activate
 			), 
@@ -321,8 +321,8 @@ class gvadmin_players_table extends GVMultiPage_ListTable {
 	
     function get_bulk_actions() {
 		global $wpdb;
-		$activeid   = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . GVLARP_TABLE_PREFIX. "PLAYER_STATUS WHERE NAME = %s",'Active'));
-		$inactiveid = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . GVLARP_TABLE_PREFIX. "PLAYER_STATUS WHERE NAME = %s",'Inactive'));
+		$activeid   = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . VTM_TABLE_PREFIX. "PLAYER_STATUS WHERE NAME = %s",'Active'));
+		$inactiveid = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . VTM_TABLE_PREFIX. "PLAYER_STATUS WHERE NAME = %s",'Inactive'));
 	
         $actions = array(
             $activeid    => 'Activate',
@@ -332,8 +332,8 @@ class gvadmin_players_table extends GVMultiPage_ListTable {
     }
     function process_bulk_action() {
  		global $wpdb;
-		$activeid   = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . GVLARP_TABLE_PREFIX. "PLAYER_STATUS WHERE NAME = %s",'Active'));
-		$inactiveid = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . GVLARP_TABLE_PREFIX. "PLAYER_STATUS WHERE NAME = %s",'Inactive'));
+		$activeid   = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . VTM_TABLE_PREFIX. "PLAYER_STATUS WHERE NAME = %s",'Active'));
+		$inactiveid = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . VTM_TABLE_PREFIX. "PLAYER_STATUS WHERE NAME = %s",'Inactive'));
        
 		//echo "<p>Bulk action " . $this->current_action() . "</p>"; 
 				
@@ -400,11 +400,11 @@ class gvadmin_players_table extends GVMultiPage_ListTable {
 		
 		$type = "player";
 
-		$this->filter_type = gvmake_filter(get_player_type());
-		$this->filter_status = gvmake_filter(get_player_status());
+		$this->filter_type = vtm_make_filter(vtm_get_player_type());
+		$this->filter_status = vtm_make_filter(vtm_get_player_status());
 		
-		$this->default_playerstatus = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . GVLARP_TABLE_PREFIX. "PLAYER_STATUS     WHERE NAME = %s",'Active'));
-		$this->default_playertype   = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . GVLARP_TABLE_PREFIX. "PLAYER_TYPE     WHERE NAME = %s",'Player'));
+		$this->default_playerstatus = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . VTM_TABLE_PREFIX. "PLAYER_STATUS     WHERE NAME = %s",'Active'));
+		$this->default_playertype   = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . VTM_TABLE_PREFIX. "PLAYER_TYPE     WHERE NAME = %s",'Player'));
 
 		if ( isset( $_REQUEST['playertype_filter'] ) && array_key_exists( $_REQUEST['playertype_filter'], $this->filter_type ) ) {
 			$this->active_playertype = sanitize_key( $_REQUEST['playertype_filter'] );
@@ -427,9 +427,9 @@ class gvadmin_players_table extends GVMultiPage_ListTable {
 		/* Get the data from the database */
 		$sql = "SELECT players.ID, players.NAME, types.NAME as PLAYERTYPE, status.NAME as PLAYERSTATUS
 				FROM 
-					" . GVLARP_TABLE_PREFIX . "PLAYER players,
-					" . GVLARP_TABLE_PREFIX . "PLAYER_TYPE types,
-					" . GVLARP_TABLE_PREFIX . "PLAYER_STATUS status
+					" . VTM_TABLE_PREFIX . "PLAYER players,
+					" . VTM_TABLE_PREFIX . "PLAYER_TYPE types,
+					" . VTM_TABLE_PREFIX . "PLAYER_STATUS status
 				WHERE	
 					types.ID = players.PLAYER_TYPE_ID
 					AND status.ID = players.PLAYER_STATUS_ID";

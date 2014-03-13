@@ -1,31 +1,31 @@
 <?php
 
-register_activation_hook(__FILE__, "gvlarp_character_install");
-register_activation_hook( __FILE__, 'gvlarp_character_install_data' );
+register_activation_hook(__FILE__, "vtm_character_install");
+register_activation_hook( __FILE__, 'vtm_character_install_data' );
 
-global $gvlarp_character_db_version;
-$gvlarp_character_db_version = "1.9.10"; 
+global $vtm_character_db_version;
+$vtm_character_db_version = "1.9.10"; 
 
-function gvlarp_update_db_check() {
-    global $gvlarp_character_db_version;
+function vtm_update_db_check() {
+    global $vtm_character_db_version;
 	
-    if (get_site_option( 'gvlarp_character_db_version' ) != $gvlarp_character_db_version) {
-        gvlarp_character_install();
-		gvlarp_character_install_data();
+    if (get_site_option( 'vtm_character_db_version' ) != $vtm_character_db_version) {
+        vtm_character_install();
+		vtm_character_install_data();
 		
-		update_option( "gvlarp_character_db_version", $gvlarp_character_db_version );
+		update_option( "vtm_character_db_version", $vtm_character_db_version );
     }
 }
-add_action( 'plugins_loaded', 'gvlarp_update_db_check' );
+add_action( 'plugins_loaded', 'vtm_update_db_check' );
 
-function gvlarp_character_install() {
+function vtm_character_install() {
 	global $wpdb;
-	global $gvlarp_character_db_version;
+	global $vtm_character_db_version;
 	
-	$table_prefix = GVLARP_TABLE_PREFIX;
-	$installed_version = get_option( "gvlarp_character_db_version" );
+	$table_prefix = VTM_TABLE_PREFIX;
+	$installed_version = get_option( "vtm_character_db_version" );
 	
-	if( $installed_version != $gvlarp_character_db_version ) {
+	if( $installed_version != $vtm_character_db_version ) {
 	
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 	
@@ -167,7 +167,7 @@ function gvlarp_character_install() {
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 		$remove = array ('COST' => '');
-		remove_columns($current_table_name, $remove);
+		vtm_remove_columns($current_table_name, $remove);
 
 		$current_table_name = $table_prefix . "NATURE";
 		$sql = "CREATE TABLE " . $current_table_name . " (
@@ -218,9 +218,6 @@ function gvlarp_character_install() {
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 
-		if (table_exists('OWNER', FEEDINGMAP_TABLE_PREFIX)) {
-			rename_table("OWNER", "MAPOWNER", FEEDINGMAP_TABLE_PREFIX, $table_prefix);
-		}
 		$current_table_name = $table_prefix . "MAPOWNER";
 		$sql = "CREATE TABLE " . $current_table_name . " (
 					ID              MEDIUMINT(9)	NOT NULL   AUTO_INCREMENT,
@@ -389,8 +386,8 @@ function gvlarp_character_install() {
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 		
-		if (table_exists('DOMAIN', FEEDINGMAP_TABLE_PREFIX)) {
-			rename_table("DOMAIN", "MAPDOMAIN", FEEDINGMAP_TABLE_PREFIX, $table_prefix);
+		if (vtm_table_exists('DOMAIN', FEEDINGMAP_TABLE_PREFIX)) {
+			vtm_rename_table("DOMAIN", "MAPDOMAIN", FEEDINGMAP_TABLE_PREFIX, $table_prefix);
 		} 	
 		$current_table_name = $table_prefix . "MAPDOMAIN";
 		$sql = "CREATE TABLE " . $current_table_name . " (
@@ -830,7 +827,7 @@ function gvlarp_character_install() {
 	
 }
 
-function gvlarp_character_install_data() {
+function vtm_character_install_data() {
 	global $wpdb;
 	
 	$wpdb->show_errors();
@@ -873,41 +870,41 @@ function gvlarp_character_install_data() {
 						),
 	);
 	foreach ($data as $key => $entry) {
-		$sql = "select VALUE from " . GVLARP_TABLE_PREFIX . "ST_LINK where VALUE = %s;";
+		$sql = "select VALUE from " . VTM_TABLE_PREFIX . "ST_LINK where VALUE = %s;";
 		$exists = count($wpdb->get_results($wpdb->prepare($sql,$key)));
 		if (!$exists) 
-			$rowsadded = $wpdb->insert( GVLARP_TABLE_PREFIX . "ST_LINK", $entry);
+			$rowsadded = $wpdb->insert( VTM_TABLE_PREFIX . "ST_LINK", $entry);
 	}
-	$sql = "SELECT ID FROM  " . GVLARP_TABLE_PREFIX . "ST_LINK WHERE VALUE != %s";
+	$sql = "SELECT ID FROM  " . VTM_TABLE_PREFIX . "ST_LINK WHERE VALUE != %s";
 	for ($i = 1;$i<count(array_keys($data));$i++)
 		$sql .= ' AND VALUE != %s';
 	$sql = $wpdb->prepare($sql,array_keys($data));
 	//echo "<p>SQL: $sql</p>";
 	$results = $wpdb->get_results($sql);
 	//print_r($results);
-	$sql = "DELETE FROM " . GVLARP_TABLE_PREFIX . "ST_LINK WHERE ID = %d";
+	$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "ST_LINK WHERE ID = %d";
 	foreach ($results as $row) {
 		$result = $wpdb->get_results($wpdb->prepare($sql, $row->ID));
 	}
 
 	// Does the sect ID need to be added to the characters
-	$sql = "SELECT ID FROM " . GVLARP_TABLE_PREFIX . "CHARACTER WHERE SECT_ID = 0";
+	$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE SECT_ID = 0";
 	$results = $wpdb->get_results($sql);
 		
 	if (count($results) > 0) {
 		foreach ($results as $row) {
 			$data = array ('SECT_ID' => '1');
-			$results = $wpdb->update(GVLARP_TABLE_PREFIX . "CHARACTER",$data,array ('ID' => $row->ID));		
+			$results = $wpdb->update(VTM_TABLE_PREFIX . "CHARACTER",$data,array ('ID' => $row->ID));		
 		}
 	}
 	
-	$datalist = glob(GVLARP_CHARACTER_URL . "init/*.csv");
+	$datalist = glob(VTM_CHARACTER_URL . "init/*.csv");
 	
 	foreach ($datalist as $datafile) {
 		$temp = explode(".", basename($datafile));
 		$tablename = $temp[1];
 		
-		$sql = "select ID from " . GVLARP_TABLE_PREFIX . $tablename;
+		$sql = "select ID from " . VTM_TABLE_PREFIX . $tablename;
 		$rows = count($wpdb->get_results($wpdb->prepare($sql,'')));
 		if (!$rows) {
 			//print "<p>Reading data for table $tablename</p>";
@@ -938,7 +935,7 @@ function gvlarp_character_install_data() {
 			/* print_r($data); */
 			$rowsadded = 0;
 			foreach ($data as $id => $entry) {
-				$rowsadded += $wpdb->insert( GVLARP_TABLE_PREFIX . $tablename, $entry);
+				$rowsadded += $wpdb->insert( VTM_TABLE_PREFIX . $tablename, $entry);
 			}
 		}
 		
@@ -947,11 +944,11 @@ function gvlarp_character_install_data() {
 	
 }
 
-function remove_columns($table, $columninfo) {
+function vtm_remove_columns($table, $columninfo) {
 	global $wpdb;
 
-	//SHOW CREATE TABLE gvpluginwp_GVLARP_CHARACTER
-	// gvpluginwp_GVLARP_CHARACTER_ibfk_8
+	//SHOW CREATE TABLE gvpluginwp_VTM_CHARACTER
+	// gvpluginwp_VTM_CHARACTER_ibfk_8
 	
 	/* echo "</p>columninfo:";
 	print_r($columninfo);
@@ -986,7 +983,7 @@ function remove_columns($table, $columninfo) {
 
 }
 
-function remove_constraint($table, $constraint) {
+function vtm_remove_constraint($table, $constraint) {
 	global $wpdb;
 
 	
@@ -1002,7 +999,7 @@ function remove_constraint($table, $constraint) {
 
 }
 
-function table_exists($table, $prefix = GVLARP_TABLE_PREFIX) {
+function vtm_table_exists($table, $prefix = VTM_TABLE_PREFIX) {
 	global $wpdb;
 
 	$sql = "SHOW TABLES LIKE '" . $prefix . $table . "'";
@@ -1014,7 +1011,7 @@ function table_exists($table, $prefix = GVLARP_TABLE_PREFIX) {
 	return $tableExists;
 }
 
-function rename_column($columninfo) {
+function vtm_rename_column($columninfo) {
 	global $wpdb;
 
 	//print_r($columninfo);
@@ -1043,7 +1040,7 @@ function rename_column($columninfo) {
 
 }
 
-function rename_table($from, $to, $prefixfrom = GVLARP_TABLE_PREFIX, $prefixto = GVLARP_TABLE_PREFIX) {
+function vtm_rename_table($from, $to, $prefixfrom = VTM_TABLE_PREFIX, $prefixto = VTM_TABLE_PREFIX) {
 	global $wpdb;
 
 	$sql = "RENAME TABLE " . $prefixfrom . $from . " TO " . $prefixto . $to;

@@ -3,22 +3,22 @@
 /* EXPERIENCE APPROVALS
 ------------------------------------------------------------------- */
 
-function character_experience() {
+function vtm_character_experience() {
 	if ( !current_user_can( 'manage_options' ) )  {
 		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 	}
 	?>
 	<div class="wrap">
 		<h2>Experience Approvals</h2>
-		<?php render_xp_approvals_page("xpapprove"); ?>
+		<?php vtm_render_xp_approvals_page("xpapprove"); ?>
 	</div>
 	
 	<?php
 }
 
-function render_xp_approvals_page($type){
+function vtm_render_xp_approvals_page($type){
 
-    $testListTable['xpapprove'] = new gvadmin_xpapproval_table();
+    $testListTable['xpapprove'] = new vtmclass_admin_xpapproval_table();
 	
 	$testListTable['xpapprove']->prepare_items();
  	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
@@ -37,7 +37,7 @@ function render_xp_approvals_page($type){
 }
 
 
-function render_costmodel_page($type){
+function vtm_render_costmodel_page($type){
 
 	global $wpdb;
 	
@@ -63,7 +63,7 @@ function render_costmodel_page($type){
 					'NAME'        => $_REQUEST["costmodel_name"],
 					'DESCRIPTION' => $_REQUEST["costmodel_desc"]
 				);
-				$wpdb->insert(GVLARP_TABLE_PREFIX . "COST_MODEL",
+				$wpdb->insert(VTM_TABLE_PREFIX . "COST_MODEL",
 							$dataarray,
 							array (
 								'%s',
@@ -90,7 +90,7 @@ function render_costmodel_page($type){
 							'XP_COST'         => $_REQUEST["xpcost"][$i]
 						);
 						
-						$wpdb->insert(GVLARP_TABLE_PREFIX . "COST_MODEL_STEP",
+						$wpdb->insert(VTM_TABLE_PREFIX . "COST_MODEL_STEP",
 							$dataarray,
 							array (
 								'%d',
@@ -122,7 +122,7 @@ function render_costmodel_page($type){
 					$ok = 1;
 					
 					/* clans */
-					$sql = "SELECT clans.NAME FROM " . GVLARP_TABLE_PREFIX . "CLAN clans
+					$sql = "SELECT clans.NAME FROM " . VTM_TABLE_PREFIX . "CLAN clans
 							WHERE	clans.CLAN_COST_MODEL_ID = %s
 									OR clans.NONCLAN_COST_MODEL_ID = %s";
 					$isused = $wpdb->get_results($wpdb->prepare($sql, $id, $id));
@@ -135,7 +135,7 @@ function render_costmodel_page($type){
 						$ok = 0;
 					}
 					/* stats */
-					$sql = "SELECT stats.NAME FROM " . GVLARP_TABLE_PREFIX . "STAT stats
+					$sql = "SELECT stats.NAME FROM " . VTM_TABLE_PREFIX . "STAT stats
 							WHERE stats.COST_MODEL_ID = %s";
 					$isused = $wpdb->get_results($wpdb->prepare($sql, $id));
 					if ($isused) {
@@ -147,7 +147,7 @@ function render_costmodel_page($type){
 						$ok = 0;
 					}
 					/* skills */
-					$sql = "SELECT skills.NAME FROM " . GVLARP_TABLE_PREFIX . "SKILL skills
+					$sql = "SELECT skills.NAME FROM " . VTM_TABLE_PREFIX . "SKILL skills
 							WHERE skills.COST_MODEL_ID = %s";
 					$isused = $wpdb->get_results($wpdb->prepare($sql, $id));
 					if ($isused) {
@@ -159,7 +159,7 @@ function render_costmodel_page($type){
 						$ok = 0;
 					}
 					/* backgrounds */
-					$sql = "SELECT bgdnds.NAME FROM " . GVLARP_TABLE_PREFIX . "BACKGROUND bgdnds
+					$sql = "SELECT bgdnds.NAME FROM " . VTM_TABLE_PREFIX . "BACKGROUND bgdnds
 							WHERE bgdnds.COST_MODEL_ID = %s";
 					$isused = $wpdb->get_results($wpdb->prepare($sql, $id));
 					if ($isused) {
@@ -173,8 +173,8 @@ function render_costmodel_page($type){
 					/* path */
 					$sql = "SELECT paths.NAME, disciplines.NAME as DISCIPLINE
 							FROM 
-								" . GVLARP_TABLE_PREFIX . "PATH paths,
-								" . GVLARP_TABLE_PREFIX . "DISCIPLINE disciplines
+								" . VTM_TABLE_PREFIX . "PATH paths,
+								" . VTM_TABLE_PREFIX . "DISCIPLINE disciplines
 							WHERE 
 								paths.DISCIPLINE_ID = disciplines.ID
 								AND paths.COST_MODEL_ID = %s";
@@ -189,10 +189,10 @@ function render_costmodel_page($type){
 					}
 					if ($ok) {
 						/* delete _step */
-						$sql = "delete from " . GVLARP_TABLE_PREFIX . "COST_MODEL_STEP where COST_MODEL_ID = %d;";
+						$sql = "delete from " . VTM_TABLE_PREFIX . "COST_MODEL_STEP where COST_MODEL_ID = %d;";
 						$result = $wpdb->get_results($wpdb->prepare($sql, $id));
 						/* delete cost model */
-						$sql = "delete from " . GVLARP_TABLE_PREFIX . "COST_MODEL where ID = %d;";
+						$sql = "delete from " . VTM_TABLE_PREFIX . "COST_MODEL where ID = %d;";
 						$result = $wpdb->get_results($wpdb->prepare($sql, $id));
 						echo "<p style='color:green'>Deleted cost model {$_REQUEST['costmodel_name']}</p>";
 					}
@@ -221,7 +221,7 @@ function render_costmodel_page($type){
 					
 					if (empty($_REQUEST["rowids"][$i])) {
 						// add new step
-						$wpdb->insert(GVLARP_TABLE_PREFIX . "COST_MODEL_STEP",
+						$wpdb->insert(VTM_TABLE_PREFIX . "COST_MODEL_STEP",
 							$dataarray,
 							array (
 								'%d',
@@ -235,7 +235,7 @@ function render_costmodel_page($type){
 						$result = $wpdb->insert_id;
 					} else {
 						// update step
-						$result = $wpdb->update(GVLARP_TABLE_PREFIX . "COST_MODEL_STEP",
+						$result = $wpdb->update(VTM_TABLE_PREFIX . "COST_MODEL_STEP",
 							$dataarray,
 							array ('ID' => $_REQUEST["rowids"][$i])
 						);
@@ -250,7 +250,7 @@ function render_costmodel_page($type){
 					'DESCRIPTION' => $_REQUEST["costmodel_desc"]
 				);
 				
-				$result = $wpdb->update(GVLARP_TABLE_PREFIX . "COST_MODEL",
+				$result = $wpdb->update(VTM_TABLE_PREFIX . "COST_MODEL",
 					$dataarray,
 					array (
 						'ID' => $id
@@ -270,13 +270,13 @@ function render_costmodel_page($type){
 	
 	if ($id > 0) {
 		
-		$sql = "SELECT NAME, DESCRIPTION FROM " . GVLARP_TABLE_PREFIX . "COST_MODEL WHERE ID = %s";
+		$sql = "SELECT NAME, DESCRIPTION FROM " . VTM_TABLE_PREFIX . "COST_MODEL WHERE ID = %s";
 		$sql = $wpdb->prepare($sql, $id);
 		$result = $wpdb->get_results($sql);
 		$name        = $result[0]->NAME;
 		$description = $result[0]->DESCRIPTION;
 		
-		$sql = "SELECT * FROM " . GVLARP_TABLE_PREFIX . "COST_MODEL_STEP WHERE COST_MODEL_ID = %s ORDER BY SEQUENCE ASC";
+		$sql = "SELECT * FROM " . VTM_TABLE_PREFIX . "COST_MODEL_STEP WHERE COST_MODEL_ID = %s ORDER BY SEQUENCE ASC";
 		$sql = $wpdb->prepare($sql, $id);
 		$result = $wpdb->get_results($sql);
 			
@@ -286,7 +286,7 @@ function render_costmodel_page($type){
 		$description = "";
 	}
 	
-	render_select_model();
+	vtm_render_select_model();
 	
 	
 ?>
@@ -342,7 +342,9 @@ function render_costmodel_page($type){
 <?php
 }
 
-function render_select_model () {
+function vtm_render_select_model () {
+
+	$selected = isset($_REQUEST['costmodel']) ? $_REQUEST['costmodel'] : '';
 
 	echo "<h3>Select Cost Model</h3>";
 	echo "<form id='select_model_form' method='post'>\n";
@@ -351,9 +353,9 @@ function render_select_model () {
 	echo "<select name='costmodel'>\n";
 	echo "<option value='0'>[Select/New]</option>\n";
 	
-	foreach (get_costmodels() as $model) {
+	foreach (vtm_get_costmodels() as $model) {
 		echo "<option value='{$model->ID}' ";
-		selected($_REQUEST['costmodel'],$model->ID);
+		selected($selected,$model->ID);
 		echo ">{$model->NAME}</option>\n";
 	}
 	
@@ -369,7 +371,7 @@ function render_select_model () {
 -----------------------------------------------
 XP APPROVALS TABLE
 ------------------------------------------------ */
-class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
+class vtmclass_admin_xpapproval_table extends vtmclass_MultiPage_ListTable {
    
     function __construct(){
         global $status, $page;
@@ -385,7 +387,7 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
 		global $wpdb;
 		$wpdb->show_errors();
 		
-		$sql = "SELECT * FROM " . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND
+		$sql = "SELECT * FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
 				WHERE ID = %d";
 		$sql = $wpdb->prepare($sql, $selectedID);
 		$data = $wpdb->get_results($sql);
@@ -425,7 +427,7 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
 		
 		if ($approvalok) {
 			/* update current XP */
-			$sql = "SELECT ID FROM " . GVLARP_TABLE_PREFIX . "XP_REASON WHERE NAME = 'XP Spend'";
+			$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "XP_REASON WHERE NAME = 'XP Spend'";
 			$result = $wpdb->get_results($sql);
 			
 			$specialisation = $data[0]->SPECIALISATION ? ("(" . $data[0]->SPECIALISATION . ") ") : "";
@@ -439,7 +441,7 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
 				'AMOUNT'       => $data[0]->AMOUNT,
 				'COMMENT'	   => $specialisation . $data[0]->COMMENT
 			);
-			$wpdb->insert(GVLARP_TABLE_PREFIX . "PLAYER_XP",
+			$wpdb->insert(VTM_TABLE_PREFIX . "PLAYER_XP",
 							$data,
 							array (
 								'%d',
@@ -471,7 +473,7 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
 				'LEVEL'   => $data2update->CHARTABLE_LEVEL,
 				'COMMENT' => $data2update->SPECIALISATION,
 			);
-			$result = $wpdb->update(GVLARP_TABLE_PREFIX . $data2update->CHARTABLE,
+			$result = $wpdb->update(VTM_TABLE_PREFIX . $data2update->CHARTABLE,
 				$data,
 				array ('ID' => $data2update->CHARTABLE_ID)
 			);
@@ -482,13 +484,13 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
 				'LEVEL'                => $data2update->CHARTABLE_LEVEL,
 				'COMMENT'              => $data2update->SPECIALISATION,
 			);
-			$result = $wpdb->insert(GVLARP_TABLE_PREFIX . $data2update->CHARTABLE,
+			$result = $wpdb->insert(VTM_TABLE_PREFIX . $data2update->CHARTABLE,
 				$data,
 				array (
 					'%d', '%d', '%d', '%s'
 				)
 			);
-			touch_last_updated($data2update->CHARACTER_ID);
+			vtm_touch_last_updated($data2update->CHARACTER_ID);
 		}
 	
 		return $result;
@@ -512,7 +514,7 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
 				'LEVEL'                => $data2update->CHARTABLE_LEVEL,
 				'COMMENT'              => $data2update->SPECIALISATION,
 			);
-			$result = $wpdb->insert(GVLARP_TABLE_PREFIX . $data2update->CHARTABLE,
+			$result = $wpdb->insert(VTM_TABLE_PREFIX . $data2update->CHARTABLE,
 				$data,
 				array (
 					'%d', '%d', '%d', '%s'
@@ -521,7 +523,7 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
 			touch_last_updated($data2update->CHARACTER_ID);
 		}
 		elseif ($data2update->CHARTABLE_ID != 0 && $data2update->CHARTABLE_LEVEL < 0) { /* remove flaw */
-			$sql = "DELETE FROM " . GVLARP_TABLE_PREFIX . "CHARACTER_MERIT where ID = %d;";
+			$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "CHARACTER_MERIT where ID = %d;";
 			$result = $wpdb->get_results($wpdb->prepare($sql, $data2update->CHARTABLE_ID));
 			$result = 1;
 		} 
@@ -542,13 +544,13 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
 			'COMBO_DISCIPLINE_ID'  => $data2update->ITEMTABLE_ID,
 			'COMMENT'              => $data2update->SPECIALISATION,
 		);
-		$result = $wpdb->insert(GVLARP_TABLE_PREFIX . $data2update->CHARTABLE,
+		$result = $wpdb->insert(VTM_TABLE_PREFIX . $data2update->CHARTABLE,
 			$data,
 			array (
 				'%d', '%d', '%s'
 			)
 		);
-		touch_last_updated($data2update->CHARACTER_ID);
+		vtm_touch_last_updated($data2update->CHARACTER_ID);
 		return $result;
 	}
 	
@@ -562,7 +564,7 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
 	
 	function delete_pending($selectedID) {
 		global $wpdb;
-		$sql = "DELETE FROM " . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND
+		$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
 				WHERE ID = %d";
 		
 		$sql = $wpdb->prepare($sql, $selectedID);
@@ -704,9 +706,9 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
 					pending.AMOUNT, pending.COMMENT, pending.SPECIALISATION,
 					pending.TRAINING_NOTE
 				FROM
-					" . GVLARP_TABLE_PREFIX . "PLAYER players,
-					" . GVLARP_TABLE_PREFIX . "CHARACTER characters,
-					" . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND pending
+					" . VTM_TABLE_PREFIX . "PLAYER players,
+					" . VTM_TABLE_PREFIX . "CHARACTER characters,
+					" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND pending
 				WHERE
 					players.ID = pending.PLAYER_ID
 					AND characters.ID = pending.CHARACTER_ID";
@@ -737,31 +739,31 @@ class gvadmin_xpapproval_table extends GVMultiPage_ListTable {
 /* ASSIGN EXPERIENCE
 ------------------------------------------------------------------- */
 
-function character_xp_assign() {
+function vtm_character_xp_assign() {
 	if ( !current_user_can( 'manage_options' ) )  {
 		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 	}
 	?>
 	<div class="wrap">
 		<h2>Assign Experience</h2>
-		<?php render_xp_assign_page(); ?>
+		<?php vtm_render_xp_assign_page(); ?>
 	</div>
 	
 	<?php
 }
 
-function addPlayerXP($player, $character, $xpReason, $value, $comment) {
+function vtm_addPlayerXP($player, $character, $xpReason, $value, $comment) {
 	global $wpdb;
-	$table_prefix = GVLARP_TABLE_PREFIX;
+	$table_prefix = VTM_TABLE_PREFIX;
 	$sql = "INSERT INTO " . $table_prefix . "PLAYER_XP (player_id, amount, character_id, xp_reason_id, comment, awarded)
 					VALUES (%d, %d, %d, %d, %s, SYSDATE())";
 	$wpdb->query($wpdb->prepare($sql, $player, ((int) $value), $character, $xpReason, $comment));
 	
-	touch_last_updated($character);
+	vtm_touch_last_updated($character);
 }
 
 
-function render_xp_assign_page(){
+function vtm_render_xp_assign_page(){
 
 	$type = "xpassign";
 	
@@ -778,7 +780,7 @@ function render_xp_assign_page(){
 		foreach( $_REQUEST['xp_change'] as $characterID => $change) {
 			if (!empty($change) && is_numeric($change)) {
 				
-				addPlayerXP(
+				vtm_addPlayerXP(
 					$players[$characterID],
 					$characterID,
 					$reasons[$characterID],
@@ -791,7 +793,7 @@ function render_xp_assign_page(){
 	}
 	
 	
-	$config = getConfig();
+	$config = vtm_getConfig();
 
  	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
@@ -811,9 +813,9 @@ function render_xp_assign_page(){
 			<th class="manage-column">Comment</th></tr>
 		<?php
 			if ($config->ASSIGN_XP_BY_PLAYER == 'Y')
-				render_xp_by_player();
+				vtm_render_xp_by_player();
 			else
-				render_xp_by_character();
+				vtm_render_xp_by_character();
 		
 		?>
 		</table>
@@ -826,16 +828,16 @@ function render_xp_assign_page(){
 }
 
 
-function render_xp_by_player () {
+function vtm_render_xp_by_player () {
 	global $wpdb;
 	
 	$sql = "SELECT
 				player.ID,
 				SUM(xp.amount) as PLAYER_XP
 			FROM
-				" . GVLARP_TABLE_PREFIX . "PLAYER_XP xp,
-				" . GVLARP_TABLE_PREFIX . "PLAYER player,
-				" . GVLARP_TABLE_PREFIX . "PLAYER_STATUS pstatus
+				" . VTM_TABLE_PREFIX . "PLAYER_XP xp,
+				" . VTM_TABLE_PREFIX . "PLAYER player,
+				" . VTM_TABLE_PREFIX . "PLAYER_STATUS pstatus
 			WHERE
 				pstatus.ID = player.PLAYER_STATUS_ID
 				AND xp.PLAYER_ID = player.ID
@@ -853,11 +855,11 @@ function render_xp_by_player () {
 				player.ID as PLAYER_ID,
 				cstatus.name as CSTATUS
 			FROM
-				" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
-				" . GVLARP_TABLE_PREFIX . "PLAYER player,
-				" . GVLARP_TABLE_PREFIX . "PLAYER_STATUS pstatus,
-				" . GVLARP_TABLE_PREFIX . "CHARACTER_STATUS cstatus,
-				" . GVLARP_TABLE_PREFIX . "CHARACTER_TYPE ctype
+				" . VTM_TABLE_PREFIX . "CHARACTER chara,
+				" . VTM_TABLE_PREFIX . "PLAYER player,
+				" . VTM_TABLE_PREFIX . "PLAYER_STATUS pstatus,
+				" . VTM_TABLE_PREFIX . "CHARACTER_STATUS cstatus,
+				" . VTM_TABLE_PREFIX . "CHARACTER_TYPE ctype
 			WHERE
 				chara.PLAYER_ID = player.ID
 				AND pstatus.ID = player.PLAYER_STATUS_ID
@@ -893,7 +895,7 @@ function render_xp_by_player () {
 		$output .= "<td>$player<input name='xp_player[{$row->ID}]' value=\"{$row->PLAYER_ID}\" type=\"hidden\" /></td>";
 		$output .= "<td>{$row->CHARACTERNAME}</td><td>{$row->CSTATUS}</td><td>$xp</td>";
 		$output .= "<td><select name='xp_reason[{$row->ID}]'>\n";
-		foreach (listXpReasons() as $reason) {
+		foreach (vtm_listXpReasons() as $reason) {
 			$output .= "<option value='{$reason->id}'>{$reason->name}</option>\n";
 		}
 		$output .= "</select></td>\n";
@@ -905,7 +907,7 @@ function render_xp_by_player () {
 	echo $output;
 
 }
-function render_xp_by_character () {
+function vtm_render_xp_by_character () {
 	global $wpdb;
 
 	$sql = "SELECT
@@ -916,12 +918,12 @@ function render_xp_by_character () {
 				cstatus.name as CSTATUS,
 				SUM(xp.amount) as CHARACTER_XP
 			FROM
-				" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
-				" . GVLARP_TABLE_PREFIX . "PLAYER player,
-				" . GVLARP_TABLE_PREFIX . "PLAYER_STATUS pstatus,
-				" . GVLARP_TABLE_PREFIX . "CHARACTER_STATUS cstatus,
-				" . GVLARP_TABLE_PREFIX . "CHARACTER_TYPE ctype,
-				" . GVLARP_TABLE_PREFIX . "PLAYER_XP xp
+				" . VTM_TABLE_PREFIX . "CHARACTER chara,
+				" . VTM_TABLE_PREFIX . "PLAYER player,
+				" . VTM_TABLE_PREFIX . "PLAYER_STATUS pstatus,
+				" . VTM_TABLE_PREFIX . "CHARACTER_STATUS cstatus,
+				" . VTM_TABLE_PREFIX . "CHARACTER_TYPE ctype,
+				" . VTM_TABLE_PREFIX . "PLAYER_XP xp
 			WHERE
 				chara.PLAYER_ID = player.ID
 				AND pstatus.ID = player.PLAYER_STATUS_ID
@@ -951,7 +953,7 @@ function render_xp_by_character () {
 		$output .= "<td>$player<input name='xp_player[{$row->ID}]' value=\"{$row->PLAYER_ID}\" type=\"hidden\" /></td>";
 		$output .= "<td>{$row->CHARACTERNAME}</td><td>{$row->CSTATUS}</td><td>{$row->CHARACTER_XP}</td>";
 		$output .= "<td><select name='xp_reason[{$row->ID}]'>\n";
-		foreach (listXpReasons() as $reason) {
+		foreach (vtm_listXpReasons() as $reason) {
 			$output .= "<option value='{$reason->id}'>{$reason->name}</option>\n";
 		}
 		$output .= "</select></td>\n";

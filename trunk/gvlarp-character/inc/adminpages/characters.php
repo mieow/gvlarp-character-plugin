@@ -1,7 +1,7 @@
 <?php
 
 
-function character_options() {
+function vtm_character_options() {
 	global $wpdb;
 
 	if ( !current_user_can( 'manage_options' ) )  {
@@ -11,14 +11,14 @@ function character_options() {
 	$iconurl = plugins_url('adminpages/icons/',dirname(__FILE__));
 	
 	// setup filter options
-	$options_player_status    = gvmake_filter($wpdb->get_results("SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX. "PLAYER_STATUS"));
-	$options_character_status = gvmake_filter($wpdb->get_results("SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX. "CHARACTER_STATUS"));
-	$options_character_type   = gvmake_filter($wpdb->get_results("SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX. "CHARACTER_TYPE"));
+	$options_player_status    = vtm_make_filter($wpdb->get_results("SELECT ID, NAME FROM " . VTM_TABLE_PREFIX. "PLAYER_STATUS"));
+	$options_character_status = vtm_make_filter($wpdb->get_results("SELECT ID, NAME FROM " . VTM_TABLE_PREFIX. "CHARACTER_STATUS"));
+	$options_character_type   = vtm_make_filter($wpdb->get_results("SELECT ID, NAME FROM " . VTM_TABLE_PREFIX. "CHARACTER_TYPE"));
 	
 	// Set up default filter values
-	$default_player_status     = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . GVLARP_TABLE_PREFIX. "PLAYER_STATUS     WHERE NAME = %s",'Active'));
-	$default_character_status  = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . GVLARP_TABLE_PREFIX. "CHARACTER_STATUS  WHERE NAME = %s",'Alive'));
-	$default_character_type    = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . GVLARP_TABLE_PREFIX. "CHARACTER_TYPE    WHERE NAME = %s",'PC'));
+	$default_player_status     = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . VTM_TABLE_PREFIX. "PLAYER_STATUS     WHERE NAME = %s",'Active'));
+	$default_character_status  = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . VTM_TABLE_PREFIX. "CHARACTER_STATUS  WHERE NAME = %s",'Alive'));
+	$default_character_type    = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . VTM_TABLE_PREFIX. "CHARACTER_TYPE    WHERE NAME = %s",'PC'));
 	$default_character_visible = "y";
 	
 	// set active filter
@@ -35,7 +35,7 @@ function character_options() {
 	else $active_character_visible = $default_character_visible;
 	
 	// Get web pages
-	$stlinks = $wpdb->get_results("SELECT VALUE, LINK FROM " . GVLARP_TABLE_PREFIX. "ST_LINK ORDER BY ORDERING", OBJECT_K);
+	$stlinks = $wpdb->get_results("SELECT VALUE, LINK FROM " . VTM_TABLE_PREFIX. "ST_LINK ORDER BY ORDERING", OBJECT_K);
 	
 	?>
 	<div class="wrap">
@@ -62,7 +62,7 @@ function character_options() {
 		} else {
 		
 			if (isset($_REQUEST['cConfirm'])) {
-				echo deleteCharacter($_REQUEST['characterID']);
+				echo vtm_deleteCharacter($_REQUEST['characterID']);
 			} 
 
 		?>
@@ -73,7 +73,7 @@ function character_options() {
 			
 			$noclan_url = remove_query_arg( 'clan', $current_url );
 			$arr = array('<a href="' . htmlentities($noclan_url) . '" class="nav_clan">All</a>');
-			foreach (get_clans() as $clan) {
+			foreach (vtm_get_clans() as $clan) {
 				$clanurl = add_query_arg('clan', $clan->ID);
 				array_push($arr, '<a href="' . htmlentities($clanurl) . '" class="nav_clan">' . $clan->NAME . '</a>');
 			}
@@ -158,12 +158,12 @@ function character_options() {
 						chara.visible,
 						chara.wordpress_id
 					FROM
-						" . GVLARP_TABLE_PREFIX. "CHARACTER chara,
-						" . GVLARP_TABLE_PREFIX. "CLAN clans,
-						" . GVLARP_TABLE_PREFIX. "PLAYER players,
-						" . GVLARP_TABLE_PREFIX. "PLAYER_STATUS pstatus,
-						" . GVLARP_TABLE_PREFIX. "CHARACTER_TYPE ctypes,
-						" . GVLARP_TABLE_PREFIX. "CHARACTER_STATUS cstatus
+						" . VTM_TABLE_PREFIX. "CHARACTER chara,
+						" . VTM_TABLE_PREFIX. "CLAN clans,
+						" . VTM_TABLE_PREFIX. "PLAYER players,
+						" . VTM_TABLE_PREFIX. "PLAYER_STATUS pstatus,
+						" . VTM_TABLE_PREFIX. "CHARACTER_TYPE ctypes,
+						" . VTM_TABLE_PREFIX. "CHARACTER_STATUS cstatus
 					WHERE
 						clans.ID = chara.PRIVATE_CLAN_ID
 						AND players.ID = chara.PLAYER_ID
@@ -251,11 +251,11 @@ function character_options() {
 /* CREATE/EDIT CHARACTER PAGE
 -------------------------------------------------------------- */
 
-function gv_edit_character_content_filter($content) {
+function vtm_edit_character_content_filter($content) {
 
-  if (is_page(get_stlink_page('editCharSheet')))
+  if (is_page(vtm_get_stlink_page('editCharSheet')))
 		if (is_user_logged_in()) {
-			$content .= get_edit_character_content();
+			$content .= vtm_get_edit_character_content();
 		} else {
 			$content .= "<p>You must be logged in to view this content.</p>";
 		}
@@ -263,10 +263,10 @@ function gv_edit_character_content_filter($content) {
   return $content;
 }
 
-add_filter( 'the_content', 'gv_edit_character_content_filter' );
+add_filter( 'the_content', 'vtm_edit_character_content_filter' );
 
 
-function get_edit_character_content() {
+function vtm_get_edit_character_content() {
 
 	$output = "";
 
@@ -276,31 +276,31 @@ function get_edit_character_content() {
 		$characterID = 0;
 
 	if (isset($_REQUEST['cSubmit']) && $_REQUEST['cSubmit'] == "Submit character changes") {
-		$characterID = processCharacterUpdate($characterID);
+		$characterID = vtm_processCharacterUpdate($characterID);
 		$output .= "<br /><center><strong>Update successful</strong></center><br />";
 	}
-	$output .= displayUpdateCharacter($characterID);
+	$output .= vtm_displayUpdateCharacter($characterID);
 	
 	return $output;
 }
 
 
-function displayUpdateCharacter($characterID) {
+function vtm_displayUpdateCharacter($characterID) {
 	global $wpdb;
-	$table_prefix = GVLARP_TABLE_PREFIX;
+	$table_prefix = VTM_TABLE_PREFIX;
 	$output = "";
 
 	if ($characterID == "0" || (int) ($characterID) > 0) {
-		$players           = listPlayers("", "");       // ID, name
-		$clans             = listClans();               // ID, name
-		$generations       = listGenerations();         // ID, name
-		$domains           = listDomains();             // ID, name
-		$sects             = get_Sects();               // ID, name
-		$characterTypes    = listCharacterTypes();      // ID, name
-		$characterStatuses = listCharacterStatuses();   // ID, name
-		$roadsOrPaths      = listRoadsOrPaths();        // ID, name
+		$players           = vtm_listPlayers("", "");       // ID, name
+		$clans             = vtm_listClans();               // ID, name
+		$generations       = vtm_listGenerations();         // ID, name
+		$domains           = vtm_listDomains();             // ID, name
+		$sects             = vtm_get_Sects();               // ID, name
+		$characterTypes    = vtm_listCharacterTypes();      // ID, name
+		$characterStatuses = vtm_listCharacterStatuses();   // ID, name
+		$roadsOrPaths      = vtm_listRoadsOrPaths();        // ID, name
 
-		$config = getConfig();
+		$config = vtm_getConfig();
 					
 		$characterName             = "New Name";
 		$characterPublicClanId     = "";
@@ -395,7 +395,7 @@ function displayUpdateCharacter($characterID) {
 		}
 
 		$output  = "<form name=\"CHARACTER_UPDATE_FORM\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">";
-		$output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"displayUpdateCharacter\" />";
+		$output .= "<input type='HIDDEN' name=\"VTM_FORM\" value=\"displayUpdateCharacter\" />";
 		$output .= "<table class='gvplugin' id=\"gvid_ucti\">
 					<tr><td class=\"gvcol_1 gvcol_val\">
 						<input type='submit' name=\"cSubmit\" value=\"Submit character changes\" /></td>
@@ -529,7 +529,7 @@ function displayUpdateCharacter($characterID) {
 			$output .= "</select></td><td>Demeanour</td><td colspan=2>";
 			$output .= "<select name = \"charDemeanour\">";
 			$output .= "<option value=\"0\">[Select]</option>";
-			foreach (get_natures() as $nature) {
+			foreach (vtm_get_natures() as $nature) {
 				$output .= "<option value=\"" . $nature->ID . "\" ";
 				if ($nature->ID == $characterDemeanourId) {
 					$output .= "SELECTED";
@@ -569,7 +569,7 @@ function displayUpdateCharacter($characterID) {
 		foreach ($characterStats as $characterStat) {
 			$arr[$characterStat->name] = $characterStat;
 		}
-		$stats = listStats();
+		$stats = vtm_listStats();
 
 		$output .= "<hr /><table class='gvplugin' id=\"gvid_uctsto\">
 							  <tr><td class=\"gvcol_1 gvcol_val\"><table class='gvplugin' id=\"gvid_uctsti\">
@@ -598,7 +598,7 @@ function displayUpdateCharacter($characterID) {
 			$statName = $stat->name;
 			$currentStat = $arr[$statName];
 			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $stat->name . "</td>"
-				. "<td class=\"gvcol_2 gvcol_val\">" . printSelectCounter($statName, $currentStat->level, 0, 10) . "</td>"
+				. "<td class=\"gvcol_2 gvcol_val\">" . vtm_printSelectCounter($statName, $currentStat->level, 0, 10) . "</td>"
 				. "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\"" . $statName . "Comment\" value=\"" . stripslashes($currentStat->comment) . "\" /></td>"
 				. "<td class='gvcol_4 gvcol_val'>";
 
@@ -646,7 +646,7 @@ function displayUpdateCharacter($characterID) {
 
 			$skillName = "skill" . $skillCount;
 			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $characterSkill->name . "</td>"
-				. "<td class=\"gvcol_2 gvcol_val\">" . printSelectCounter($skillName, $characterSkill->level, 0, 10) . "</td>"
+				. "<td class=\"gvcol_2 gvcol_val\">" . vtm_printSelectCounter($skillName, $characterSkill->level, 0, 10) . "</td>"
 				. "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $skillName . "Comment\" value=\"" . stripslashes($characterSkill->comment)  . "\" /></td>"
 				. "<td class='gvcol_4 gvcol_val'><input type=\"checkbox\" name=\"" . $skillName . "Delete\" value=\""  . $characterSkill->cskillid . "\" />"
 				.     "<input type='HIDDEN' name=\""   . $skillName . "ID\" value=\""      . $characterSkill->cskillid . "\" /></td></tr>";
@@ -662,7 +662,7 @@ function displayUpdateCharacter($characterID) {
 																		 <th class=\"gvthead gvcol_4\">Delete</th></tr>";
 
 		$skillBlock = "";
-		$skills = listSkills("", "Y");
+		$skills = vtm_listSkills("", "Y");
 		foreach ($skills as $skill) {
 			$skillBlock .= "<option value=\"" . $skill->id . "\">" . $skill->name . "</option>";
 		}
@@ -670,7 +670,7 @@ function displayUpdateCharacter($characterID) {
 		for ($i = 0; $i < 20; ) {
 			$skillName = "skill" . $skillCount;
 			$output .= "<tr><td class=\"gvcol_1 gvcol_key\"><select name=\"" . $skillName . "SID\">" . $skillBlock . "</select></td>"
-				. "<td class=\"gvcol_2 gvcol_val\">" . printSelectCounter($skillName, "", 0, 10) . "</td>"
+				. "<td class=\"gvcol_2 gvcol_val\">" . vtm_printSelectCounter($skillName, "", 0, 10) . "</td>"
 				. "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\"" . $skillName . "Comment\" /></td>"
 				. "<td class='gvcol_4 gvcol_val'></td></tr>";
 
@@ -716,7 +716,7 @@ function displayUpdateCharacter($characterID) {
 
 			$disciplineName = "discipline" . $disciplineCount;
 			$output .= "<td class=\"gvcol_" . (1 + $colOffset) . " gvcol_key\">" . $characterDiscipline->name . "</td>"
-				. "<td class=\"gvcol_" . (2 + $colOffset) . " gvcol_val\">" . printSelectCounter($disciplineName, $characterDiscipline->level, 0, 10) . "</td>"
+				. "<td class=\"gvcol_" . (2 + $colOffset) . " gvcol_val\">" . vtm_printSelectCounter($disciplineName, $characterDiscipline->level, 0, 10) . "</td>"
 				. "<td class=\"gvcol_" . (3 + $colOffset) . " gvcol_val\"><input type='text' name=\""     . $disciplineName . "Comment\" value=\"" . stripslashes($characterDiscipline->comment)  . "\" /></td>"
 				. "<td class=\"gvcol_" . (4 + $colOffset) . " gvcol_val\"><input type=\"checkbox\" name=\"" . $disciplineName . "Delete\" value=\""  . $characterDiscipline->cdisciplineid . "\" />"
 				.     "<input type='HIDDEN' name=\""   . $disciplineName . "ID\" value=\""      . $characterDiscipline->cdisciplineid . "\" /></td>";
@@ -734,7 +734,7 @@ function displayUpdateCharacter($characterID) {
 		$output .= "<tr style='display:none'><td colspan=8><input type='HIDDEN' name=\"maxOldDisciplineCount\" value=\"" . $disciplineCount . "\" /></td></tr>";
 
 		$disciplineBlock = "";
-		$disciplines = listDisciplines("Y");
+		$disciplines = vtm_listDisciplines("Y");
 		foreach ($disciplines as $discipline) {
 			$disciplineBlock .= "<option value=\"" . $discipline->id . "\">" . $discipline->name . "</option>";
 		}
@@ -745,7 +745,7 @@ function displayUpdateCharacter($characterID) {
 			}
 			$disciplineName = "discipline" . $disciplineCount;
 			$output .= "<td class=\"gvcol_" . (1 + $colOffset) . " gvcol_key\"><select name=\"" . $disciplineName . "SID\">" . $disciplineBlock . "</select></td>"
-				. "<td class=\"gvcol_" . (2 + $colOffset) . " gvcol_val\">" . printSelectCounter($disciplineName, "", 0, 10) . "</td>"
+				. "<td class=\"gvcol_" . (2 + $colOffset) . " gvcol_val\">" . vtm_printSelectCounter($disciplineName, "", 0, 10) . "</td>"
 				. "<td class=\"gvcol_" . (3 + $colOffset) . " gvcol_val\"><input type='text' name=\""     . $disciplineName . "Comment\" /></td>"
 				. "<td class=\"gvcol_" . (4 + $colOffset) . " gvcol_val\"></td>";
 
@@ -794,7 +794,7 @@ function displayUpdateCharacter($characterID) {
 
 			$backgroundName = "background" . $backgroundCount;
 			$output .= "<td class=\"gvcol_" . (1 + $colOffset) . " gvcol_key\">" . $characterBackground->name . "</td>"
-				. "<td class=\"gvcol_" . (2 + $colOffset) . " gvcol_val\">" . printSelectCounter($backgroundName, $characterBackground->level, 0, 10) . "</td>"
+				. "<td class=\"gvcol_" . (2 + $colOffset) . " gvcol_val\">" . vtm_printSelectCounter($backgroundName, $characterBackground->level, 0, 10) . "</td>"
 				. "<td class=\"gvcol_" . (3 + $colOffset) . " gvcol_val\"><input type='text' name=\""     . $backgroundName . "Comment\" value=\"" . stripslashes($characterBackground->comment)  . "\" /></td>"
 				. "<td class=\"gvcol_" . (4 + $colOffset) . " gvcol_val\"><input type=\"checkbox\" name=\"" . $backgroundName . "Delete\" value=\""  . $characterBackground->cbackgroundid . "\" />"
 				.     "<input type='HIDDEN' name=\""   . $backgroundName . "ID\" value=\""      . $characterBackground->cbackgroundid . "\" /></td>";
@@ -812,7 +812,7 @@ function displayUpdateCharacter($characterID) {
 		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxOldBackgroundCount\" value=\"" . $backgroundCount . "\" /></td></tr>";
 
 		$backgroundBlock = "";
-		$backgrounds = listBackgrounds("", "Y");
+		$backgrounds = vtm_listBackgrounds("", "Y");
 		foreach ($backgrounds as $background) {
 			$backgroundBlock .= "<option value=\"" . $background->id . "\">" . $background->name . "</option>";
 		}
@@ -823,7 +823,7 @@ function displayUpdateCharacter($characterID) {
 			}
 			$backgroundName = "background" . $backgroundCount;
 			$output .= "<td class=\"gvcol_" . (1 + $colOffset) . " gvcol_key\"><select name=\"" . $backgroundName . "SID\">" . $backgroundBlock . "</select></td>"
-				. "<td class=\"gvcol_" . (2 + $colOffset) . " gvcol_val\">" . printSelectCounter($backgroundName, "", 0, 10) . "</td>"
+				. "<td class=\"gvcol_" . (2 + $colOffset) . " gvcol_val\">" . vtm_printSelectCounter($backgroundName, "", 0, 10) . "</td>"
 				. "<td class=\"gvcol_" . (3 + $colOffset) . " gvcol_val\"><input type='text' name=\""     . $backgroundName . "Comment\" /></td>"
 				. "<td class=\"gvcol_" . (4 + $colOffset) . " gvcol_val\"></td>";
 
@@ -862,7 +862,7 @@ function displayUpdateCharacter($characterID) {
 		foreach($characterMerits as $characterMerit) {
 			$meritName = "merit" . $meritCount;
 			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $characterMerit->name . " (" . $characterMerit->value . ")</td>"
-				. "<td class=\"gvcol_2 gvcol_val\">" . printSelectCounter($meritName, $characterMerit->level, -7, 7) . "</td>"
+				. "<td class=\"gvcol_2 gvcol_val\">" . vtm_printSelectCounter($meritName, $characterMerit->level, -7, 7) . "</td>"
 				. "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $meritName . "Comment\" value=\"" . stripslashes($characterMerit->comment)  . "\" /></td>"
 				. "<td class='gvcol_4 gvcol_val'><input type=\"checkbox\" name=\"" . $meritName . "Delete\" value=\""  . $characterMerit->cmeritid . "\" />"
 				.     "<input type='HIDDEN' name=\""   . $meritName . "ID\" value=\""      . $characterMerit->cmeritid . "\" /></td></tr>";
@@ -874,7 +874,7 @@ function displayUpdateCharacter($characterID) {
 		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxOldMeritCount\" value=\"" . $meritCount . "\" /></td></tr>";
 
 		$meritBlock = "";
-		$merits = listMerits("", "Y");
+		$merits = vtm_listMerits("", "Y");
 		foreach ($merits as $merit) {
 			$meritBlock .= "<option value=\"" . $merit->id . "\">" . $merit->name . " (" . $merit->value . ")</option>";
 		}
@@ -882,7 +882,7 @@ function displayUpdateCharacter($characterID) {
 		for ($i = 0; $i < 6; $i++) {
 			$meritName = "merit" . $meritCount;
 			$output .= "<tr><td class=\"gvcol_1 gvcol_key\"><select name=\"" . $meritName . "SID\">" . $meritBlock . "</select></td>"
-				. "<td class=\"gvcol_2 gvcol_val\">" . printSelectCounter($meritName, "", -7, 7) . "</td>"
+				. "<td class=\"gvcol_2 gvcol_val\">" . vtm_printSelectCounter($meritName, "", -7, 7) . "</td>"
 				. "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $meritName . "Comment\" /></td>"
 				. "<td class='gvcol_4 gvcol_val'></td></tr>";
 
@@ -926,7 +926,7 @@ function displayUpdateCharacter($characterID) {
 		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxOldComboDisciplineCount\" value=\"" . $comboDisciplineCount . "\" /></td></tr>";
 
 		$comboDisciplineBlock = "";
-		$comboDisciplines = listComboDisciplines("Y");
+		$comboDisciplines = vtm_listComboDisciplines("Y");
 		foreach ($comboDisciplines as $comboDiscipline) {
 			$comboDisciplineBlock .= "<option value=\"" . $comboDiscipline->id . "\">" . $comboDiscipline->name . "</option>";
 		}
@@ -970,7 +970,7 @@ function displayUpdateCharacter($characterID) {
 		foreach($characterPaths as $characterPath) {
 			$pathName = "path" . $pathCount;
 			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $characterPath->name . " (" . substr($characterPath->disname, 0, 5)  .")</td>"
-				. "<td class=\"gvcol_2 gvcol_val\">" . printSelectCounter($pathName, $characterPath->level, 0, 10) . "</td>"
+				. "<td class=\"gvcol_2 gvcol_val\">" . vtm_printSelectCounter($pathName, $characterPath->level, 0, 10) . "</td>"
 				. "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $pathName . "Comment\" value=\"" . stripslashes($characterPath->comment)  . "\" /></td>"
 				. "<td class='gvcol_4 gvcol_val'><input type=\"checkbox\" name=\"" . $pathName . "Delete\" value=\""  . $characterPath->cpathid . "\" />"
 				.     "<input type='HIDDEN' name=\""   . $pathName . "ID\" value=\""      . $characterPath->cpathid . "\" /></td></tr>";
@@ -982,7 +982,7 @@ function displayUpdateCharacter($characterID) {
 		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxOldPathCount\" value=\"" . $pathCount . "\" /></td></tr>";
 
 		$pathBlock = "";
-		$paths = listPaths("Y");
+		$paths = vtm_listPaths("Y");
 		foreach ($paths as $path) {
 			$pathBlock .= "<option value=\"" . $path->id . "\">" . $path->name . " (" . substr($path->disname, 0, 5)  .")</option>";
 		}
@@ -990,7 +990,7 @@ function displayUpdateCharacter($characterID) {
 		for ($i = 0; $i < 2; $i++) {
 			$pathName = "path" . $pathCount;
 			$output .= "<tr><td class=\"gvcol_1 gvcol_key\"><select name=\"" . $pathName . "SID\">" . $pathBlock . "</select></td>"
-				. "<td class=\"gvcol_2 gvcol_val\">" . printSelectCounter($pathName, "", 0, 10) . "</td>"
+				. "<td class=\"gvcol_2 gvcol_val\">" . vtm_printSelectCounter($pathName, "", 0, 10) . "</td>"
 				. "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $pathName . "Comment\" /></td>"
 				. "<td class='gvcol_4 gvcol_val'></td></tr>";
 			$pathCount++;
@@ -1040,7 +1040,7 @@ function displayUpdateCharacter($characterID) {
 		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxOldRitualCount\" value=\"" . $ritualCount . "\" /></td></tr>";
 
 		$ritualBlock = "";
-		$rituals = listRituals("Y");
+		$rituals = vtm_listRituals("Y");
 		foreach ($rituals as $ritual) {
 			$ritualBlock .= "<option value=\"" . $ritual->id . "\">" . $ritual->name . " (" . substr($ritual->disname, 0, 5)  . " " . $ritual->level . ")</option>";
 		}
@@ -1097,13 +1097,13 @@ function displayUpdateCharacter($characterID) {
 		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxOldOfficeCount\" value=\"" . $officeCount . "\" /></td></tr>";
 
 		$officeBlock = "";
-		$offices = listOffices("Y");
+		$offices = vtm_listOffices("Y");
 		foreach ($offices as $office) {
 			$officeBlock .= "<option value=\"" . $office->ID . "\">" . $office->name . "</option>";
 		}
 
 		$domainBlock = "";
-		$domains = listDomains();
+		$domains = vtm_listDomains();
 		foreach ($domains as $domain) {
 			$domainBlock .= "<option value=\"" . $domain->ID ."\">" . $domain->name . "</option>";
 		}
@@ -1135,9 +1135,9 @@ function displayUpdateCharacter($characterID) {
 }
 
 
-function processCharacterUpdate($characterID) {
+function vtm_processCharacterUpdate($characterID) {
 	global $wpdb;
-	$table_prefix = GVLARP_TABLE_PREFIX;
+	$table_prefix = VTM_TABLE_PREFIX;
 
 	$characterName             = $_POST['charName'];
 	$characterPlayer           = $_POST['charPlayer'];
@@ -1222,20 +1222,20 @@ function processCharacterUpdate($characterID) {
 						VALUES (%d, %s, %s)";
 		$wpdb->query($wpdb->prepare($sql, $characterID, $characterHarpyQuote, $characterPortraitURL));
 
-		$xpReasonID = establishXPReasonID('Initial XP');
+		$xpReasonID = vtm_establishXPReasonID('Initial XP');
 		$sql = "INSERT INTO " . $table_prefix . "PLAYER_XP (player_id, character_id, xp_reason_id, awarded, amount, comment) "
 			. "VALUES (%d, %d, %d, SYSDATE(), 0, 'New character added')";
 		$wpdb->query($wpdb->prepare($sql, $characterPlayer, $characterID, $xpReasonID));
 
-		$pathReasonID = establishPathReasonID('Initial');
+		$pathReasonID = vtm_establishPathReasonID('Initial');
 		$sql = "INSERT INTO ". $table_prefix . "CHARACTER_ROAD_OR_PATH (character_id, path_reason_id, awarded, amount, comment) "
 			.  "VALUES (%d, %d, SYSDATE(), %d, 'Character creation')";
 		$sql = $wpdb->prepare($sql, $characterID, $pathReasonID, $characterRoadOrPathRating);
 		//echo "<p>SQL: $sql</p>";
 		$wpdb->query($sql);
 
-		$tempStatReasonID = establishTempStatReasonID('Initial');
-		$tempStatID = establishTempStatID('Blood');
+		$tempStatReasonID = vtm_establishTempStatReasonID('Initial');
+		$tempStatID = vtm_establishTempStatID('Blood');
 		$sql = "INSERT INTO " . $table_prefix . "CHARACTER_TEMPORARY_STAT (character_id, temporary_stat_id, temporary_stat_reason_id, awarded, amount, comment) "
 			. " VALUES (%d, %d, %d, SYSDATE(), 10, 'Character creation')";
 		$wpdb->query($wpdb->prepare($sql, $characterID, $tempStatID, $tempStatReasonID));
@@ -1267,7 +1267,7 @@ function processCharacterUpdate($characterID) {
 		$wpdb->query($sql);
 	}
 
-	$stats = listStats();
+	$stats = vtm_listStats();
 	foreach ($stats as $stat) {
 		$currentStat = str_replace(" ", "_", $stat->name);
 		if ($_POST[$currentStat] != "" && $_POST[$currentStat] != "-100") {
@@ -1284,8 +1284,8 @@ function processCharacterUpdate($characterID) {
 			}
 			else {
 				if ($currentStat == "Willpower") {
-					$tempStatReasonID = establishTempStatReasonID('Initial');
-					$tempStatID       = establishTempStatID('Willpower');
+					$tempStatReasonID = vtm_establishTempStatReasonID('Initial');
+					$tempStatID       = vtm_establishTempStatID('Willpower');
 					$sql = "INSERT INTO " . $table_prefix . "CHARACTER_TEMPORARY_STAT (character_id, temporary_stat_id, temporary_stat_reason_id, awarded, amount, comment) "
 						. " VALUES (%d, %d, %d, SYSDATE(), %d, 'Character creation')";
 					$wpdb->query($wpdb->prepare($sql, $characterID, $tempStatID, $tempStatReasonID, $_POST[$currentStat]));
@@ -1546,13 +1546,13 @@ function processCharacterUpdate($characterID) {
 		$officeCounter++;
 	}
 	
-	$config = getConfig();
+	$config = vtm_getConfig();
 	if ($config->USE_NATURE_DEMEANOUR == 'Y') {
 		$dataarray = array(
 			'NATURE_ID'    => $characterNature,
 			'DEMEANOUR_ID' => $characterDemeanour,
 		);
-		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "CHARACTER",
+		$result = $wpdb->update(VTM_TABLE_PREFIX . "CHARACTER",
 					$dataarray,
 					array ('ID' => $characterID)
 				);
@@ -1560,15 +1560,15 @@ function processCharacterUpdate($characterID) {
 	
 	}
 	
-	touch_last_updated($characterID);
+	vtm_touch_last_updated($characterID);
 
 	return $characterID;
 }
 
 
-function deleteCharacter($characterID) {
+function vtm_deleteCharacter($characterID) {
 	global $wpdb;
-	$table_prefix = GVLARP_TABLE_PREFIX;
+	$table_prefix = VTM_TABLE_PREFIX;
 
 	$sql = "UPDATE " . $table_prefix . "CHARACTER
 					SET DELETED = 'Y'
@@ -1600,7 +1600,7 @@ function deleteCharacter($characterID) {
 		$output = "Deleted character " . $sqlOutput;
 	}
 	
-	touch_last_updated($characterID);
+	vtm_touch_last_updated($characterID);
 	
 	return $output;
 }

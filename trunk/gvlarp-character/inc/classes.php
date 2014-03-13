@@ -1,10 +1,10 @@
 <?php
-require_once GVLARP_CHARACTER_URL . 'lib/fpdf.php';
+require_once VTM_CHARACTER_URL . 'lib/fpdf.php';
 if(!class_exists('WP_List_Table')){
     require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
 }
 
-class larpcharacter {
+class vtmclass_character {
 
 	var $name;
 	var $display_name;
@@ -46,7 +46,7 @@ class larpcharacter {
 		
 		$wpdb->show_errors();
 		
-		$config = getConfig();
+		$config = vtm_getConfig();
 		
 		/* Basic Character Info */
 		$sql = "SELECT chara.name                      cname,
@@ -71,15 +71,15 @@ class larpcharacter {
 					   sects.name                      sect,
 					   pub_clan.icon_link			   public_icon,
 					   priv_clan.icon_link			   private_icon
-                    FROM " . GVLARP_TABLE_PREFIX . "CHARACTER chara,
-                         " . GVLARP_TABLE_PREFIX . "PLAYER player,
-                         " . GVLARP_TABLE_PREFIX . "DOMAIN domains,
-                         " . GVLARP_TABLE_PREFIX . "CLAN pub_clan,
-                         " . GVLARP_TABLE_PREFIX . "CLAN priv_clan,
-						 " . GVLARP_TABLE_PREFIX . "GENERATION gen,
-						 " . GVLARP_TABLE_PREFIX . "ROAD_OR_PATH paths,
-						 " . GVLARP_TABLE_PREFIX . "SECT sects,
-						 " . GVLARP_TABLE_PREFIX . "CHARACTER_STATUS cstatus
+                    FROM " . VTM_TABLE_PREFIX . "CHARACTER chara,
+                         " . VTM_TABLE_PREFIX . "PLAYER player,
+                         " . VTM_TABLE_PREFIX . "DOMAIN domains,
+                         " . VTM_TABLE_PREFIX . "CLAN pub_clan,
+                         " . VTM_TABLE_PREFIX . "CLAN priv_clan,
+						 " . VTM_TABLE_PREFIX . "GENERATION gen,
+						 " . VTM_TABLE_PREFIX . "ROAD_OR_PATH paths,
+						 " . VTM_TABLE_PREFIX . "SECT sects,
+						 " . VTM_TABLE_PREFIX . "CHARACTER_STATUS cstatus
                     WHERE chara.PUBLIC_CLAN_ID = pub_clan.ID
                       AND chara.PRIVATE_CLAN_ID = priv_clan.ID
                       AND chara.DOMAIN_ID = domains.ID
@@ -148,7 +148,7 @@ class larpcharacter {
 		// Profile
 		$sql = "SELECT QUOTE, PORTRAIT
 				FROM 
-					" . GVLARP_TABLE_PREFIX . "CHARACTER_PROFILE
+					" . VTM_TABLE_PREFIX . "CHARACTER_PROFILE
 				WHERE
 					CHARACTER_ID = %s";
 		$result = $wpdb->get_row($wpdb->prepare($sql, $characterID));
@@ -164,9 +164,9 @@ class larpcharacter {
 						natures.name as nature,
 						demeanours.name as demeanour
 					FROM
-						" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
-						" . GVLARP_TABLE_PREFIX . "NATURE natures,
-						" . GVLARP_TABLE_PREFIX . "NATURE demeanours
+						" . VTM_TABLE_PREFIX . "CHARACTER chara,
+						" . VTM_TABLE_PREFIX . "NATURE natures,
+						" . VTM_TABLE_PREFIX . "NATURE demeanours
 					WHERE
 						chara.NATURE_ID = natures.ID
 						AND chara.DEMEANOUR_ID = demeanours.ID
@@ -184,9 +184,9 @@ class larpcharacter {
 					charstat.comment	specialty,
 					charstat.level		level
 				FROM
-					" . GVLARP_TABLE_PREFIX . "STAT stat,
-					" . GVLARP_TABLE_PREFIX . "CHARACTER_STAT charstat,
-					" . GVLARP_TABLE_PREFIX . "CHARACTER chara
+					" . VTM_TABLE_PREFIX . "STAT stat,
+					" . VTM_TABLE_PREFIX . "CHARACTER_STAT charstat,
+					" . VTM_TABLE_PREFIX . "CHARACTER chara
 				WHERE
 					charstat.CHARACTER_ID = chara.ID
 					AND charstat.STAT_ID = stat.ID
@@ -210,9 +210,9 @@ class larpcharacter {
 					charskill.comment	specialty,
 					charskill.level		level
 				FROM
-					" . GVLARP_TABLE_PREFIX . "SKILL skill,
-					" . GVLARP_TABLE_PREFIX . "CHARACTER_SKILL charskill,
-					" . GVLARP_TABLE_PREFIX . "CHARACTER chara
+					" . VTM_TABLE_PREFIX . "SKILL skill,
+					" . VTM_TABLE_PREFIX . "CHARACTER_SKILL charskill,
+					" . VTM_TABLE_PREFIX . "CHARACTER chara
 				WHERE
 					charskill.CHARACTER_ID = chara.ID
 					AND charskill.SKILL_ID = skill.ID
@@ -237,11 +237,11 @@ class larpcharacter {
 					charbgnd.level		     level,
 					charbgnd.approved_detail detail
 				FROM
-					" . GVLARP_TABLE_PREFIX . "BACKGROUND bground,
-					" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
-					" . GVLARP_TABLE_PREFIX . "CHARACTER_BACKGROUND charbgnd
+					" . VTM_TABLE_PREFIX . "BACKGROUND bground,
+					" . VTM_TABLE_PREFIX . "CHARACTER chara,
+					" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND charbgnd
 				LEFT JOIN 
-					" . GVLARP_TABLE_PREFIX . "SECTOR sectors
+					" . VTM_TABLE_PREFIX . "SECTOR sectors
 				ON charbgnd.SECTOR_ID = sectors.ID
 				WHERE
 					charbgnd.CHARACTER_ID = chara.ID
@@ -257,9 +257,9 @@ class larpcharacter {
 		$sql = "SELECT disciplines.NAME		name,
 					chardisc.level			level
 				FROM
-					" . GVLARP_TABLE_PREFIX . "DISCIPLINE disciplines,
-					" . GVLARP_TABLE_PREFIX . "CHARACTER_DISCIPLINE chardisc,
-					" . GVLARP_TABLE_PREFIX . "CHARACTER chara
+					" . VTM_TABLE_PREFIX . "DISCIPLINE disciplines,
+					" . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE chardisc,
+					" . VTM_TABLE_PREFIX . "CHARACTER chara
 				WHERE
 					chardisc.DISCIPLINE_ID = disciplines.ID
 					AND chardisc.CHARACTER_ID = chara.ID
@@ -274,10 +274,10 @@ class larpcharacter {
 					disciplines.NAME		discipline,
 					charpath.level			level
 				FROM
-					" . GVLARP_TABLE_PREFIX . "DISCIPLINE disciplines,
-					" . GVLARP_TABLE_PREFIX . "CHARACTER_PATH charpath,
-					" . GVLARP_TABLE_PREFIX . "PATH paths,
-					" . GVLARP_TABLE_PREFIX . "CHARACTER chara
+					" . VTM_TABLE_PREFIX . "DISCIPLINE disciplines,
+					" . VTM_TABLE_PREFIX . "CHARACTER_PATH charpath,
+					" . VTM_TABLE_PREFIX . "PATH paths,
+					" . VTM_TABLE_PREFIX . "CHARACTER chara
 				WHERE
 					charpath.PATH_ID = paths.ID
 					AND paths.DISCIPLINE_ID = disciplines.ID
@@ -301,9 +301,9 @@ class larpcharacter {
 					charmerit.level		      level,
 					charmerit.approved_detail detail
 				FROM
-					" . GVLARP_TABLE_PREFIX . "MERIT merits,
-					" . GVLARP_TABLE_PREFIX . "CHARACTER_MERIT charmerit,
-					" . GVLARP_TABLE_PREFIX . "CHARACTER chara
+					" . VTM_TABLE_PREFIX . "MERIT merits,
+					" . VTM_TABLE_PREFIX . "CHARACTER_MERIT charmerit,
+					" . VTM_TABLE_PREFIX . "CHARACTER chara
 				WHERE
 					charmerit.MERIT_ID = merits.ID
 					AND charmerit.CHARACTER_ID = chara.ID
@@ -315,8 +315,8 @@ class larpcharacter {
 
 		/* Full Willpower */
 		$sql = "SELECT charstat.level
-				FROM " . GVLARP_TABLE_PREFIX . "CHARACTER_STAT charstat,
-					" . GVLARP_TABLE_PREFIX . "STAT stat
+				FROM " . VTM_TABLE_PREFIX . "CHARACTER_STAT charstat,
+					" . VTM_TABLE_PREFIX . "STAT stat
 				WHERE charstat.CHARACTER_ID = '%s' 
 					AND charstat.STAT_ID = stat.ID
 					AND stat.name = 'Willpower';";
@@ -326,8 +326,8 @@ class larpcharacter {
 		
 		/* Current Willpower */
         $sql = "SELECT SUM(char_temp_stat.amount) currentwp
-                FROM " . GVLARP_TABLE_PREFIX . "CHARACTER_TEMPORARY_STAT char_temp_stat,
-                     " . GVLARP_TABLE_PREFIX . "TEMPORARY_STAT tstat
+                FROM " . VTM_TABLE_PREFIX . "CHARACTER_TEMPORARY_STAT char_temp_stat,
+                     " . VTM_TABLE_PREFIX . "TEMPORARY_STAT tstat
                 WHERE char_temp_stat.character_id = '%s'
 					AND char_temp_stat.temporary_stat_id = tstat.id
 					AND tstat.name = 'Willpower';";
@@ -337,7 +337,7 @@ class larpcharacter {
 		
 		/* Humanity */
 		$sql = "SELECT SUM(cpath.AMOUNT) path_rating
-				FROM " . GVLARP_TABLE_PREFIX . "CHARACTER_ROAD_OR_PATH cpath
+				FROM " . VTM_TABLE_PREFIX . "CHARACTER_ROAD_OR_PATH cpath
 				WHERE cpath.CHARACTER_ID = %s;";	
 		$sql = $wpdb->prepare($sql, $characterID);
 		$result = $wpdb->get_var($sql);
@@ -346,9 +346,9 @@ class larpcharacter {
 		/* Rituals */
 		$sql = "SELECT disciplines.name as discname, rituals.name as ritualname, rituals.level,
 					rituals.description, rituals.dice_pool, rituals.difficulty
-				FROM " . GVLARP_TABLE_PREFIX . "DISCIPLINE disciplines,
-                    " . GVLARP_TABLE_PREFIX . "CHARACTER_RITUAL char_rit,
-                    " . GVLARP_TABLE_PREFIX . "RITUAL rituals
+				FROM " . VTM_TABLE_PREFIX . "DISCIPLINE disciplines,
+                    " . VTM_TABLE_PREFIX . "CHARACTER_RITUAL char_rit,
+                    " . VTM_TABLE_PREFIX . "RITUAL rituals
 				WHERE
 					char_rit.CHARACTER_ID = '%s'
 					AND char_rit.RITUAL_ID = rituals.ID
@@ -370,8 +370,8 @@ class larpcharacter {
 		/* Combo disciplines */
 		$sql = "SELECT combo.name
 				FROM
-					" . GVLARP_TABLE_PREFIX . "CHARACTER_COMBO_DISCIPLINE charcombo,
-					" . GVLARP_TABLE_PREFIX . "COMBO_DISCIPLINE combo
+					" . VTM_TABLE_PREFIX . "CHARACTER_COMBO_DISCIPLINE charcombo,
+					" . VTM_TABLE_PREFIX . "COMBO_DISCIPLINE combo
 				WHERE
 					charcombo.COMBO_DISCIPLINE_ID = combo.ID
 					AND charcombo.CHARACTER_ID = '%s'
@@ -389,9 +389,9 @@ class larpcharacter {
 		// Offices / Positions
 		$sql = "SELECT offices.name, offices.visible, domains.name as domain
 				FROM
-					" . GVLARP_TABLE_PREFIX . "CHARACTER_OFFICE charoffice,
-					" . GVLARP_TABLE_PREFIX . "OFFICE offices,
-					" . GVLARP_TABLE_PREFIX . "DOMAIN domains
+					" . VTM_TABLE_PREFIX . "CHARACTER_OFFICE charoffice,
+					" . VTM_TABLE_PREFIX . "OFFICE offices,
+					" . VTM_TABLE_PREFIX . "DOMAIN domains
 				WHERE	
 					charoffice.OFFICE_ID = offices.ID
 					AND charoffice.DOMAIN_ID = domains.ID
@@ -437,7 +437,7 @@ MULTI-PAGE LIST TABLE
 ------------------------------------------------ */
 
 
-class GVMultiPage_ListTable extends WP_List_Table {
+class vtmclass_MultiPage_ListTable extends WP_List_Table {
       
     function column_cb($item){
         return sprintf(
@@ -451,7 +451,7 @@ class GVMultiPage_ListTable extends WP_List_Table {
 		return ($item->VISIBLE == "Y") ? "Yes" : "No";
     }
    
-	/* Need own version of this function to deal with tabs */
+	/* Need own version of this function vtm_to deal with tabs */
 	function print_column_headers( $with_id = true ) {
 		list( $columns, $hidden, $sortable ) = $this->get_column_info();
 
@@ -519,7 +519,7 @@ class GVMultiPage_ListTable extends WP_List_Table {
 
 }
 
-class GVReport_ListTable extends WP_List_Table {
+class vtmclass_Report_ListTable extends WP_List_Table {
 
 	var $pagewidth;
 	var $lineheight;
@@ -560,27 +560,27 @@ class GVReport_ListTable extends WP_List_Table {
 		/* get defaults */
 		$default_character_visible = "Y";
 		
-		$sql = "SELECT ID FROM " . GVLARP_TABLE_PREFIX. "PLAYER_STATUS WHERE NAME = %s";
+		$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX. "PLAYER_STATUS WHERE NAME = %s";
 		$result = $wpdb->get_results($wpdb->prepare($sql,'Active'));
 		$default_player_status = $result[0]->ID;
 		
-		$sql = "SELECT ID FROM " . GVLARP_TABLE_PREFIX. "CHARACTER_TYPE WHERE NAME = %s";
+		$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX. "CHARACTER_TYPE WHERE NAME = %s";
 		$result = $wpdb->get_results($wpdb->prepare($sql,'PC'));
 		$default_character_type    = $result[0]->ID;
 		
-		$sql = "SELECT ID FROM " . GVLARP_TABLE_PREFIX. "CHARACTER_STATUS WHERE NAME = %s";
+		$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX. "CHARACTER_STATUS WHERE NAME = %s";
 		$result = $wpdb->get_results($wpdb->prepare($sql,'Alive'));
 		$default_character_status  = $result[0]->ID;
 		
 		/* get filter options */
-		$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX. "PLAYER_STATUS";
-		$this->filter_player_status = gvmake_filter($wpdb->get_results($sql));
+		$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX. "PLAYER_STATUS";
+		$this->filter_player_status = vtm_make_filter($wpdb->get_results($sql));
 		
-		$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX. "CHARACTER_TYPE";
-		$this->filter_character_type = gvmake_filter($wpdb->get_results($sql));
+		$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX. "CHARACTER_TYPE";
+		$this->filter_character_type = vtm_make_filter($wpdb->get_results($sql));
 		
-		$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX. "CHARACTER_STATUS";
-		$this->filter_character_status = gvmake_filter($wpdb->get_results($sql));		
+		$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX. "CHARACTER_STATUS";
+		$this->filter_character_status = vtm_make_filter($wpdb->get_results($sql));		
 		
 		/* set active filters */
 		if ( isset( $_REQUEST['player_status'] ) && array_key_exists( $_REQUEST['player_status'], $this->filter_player_status ) ) {
@@ -695,7 +695,7 @@ class GVReport_ListTable extends WP_List_Table {
 		}
 	}
 	
-	/* Add Headings function to add report name to sort url */
+	/* Add Headings function vtm_to add report name to sort url */
        function print_column_headers( $with_id = true ) {	
 			list( $columns, $hidden, $sortable ) = $this->get_column_info();
 
@@ -791,7 +791,7 @@ class GVReport_ListTable extends WP_List_Table {
 	
 	function output_report ($title, $orientation = 'L') {
 		
-		$pdf = new PDFreport($orientation,'mm','A4');
+		$pdf = new vtmclass_PDFreport($orientation,'mm','A4');
 		
 		if ($orientation == 'L') $pdf->pagewidth = 297;
 		if ($orientation == 'P') $pdf->pagewidth = 210;
@@ -931,14 +931,14 @@ class GVReport_ListTable extends WP_List_Table {
 		} 
 		$pdf->autobreak = false;
 		
-		$pdf->Output(GVLARP_CHARACTER_URL . 'tmp/report.pdf', 'F');
+		$pdf->Output(VTM_CHARACTER_URL . 'tmp/report.pdf', 'F');
 		
 	}
 	
 	function output_csv () {
 		
 		/* open file */
-		$file = fopen(GVLARP_CHARACTER_URL . "tmp/report.csv","w");
+		$file = fopen(VTM_CHARACTER_URL . "tmp/report.csv","w");
 		
 		/* write headings */
 		$columns = $this->get_columns();
@@ -976,7 +976,7 @@ class GVReport_ListTable extends WP_List_Table {
 -----------------------------------------------
 PRINT REPORT
 ------------------------------------------------ */
-class PDFreport extends FPDF {
+class vtmclass_PDFreport extends FPDF {
 
 	var $title;
 	var $pagewidth = 297;

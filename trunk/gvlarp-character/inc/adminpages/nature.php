@@ -1,11 +1,11 @@
 <?php
 
 
-function render_nature_page(){
+function vtm_render_nature_page(){
 
 
-    $testListTable["nature"] = new gvadmin_nature_table();
-	$doaction = nature_input_validation("nature");
+    $testListTable["nature"] = new vtmclass_admin_nature_table();
+	$doaction = vtm_nature_input_validation("nature");
 	
 	/* echo "<p>action: $doaction</p>"; */
 	
@@ -16,7 +16,7 @@ function render_nature_page(){
 		$testListTable["nature"]->edit();				
 	}
 
-	render_nature_add_form("nature", $doaction);
+	vtm_render_nature_add_form("nature", $doaction);
 	$testListTable["nature"]->prepare_items();
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
@@ -31,7 +31,7 @@ function render_nature_page(){
     <?php 
 }
 
-function render_nature_add_form($type, $addaction) {
+function vtm_render_nature_add_form($type, $addaction) {
 	global $wpdb;
 
 	$id   = isset($_REQUEST['nature']) ? $_REQUEST['nature'] : '';
@@ -43,7 +43,7 @@ function render_nature_add_form($type, $addaction) {
 		$nextaction = $_REQUEST['action'];
 
 	} elseif ('edit-' . $type == $addaction) {
-		$sql = "SELECT * FROM " . GVLARP_TABLE_PREFIX . "NATURE WHERE ID = %s";
+		$sql = "SELECT * FROM " . VTM_TABLE_PREFIX . "NATURE WHERE ID = %s";
 		$sql = $wpdb->prepare($sql, $id);
 		$data =$wpdb->get_row($sql);
 		/* echo "<p>SQL: $sql</p>";
@@ -87,7 +87,7 @@ function render_nature_add_form($type, $addaction) {
 
 }
 
-function nature_input_validation($type) {
+function vtm_nature_input_validation($type) {
 	
 	$doaction = '';
 	
@@ -116,7 +116,7 @@ ROAD/PATHS TABLE
 ------------------------------------------------ */
 
 
-class gvadmin_nature_table extends GVMultiPage_ListTable {
+class vtmclass_admin_nature_table extends vtmclass_MultiPage_ListTable {
    
     function __construct(){
         global $status, $page;
@@ -139,7 +139,7 @@ class gvadmin_nature_table extends GVMultiPage_ListTable {
 		
 		/* print_r($dataarray); */
 		
-		$wpdb->insert(GVLARP_TABLE_PREFIX . "NATURE",
+		$wpdb->insert(VTM_TABLE_PREFIX . "NATURE",
 					$dataarray,
 					array (
 						'%s',
@@ -166,7 +166,7 @@ class gvadmin_nature_table extends GVMultiPage_ListTable {
 						'DESCRIPTION'    => $_REQUEST['nature_desc'],
 					);
 		
-		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "NATURE",
+		$result = $wpdb->update(VTM_TABLE_PREFIX . "NATURE",
 					$dataarray,
 					array (
 						'ID' => $_REQUEST['nature']
@@ -190,9 +190,9 @@ class gvadmin_nature_table extends GVMultiPage_ListTable {
 		/* Check if question in use */
 		$sql = "select characters.NAME
 				from 
-					" . GVLARP_TABLE_PREFIX . "CHARACTER characters,
-					" . GVLARP_TABLE_PREFIX . "NATURE natures,
-					" . GVLARP_TABLE_PREFIX . "NATURE demeanours
+					" . VTM_TABLE_PREFIX . "CHARACTER characters,
+					" . VTM_TABLE_PREFIX . "NATURE natures,
+					" . VTM_TABLE_PREFIX . "NATURE demeanours
 				where 
 					characters.NATURE_ID = natures.ID 
 					and characters.DEMEANOUR_ID = demeanours.ID 
@@ -209,7 +209,7 @@ class gvadmin_nature_table extends GVMultiPage_ListTable {
 			
 		} else {
 		
-			$sql = "delete from " . GVLARP_TABLE_PREFIX . "NATURE where ID = %d;";
+			$sql = "delete from " . VTM_TABLE_PREFIX . "NATURE where ID = %d;";
 			
 			$result = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
@@ -304,7 +304,7 @@ class gvadmin_nature_table extends GVMultiPage_ListTable {
 					natures.NAME,
 					natures.DESCRIPTION
 				FROM
-					" . GVLARP_TABLE_PREFIX . "NATURE natures";
+					" . VTM_TABLE_PREFIX . "NATURE natures";
 				
 		/* order the data according to sort columns */
 		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']))

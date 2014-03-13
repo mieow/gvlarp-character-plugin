@@ -1,11 +1,11 @@
 <?php
 
 
-function render_enlightenment_page(){
+function vtm_render_enlightenment_page(){
 
 
-    $testListTable["enlighten"] = new gvadmin_enlighten_table();
-	$doaction = enlighten_input_validation("enlighten");
+    $testListTable["enlighten"] = new vtmclass_admin_enlighten_table();
+	$doaction = vtm_enlighten_input_validation("enlighten");
 	
 	/* echo "<p>action: $doaction</p>"; */
 	
@@ -16,7 +16,7 @@ function render_enlightenment_page(){
 		$testListTable["enlighten"]->edit();				
 	}
 
-	render_enlighten_add_form("enlighten", $doaction);
+	vtm_render_enlighten_add_form("enlighten", $doaction);
 	$testListTable["enlighten"]->prepare_items();
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
@@ -31,7 +31,7 @@ function render_enlightenment_page(){
     <?php 
 }
 
-function render_enlighten_add_form($type, $addaction) {
+function vtm_render_enlighten_add_form($type, $addaction) {
 	global $wpdb;
 
 	$id   = isset($_REQUEST['road']) ? $_REQUEST['road'] : '';
@@ -48,7 +48,7 @@ function render_enlighten_add_form($type, $addaction) {
 		$nextaction = $_REQUEST['action'];
 
 	} elseif ('edit-' . $type == $addaction) {
-		$sql = "SELECT * FROM " . GVLARP_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s";
+		$sql = "SELECT * FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s";
 		$sql = $wpdb->prepare($sql, $id);
 		$data =$wpdb->get_results($sql);
 		/* echo "<p>SQL: $sql</p>";
@@ -78,7 +78,7 @@ function render_enlighten_add_form($type, $addaction) {
 		
 	}
 	
-	$statinfo = get_stat_info();
+	$statinfo = vtm_get_stat_info();
 	
 	$conscience  = $statinfo['Conscience']->ID;  // should be stat1
 	$conviction  = $statinfo['Conviction']->ID;  // should be stat1
@@ -108,9 +108,9 @@ function render_enlighten_add_form($type, $addaction) {
 			<td>
 			<select name="<?php print $type; ?>_sourcebook">
 					<?php
-						foreach (get_booknames() as $book) {
+						foreach (vtm_get_booknames() as $book) {
 							print "<option value='{$book->ID}' ";
-							($book->ID == $bookid) ? print "selected" : print "";
+							($book->ID == $sourcebook_id) ? print "selected" : print "";
 							echo ">{$book->NAME}</option>";
 						}
 					?>
@@ -150,7 +150,7 @@ function render_enlighten_add_form($type, $addaction) {
 
 }
 
-function enlighten_input_validation($type) {
+function vtm_enlighten_input_validation($type) {
 	
 	$doaction = '';
 	
@@ -188,7 +188,7 @@ ROAD/PATHS TABLE
 ------------------------------------------------ */
 
 
-class gvadmin_enlighten_table extends GVMultiPage_ListTable {
+class vtmclass_admin_enlighten_table extends vtmclass_MultiPage_ListTable {
    
     function __construct(){
         global $status, $page;
@@ -216,7 +216,7 @@ class gvadmin_enlighten_table extends GVMultiPage_ListTable {
 		
 		/* print_r($dataarray); */
 		
-		$wpdb->insert(GVLARP_TABLE_PREFIX . "ROAD_OR_PATH",
+		$wpdb->insert(VTM_TABLE_PREFIX . "ROAD_OR_PATH",
 					$dataarray,
 					array (
 						'%s',
@@ -253,7 +253,7 @@ class gvadmin_enlighten_table extends GVMultiPage_ListTable {
 						'VISIBLE'     => $_REQUEST['enlighten_visible']
 					);
 		
-		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "ROAD_OR_PATH",
+		$result = $wpdb->update(VTM_TABLE_PREFIX . "ROAD_OR_PATH",
 					$dataarray,
 					array (
 						'ID' => $_REQUEST['enlighten_id']
@@ -277,8 +277,8 @@ class gvadmin_enlighten_table extends GVMultiPage_ListTable {
 		/* Check if question in use */
 		$sql = "select characters.NAME
 				from 
-					" . GVLARP_TABLE_PREFIX . "CHARACTER characters,
-					" . GVLARP_TABLE_PREFIX . "ROAD_OR_PATH paths
+					" . VTM_TABLE_PREFIX . "CHARACTER characters,
+					" . VTM_TABLE_PREFIX . "ROAD_OR_PATH paths
 				where characters.ROAD_OR_PATH_ID = paths.ID 
 					and paths.ID = %d;";
 					
@@ -293,7 +293,7 @@ class gvadmin_enlighten_table extends GVMultiPage_ListTable {
 			
 		} else {
 		
-			$sql = "delete from " . GVLARP_TABLE_PREFIX . "ROAD_OR_PATH where ID = %d;";
+			$sql = "delete from " . VTM_TABLE_PREFIX . "ROAD_OR_PATH where ID = %d;";
 			
 			$result = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
@@ -399,10 +399,10 @@ class gvadmin_enlighten_table extends GVMultiPage_ListTable {
 		$sql = "SELECT paths.ID, paths.NAME, paths.DESCRIPTION, stats1.NAME as STAT1, stats2.NAME as STAT2,
 					books.name as bookname, paths.PAGE_NUMBER, paths.VISIBLE
 				FROM 
-					" . GVLARP_TABLE_PREFIX . "ROAD_OR_PATH paths,
-					" . GVLARP_TABLE_PREFIX . "STAT stats1,
-					" . GVLARP_TABLE_PREFIX . "STAT stats2,
-					" . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books
+					" . VTM_TABLE_PREFIX . "ROAD_OR_PATH paths,
+					" . VTM_TABLE_PREFIX . "STAT stats1,
+					" . VTM_TABLE_PREFIX . "STAT stats2,
+					" . VTM_TABLE_PREFIX . "SOURCE_BOOK books
 				WHERE 
 					paths.STAT1_ID = stats1.ID
 					AND paths.STAT2_ID = stats2.ID

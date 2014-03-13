@@ -1,11 +1,11 @@
 <?php
 
 
-function render_office_page(){
+function vtm_render_office_page(){
 
 
-    $testListTable["office"] = new gvadmin_office_table();
-	$doaction = office_input_validation("office");
+    $testListTable["office"] = new vtmclass_admin_office_table();
+	$doaction = vtm_office_input_validation("office");
 	
 	/* echo "<p>action: $doaction</p>"; */
 	
@@ -16,7 +16,7 @@ function render_office_page(){
 		$testListTable["office"]->edit();				
 	}
 
-	render_office_add_form("office", $doaction);
+	vtm_render_office_add_form("office", $doaction);
 	$testListTable["office"]->prepare_items();
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
@@ -31,7 +31,7 @@ function render_office_page(){
     <?php 
 }
 
-function render_office_add_form($type, $addaction) {
+function vtm_render_office_add_form($type, $addaction) {
 	global $wpdb;
 
 	$id   = isset($_REQUEST['office']) ? $_REQUEST['office'] : '';
@@ -45,7 +45,7 @@ function render_office_add_form($type, $addaction) {
 		$nextaction = $_REQUEST['action'];
 
 	} elseif ('edit-' . $type == $addaction) {
-		$sql = "SELECT * FROM " . GVLARP_TABLE_PREFIX . "OFFICE WHERE ID = %s";
+		$sql = "SELECT * FROM " . VTM_TABLE_PREFIX . "OFFICE WHERE ID = %s";
 		$sql = $wpdb->prepare($sql, $id);
 		$data =$wpdb->get_row($sql);
 		/* echo "<p>SQL: $sql</p>";
@@ -102,7 +102,7 @@ function render_office_add_form($type, $addaction) {
 
 }
 
-function office_input_validation($type) {
+function vtm_office_input_validation($type) {
 	
 	$doaction = '';
 	
@@ -131,7 +131,7 @@ ROAD/PATHS TABLE
 ------------------------------------------------ */
 
 
-class gvadmin_office_table extends GVMultiPage_ListTable {
+class vtmclass_admin_office_table extends vtmclass_MultiPage_ListTable {
    
     function __construct(){
         global $status, $page;
@@ -156,7 +156,7 @@ class gvadmin_office_table extends GVMultiPage_ListTable {
 		
 		/* print_r($dataarray); */
 		
-		$wpdb->insert(GVLARP_TABLE_PREFIX . "OFFICE",
+		$wpdb->insert(VTM_TABLE_PREFIX . "OFFICE",
 					$dataarray,
 					array (
 						'%s',
@@ -187,7 +187,7 @@ class gvadmin_office_table extends GVMultiPage_ListTable {
 						'VISIBLE'        => $_REQUEST['office_visible']
 					);
 		
-		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "OFFICE",
+		$result = $wpdb->update(VTM_TABLE_PREFIX . "OFFICE",
 					$dataarray,
 					array (
 						'ID' => $_REQUEST['office']
@@ -211,9 +211,9 @@ class gvadmin_office_table extends GVMultiPage_ListTable {
 		/* Check if question in use */
 		$sql = "select characters.NAME
 				from 
-					" . GVLARP_TABLE_PREFIX . "CHARACTER characters,
-					" . GVLARP_TABLE_PREFIX . "CHARACTER_OFFICE charoffices,
-					" . GVLARP_TABLE_PREFIX . "OFFICE offices
+					" . VTM_TABLE_PREFIX . "CHARACTER characters,
+					" . VTM_TABLE_PREFIX . "CHARACTER_OFFICE charoffices,
+					" . VTM_TABLE_PREFIX . "OFFICE offices
 				where 
 					characters.ID = charoffices.CHARACTER_ID 
 					and offices.ID = charoffices.DOMAIN_ID
@@ -230,7 +230,7 @@ class gvadmin_office_table extends GVMultiPage_ListTable {
 			
 		} else {
 		
-			$sql = "delete from " . GVLARP_TABLE_PREFIX . "OFFICE where ID = %d;";
+			$sql = "delete from " . VTM_TABLE_PREFIX . "OFFICE where ID = %d;";
 			
 			$result = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
@@ -325,7 +325,7 @@ class gvadmin_office_table extends GVMultiPage_ListTable {
         $this->process_bulk_action();
 				
 		/* Get the data from the database */
-		$sql = "SELECT * FROM " . GVLARP_TABLE_PREFIX . "OFFICE offices";
+		$sql = "SELECT * FROM " . VTM_TABLE_PREFIX . "OFFICE offices";
 							
 		/* order the data according to sort columns */
 		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']))
