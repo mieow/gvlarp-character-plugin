@@ -1,13 +1,13 @@
 <?php
 
-function character_master_path() {
+function vtm_character_master_path() {
 	if ( !current_user_can( 'manage_options' ) )  {
 		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 	}
 	?>
 	<div class="wrap">
 		<h2>Path Changes</h2>
-		<?php render_master_path_page(); ?>
+		<?php vtm_render_master_path_page(); ?>
 	</div>
 	
 	<?php
@@ -15,7 +15,7 @@ function character_master_path() {
 
 
 
-function render_master_path_page(){
+function vtm_render_master_path_page(){
 	global $wpdb;
 
 	$type = "masterpath";
@@ -39,7 +39,7 @@ function render_master_path_page(){
 					'COMMENT'         => $comments[$characterID]
 				);
 				
-				$wpdb->insert(GVLARP_TABLE_PREFIX . "CHARACTER_ROAD_OR_PATH",
+				$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_ROAD_OR_PATH",
 							$dataarray,
 							array (
 								'%d',
@@ -58,7 +58,7 @@ function render_master_path_page(){
 					echo ")</p>";
 				} else {
 					echo "<p style='color:green'>Path change made for character $characterID</p>";
-					touch_last_updated($characterID);
+					vtm_touch_last_updated($characterID);
 				}
 				
 
@@ -84,7 +84,7 @@ function render_master_path_page(){
 			<th class="manage-column">Reason</th>
 			<th class="manage-column">Path Change</th>
 			<th class="manage-column">Comment</th></tr>
-		<?php render_master_path_data(); ?>
+		<?php vtm_render_master_path_data(); ?>
 		</table>
 		<input type="submit" name="do_update" class="button-primary" value="Update" />
 		
@@ -94,12 +94,12 @@ function render_master_path_page(){
 
 }
 
-function render_master_path_data () {
+function vtm_render_master_path_data () {
 	global $wpdb;
 
 	$output = "";
 	
-	$sql = "SELECT ID FROM " . GVLARP_TABLE_PREFIX . "PATH_REASON WHERE NAME = 'Path Change'";
+	$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "PATH_REASON WHERE NAME = 'Path Change'";
 	$defaultreason = $wpdb->get_var($sql);
 	
 	$sql = "SELECT
@@ -108,13 +108,13 @@ function render_master_path_data () {
 				paths.name as pathname,
 				SUM(charpaths.AMOUNT) as pathrating
 			FROM
-				" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
-				" . GVLARP_TABLE_PREFIX . "PLAYER player,
-				" . GVLARP_TABLE_PREFIX . "PLAYER_STATUS pstatus,
-				" . GVLARP_TABLE_PREFIX . "CHARACTER_TYPE ctype,
-				" . GVLARP_TABLE_PREFIX . "CHARACTER_STATUS cstatus,
-				" . GVLARP_TABLE_PREFIX . "CHARACTER_ROAD_OR_PATH charpaths,
-				" . GVLARP_TABLE_PREFIX . "ROAD_OR_PATH paths
+				" . VTM_TABLE_PREFIX . "CHARACTER chara,
+				" . VTM_TABLE_PREFIX . "PLAYER player,
+				" . VTM_TABLE_PREFIX . "PLAYER_STATUS pstatus,
+				" . VTM_TABLE_PREFIX . "CHARACTER_TYPE ctype,
+				" . VTM_TABLE_PREFIX . "CHARACTER_STATUS cstatus,
+				" . VTM_TABLE_PREFIX . "CHARACTER_ROAD_OR_PATH charpaths,
+				" . VTM_TABLE_PREFIX . "ROAD_OR_PATH paths
 			WHERE
 				chara.PLAYER_ID = player.ID
 				AND pstatus.ID = player.PLAYER_STATUS_ID
@@ -142,7 +142,7 @@ function render_master_path_data () {
 		$output .= "<td>{$row->pathname}</td>";
 		$output .= "<td>{$row->pathrating}</td>";
 		$output .= "<td><select name='path_reason[{$row->id}]'>";
-		foreach (listPathReasons() as $reason) {
+		foreach (vtm_listPathReasons() as $reason) {
 			$output .= "<option value='{$reason->id}' " . selected($reason->id, $defaultreason,false) . ">{$reason->name}</option>\n";
 		}		
 		$output .= "</select></td>";

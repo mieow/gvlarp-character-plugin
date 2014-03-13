@@ -1,6 +1,6 @@
 <?php
 
-function character_reports () {
+function vtm_character_reports () {
 
 	if ( !current_user_can( 'manage_options' ) )  {
 		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
@@ -12,24 +12,24 @@ function character_reports () {
 	<?php
 	$report = isset($_REQUEST['report']) ? $_REQUEST['report'] : '';
 	
-	render_select_report($report);
+	vtm_render_select_report($report);
 	
 	
 	switch ($report) {
 		case 'meritflaw_report':
-			render_report(new gvreport_flaws());
+			vtm_render_report(new vtmclass_report_flaws());
 			break;
 		case 'quotes_report':
-			render_report(new gvreport_quotes());
+			vtm_render_report(new vtmclass_report_quotes());
 			break;
 		case 'prestige_report':
-			render_report(new gvreport_prestige());
+			vtm_render_report(new vtmclass_report_prestige());
 			break;
 		case 'signin_report':
-			render_report(new gvreport_signin());
+			vtm_render_report(new vtmclass_report_signin());
 			break;
 		case 'sect_report':
-			render_report(new gvreport_sect());
+			vtm_render_report(new vtmclass_report_sect());
 			break;
 	
 	}
@@ -41,7 +41,7 @@ function character_reports () {
 }
 
 
-function render_select_report($report) {
+function vtm_render_select_report($report) {
 
 	echo "<h3>Select Report</h3>";
 	echo "<form id='select_report_form' method='post'>\n";
@@ -75,7 +75,7 @@ function render_select_report($report) {
 }
 
 
-function render_report($reporttable) {
+function vtm_render_report($reporttable) {
 	
 	$reporttable->prepare_items(); 
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );

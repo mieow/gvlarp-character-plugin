@@ -1,11 +1,11 @@
 <?php
 
 
-function render_domain_page(){
+function vtm_render_domain_page(){
 
 
-    $testListTable["domain"] = new gvadmin_domain_table();
-	$doaction = domain_input_validation("domain");
+    $testListTable["domain"] = new vtmclass_admin_domain_table();
+	$doaction = vtm_domain_input_validation("domain");
 	
 	/* echo "<p>action: $doaction</p>"; */
 	
@@ -16,7 +16,7 @@ function render_domain_page(){
 		$testListTable["domain"]->edit();				
 	}
 
-	render_domain_add_form("domain", $doaction);
+	vtm_render_domain_add_form("domain", $doaction);
 	$testListTable["domain"]->prepare_items();
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
@@ -31,7 +31,7 @@ function render_domain_page(){
     <?php 
 }
 
-function render_domain_add_form($type, $addaction) {
+function vtm_render_domain_add_form($type, $addaction) {
 	global $wpdb;
 
 	$id   = isset($_REQUEST['domain']) ? $_REQUEST['domain'] : '';
@@ -44,7 +44,7 @@ function render_domain_add_form($type, $addaction) {
 		$nextaction = $_REQUEST['action'];
 
 	} elseif ('edit-' . $type == $addaction) {
-		$sql = "SELECT * FROM " . GVLARP_TABLE_PREFIX . "DOMAIN WHERE ID = %s";
+		$sql = "SELECT * FROM " . VTM_TABLE_PREFIX . "DOMAIN WHERE ID = %s";
 		$sql = $wpdb->prepare($sql, $id);
 		$data =$wpdb->get_row($sql);
 		/* echo "<p>SQL: $sql</p>";
@@ -97,7 +97,7 @@ function render_domain_add_form($type, $addaction) {
 
 }
 
-function domain_input_validation($type) {
+function vtm_domain_input_validation($type) {
 	
 	$doaction = '';
 	
@@ -126,7 +126,7 @@ ROAD/PATHS TABLE
 ------------------------------------------------ */
 
 
-class gvadmin_domain_table extends GVMultiPage_ListTable {
+class vtmclass_admin_domain_table extends vtmclass_MultiPage_ListTable {
    
     function __construct(){
         global $status, $page;
@@ -150,7 +150,7 @@ class gvadmin_domain_table extends GVMultiPage_ListTable {
 		
 		/* print_r($dataarray); */
 		
-		$wpdb->insert(GVLARP_TABLE_PREFIX . "DOMAIN",
+		$wpdb->insert(VTM_TABLE_PREFIX . "DOMAIN",
 					$dataarray,
 					array (
 						'%s',
@@ -179,7 +179,7 @@ class gvadmin_domain_table extends GVMultiPage_ListTable {
 						'VISIBLE'        => $_REQUEST['domain_visible']
 					);
 		
-		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "DOMAIN",
+		$result = $wpdb->update(VTM_TABLE_PREFIX . "DOMAIN",
 					$dataarray,
 					array (
 						'ID' => $_REQUEST['domain']
@@ -203,8 +203,8 @@ class gvadmin_domain_table extends GVMultiPage_ListTable {
 		/* Check if question in use */
 		$sql = "select characters.NAME
 				from 
-					" . GVLARP_TABLE_PREFIX . "CHARACTER characters,
-					" . GVLARP_TABLE_PREFIX . "DOMAIN domains
+					" . VTM_TABLE_PREFIX . "CHARACTER characters,
+					" . VTM_TABLE_PREFIX . "DOMAIN domains
 				where 
 					characters.DOMAIN_ID = domains.ID 
 					and domains.ID = %d;";
@@ -220,7 +220,7 @@ class gvadmin_domain_table extends GVMultiPage_ListTable {
 			
 		} else {
 		
-			$sql = "delete from " . GVLARP_TABLE_PREFIX . "DOMAIN where ID = %d;";
+			$sql = "delete from " . VTM_TABLE_PREFIX . "DOMAIN where ID = %d;";
 			
 			$result = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
@@ -312,7 +312,7 @@ class gvadmin_domain_table extends GVMultiPage_ListTable {
 		
 		
 		/* Get the data from the database */
-		$sql = "SELECT * FROM " . GVLARP_TABLE_PREFIX . "DOMAIN domains";
+		$sql = "SELECT * FROM " . VTM_TABLE_PREFIX . "DOMAIN domains";
 							
 		/* order the data according to sort columns */
 		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']))

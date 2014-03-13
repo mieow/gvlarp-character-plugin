@@ -1,6 +1,6 @@
 <?php
-require_once GVLARP_CHARACTER_URL . 'lib/fpdf.php';
-require_once GVLARP_CHARACTER_URL . 'inc/classes.php';
+require_once VTM_CHARACTER_URL . 'lib/fpdf.php';
+require_once VTM_CHARACTER_URL . 'inc/classes.php';
 
 /* read these from config options or use defaults */
 $printtitle  = 'Character Sheet';
@@ -26,7 +26,7 @@ $dividerrowheight = 9;
 
 $dotmaximum = 5;  /* get this from character */
 			
-function gv_print_redirect()
+function vtm_print_redirect()
 {
 	global $printtitle;
 	global $margin;
@@ -35,15 +35,15 @@ function gv_print_redirect()
 	global $textfont;
 	global $textrowheight;
 
-    if( is_page(get_stlink_page('printCharSheet')) && is_user_logged_in() )
+    if( is_page(vtm_get_stlink_page('printCharSheet')) && is_user_logged_in() )
     {
 		if (isset($_REQUEST['characterID']))
 			$characterID = $_REQUEST['characterID'];
 		else {
-			$character = establishCharacter('');
-			$characterID = establishCharacterID($character);
+			$character = vtm_establishCharacter('');
+			$characterID = vtm_establishCharacterID($character);
 		}
-		$mycharacter = new larpcharacter();
+		$mycharacter = new vtmclass_character();
 		$mycharacter->load($characterID);
 		
 		if (class_exists('FPDF')) {
@@ -70,7 +70,7 @@ function gv_print_redirect()
 					)
 			);
 			
-			$config = getConfig();
+			$config = vtm_getConfig();
 			if ($config->USE_NATURE_DEMEANOUR == 'Y') {
 				$pdf->BasicInfoTableRow(array(
 						'Nature:', $mycharacter->nature,
@@ -148,7 +148,7 @@ function gv_print_redirect()
 			$disciplines = $mycharacter->getDisciplines();
 			$paths       = $mycharacter->paths;
 			
-			$sql = "SELECT DISTINCT GROUPING FROM " . GVLARP_TABLE_PREFIX . "SKILL skills;";
+			$sql = "SELECT DISTINCT GROUPING FROM " . VTM_TABLE_PREFIX . "SKILL skills;";
 			$allgroups = $wpdb->get_results($wpdb->prepare($sql,''));	
 			
 			$secondarygroups = array();
@@ -352,10 +352,10 @@ function gv_print_redirect()
 		}
     }
 }
-add_action( 'template_redirect', 'gv_print_redirect' );
+add_action( 'template_redirect', 'vtm_print_redirect' );
 
 
-function hex2rgb($hex) {
+function vtm_hex2rgb($hex) {
    $hex = str_replace("#", "", $hex);
 
    if(strlen($hex) == 3) {
@@ -374,7 +374,7 @@ function hex2rgb($hex) {
 
 
 
-class PDFcsheet extends FPDF
+class vtmclass_PDFcsheet extends FPDF
 {
 
 	function LoadOptions() {
@@ -386,14 +386,14 @@ class PDFcsheet extends FPDF
 		global $dividertextcolor; /* RGB */
 		global $dividerlinewidth;
 		
-		$printtitle     = get_option('gvcharacter_pdf_title');
-		$printtitlefont = get_option('gvcharacter_pdf_titlefont');
-		$footer    = get_option('gvcharacter_pdf_footer');
-		$dividerlinewidth = get_option('gvcharacter_pdf_divlinewidth');
+		$printtitle     = get_option('vtm_pdf_title');
+		$printtitlefont = get_option('vtm_pdf_titlefont');
+		$footer         = get_option('vtm_pdf_footer');
+		$dividerlinewidth = get_option('vtm_pdf_divlinewidth');
 		
-		$printtitlecolour      = hex2rgb(get_option('gvcharacter_pdf_titlecolour'));
-		$dividerlinecolor = hex2rgb(get_option('gvcharacter_pdf_divcolour'));
-		$dividertextcolor = hex2rgb(get_option('gvcharacter_pdf_divtextcolour'));
+		$printtitlecolour = vtm_hex2rgb(get_option('vtm_pdf_titlecolour'));
+		$dividerlinecolor = vtm_hex2rgb(get_option('vtm_pdf_divcolour'));
+		$dividertextcolor = vtm_hex2rgb(get_option('vtm_pdf_divtextcolour'));
 	
 	}
 
@@ -568,9 +568,9 @@ class PDFcsheet extends FPDF
 		for ($i=1;$i<=$max;$i++) {
 			$x = $xorig + $padding + ($i - 1) * ($dotwidth ? $dotwidth : $dotheight);
 			if ($i <= $level)
-				$this->Image(GVLARP_CHARACTER_URL . "images/fulldot.jpg", $x, $y + $yoffset, $dotwidth, $dotheight);
+				$this->Image(VTM_CHARACTER_URL . "images/fulldot.jpg", $x, $y + $yoffset, $dotwidth, $dotheight);
 			else
-				$this->Image(GVLARP_CHARACTER_URL . "images/emptydot.jpg", $x, $y + $yoffset, $dotwidth, $dotheight);
+				$this->Image(VTM_CHARACTER_URL . "images/emptydot.jpg", $x, $y + $yoffset, $dotwidth, $dotheight);
 		}
 	}
 	
@@ -598,7 +598,7 @@ class PDFcsheet extends FPDF
 		$xoffset = 0;
 		$y = $this->GetY();
 		for ($i=1;$i<=$bloodpool;$i++) {
-			$this->Image(GVLARP_CHARACTER_URL . "images/box.jpg", $x + $xoffset, $y, $boxwidth, $boxheight);
+			$this->Image(VTM_CHARACTER_URL . "images/box.jpg", $x + $xoffset, $y, $boxwidth, $boxheight);
 			if ( ($i % 10) == 0) {
 				$xoffset = 0;
 				$y = $y + $boxheight;
@@ -643,9 +643,9 @@ class PDFcsheet extends FPDF
 		$y = $this->GetY();
 		for ($i=1;$i<=10;$i++) {
 			if ($i > $current && $i <= $max)
-				$this->Image(GVLARP_CHARACTER_URL . "images/boxcross2.jpg", $x1 + $padding + $xoffset, $y, $dotheight, $dotheight);
+				$this->Image(VTM_CHARACTER_URL . "images/boxcross2.jpg", $x1 + $padding + $xoffset, $y, $dotheight, $dotheight);
 			else
-				$this->Image(GVLARP_CHARACTER_URL . "images/box.jpg", $x1 + $padding + $xoffset, $y, $dotheight, $dotheight);
+				$this->Image(VTM_CHARACTER_URL . "images/box.jpg", $x1 + $padding + $xoffset, $y, $dotheight, $dotheight);
 			$xoffset = $i * $dotheight;
 		}
 		
@@ -793,7 +793,7 @@ class PDFcsheet extends FPDF
 			$this->SetX($x1);
 			$this->Cell($colwidths[0], $boxheight, $item[0],  0,   0, 'R');
 			$this->Cell($colwidths[1], $boxheight, $item[1],  0,   0, 'C');
-			$this->Image(GVLARP_CHARACTER_URL . "images/box.jpg", $this->GetX(), $this->GetY(), 0, $boxheight);
+			$this->Image(VTM_CHARACTER_URL . "images/box.jpg", $this->GetX(), $this->GetY(), 0, $boxheight);
 			$this->Ln();
 		}
 

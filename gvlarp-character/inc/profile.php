@@ -1,23 +1,23 @@
 <?php
 
-function gv_profile_content_filter($content) {
+function vtm_profile_content_filter($content) {
 
-  if (is_page(get_stlink_page('viewProfile')))
-		$content .= get_profile_content();
+  if (is_page(vtm_get_stlink_page('viewProfile')))
+		$content .= vtm_get_profile_content();
   // otherwise returns the database content
   return $content;
 }
 
-add_filter( 'the_content', 'gv_profile_content_filter' );
+add_filter( 'the_content', 'vtm_profile_content_filter' );
 
 
-function get_profile_content() {
+function vtm_get_profile_content() {
 	global $wpdb;
 
 	// Work out current character and what character profile is requested
 	$currentUser      = wp_get_current_user();
 	$currentCharacter = $currentUser->user_login;
-	$currentCharacterID = establishCharacterID($currentCharacter);
+	$currentCharacterID = vtm_establishCharacterID($currentCharacter);
 	
 	if (isset($_REQUEST['CHARACTER']))
 		$character = $_REQUEST['CHARACTER'];
@@ -27,15 +27,15 @@ function get_profile_content() {
 		return "<p>You need to specify a character or be logged in to view the profiles.</p>";
 
 	$output       = "";
-	$config       = getConfig();
+	$config       = vtm_getConfig();
 	$clanPrestige = 0;
 	$showAll = false;
 	
 	$sql = "SELECT pub.NAME as pubclan, priv.NAME as privclan
 			FROM 
-				" . GVLARP_TABLE_PREFIX . "CHARACTER chars,
-				" . GVLARP_TABLE_PREFIX . "CLAN pub,
-				" . GVLARP_TABLE_PREFIX . "CLAN priv
+				" . VTM_TABLE_PREFIX . "CHARACTER chars,
+				" . VTM_TABLE_PREFIX . "CLAN pub,
+				" . VTM_TABLE_PREFIX . "CLAN priv
 			WHERE
 				chars.PUBLIC_CLAN_ID = pub.ID
 				AND chars.PRIVATE_CLAN_ID = priv.ID
@@ -50,7 +50,7 @@ function get_profile_content() {
 		$showAll = true;
 
 	$sql = "SELECT ID 
-			FROM " . GVLARP_TABLE_PREFIX . "CHARACTER 
+			FROM " . VTM_TABLE_PREFIX . "CHARACTER 
 			WHERE WORDPRESS_ID = %s
 			AND DELETED = 'N'";
 	$sql = $wpdb->prepare($sql, $character);
@@ -59,7 +59,7 @@ function get_profile_content() {
 	if (empty($characterID))
 		return "<p>No information found for $character</p>";
 	
-	$mycharacter = new larpcharacter();
+	$mycharacter = new vtmclass_character();
 	$mycharacter->load($characterID);
 
 	// Update display name
@@ -68,26 +68,26 @@ function get_profile_content() {
 		$displayName = $user->display_name;
 		$userID = $user->ID;
 	
-		if (isset($_POST['GVLARP_FORM']) && $_POST['GVLARP_FORM'] == 'updateDisplayName' && isset($_POST['displayName']) 
+		if (isset($_POST['VTM_FORM']) && $_POST['VTM_FORM'] == 'updateDisplayName' && isset($_POST['displayName']) 
 			&& !empty($_POST['displayName']) && $_POST['displayName'] != $displayName) {
 			
 			$newDisplayName = $_POST['displayName'];
 			
 			$output .= "<p>Changed display name to <i>$newDisplayName</i></p>";
-			changeDisplayNameByID ($userID, $newDisplayName);
+			vtm_changeDisplayNameByID ($userID, $newDisplayName);
 			$displayName = $newDisplayName;
 		}
 	}
 	
 	// Update password
-	if (isset($_POST['newPassword1']) && (isST() || $currentCharacter == $character)) {
+	if (isset($_POST['newPassword1']) && (vtm_isST() || $currentCharacter == $character)) {
 		$user = get_user_by('login', $character);
 		$userID = $user->ID;
 	
 		$newPassword1 = $_POST['newPassword1'];
 		$newPassword2 = $_POST['newPassword2'];
 		
-		if ($_POST['GVLARP_FORM'] == 'updatePassword' 
+		if ($_POST['VTM_FORM'] == 'updatePassword' 
 			&& isset($newPassword1) && !empty($newPassword1) 
 			&& isset($newPassword2) && !empty($newPassword2) 
 			) {
@@ -95,7 +95,7 @@ function get_profile_content() {
 			if ($newPassword1 !== $newPassword2) {
 				$output .= "<p>Passwords don't match</p>";
 			} 
-			elseif (changePassword($character, $newPassword1, $newPassword2)) {
+			elseif (vtm_changePassword($character, $newPassword1, $newPassword2)) {
 				$output .= "<p>Successfully changed password</p>";
 			}
 			else {
@@ -111,8 +111,8 @@ function get_profile_content() {
 	}
 	
 	// Title, with link to view character for STs
-	$characterDisplayName = isST() ? 
-							"<a href='" . get_site_url() . get_stlink_url('viewCharSheet') . "?CHARACTER=" . urlencode($character) . "'>" . $displayName . "</a>" 
+	$characterDisplayName = vtm_isST() ? 
+							"<a href='" . get_site_url() . vtm_get_stlink_url('viewCharSheet') . "?CHARACTER=" . urlencode($character) . "'>" . $displayName . "</a>" 
 							: $displayName;
 	$output .= "<h1>" . $characterDisplayName . "</h1>";
 	
@@ -131,7 +131,7 @@ function get_profile_content() {
 	
 	// Background - Status
 	if ($config->DISPLAY_BACKGROUND_IN_PROFILE) {
-		$sql = "SELECT NAME FROM " . GVLARP_TABLE_PREFIX . "BACKGROUND
+		$sql = "SELECT NAME FROM " . VTM_TABLE_PREFIX . "BACKGROUND
 				WHERE ID = %d";
 		$background = $wpdb->get_var($wpdb->prepare($sql, $config->DISPLAY_BACKGROUND_IN_PROFILE));	
 	
@@ -163,8 +163,8 @@ function get_profile_content() {
 	// Merits/Flaws - Clan Friendship/Enmity
 	$sql = "SELECT merits.NAME
 			FROM 
-				" . GVLARP_TABLE_PREFIX . "MERIT merits,
-				" . GVLARP_TABLE_PREFIX . "PROFILE_DISPLAY disp
+				" . VTM_TABLE_PREFIX . "MERIT merits,
+				" . VTM_TABLE_PREFIX . "PROFILE_DISPLAY disp
 			WHERE
 				merits.PROFILE_DISPLAY_ID = disp.ID
 				AND disp.NAME = 'If Clan Matches'
@@ -217,7 +217,7 @@ function get_profile_content() {
 		$output .= "<div class='displayNameForm'><strong>Update Display Name:</strong>";
 		$output .= "<form name=\"DISPLAY_NAME_UPDATE_FORM\" method='post'>";
 
-		$output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"updateDisplayName\" />";
+		$output .= "<input type='HIDDEN' name=\"VTM_FORM\" value=\"updateDisplayName\" />";
 		$output .= "<input type='HIDDEN' name=\"USER_ID\" value=\"" . $userID . "\" />";
 		
 		$output .= "<table>\n";
@@ -231,7 +231,7 @@ function get_profile_content() {
 		$output .= "<div class='PasswordForm'><strong>Update Password:</strong>";
 		$output .= "<form name=\"PASSWORD_UPDATE_FORM\" method='post'>";
 
-		$output .= "<input type='HIDDEN' name=\"GVLARP_FORM\" value=\"updatePassword\" />";
+		$output .= "<input type='HIDDEN' name=\"VTM_FORM\" value=\"updatePassword\" />";
 		$output .= "<input type='HIDDEN' name=\"USER_ID\" value=\"" . $userID . "\" />";
 		
 		$output .= "<table>\n";

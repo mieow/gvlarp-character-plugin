@@ -1,6 +1,6 @@
 <?php
 
-function render_generation_data() {
+function vtm_render_generation_data() {
 
 	global $wpdb;
 
@@ -46,7 +46,7 @@ function render_generation_data() {
 					'MAX_RATING' => $maxrating[$i],
 					'MAX_DISCIPLINE' => $maxdisc[$i]
 				);
-				$result = $wpdb->update(GVLARP_TABLE_PREFIX . "GENERATION",
+				$result = $wpdb->update(VTM_TABLE_PREFIX . "GENERATION",
 							$data,
 							array (
 								'ID' => $generations[$i]
@@ -66,12 +66,12 @@ function render_generation_data() {
 
 	$sql = "SELECT * 
 			FROM 
-				" . GVLARP_TABLE_PREFIX. "GENERATION
+				" . VTM_TABLE_PREFIX. "GENERATION
 			ORDER BY
 				BLOODPOOL DESC, MAX_DISCIPLINE DESC";
 	$result = $wpdb->get_results($sql);
 	
-	$config = getConfig();
+	$config = vtm_getConfig();
 	
 	?>
 	

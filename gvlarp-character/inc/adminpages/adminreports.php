@@ -1,6 +1,6 @@
 <?php
 
-function character_reports () {
+function vtm_character_reports () {
 
 	if ( !current_user_can( 'manage_options' ) )  {
 		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
@@ -10,11 +10,11 @@ function character_reports () {
 	<div class="wrap">
 		<h2>Reports</h2>
 	<?php
-	render_select_report();
+	vtm_render_select_report();
 	
 	switch ($_REQUEST['report']) {
 		case 'meritflaw_report':
-			render_meritflaw_report();
+			vtm_render_meritflaw_report();
 			break;
 	
 	}
@@ -26,7 +26,7 @@ function character_reports () {
 }
 
 
-function render_select_report() {
+function vtm_render_select_report() {
 
 	echo "<h3>Select Report</h3>";
 	echo "<form id='select_report_form' method='post'>\n";
@@ -44,9 +44,9 @@ function render_select_report() {
 }
 
 
-function render_meritflaw_report() {
+function vtm_render_meritflaw_report() {
 	
-	$reporttable = new gvreport_flaws();
+	$reporttable = new vtmclass_report_flaws();
 	$reporttable->prepare_items(); ?>
 	
 	<form id="meritflaw_report" method="get" action=''>

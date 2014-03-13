@@ -1,36 +1,36 @@
 <?php
 
-function count_XP4approval() {
+function vtm_count_XP4approval() {
 	global $wpdb;
 	
 	$sql = "SELECT COUNT(ID) as count
 			FROM 
-				" . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND";
+				" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND";
 	$result = $wpdb->get_results($sql);
 	
 	return $result[0]->count;
 }
-function count_BG4approval() {
+function vtm_count_BG4approval() {
 	global $wpdb;
 	
 	$count = 0;	
 	$sql = "SELECT COUNT(ID) as count
 			FROM 
-				" . GVLARP_TABLE_PREFIX . "CHARACTER_BACKGROUND
+				" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND
 			WHERE NOT(PENDING_DETAIL = '') AND DENIED_DETAIL = ''";
 	$result = $wpdb->get_results($sql);
 	$count += $result[0]->count;
 	
 	$sql = "SELECT COUNT(ID) as count
 			FROM 
-				" . GVLARP_TABLE_PREFIX . "CHARACTER_MERIT
+				" . VTM_TABLE_PREFIX . "CHARACTER_MERIT
 			WHERE NOT(PENDING_DETAIL = '') AND DENIED_DETAIL = ''";
 	$result = $wpdb->get_results($sql);
 	$count += $result[0]->count;
 	
 	$sql = "SELECT COUNT(ID) as count
 			FROM 
-				" . GVLARP_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND
+				" . VTM_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND
 			WHERE NOT(PENDING_DETAIL = '') AND DENIED_DETAIL = ''";
 	$result = $wpdb->get_results($sql);
 	$count += $result[0]->count;
@@ -43,110 +43,92 @@ function count_BG4approval() {
 
 /* WORDPRESS TOOLBAR 
 ----------------------------------------------------------------- */
-function toolbar_link_gvadmin( $wp_admin_bar ) {
+function vtm_toolbar_link_admin( $wp_admin_bar ) {
 
 	if ( current_user_can( 'manage_options' ) )  {
 		$args = array(
-			'id'    => 'gvcharacters',
+			'id'    => 'vtmcharacters',
 			'title' => 'Characters',
-			'href'  => admin_url('admin.php?page=gvcharacter-plugin'),
-			'meta'  => array( 'class' => 'my-toolbar-page' )
+			'href'  => admin_url('admin.php?page=vtmcharacter-plugin'),
+			'meta'  => array( 'class' => 'vtm-toolbar-page' )
 		);
 		$wp_admin_bar->add_node( $args );
 		
 		$args = array(
-			'id'    => 'gvcharacters2',
+			'id'    => 'vtmcharacters2',
 			'title' => 'Character Admin',
-			'href'  => admin_url('admin.php?page=gvcharacter-plugin'),
-			'parent' => 'gvcharacters',
-			'meta'  => array( 'class' => 'my-toolbar-page' )
+			'href'  => admin_url('admin.php?page=vtmcharacter-plugin'),
+			'parent' => 'vtmcharacters',
+			'meta'  => array( 'class' => 'vtm-toolbar-page' )
 		); 
 		$wp_admin_bar->add_node( $args );
 		
 		$args = array(
-			'id'    => 'gvplayers',
+			'id'    => 'vtmplayers',
 			'title' => 'Player Admin',
-			'href'  => admin_url('admin.php?page=gvcharacter-player'),
-			'parent' => 'gvcharacters',
-			'meta'  => array( 'class' => 'my-toolbar-page' )
+			'href'  => admin_url('admin.php?page=vtmcharacter-player'),
+			'parent' => 'vtmcharacters',
+			'meta'  => array( 'class' => 'vtm-toolbar-page' )
 		); 
 		$wp_admin_bar->add_node( $args );
 		
 		$args = array(
-			'id'    => 'gvbg',
-			'title' => 'Approve Backgrounds (' . count_BG4approval() . ')',
-			'href'  => admin_url('admin.php?page=gvcharacter-bg'),
-			'parent' => 'gvcharacters',
-			'meta'  => array( 'class' => 'my-toolbar-page' )
+			'id'    => 'vtmbg',
+			'title' => 'Approve Backgrounds (' . vtm_count_BG4approval() . ')',
+			'href'  => admin_url('admin.php?page=vtmcharacter-bg'),
+			'parent' => 'vtmcharacters',
+			'meta'  => array( 'class' => 'vtm-toolbar-page' )
 		); 
 		$wp_admin_bar->add_node( $args );
 		
 		$args = array(
-			'id'    => 'gvspendxp',
-			'title' => 'Approve Spends (' . count_XP4approval() . ')',
-			'href'  => admin_url('admin.php?page=gvcharacter-xp'),
-			'parent' => 'gvcharacters',
-			'meta'  => array( 'class' => 'my-toolbar-page' )
+			'id'    => 'vtmspendxp',
+			'title' => 'Approve Spends (' . vtm_count_XP4approval() . ')',
+			'href'  => admin_url('admin.php?page=vtmcharacter-xp'),
+			'parent' => 'vtmcharacters',
+			'meta'  => array( 'class' => 'vtm-toolbar-page' )
 		); 
 		$wp_admin_bar->add_node( $args );
 		
 		$args = array(
-			'id'    => 'gvassignxp',
+			'id'    => 'vtmassignxp',
 			'title' => 'Assign Experience',
-			'href'  => admin_url('admin.php?page=gvcharacter-xpassign'),
-			'parent' => 'gvcharacters',
-			'meta'  => array( 'class' => 'my-toolbar-page' )
-		); 
-		$wp_admin_bar->add_node( $args );
-
-/* 		$args = array(
-			'id'    => 'gvpath',
-			'title' => 'Path Changes',
-			'href'  => admin_url('admin.php?page=gvcharacter-paths'),
-			'parent' => 'gvcharacters',
-			'meta'  => array( 'class' => 'my-toolbar-page' )
+			'href'  => admin_url('admin.php?page=vtmcharacter-xpassign'),
+			'parent' => 'vtmcharacters',
+			'meta'  => array( 'class' => 'vtm-toolbar-page' )
 		); 
 		$wp_admin_bar->add_node( $args );
 
 		$args = array(
-			'id'    => 'gvstat',
-			'title' => 'Stat Changes',
-			'href'  => admin_url('admin.php?page=gvcharacter-stats'),
-			'parent' => 'gvcharacters',
-			'meta'  => array( 'class' => 'my-toolbar-page' )
-		); 
-		$wp_admin_bar->add_node( $args );
- */
-		$args = array(
-			'id'    => 'gvdata',
+			'id'    => 'vtmdata',
 			'title' => 'Data Tables',
-			'href'  => admin_url('admin.php?page=gvcharacter-data'),
-			'parent' => 'gvcharacters',
-			'meta'  => array( 'class' => 'my-toolbar-page' )
+			'href'  => admin_url('admin.php?page=vtmcharacter-data'),
+			'parent' => 'vtmcharacters',
+			'meta'  => array( 'class' => 'vtm-toolbar-page' )
 		); 
 		$wp_admin_bar->add_node( $args );
 
 
 		$args = array(
-			'id'    => 'gvreport',
+			'id'    => 'vtmreport',
 			'title' => 'Reports',
-			'href'  => admin_url('admin.php?page=gvcharacter-report'),
-			'parent' => 'gvcharacters',
-			'meta'  => array( 'class' => 'my-toolbar-page' )
+			'href'  => admin_url('admin.php?page=vtmcharacter-report'),
+			'parent' => 'vtmcharacters',
+			'meta'  => array( 'class' => 'vtm-toolbar-page' )
 		);
 		$wp_admin_bar->add_node( $args );
 		
 		$args = array(
-			'id'    => 'gvconfig',
+			'id'    => 'vtmconfig',
 			'title' => 'Configuration',
-			'href'  => admin_url('admin.php?page=gvcharacter-config'),
-			'parent' => 'gvcharacters',
-			'meta'  => array( 'class' => 'my-toolbar-page' )
+			'href'  => admin_url('admin.php?page=vtmcharacter-config'),
+			'parent' => 'vtmcharacters',
+			'meta'  => array( 'class' => 'vtm-toolbar-page' )
 		);
 		$wp_admin_bar->add_node( $args );
 	}
 }
-add_action( 'admin_bar_menu', 'toolbar_link_gvadmin', 999 );
+add_action( 'admin_bar_menu', 'vtm_toolbar_link_admin', 999 );
 
 
 ?>

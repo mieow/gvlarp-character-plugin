@@ -1,9 +1,9 @@
 <?php
 
-function render_owner_data(){
+function vtm_render_owner_data(){
 	global $wpdb;
 
-    $ownerTable = new owner_table();
+    $ownerTable = new vtmclass_owner_table();
 	
 	if (isset($_REQUEST['do_add_owner'])) {
 		if ($_REQUEST['owner']) 
@@ -12,7 +12,7 @@ function render_owner_data(){
 			$ownerTable->add();
 	}
 
-	render_owner_add_form();
+	vtm_render_owner_add_form();
 	
 	$ownerTable->prepare_items();
 
@@ -30,10 +30,10 @@ function render_owner_data(){
 
     <?php
 }
-function render_domain_data(){
+function vtm_render_domain_data(){
 	global $wpdb;
 
-    $domainTable = new domain_table();
+    $domainTable = new vtmclass_domain_table();
 	$defaultCoord = "lat,long";
 
 	// Validation
@@ -52,7 +52,7 @@ function render_domain_data(){
 				$domainTable->add();
 		}
 	}
-	render_feedingdomain_add_form($inputsok);
+	vtm_render_feedingdomain_add_form($inputsok);
 	
 	$domainTable->prepare_items();
 
@@ -71,7 +71,7 @@ function render_domain_data(){
     <?php
 }
 
-function render_owner_add_form() {
+function vtm_render_owner_add_form() {
 	global $wpdb;
 
 	$thisaction = isset($_REQUEST['action']) ? $_REQUEST['action'] : '';
@@ -80,7 +80,7 @@ function render_owner_add_form() {
 	case "edit":
 		$id          = $_REQUEST['owner'];
 		
-		$sql = "SELECT * FROM " . GVLARP_TABLE_PREFIX . "MAPOWNER WHERE ID = %d";
+		$sql = "SELECT * FROM " . VTM_TABLE_PREFIX . "MAPOWNER WHERE ID = %d";
 		$data =$wpdb->get_row($wpdb->prepare($sql, $id));
 		
 		$name        = $data->NAME;
@@ -128,7 +128,7 @@ function render_owner_add_form() {
 	<?php
 
 }
-function render_feedingdomain_add_form($inputsok) {
+function vtm_render_feedingdomain_add_form($inputsok) {
 	global $wpdb;
 
 	$defaultCoord = "lat,long";
@@ -146,7 +146,7 @@ function render_feedingdomain_add_form($inputsok) {
 	if (isset($_REQUEST['action']) && $_REQUEST['action'] == 'edit' && $_REQUEST['tab'] == 'mapdomain') {
 			$id          = $_REQUEST['mapdomain'];
 			
-			$sql = "SELECT * FROM " . GVLARP_TABLE_PREFIX . "MAPDOMAIN WHERE ID = %d";
+			$sql = "SELECT * FROM " . VTM_TABLE_PREFIX . "MAPDOMAIN WHERE ID = %d";
 			$data =$wpdb->get_row($wpdb->prepare($sql, $id));
 			
 			$name        = $data->NAME;
@@ -182,7 +182,7 @@ function render_feedingdomain_add_form($inputsok) {
 					<td>
 						<select name="domain_owner">
 						<?php
-							foreach (get_owners() as $id => $info) {
+							foreach (vtm_get_owners() as $id => $info) {
 								echo "<option value=\"$id\" ";
 								selected($ownerid, $id);
 								echo ">" . stripslashes($info->NAME) . "</option>\n";
@@ -221,16 +221,16 @@ function render_feedingdomain_add_form($inputsok) {
 	<?php
 }
 
-function get_owners() {
+function vtm_get_owners() {
 	global $wpdb;
 
-	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "MAPOWNER;";
+	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "MAPOWNER;";
 	$list = $wpdb->get_results($sql,OBJECT_K);
 	
 	return $list;
 }
 
-class owner_table extends WP_List_Table {
+class vtmclass_owner_table extends WP_List_Table {
    
     function __construct(){
         global $status, $page;
@@ -252,7 +252,7 @@ class owner_table extends WP_List_Table {
 						'VISIBLE' => $_REQUEST['owner_visible']
 					);
 	
-		$wpdb->insert(GVLARP_TABLE_PREFIX . "MAPOWNER",
+		$wpdb->insert(VTM_TABLE_PREFIX . "MAPOWNER",
 					$dataarray,
 					array (
 						'%s',
@@ -278,7 +278,7 @@ class owner_table extends WP_List_Table {
 						'VISIBLE' => $_REQUEST['owner_visible']
 					);
 	
-		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "MAPOWNER",
+		$result = $wpdb->update(VTM_TABLE_PREFIX . "MAPOWNER",
 					$dataarray,
 					array (
 						'ID' => $_REQUEST['owner']
@@ -298,8 +298,8 @@ class owner_table extends WP_List_Table {
 		
 		$sql = "select domains.NAME 
 			from 
-				" . GVLARP_TABLE_PREFIX . "MAPOWNER owners , 
-				" . GVLARP_TABLE_PREFIX . "MAPDOMAIN domains
+				" . VTM_TABLE_PREFIX . "MAPOWNER owners , 
+				" . VTM_TABLE_PREFIX . "MAPDOMAIN domains
 			where owners.ID = %d and domains.OWNER_ID = owners.ID;";
 		$isused = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
@@ -310,7 +310,7 @@ class owner_table extends WP_List_Table {
 				echo "<li style='color:red'>" . stripslashes($mapdomain->NAME) . "</li>";
 			echo "</ul></p>";
 		} else {
-			$sql = "delete from " . GVLARP_TABLE_PREFIX . "MAPOWNER where ID = %d;";
+			$sql = "delete from " . VTM_TABLE_PREFIX . "MAPOWNER where ID = %d;";
 			
 			$result = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
@@ -328,7 +328,7 @@ class owner_table extends WP_List_Table {
 		
 		$visiblity = $showhide == 'hide' ? 'N' : 'Y';
 		
-		$result = $wpdb->update( GVLARP_TABLE_PREFIX . "MAPOWNER", 
+		$result = $wpdb->update( VTM_TABLE_PREFIX . "MAPOWNER", 
 			array (
 				'VISIBLE' => $visiblity
 			), 
@@ -458,7 +458,7 @@ class owner_table extends WP_List_Table {
         		
         $this->process_bulk_action();
 		
-		$sql  = "SELECT * FROM " . GVLARP_TABLE_PREFIX . "MAPOWNER ORDER BY NAME";
+		$sql  = "SELECT * FROM " . VTM_TABLE_PREFIX . "MAPOWNER ORDER BY NAME";
 		$data = $wpdb->get_results($sql);
 
 		$this->items = $data;
@@ -475,7 +475,7 @@ class owner_table extends WP_List_Table {
 
 }
 
-class domain_table extends WP_List_Table {
+class vtmclass_domain_table extends WP_List_Table {
    
     function __construct(){
         global $status, $page;
@@ -499,7 +499,7 @@ class domain_table extends WP_List_Table {
 						'VISIBLE' => $_REQUEST['domain_visible']
 					);
 	
-		$wpdb->insert(GVLARP_TABLE_PREFIX . "MAPDOMAIN",
+		$wpdb->insert(VTM_TABLE_PREFIX . "MAPDOMAIN",
 					$dataarray,
 					array (
 						'%s',
@@ -528,7 +528,7 @@ class domain_table extends WP_List_Table {
 						'VISIBLE' => $_REQUEST['domain_visible']
 					);
 	
-		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "MAPDOMAIN",
+		$result = $wpdb->update(VTM_TABLE_PREFIX . "MAPDOMAIN",
 					$dataarray,
 					array (
 						'ID' => $_REQUEST['mapdomain']
@@ -551,7 +551,7 @@ class domain_table extends WP_List_Table {
 						'OWNER_ID' => $this->ownerselect
 					);
 	
-		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "MAPDOMAIN",
+		$result = $wpdb->update(VTM_TABLE_PREFIX . "MAPDOMAIN",
 					$dataarray,
 					array (
 						'ID' => $selectedID
@@ -570,7 +570,7 @@ class domain_table extends WP_List_Table {
 	function delete($selectedID) {
 		global $wpdb;
 		
-		$sql = "delete from " . GVLARP_TABLE_PREFIX . "MAPDOMAIN where ID = %d;";
+		$sql = "delete from " . VTM_TABLE_PREFIX . "MAPDOMAIN where ID = %d;";
 		$wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		echo "<p style='color:green'>Deleted mapdomain {$selectedID}</p>";
 	}
@@ -585,7 +585,7 @@ class domain_table extends WP_List_Table {
 		
 		$visiblity = $showhide == 'hide' ? 'N' : 'Y';
 		
-		$result = $wpdb->update( GVLARP_TABLE_PREFIX . "MAPDOMAIN", 
+		$result = $wpdb->update( VTM_TABLE_PREFIX . "MAPDOMAIN", 
 			array (
 				'VISIBLE' => $visiblity
 			), 
@@ -748,7 +748,7 @@ class domain_table extends WP_List_Table {
         $sortable = $this->get_sortable_columns();
 		
 		// Assign to Owner
-		$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "MAPOWNER ORDER BY NAME";
+		$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "MAPOWNER ORDER BY NAME";
 		$this->ownerlist = $wpdb->get_results($sql);
 		$this->ownerselect = isset($_REQUEST['ownerselect']) ? sanitize_key($_REQUEST['ownerselect']) : '';
 		        			
@@ -759,8 +759,8 @@ class domain_table extends WP_List_Table {
 		$sql  = "SELECT 
 					domains.ID, domains.NAME, owners.NAME as OWNER, domains.DESCRIPTION, domains.VISIBLE
 				FROM 
-					" . GVLARP_TABLE_PREFIX . "MAPOWNER owners,
-					" . GVLARP_TABLE_PREFIX . "MAPDOMAIN domains
+					" . VTM_TABLE_PREFIX . "MAPOWNER owners,
+					" . VTM_TABLE_PREFIX . "MAPDOMAIN domains
 				WHERE
 					domains.OWNER_ID = owners.ID";
 		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']) )

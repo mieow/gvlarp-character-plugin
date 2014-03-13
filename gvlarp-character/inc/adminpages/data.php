@@ -1,11 +1,11 @@
 <?php
 
 
-function render_meritflaw_page($type){
+function vtm_render_meritflaw_page($type){
 
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
-    $testListTable[$type] = new gvadmin_meritsflaws_table();
-	$doaction = merit_input_validation($type);
+    $testListTable[$type] = new vtmclass_admin_meritsflaws_table();
+	$doaction = vtm_merit_input_validation($type);
 	/* echo "<p>Merit action: $doaction</p>"; */
 	
 	if ($doaction == "add-$type") {
@@ -23,7 +23,7 @@ function render_meritflaw_page($type){
 									$_REQUEST[$type . '_profile']);
 	} 
 	
-	render_meritflaw_add_form($type, $doaction);
+	vtm_render_meritflaw_add_form($type, $doaction);
 	
     $testListTable[$type]->prepare_items($type);
 	$current_url = remove_query_arg( 'action', $current_url );
@@ -40,10 +40,10 @@ function render_meritflaw_page($type){
     <?php
 }
 
-function render_rituals_page(){
+function vtm_render_rituals_page(){
 
-    $testListTable["rituals"] = new gvadmin_rituals_table();
-	$doaction = ritual_input_validation();
+    $testListTable["rituals"] = new vtmclass_admin_rituals_table();
+	$doaction = vtm_ritual_input_validation();
 	
 	if ($doaction == "add-ritual") {
 		$testListTable["rituals"]->add_ritual($_REQUEST['ritual_name'], $_REQUEST['ritual_desc'], 
@@ -60,7 +60,7 @@ function render_rituals_page(){
 									
 	}
 
-	render_ritual_add_form($doaction);
+	vtm_render_ritual_add_form($doaction);
 	$testListTable["rituals"]->prepare_items();
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
@@ -74,10 +74,10 @@ function render_rituals_page(){
 
     <?php
 }
-function render_sourcebook_page(){
+function vtm_render_sourcebook_page(){
 
-    $testListTable["books"] = new gvadmin_books_table();
-	$doaction = book_input_validation();
+    $testListTable["books"] = new vtmclass_admin_books_table();
+	$doaction = vtm_book_input_validation();
 	
 	if ($doaction == "add-book") {
 		$testListTable["books"]->add_book($_REQUEST['book_name'], $_REQUEST['book_code'], $_REQUEST['book_visible']);
@@ -88,7 +88,7 @@ function render_sourcebook_page(){
 									
 	}
 
-	render_book_add_form($doaction);
+	vtm_render_book_add_form($doaction);
 	$testListTable["books"]->prepare_items();
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
@@ -103,7 +103,7 @@ function render_sourcebook_page(){
     <?php
 }
 
-function render_meritflaw_add_form($type, $addaction) {
+function vtm_render_meritflaw_add_form($type, $addaction) {
 
 	global $wpdb;
 	
@@ -135,7 +135,7 @@ function render_meritflaw_add_form($type, $addaction) {
 						books.ID as SOURCEBOOK, merit.PAGE_NUMBER as PAGE_NUMBER,
 						merit.VISIBLE as VISIBLE, merit.BACKGROUND_QUESTION, merit.HAS_SPECIALISATION,
 						merit.PROFILE_DISPLAY_ID
-						from " . GVLARP_TABLE_PREFIX . "MERIT merit, " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books 
+						from " . VTM_TABLE_PREFIX . "MERIT merit, " . VTM_TABLE_PREFIX . "SOURCE_BOOK books 
 						where merit.ID = %d and books.ID = merit.SOURCE_BOOK_ID;";
 		
 		/* echo "<p>$sql</p>"; */
@@ -179,7 +179,7 @@ function render_meritflaw_add_form($type, $addaction) {
 		$nextaction = "add";
 	}
 
-	$booklist = get_booknames();
+	$booklist = vtm_get_booknames();
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
 
@@ -243,7 +243,7 @@ function render_meritflaw_add_form($type, $addaction) {
 				<select name="<?php print $type; ?>_profile">
 					<option value="0" <?php selected($profile, "0"); ?>>Not displayed</option>
 					<?php
-						foreach (get_profile_display() as $opt) {
+						foreach (vtm_get_profile_display() as $opt) {
 							print "<option value='{$opt->ID}' ";
 							($opt->ID == $profile) ? print "selected" : print "";
 							echo ">{$opt->NAME}</option>";
@@ -264,7 +264,7 @@ function render_meritflaw_add_form($type, $addaction) {
 	
 	<?php
 }
-function render_ritual_add_form($addaction) {
+function vtm_render_ritual_add_form($addaction) {
 
 	global $wpdb;
 	
@@ -296,9 +296,9 @@ function render_ritual_add_form($addaction) {
 		$sql = "select ritual.ID, ritual.NAME, ritual.LEVEL, ritual.DISCIPLINE_ID as DISCIPLINE, ritual.DICE_POOL,
 					ritual.COST, ritual.DIFFICULTY, ritual.SOURCE_BOOK_ID as SOURCEBOOK, ritual.PAGE_NUMBER, 
 					ritual.VISIBLE, ritual.DESCRIPTION
-				from " . GVLARP_TABLE_PREFIX . "RITUAL as ritual, 
-					" . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books,
-					" . GVLARP_TABLE_PREFIX . "DISCIPLINE as discipline
+				from " . VTM_TABLE_PREFIX . "RITUAL as ritual, 
+					" . VTM_TABLE_PREFIX . "SOURCE_BOOK books,
+					" . VTM_TABLE_PREFIX . "DISCIPLINE as discipline
 				where ritual.DISCIPLINE_ID = discipline.ID and
 					ritual.SOURCE_BOOK_ID = books.ID and
 					ritual.ID = %d;";
@@ -339,7 +339,7 @@ function render_ritual_add_form($addaction) {
 		$nextaction = "add";
 	}
 
-	$booklist = get_booknames();
+	$booklist = vtm_get_booknames();
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
 
@@ -365,7 +365,7 @@ function render_ritual_add_form($addaction) {
 			<td>
 				<select name="<?php print $type; ?>_disc">
 					<?php
-						foreach (get_disciplines() as $disc) {
+						foreach (vtm_get_disciplines() as $disc) {
 							print "<option value='{$disc->ID}' ";
 							($disc->ID == $disciplineid) ? print "selected" : print "";
 							echo ">{$disc->NAME}</option>";
@@ -410,7 +410,7 @@ function render_ritual_add_form($addaction) {
 	
 	<?php
 }
-function render_book_add_form($addaction) {
+function vtm_render_book_add_form($addaction) {
 
 	global $wpdb;
 	
@@ -432,7 +432,7 @@ function render_book_add_form($addaction) {
 		$id   = $_REQUEST['book'];
 		
 		$sql = "select books.ID, books.NAME, books.CODE, books.VISIBLE
-				from " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books
+				from " . VTM_TABLE_PREFIX . "SOURCE_BOOK books
 				where books.ID = %d;";
 		
 		/* echo "<p>$sql</p>"; */
@@ -489,7 +489,7 @@ function render_book_add_form($addaction) {
 }
 
 
-function merit_input_validation($type) {
+function vtm_merit_input_validation($type) {
 
 	$doaction = '';
 
@@ -548,7 +548,7 @@ function merit_input_validation($type) {
 	return $doaction;
 }
 
-function ritual_input_validation() {
+function vtm_ritual_input_validation() {
 
 	$type = "ritual";
 	$doaction = '';
@@ -606,7 +606,7 @@ function ritual_input_validation() {
 	return $doaction;
 }
 
-function book_input_validation() {
+function vtm_book_input_validation() {
 
 	$type = "book";
 	$doaction = '';
@@ -640,7 +640,7 @@ MERITS AND FLAWS TABLE
 ------------------------------------------------ */
 
 
-class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
+class vtmclass_admin_meritsflaws_table extends vtmclass_MultiPage_ListTable {
    
     function __construct(){
         global $status, $page;
@@ -650,10 +650,6 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
             'plural'    => 'merits',    
             'ajax'      => false        
         ) );
-		
-		/* add_action('delete_merit', array($this, 'delete_merit'), 10, 1);
-		add_action('showhide_merit', array($this, 'gvlarp_showhide_merit'), 10, 2); */
-		/* add_action('edit_merit', array($this, 'gvlarp_edit_merit'), 10, 1); */
         
     }
 	
@@ -662,7 +658,7 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 		
 		/* Check if merit id in use */
 		$sql = "select characters.NAME 
-			from " . GVLARP_TABLE_PREFIX . "CHARACTER_MERIT charmerits , " . GVLARP_TABLE_PREFIX . "CHARACTER characters
+			from " . VTM_TABLE_PREFIX . "CHARACTER_MERIT charmerits , " . VTM_TABLE_PREFIX . "CHARACTER characters
 			where charmerits.MERIT_ID = %d and charmerits.CHARACTER_ID = characters.ID;";
 		$isused = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
@@ -673,7 +669,7 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 				echo "<li style='color:red'>" . stripslashes($character->NAME) . "</li>";
 			echo "</ul></p>";
 		} else {
-			$sql = "delete from " . GVLARP_TABLE_PREFIX . "MERIT where ID = %d;";
+			$sql = "delete from " . VTM_TABLE_PREFIX . "MERIT where ID = %d;";
 			
 			$result = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
@@ -681,7 +677,7 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 			echo "<p style='color:green'>Deleted item $selectedID</p>";
 		}
 	}
- 	function gvlarp_showhide_merit($selectedID, $showhide) {
+ 	function showhide_merit($selectedID, $showhide) {
 		global $wpdb;
 		
 		//echo "id: $selectedID, setting: $showhide";
@@ -690,7 +686,7 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 		
 		$visiblity = $showhide == 'hide' ? 'N' : 'Y';
 		
-		$result = $wpdb->update( GVLARP_TABLE_PREFIX . "MERIT", 
+		$result = $wpdb->update( VTM_TABLE_PREFIX . "MERIT", 
 			array (
 				'VISIBLE' => $visiblity
 			), 
@@ -734,7 +730,7 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 		
 		/* print_r($dataarray); */
 		
-		$wpdb->insert(GVLARP_TABLE_PREFIX . "MERIT",
+		$wpdb->insert(VTM_TABLE_PREFIX . "MERIT",
 					$dataarray,
 					array (
 						'%s',
@@ -786,7 +782,7 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 		
 		/* print_r($dataarray); */
 		
-		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "MERIT",
+		$result = $wpdb->update(VTM_TABLE_PREFIX . "MERIT",
 					$dataarray,
 					array (
 						'ID' => $meritid
@@ -917,19 +913,19 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 		
         if( 'hide'===$this->current_action() && $_REQUEST['tab'] == $this->type && isset($_REQUEST['merit']) ) {
 			if ('string' == gettype($_REQUEST['merit'])) {
-				$this->gvlarp_showhide_merit($_REQUEST['merit'], "hide");
+				$this->showhide_merit($_REQUEST['merit'], "hide");
 			} else {
 				foreach ($_REQUEST['merit'] as $merit) {
-					$this->gvlarp_showhide_merit($merit, "hide");
+					$this->showhide_merit($merit, "hide");
 				}
 			}
         }
         if( 'show'===$this->current_action() && $_REQUEST['tab'] == $this->type && isset($_REQUEST['merit']) ) {
 			if ('string' == gettype($_REQUEST['merit'])) {
-				$this->gvlarp_showhide_merit($_REQUEST['merit'], "show");
+				$this->showhide_merit($_REQUEST['merit'], "show");
 			} else {
 				foreach ($_REQUEST['merit'] as $merit) {
-					$this->gvlarp_showhide_merit($merit, "show");
+					$this->showhide_merit($merit, "show");
 				}
 			}
         }
@@ -1002,9 +998,9 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 				'n'  => 'No',
 			);
 			
-		$sql = "SELECT DISTINCT GROUPING FROM " . GVLARP_TABLE_PREFIX . "MERIT merit;";
+		$sql = "SELECT DISTINCT GROUPING FROM " . VTM_TABLE_PREFIX . "MERIT merit;";
 		$groups =$wpdb->get_results($wpdb->prepare($sql, ''));
-		$this->filter_group = gvmake_filter($groups);
+		$this->filter_group = vtm_make_filter($groups);
 			
 		if ( isset( $_REQUEST[$type . '_filter'] ) && array_key_exists( $_REQUEST[$type . '_filter'], $this->filter_visible ) ) {
 			$this->active_filter_visible = sanitize_key( $_REQUEST[$type . '_filter'] );
@@ -1035,7 +1031,7 @@ class gvadmin_meritsflaws_table extends GVMultiPage_ListTable {
 						books.NAME as SOURCEBOOK, merit.PAGE_NUMBER as 	PAGE_NUMBER,
 						merit.VISIBLE as VISIBLE, merit.BACKGROUND_QUESTION, merit.HAS_SPECIALISATION,
 						merit.PROFILE_DISPLAY_ID
-						from " . GVLARP_TABLE_PREFIX. "MERIT merit, " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books where ";
+						from " . VTM_TABLE_PREFIX. "MERIT merit, " . VTM_TABLE_PREFIX . "SOURCE_BOOK books where ";
 		if ($type == "merit") {
 			$sql .= "merit.value >= 0";
 		} else {
@@ -1084,7 +1080,7 @@ RITUALS TABLE
 ------------------------------------------------ */
 
 
-class gvadmin_rituals_table extends GVMultiPage_ListTable {
+class vtmclass_admin_rituals_table extends vtmclass_MultiPage_ListTable {
    
     function __construct(){
         global $status, $page;
@@ -1101,7 +1097,7 @@ class gvadmin_rituals_table extends GVMultiPage_ListTable {
 		
 		/* Check if ritual id in use */
 		$sql = "select characters.NAME
-					from " . GVLARP_TABLE_PREFIX . "CHARACTER_RITUAL charrituals, " . GVLARP_TABLE_PREFIX . "CHARACTER characters
+					from " . VTM_TABLE_PREFIX . "CHARACTER_RITUAL charrituals, " . VTM_TABLE_PREFIX . "CHARACTER characters
 					where charrituals.RITUAL_ID = %d and charrituals.CHARACTER_ID = characters.ID;";
 		$isused = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
@@ -1113,7 +1109,7 @@ class gvadmin_rituals_table extends GVMultiPage_ListTable {
 			echo "</ul></p>";
 		} else {
 		
-			$sql = "delete from " . GVLARP_TABLE_PREFIX . "RITUAL where ID = %d;";
+			$sql = "delete from " . VTM_TABLE_PREFIX . "RITUAL where ID = %d;";
 			
 			$result = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
@@ -1143,7 +1139,7 @@ class gvadmin_rituals_table extends GVMultiPage_ListTable {
 		
 		/* print_r($dataarray); */
 		
-		$wpdb->insert(GVLARP_TABLE_PREFIX . "RITUAL",
+		$wpdb->insert(VTM_TABLE_PREFIX . "RITUAL",
 					$dataarray,
 					array (
 						'%s',
@@ -1188,7 +1184,7 @@ class gvadmin_rituals_table extends GVMultiPage_ListTable {
 		
 		/* print_r($dataarray); */
 		
-		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "RITUAL",
+		$result = $wpdb->update(VTM_TABLE_PREFIX . "RITUAL",
 					$dataarray,
 					array (
 						'ID' => $ritualid
@@ -1348,22 +1344,22 @@ class gvadmin_rituals_table extends GVMultiPage_ListTable {
         
 		/* setup filters here */
 		$sql = "SELECT DISTINCT disciplines.ID as ID, disciplines.NAME as NAME
-				FROM " . GVLARP_TABLE_PREFIX . "RITUAL rituals, " . GVLARP_TABLE_PREFIX . "DISCIPLINE disciplines
+				FROM " . VTM_TABLE_PREFIX . "RITUAL rituals, " . VTM_TABLE_PREFIX . "DISCIPLINE disciplines
 				WHERE disciplines.ID = rituals.DISCIPLINE_ID;";
 		$disciplines = $wpdb->get_results($wpdb->prepare($sql,''));
-		$this->filter_discipline = gvmake_filter($disciplines);
+		$this->filter_discipline = vtm_make_filter($disciplines);
 		
 		/* Ritual Level filter */
-		$sql = "SELECT DISTINCT LEVEL FROM " . GVLARP_TABLE_PREFIX . "RITUAL;";
+		$sql = "SELECT DISTINCT LEVEL FROM " . VTM_TABLE_PREFIX . "RITUAL;";
 		$levels = $wpdb->get_results($wpdb->prepare($sql,''));
-		$this->filter_level = gvmake_filter($levels);
+		$this->filter_level = vtm_make_filter($levels);
 			
 		/* Book filter */
 		$sql = "SELECT DISTINCT books.ID, books.NAME 
-				FROM " . GVLARP_TABLE_PREFIX . "RITUAL rituals, " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books
+				FROM " . VTM_TABLE_PREFIX . "RITUAL rituals, " . VTM_TABLE_PREFIX . "SOURCE_BOOK books
 				WHERE rituals.SOURCE_BOOK_ID = books.ID;";
 		$books = $wpdb->get_results($wpdb->prepare($sql,''));
-		$this->filter_book = gvmake_filter($books);
+		$this->filter_book = vtm_make_filter($books);
 						
 		if ( isset( $_REQUEST[$type . '_discipline'] ) && array_key_exists( $_REQUEST[$type . '_discipline'], $this->filter_discipline ) ) {
 			$this->active_filter_discipline = sanitize_key( $_REQUEST[$type . '_discipline'] );
@@ -1393,8 +1389,8 @@ class gvadmin_rituals_table extends GVMultiPage_ListTable {
 					rituals.COST as COST, rituals.DIFFICULTY as DIFFICULTY,
 						books.NAME as SOURCEBOOK, rituals.PAGE_NUMBER as PAGE_NUMBER,
 						rituals.VISIBLE as VISIBLE
-				from " . GVLARP_TABLE_PREFIX. "RITUAL rituals, " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books, "
-						. GVLARP_TABLE_PREFIX. "DISCIPLINE disciplines 
+				from " . VTM_TABLE_PREFIX. "RITUAL rituals, " . VTM_TABLE_PREFIX . "SOURCE_BOOK books, "
+						. VTM_TABLE_PREFIX. "DISCIPLINE disciplines 
 				where disciplines.ID = rituals.DISCIPLINE_ID and books.ID = rituals.SOURCE_BOOK_ID";
 		
 		/* limit data according to the filters */
@@ -1435,7 +1431,7 @@ SOURCEBOOKS TABLE
 ------------------------------------------------ */
 
 
-class gvadmin_books_table extends GVMultiPage_ListTable {
+class vtmclass_admin_books_table extends vtmclass_MultiPage_ListTable {
    
     function __construct(){
         global $status, $page;
@@ -1452,7 +1448,7 @@ class gvadmin_books_table extends GVMultiPage_ListTable {
 		
 		/* Check if book in use in MERITS and FLAWS */
 		$sql = "select merits.NAME
-				from " . GVLARP_TABLE_PREFIX . "MERIT merits, " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books
+				from " . VTM_TABLE_PREFIX . "MERIT merits, " . VTM_TABLE_PREFIX . "SOURCE_BOOK books
 				where books.ID = merits.SOURCE_BOOK_ID and merits.SOURCE_BOOK_ID = %d;";
 		$isused = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		if ($isused) {
@@ -1466,7 +1462,7 @@ class gvadmin_books_table extends GVMultiPage_ListTable {
 		
 		/* Check if book in use in RITUALS */
 		$sql = "select rituals.NAME
-				from " . GVLARP_TABLE_PREFIX . "RITUAL rituals, " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books
+				from " . VTM_TABLE_PREFIX . "RITUAL rituals, " . VTM_TABLE_PREFIX . "SOURCE_BOOK books
 				where books.ID = rituals.SOURCE_BOOK_ID and rituals.SOURCE_BOOK_ID = %d;";
 		$isused = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		if ($isused) {
@@ -1494,7 +1490,7 @@ class gvadmin_books_table extends GVMultiPage_ListTable {
 			echo "</ul></p>";
 		} else {
 		
-			$sql = "delete from " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK where ID = %d;";
+			$sql = "delete from " . VTM_TABLE_PREFIX . "SOURCE_BOOK where ID = %d;";
 			
 			$result = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
@@ -1516,7 +1512,7 @@ class gvadmin_books_table extends GVMultiPage_ListTable {
 		
 		/* print_r($dataarray); */
 		
-		$wpdb->insert(GVLARP_TABLE_PREFIX . "SOURCE_BOOK",
+		$wpdb->insert(VTM_TABLE_PREFIX . "SOURCE_BOOK",
 					$dataarray,
 					array (
 						'%s',
@@ -1546,7 +1542,7 @@ class gvadmin_books_table extends GVMultiPage_ListTable {
 		
 		/* print_r($dataarray); */
 		
-		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "SOURCE_BOOK",
+		$result = $wpdb->update(VTM_TABLE_PREFIX . "SOURCE_BOOK",
 					$dataarray,
 					array (
 						'ID' => $bookid
@@ -1647,7 +1643,7 @@ class gvadmin_books_table extends GVMultiPage_ListTable {
 		
 		/* Get the data from the database */
 		$sql = "select books.ID, books.NAME, books.CODE, books.VISIBLE
-				from " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK books";
+				from " . VTM_TABLE_PREFIX . "SOURCE_BOOK books";
 				
 		/* order the data according to sort columns */
 		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']))

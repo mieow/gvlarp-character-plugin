@@ -1,32 +1,32 @@
 <?php
 
 
-function get_shortcode_id($base) {
+function vtm_get_shortcode_id($base) {
 	static $shortcode_id;
 	$shortcode_id++;
 	return $base . "_" . $shortcode_id;
 }
 
-function get_homedomain() {
+function vtm_get_homedomain() {
 
 	global $wpdb;
 	
-	$config = getConfig();
+	$config = vtm_getConfig();
 
-	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "DOMAIN
+	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "DOMAIN
 			WHERE ID = %s;";
 	$list = $wpdb->get_results($wpdb->prepare($sql, $config->HOME_DOMAIN_ID));
 	
 	return $list[0]->NAME;
 }
-function  get_loggedinclan($characterID) {
+function vtm_get_loggedinclan($characterID) {
 	global $wpdb;
 
 	$sql = "SELECT pubclan.name as pub, privclan.name as priv
 			FROM 
-				" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
-				" . GVLARP_TABLE_PREFIX . "CLAN pubclan,
-				" . GVLARP_TABLE_PREFIX . "CLAN privclan
+				" . VTM_TABLE_PREFIX . "CHARACTER chara,
+				" . VTM_TABLE_PREFIX . "CLAN pubclan,
+				" . VTM_TABLE_PREFIX . "CLAN privclan
 			WHERE 
 				chara.ID = %s
 				AND chara.PUBLIC_CLAN_ID = pubclan.ID
@@ -40,13 +40,13 @@ function  get_loggedinclan($characterID) {
 	
 	return $result;
 }
-function  get_loggedindomain($characterID) {
+function vtm_get_loggedindomain($characterID) {
 	global $wpdb;
 
 	$sql = "SELECT domains.name as domain
 			FROM 
-				" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
-				" . GVLARP_TABLE_PREFIX . "DOMAIN domains
+				" . VTM_TABLE_PREFIX . "CHARACTER chara,
+				" . VTM_TABLE_PREFIX . "DOMAIN domains
 			WHERE 
 				chara.ID = %s
 				AND domains.ID = chara.DOMAIN_ID";
@@ -55,17 +55,17 @@ function  get_loggedindomain($characterID) {
 	return $result[0]->domain;
 }
 
-function get_profilelink($wordpressid, $character) {
+function vtm_get_profilelink($wordpressid, $character) {
 	$markup = '<a href="@PROFILELINK@?CHARACTER=@WORDPRESS@" @EXTRA@>@NAME@</a>';
 
 	return str_replace(
 		Array('@PROFILELINK@','@WORDPRESS@','@EXTRA@','@NAME@'),
-			Array(get_stlink_url('viewProfile'), urlencode($wordpressid), "",$character),
+			Array(vtm_get_stlink_url('viewProfile'), urlencode($wordpressid), "",$character),
 			$markup
 		);
 }
 
-function print_background_shortcode($atts, $content = null) {
+function vtm_print_background_shortcode($atts, $content = null) {
 	global $wpdb;
 	
 	$output = "";
@@ -94,8 +94,8 @@ function print_background_shortcode($atts, $content = null) {
 		level = "all" or "displayzeros" or <number>
 	*/
 
-	$character = establishCharacter($character);
-	$characterID = establishCharacterID($character);
+	$character = vtm_establishCharacter($character);
+	$characterID = vtm_establishCharacterID($character);
 		
 	$sqlmain = "SELECT chara.id,
 				chara.wordpress_id,
@@ -111,20 +111,20 @@ function print_background_shortcode($atts, $content = null) {
 				domains.name as domain,
 				sector.name as sectorname
 			FROM
-				" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
-				" . GVLARP_TABLE_PREFIX . "PLAYER player,
-				" . GVLARP_TABLE_PREFIX . "PLAYER_STATUS pstatus,
-				" . GVLARP_TABLE_PREFIX . "CHARACTER_STATUS cstatus,
-				" . GVLARP_TABLE_PREFIX . "CLAN pubclan,
-				" . GVLARP_TABLE_PREFIX . "CLAN privclan,
-				" . GVLARP_TABLE_PREFIX . "BACKGROUND background,
-				" . GVLARP_TABLE_PREFIX . "CHARACTER_BACKGROUND char_bg
+				" . VTM_TABLE_PREFIX . "CHARACTER chara,
+				" . VTM_TABLE_PREFIX . "PLAYER player,
+				" . VTM_TABLE_PREFIX . "PLAYER_STATUS pstatus,
+				" . VTM_TABLE_PREFIX . "CHARACTER_STATUS cstatus,
+				" . VTM_TABLE_PREFIX . "CLAN pubclan,
+				" . VTM_TABLE_PREFIX . "CLAN privclan,
+				" . VTM_TABLE_PREFIX . "BACKGROUND background,
+				" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND char_bg
 				LEFT JOIN
-					" . GVLARP_TABLE_PREFIX . "SECTOR sector
+					" . VTM_TABLE_PREFIX . "SECTOR sector
 				ON
 					char_bg.SECTOR_ID = sector.ID
 				,
-				" . GVLARP_TABLE_PREFIX . "DOMAIN domains
+				" . VTM_TABLE_PREFIX . "DOMAIN domains
 			WHERE
 				chara.PLAYER_ID = player.ID
 				AND chara.ID = char_bg.CHARACTER_ID
@@ -154,12 +154,12 @@ function print_background_shortcode($atts, $content = null) {
 				domains.name as domain,
 				\"\" as sectorname
 			FROM
-				" . GVLARP_TABLE_PREFIX . "CHARACTER chara
+				" . VTM_TABLE_PREFIX . "CHARACTER chara
 				LEFT JOIN
 					(SELECT char_bgs.ID, background.NAME, char_bgs.CHARACTER_ID
 					FROM
-						" . GVLARP_TABLE_PREFIX . "CHARACTER_BACKGROUND char_bgs,
-						" . GVLARP_TABLE_PREFIX . "BACKGROUND background
+						" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND char_bgs,
+						" . VTM_TABLE_PREFIX . "BACKGROUND background
 					WHERE
 						background.ID = char_bgs.BACKGROUND_ID
 						AND background.name = %s
@@ -167,12 +167,12 @@ function print_background_shortcode($atts, $content = null) {
 				ON
 					char_bg.CHARACTER_ID = chara.ID
 				,
-				" . GVLARP_TABLE_PREFIX . "PLAYER player,
-				" . GVLARP_TABLE_PREFIX . "PLAYER_STATUS pstatus,
-				" . GVLARP_TABLE_PREFIX . "CHARACTER_STATUS cstatus,
-				" . GVLARP_TABLE_PREFIX . "CLAN pubclan,
-				" . GVLARP_TABLE_PREFIX . "CLAN privclan,
-				" . GVLARP_TABLE_PREFIX . "DOMAIN domains
+				" . VTM_TABLE_PREFIX . "PLAYER player,
+				" . VTM_TABLE_PREFIX . "PLAYER_STATUS pstatus,
+				" . VTM_TABLE_PREFIX . "CHARACTER_STATUS cstatus,
+				" . VTM_TABLE_PREFIX . "CLAN pubclan,
+				" . VTM_TABLE_PREFIX . "CLAN privclan,
+				" . VTM_TABLE_PREFIX . "DOMAIN domains
 			WHERE
 				chara.PLAYER_ID = player.ID
                 AND player.PLAYER_STATUS_ID = pstatus.ID
@@ -199,7 +199,7 @@ function print_background_shortcode($atts, $content = null) {
 	
 	if ($matchtype == 'comment') {
 		if ($match == 'loggedinclan') {
-			$clans = get_loggedinclan($characterID);
+			$clans = vtm_get_loggedinclan($characterID);
 			$sqlmain .= " AND (char_bg.comment = %s OR char_bg.comment = %s)";
 			array_push($sqlmainargs, $clans[0]->priv, $clans[0]->pub);
 		} else {
@@ -218,9 +218,9 @@ function print_background_shortcode($atts, $content = null) {
 		$sqlzero .= $sqlfilter;
 		
 		if ($domain == 'loggedin')
-			$domain = get_loggedindomain($characterID);
+			$domain = vtm_get_loggedindomain($characterID);
 		if ($domain == 'home')
-			$domain = get_homedomain();
+			$domain = vtm_get_homedomain();
 		
 		array_push($sqlmainargs, $domain);
 		array_push($sqlzeroargs, $domain);
@@ -252,7 +252,7 @@ function print_background_shortcode($atts, $content = null) {
 	
 	if (count($result)) {
 		$columnlist = explode(',',$columns);
-		$output = "<table class='gvplugin' id=\"" . get_shortcode_id("gvid_blb") . "\">\n";
+		$output = "<table class='gvplugin' id=\"" . vtm_get_shortcode_id("gvid_blb") . "\">\n";
 		if ($heading) {
 			$output .= "<tr>";
 			foreach ($columnlist as $name) {
@@ -273,7 +273,7 @@ function print_background_shortcode($atts, $content = null) {
 			$col = 1;
 			$output .= "<tr>";
 			foreach ($columnlist as $name) {
-				if ($name == 'character') $output .= "<td class='gvcol_$col gvcol_key'>" . get_profilelink($tablerow->wordpress_id, $tablerow->charname) . "</td>";
+				if ($name == 'character') $output .= "<td class='gvcol_$col gvcol_key'>" . vtm_get_profilelink($tablerow->wordpress_id, $tablerow->charname) . "</td>";
 				if ($name == 'player') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->playername}</td>";
 				if ($name == 'clan')   $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->publicclan}</td>";
 				if ($name == 'status') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->cstat}</td>";
@@ -294,16 +294,16 @@ function print_background_shortcode($atts, $content = null) {
 	
 	return $output;
 }
-add_shortcode('background_table', 'print_background_shortcode');
+add_shortcode('background_table', 'vtm_print_background_shortcode');
 
 
-add_shortcode('integration_alo_easymail', 'get_character_from_email');
-function get_character_from_email ($email, $setting = 'name') {
+add_shortcode('integration_alo_easymail', 'vtm_get_character_from_email');
+function vtm_get_character_from_email ($email, $setting = 'name') {
 	global $wpdb;
 
 	$sqlCharID = "SELECT chara.id, chara.name, paths.name as pathname, chara.player_id
 			FROM	
-				" . $wpdb->prefix . "GVLARP_CHARACTER chara,
+				" . $wpdb->prefix . "VTM_CHARACTER chara,
 				" . $wpdb->prefix . "users wpusers,
 				" . $wpdb->prefix . "GVLARP_ROAD_OR_PATH paths
 			WHERE
@@ -321,7 +321,7 @@ function get_character_from_email ($email, $setting = 'name') {
 	$playerid = $result[0]->player_id;
 		
 	if ($setting == 'xptotal') {
-		$xp = get_total_xp($this->player_id, $characterID);
+		$xp = vtm_get_total_xp($this->player_id, $characterID);
 	}
 	
 	if ($setting == 'rating') {
@@ -329,7 +329,7 @@ function get_character_from_email ($email, $setting = 'name') {
 		$sql = "SELECT
 					SUM(cha_path.AMOUNT) as rating
 				FROM
-					" . $wpdb->prefix . "GVLARP_CHARACTER_ROAD_OR_PATH cha_path
+					" . $wpdb->prefix . "VTM_CHARACTER_ROAD_OR_PATH cha_path
 				WHERE
 					cha_path.CHARACTER_ID = %s";
 		$result = $wpdb->get_results($wpdb->prepare($sql, $id));
@@ -350,7 +350,7 @@ function get_character_from_email ($email, $setting = 'name') {
 
 }
 
-function print_merit_shortcode($atts, $content = null) {
+function vtm_print_merit_shortcode($atts, $content = null) {
 	global $wpdb;
 	
 	$output = "";
@@ -374,8 +374,8 @@ function print_merit_shortcode($atts, $content = null) {
 		level = "all" or "displayzeros" or <number>
 	*/
 
-	$character = establishCharacter($character);
-	$characterID = establishCharacterID($character);
+	$character = vtm_establishCharacter($character);
+	$characterID = vtm_establishCharacterID($character);
 		
 	$sqlmain = "SELECT chara.id,
 				chara.wordpress_id,
@@ -390,15 +390,15 @@ function print_merit_shortcode($atts, $content = null) {
 				char_merit.comment as comment,
 				domains.name as domain
 			FROM
-				" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
-				" . GVLARP_TABLE_PREFIX . "PLAYER player,
-				" . GVLARP_TABLE_PREFIX . "PLAYER_STATUS pstatus,
-				" . GVLARP_TABLE_PREFIX . "CHARACTER_STATUS cstatus,
-				" . GVLARP_TABLE_PREFIX . "CLAN pubclan,
-				" . GVLARP_TABLE_PREFIX . "CLAN privclan,
-				" . GVLARP_TABLE_PREFIX . "MERIT merit,
-				" . GVLARP_TABLE_PREFIX . "CHARACTER_MERIT char_merit,
-				" . GVLARP_TABLE_PREFIX . "DOMAIN domains
+				" . VTM_TABLE_PREFIX . "CHARACTER chara,
+				" . VTM_TABLE_PREFIX . "PLAYER player,
+				" . VTM_TABLE_PREFIX . "PLAYER_STATUS pstatus,
+				" . VTM_TABLE_PREFIX . "CHARACTER_STATUS cstatus,
+				" . VTM_TABLE_PREFIX . "CLAN pubclan,
+				" . VTM_TABLE_PREFIX . "CLAN privclan,
+				" . VTM_TABLE_PREFIX . "MERIT merit,
+				" . VTM_TABLE_PREFIX . "CHARACTER_MERIT char_merit,
+				" . VTM_TABLE_PREFIX . "DOMAIN domains
 			WHERE
 				chara.PLAYER_ID = player.ID
 				AND chara.ID = char_merit.CHARACTER_ID
@@ -425,7 +425,7 @@ function print_merit_shortcode($atts, $content = null) {
 	
 	if ($match) {
 		if ($match == 'loggedinclan') {
-			$clans = get_loggedinclan($characterID);
+			$clans = vtm_get_loggedinclan($characterID);
 			$sqlmain .= " AND (char_merit.comment = %s OR char_merit.comment = %s)";
 			array_push($sqlmainargs, $clans[0]->priv, $clans[0]->pub);
 		} else {
@@ -439,9 +439,9 @@ function print_merit_shortcode($atts, $content = null) {
 		$sqlmain .= $sqlfilter;
 		
 		if ($domain == 'loggedin')
-			$domain = get_loggedindomain($characterID);
+			$domain = vtm_get_loggedindomain($characterID);
 		if ($domain == 'home')
-			$domain = get_homedomain();
+			$domain = vtm_get_homedomain();
 		
 		array_push($sqlmainargs, $domain);
 	}
@@ -459,7 +459,7 @@ function print_merit_shortcode($atts, $content = null) {
 	
 	if (count($result)) {
 		$columnlist = explode(',',$columns);
-		$output = "<table class='gvplugin' id=\"" . get_shortcode_id("gvid_mlb") . "\">\n";
+		$output = "<table class='gvplugin' id=\"" . vtm_get_shortcode_id("gvid_mlb") . "\">\n";
 		if ($heading) {
 			$output .= "<tr>";
 			foreach ($columnlist as $name) {
@@ -481,7 +481,7 @@ function print_merit_shortcode($atts, $content = null) {
 			$col = 1;
 			$output .= "<tr>";
 			foreach ($columnlist as $name) {
-				if ($name == 'character') $output .= "<td class='gvcol_$col gvcol_key'>" . get_profilelink($tablerow->wordpress_id, $tablerow->charname) . "</td>";
+				if ($name == 'character') $output .= "<td class='gvcol_$col gvcol_key'>" . vtm_get_profilelink($tablerow->wordpress_id, $tablerow->charname) . "</td>";
 				if ($name == 'player') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->playername}</td>";
 				if ($name == 'clan')   $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->publicclan}</td>";
 				if ($name == 'status') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->cstat}</td>";
@@ -501,27 +501,27 @@ function print_merit_shortcode($atts, $content = null) {
 	
 	return $output;
 }
-add_shortcode('merit_table', 'print_merit_shortcode');
+add_shortcode('merit_table', 'vtm_print_merit_shortcode');
 
-function print_character_xp_table($atts, $content=null) {
+function vtm_print_character_xp_table($atts, $content=null) {
 	extract(shortcode_atts(array ("character" => "null", "group" => "", "maxrecords" => "20"), $atts));
 	
 	if (!is_user_logged_in()) {
 		return "You must be logged in to view this content";
 	}
 	
-	$character   = establishCharacter($character);
-	$characterID = establishCharacterID($character);
-	$playerID    = establishPlayerID($character);
+	$character   = vtm_establishCharacter($character);
+	$characterID = vtm_establishCharacterID($character);
+	$playerID    = vtm_establishPlayerID($character);
 
 	global $wpdb;
-	$table_prefix = GVLARP_TABLE_PREFIX;
+	$table_prefix = VTM_TABLE_PREFIX;
 	
-	$config = getConfig();
+	$config = vtm_getConfig();
 	$filteron = $config->ASSIGN_XP_BY_PLAYER == 'Y' ? "PLAYER_ID" : "CHARACTER_ID";
 	$filterid = $config->ASSIGN_XP_BY_PLAYER == 'Y' ? $playerID   : $characterID;
 	
-	$xp_total = get_total_xp($playerID, $characterID);
+	$xp_total = vtm_get_total_xp($playerID, $characterID);
 
 	if ($group != "total" && $group != "TOTAL") {
 		$sqlSpent = "SELECT 
@@ -532,10 +532,10 @@ function print_character_xp_table($atts, $content=null) {
 					xp_spent.comment,
 					xp_spent.awarded
 				FROM
-					" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
-					" . GVLARP_TABLE_PREFIX . "XP_REASON xp_reason,
-					" . GVLARP_TABLE_PREFIX . "PLAYER_XP xp_spent,
-					" . GVLARP_TABLE_PREFIX . "PLAYER player
+					" . VTM_TABLE_PREFIX . "CHARACTER chara,
+					" . VTM_TABLE_PREFIX . "XP_REASON xp_reason,
+					" . VTM_TABLE_PREFIX . "PLAYER_XP xp_spent,
+					" . VTM_TABLE_PREFIX . "PLAYER player
 				WHERE
 					chara.ID = xp_spent.CHARACTER_ID
 					AND player.ID = chara.PLAYER_ID
@@ -551,9 +551,9 @@ function print_character_xp_table($atts, $content=null) {
 					pending.comment,
 					pending.awarded
 				FROM
-					" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
-					" . GVLARP_TABLE_PREFIX . "PENDING_XP_SPEND pending,
-					" . GVLARP_TABLE_PREFIX . "PLAYER player
+					" . VTM_TABLE_PREFIX . "CHARACTER chara,
+					" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND pending,
+					" . VTM_TABLE_PREFIX . "PLAYER player
 				WHERE
 					player.ID = chara.PLAYER_ID
 					AND pending.CHARACTER_ID = chara.ID
@@ -568,7 +568,7 @@ function print_character_xp_table($atts, $content=null) {
 		$sql = $wpdb->prepare($sql, $filterid, $filterid);	
 		$character_xp = $wpdb->get_results($sql);
 
-		$output = "<table class='gvplugin' id=\"" . get_shortcode_id("cxpt") . "\">
+		$output = "<table class='gvplugin' id=\"" . vtm_get_shortcode_id("cxpt") . "\">
 						   <tr><th class=\"gvthead gvcol_1\">Character</th>
 							   <th class=\"gvthead gvcol_2\">XP Reason</th>
 							   <th class=\"gvthead gvcol_3\">XP Amount</th>
@@ -614,10 +614,10 @@ function print_character_xp_table($atts, $content=null) {
 
 	return $output;
 }
-add_shortcode('character_xp_table', 'print_character_xp_table');
+add_shortcode('character_xp_table', 'vtm_print_character_xp_table');
 
 
-function print_map($atts, $content = null) {
+function vtm_print_map($atts, $content = null) {
 	global $wpdb;
 
 	$output = "";
@@ -641,8 +641,8 @@ function print_map($atts, $content = null) {
 	/* Get Domains */
 	$sql = "SELECT domains.*, owners.FILL_COLOUR, owners.VISIBLE as SHOWOWNER
 			FROM 
-				" . GVLARP_TABLE_PREFIX . "MAPDOMAIN domains,
-				" . GVLARP_TABLE_PREFIX . "MAPOWNER owners
+				" . VTM_TABLE_PREFIX . "MAPDOMAIN domains,
+				" . VTM_TABLE_PREFIX . "MAPOWNER owners
 			WHERE 
 				owners.ID = domains.OWNER_ID
 				AND domains.VISIBLE = 'Y'";
@@ -652,7 +652,7 @@ function print_map($atts, $content = null) {
 	/* Define the LatLng coordinates for the polygon's path. */
 	$output .= "<script type='text/javascript'><!--
 	var infoWindow;
-	function loadDomains(map) {
+	function vtm_loadDomains(map) {
 		infoWindow = new google.maps.InfoWindow({maxWidth: 200});
 
 		var domains = {\n";
@@ -730,14 +730,14 @@ function print_map($atts, $content = null) {
 	$output .= "<input type='hidden' name='feedingmap_clong'  id='feedingmap_clongID'  value=\"$long\">\n";
 	$output .= "<input type='hidden' name='feedingmap_zoom'   id='feedingmap_zoomID'  value=\"$zoom\">\n";
 	$output .= "<input type='hidden' name='feedingmap_type'   id='feedingmap_typeID'  value=\"$type\">\n";
-	$output .= "<input type='button' name='Reload' value='Refresh' onclick=\"initialize()\">\n";
+	$output .= "<input type='button' name='Reload' value='Refresh' onclick=\"vtm_initialize()\">\n";
 	$output .= "<p id=\"feedingmap_status\">Start</p>\n";
 	$output .= "<div id=\"feedingmap\" style=\"height:{$height}px; width:{$width}px\">\n";
 	$output .= "<div id=\"map-canvas\" style=\"width: 100%; height: 100%\"></div>\n";
 	$output .= "</div>\n";
 
 	/* Map Key */
-	$sql = "SELECT * FROM " . GVLARP_TABLE_PREFIX . "MAPOWNER WHERE VISIBLE = 'Y'";
+	$sql = "SELECT * FROM " . VTM_TABLE_PREFIX . "MAPOWNER WHERE VISIBLE = 'Y'";
 	$owners = $wpdb->get_results($sql);
     $output .= "<table class=\"feedingmapkey\">\n";
 	$output .= "<tr><th colspan=2>Map Key</th></tr>\n";
@@ -749,21 +749,21 @@ function print_map($atts, $content = null) {
 
 	return $output;
 }
-add_shortcode('feeding_map', 'print_map');
+add_shortcode('feeding_map', 'vtm_print_map');
 
-function print_character_road_or_path_table($atts, $content=null) {
+function vtm_print_character_road_or_path_table($atts, $content=null) {
 	extract(shortcode_atts(array ("character" => "null", "group" => "", "maxrecords" => "20"), $atts));
 	
 	if (!is_user_logged_in()) {
 		return "You must be logged in to view this content";
 	}
 	
-	$character = establishCharacter($character);
+	$character = vtm_establishCharacter($character);
 	
 	$output = "";
 
 	global $wpdb;
-	$table_prefix = GVLARP_TABLE_PREFIX;
+	$table_prefix = VTM_TABLE_PREFIX;
 
 	$sql = "SELECT chara.name char_name, preason.name reason_name, cpath.amount, cpath.comment, cpath.awarded, total_path
 					FROM " . $table_prefix . "CHARACTER chara,
@@ -782,7 +782,7 @@ function print_character_road_or_path_table($atts, $content=null) {
 	$character_path = $wpdb->get_results($wpdb->prepare($sql, $character));
 
 	if ($group != "total" && $group != "TOTAL") {
-		$output .= "<table class='gvplugin' id=\"" . get_shortcode_id("gvid_crpt") . "\">
+		$output .= "<table class='gvplugin' id=\"" . vtm_get_shortcode_id("gvid_crpt") . "\">
 						   <tr><th class=\"gvthead gvcol_1\">Path Reason</th>
 							   <th class=\"gvthead gvcol_2\">Path Amount</th>
 							   <th class=\"gvthead gvcol_3\">Comment</th>
@@ -830,19 +830,19 @@ function print_character_road_or_path_table($atts, $content=null) {
 
 	return $output;
 }
-add_shortcode('character_road_or_path_table', 'print_character_road_or_path_table');
+add_shortcode('character_road_or_path_table', 'vtm_print_character_road_or_path_table');
 
-function print_character_details($atts, $content=null) {
+function vtm_print_character_details($atts, $content=null) {
 	extract(shortcode_atts(array ("character" => "null", "group" => ""), $atts));
 	
 	if (!is_user_logged_in()) {
 		return "You must be logged in to view this content";
 	}
 
-	$character = establishCharacter($character);
+	$character = vtm_establishCharacter($character);
 
 	global $wpdb;
-	$table_prefix = GVLARP_TABLE_PREFIX;
+	$table_prefix = VTM_TABLE_PREFIX;
 	$output    = "";
 
 	$sql = "SELECT chara.name char_name,
@@ -883,7 +883,7 @@ function print_character_details($atts, $content=null) {
 
 	$character_details = $wpdb->get_row($wpdb->prepare($sql, $character));
 
-	$config = getConfig();
+	$config = vtm_getConfig();
 	
 	if ($config->USE_NATURE_DEMEANOUR == 'Y' && count($character_details) > 0) {
 			
@@ -891,9 +891,9 @@ function print_character_details($atts, $content=null) {
 					natures.name as nature,
 					demeanours.name as demeanour
 				FROM
-					" . GVLARP_TABLE_PREFIX . "CHARACTER chara,
-					" . GVLARP_TABLE_PREFIX . "NATURE natures,
-					" . GVLARP_TABLE_PREFIX . "NATURE demeanours
+					" . VTM_TABLE_PREFIX . "CHARACTER chara,
+					" . VTM_TABLE_PREFIX . "NATURE natures,
+					" . VTM_TABLE_PREFIX . "NATURE demeanours
 				WHERE
 					chara.NATURE_ID = natures.ID
 					AND chara.DEMEANOUR_ID = demeanours.ID
@@ -907,7 +907,7 @@ function print_character_details($atts, $content=null) {
 
 	if (count($character_details) > 0) {
 		if ($group == "") {
-			$output  = "<table class='gvplugin' id=\"" . get_shortcode_id("gvid_cdb") . "\"><tr><td class=\"gvcol_1 gvcol_key\">Character_name</td><td class=\"gvcol_2 gvcol_val\">" . $character_details->char_name       . "</td></tr>";
+			$output  = "<table class='gvplugin' id=\"" . vtm_get_shortcode_id("gvid_cdb") . "\"><tr><td class=\"gvcol_1 gvcol_key\">Character_name</td><td class=\"gvcol_2 gvcol_val\">" . $character_details->char_name       . "</td></tr>";
 			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Public Clan</td><td class=\"gvcol_2 gvcol_val\">"           . $character_details->pub_clan        . "</td></tr>";
 			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Private Clan</td><td class=\"gvcol_2 gvcol_val\">"          . $character_details->priv_clan       . "</td></tr>";
 			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Date of Birth</td><td class=\"gvcol_2 gvcol_val\">"         . $character_details->date_of_birth   . "</td></tr>";
@@ -939,18 +939,18 @@ function print_character_details($atts, $content=null) {
 
 	return $output;
 }
-add_shortcode('character_detail_block', 'print_character_details');
+add_shortcode('character_detail_block', 'vtm_print_character_details');
 
-function print_character_offices($atts, $content=null) {
+function vtm_print_character_offices($atts, $content=null) {
 	extract(shortcode_atts(array ("character" => "null", "group" => ""), $atts));
-	$character = establishCharacter($character);
+	$character = vtm_establishCharacter($character);
 	
 	if (!is_user_logged_in()) {
 		return "You must be logged in to view this content";
 	}
 
 	global $wpdb;
-	$table_prefix = GVLARP_TABLE_PREFIX;
+	$table_prefix = VTM_TABLE_PREFIX;
 	$output    = "";
 	$sqlOutput = "";
 	$sql = "SELECT office.name office_name, domain.name domain_name, coffice.comment
@@ -974,7 +974,7 @@ function print_character_offices($atts, $content=null) {
 	}
 
 	if ($sqlOutput != "") {
-		$output = "<table class='gvplugin' id=\"" . get_shortcode_id("cxpt") . "\" >" . $sqlOutput . "</table>";
+		$output = "<table class='gvplugin' id=\"" . vtm_get_shortcode_id("cxpt") . "\" >" . $sqlOutput . "</table>";
 	}
 	else {
 		$output = "";
@@ -982,15 +982,15 @@ function print_character_offices($atts, $content=null) {
 
 	return $output;
 }
-add_shortcode('character_offices_block', 'print_character_offices');
+add_shortcode('character_offices_block', 'vtm_print_character_offices');
 
-function print_character_temp_stats($atts, $content=null) {
+function vtm_print_character_temp_stats($atts, $content=null) {
 	extract(shortcode_atts(
 		array ("character" => "null", "stat" => "Willpower", "showtable" => "0", "limit" => "5")
 		, $atts)
 	);
-	$character = establishCharacter($character);
-	$characterID = establishCharacterID($character);
+	$character = vtm_establishCharacter($character);
+	$characterID = vtm_establishCharacterID($character);
 
 	if (!is_user_logged_in()) {
 		return "You must be logged in to view this content";
@@ -1000,7 +1000,7 @@ function print_character_temp_stats($atts, $content=null) {
 	}
 	
 	global $wpdb;
-	$table_prefix = GVLARP_TABLE_PREFIX;
+	$table_prefix = VTM_TABLE_PREFIX;
 
 	$sqlOutput = "";
 	$sql = "SELECT SUM(char_temp_stat.amount)
@@ -1015,7 +1015,7 @@ function print_character_temp_stats($atts, $content=null) {
 
 	$totalstat = $wpdb->get_var($wpdb->prepare($sql, $stat, $character));
 
-	$output = "<div id=\"" . get_shortcode_id("gvid_ctw_" . esc_attr($stat)) . "\">";
+	$output = "<div id=\"" . vtm_get_shortcode_id("gvid_ctw_" . esc_attr($stat)) . "\">";
 	if ($showtable) {
 		$sql = "SELECT 
 					chartemp.AMOUNT,
@@ -1067,13 +1067,13 @@ function print_character_temp_stats($atts, $content=null) {
 
 	return $output;
 }
-add_shortcode('character_temp_stats', 'print_character_temp_stats');
+add_shortcode('character_temp_stats', 'vtm_print_character_temp_stats');
 
-function print_office_block($atts, $content=null) {
+function vtm_print_office_block($atts, $content=null) {
 	extract(shortcode_atts(array ("domain" => "Glasgow", "office" => ""), $atts));
 
 	global $wpdb;
-	$table_prefix = GVLARP_TABLE_PREFIX;
+	$table_prefix = VTM_TABLE_PREFIX;
 	$output    = "";
 	$sqlOutput = "";
 
@@ -1119,7 +1119,7 @@ function print_office_block($atts, $content=null) {
 		}
 
 		if ($sqlOutput != "") {
-			$output = "<table class='gvplugin' id=\"" . get_shortcode_id("gvid_cob") . "\">" . $sqlOutput . "</table>";
+			$output = "<table class='gvplugin' id=\"" . vtm_get_shortcode_id("gvid_cob") . "\">" . $sqlOutput . "</table>";
 		}
 		else {
 			$output = "No office holders found for the domain of " . $domain;
@@ -1138,16 +1138,16 @@ function print_office_block($atts, $content=null) {
 	}
 	return $output;
 }
-add_shortcode('office_block', 'print_office_block');
+add_shortcode('office_block', 'vtm_print_office_block');
 
-function print_spend_button($atts, $content=null) {
+function vtm_print_spend_button($atts, $content=null) {
 	global $wpdb;
 	$wpdb->show_errors();
 
 	extract(shortcode_atts(array ("character" => "null", "stat" => "Willpower"), $atts));
 
-	$character = establishCharacter($character);
-	$characterID = establishCharacterID($character);
+	$character = vtm_establishCharacter($character);
+	$characterID = vtm_establishCharacterID($character);
 
 	if (!is_user_logged_in()) {
 		return "You must be logged in to view this content";
@@ -1155,7 +1155,7 @@ function print_spend_button($atts, $content=null) {
 	if (!isset($characterID) || $characterID == "") {
 		return "";
 	}
-	$buttonID  = get_shortcode_id("gv" . esc_attr($stat) . "sbut");
+	$buttonID  = vtm_get_shortcode_id("gv" . esc_attr($stat) . "sbut");
 	$stagename = 'stage_' . $buttonID;
 	
 	if (isset($_REQUEST[$stagename]))
@@ -1169,8 +1169,8 @@ function print_spend_button($atts, $content=null) {
 	$output .= "<form method='post' id='form_$buttonID'>";
 	
 	$sql = "SELECT SUM(char_temp_stat.amount)
-		FROM " . GVLARP_TABLE_PREFIX . "CHARACTER_TEMPORARY_STAT char_temp_stat,
-			 " . GVLARP_TABLE_PREFIX . "TEMPORARY_STAT tstat
+		FROM " . VTM_TABLE_PREFIX . "CHARACTER_TEMPORARY_STAT char_temp_stat,
+			 " . VTM_TABLE_PREFIX . "TEMPORARY_STAT tstat
 		WHERE 
 			char_temp_stat.temporary_stat_id = tstat.id
 			AND tstat.name  = %s
@@ -1201,9 +1201,9 @@ function print_spend_button($atts, $content=null) {
 			
 			if ($spendok) {
 				
-				$sql = "SELECT ID FROM " . GVLARP_TABLE_PREFIX . "TEMPORARY_STAT WHERE NAME = %s";
+				$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "TEMPORARY_STAT WHERE NAME = %s";
 				$statID = $wpdb->get_var($wpdb->prepare($sql, $stat));
-				$sql = "SELECT ID FROM " . GVLARP_TABLE_PREFIX . "TEMPORARY_STAT_REASON WHERE NAME = %s";
+				$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "TEMPORARY_STAT_REASON WHERE NAME = %s";
 				$reasonID = $wpdb->get_var($wpdb->prepare($sql, 'Game spend'));
 				
 				// update database
@@ -1215,7 +1215,7 @@ function print_spend_button($atts, $content=null) {
 					'AMOUNT'                   => $amount * -1,
 					'COMMENT'                  => $comment
 				);
-				$wpdb->insert(GVLARP_TABLE_PREFIX . "CHARACTER_TEMPORARY_STAT",
+				$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_TEMPORARY_STAT",
 					$data,
 					array ('%d', '%d', '%d', '%s', '%d', '%s')
 				);
@@ -1224,7 +1224,7 @@ function print_spend_button($atts, $content=null) {
 				if ($wpdb->insert_id == 0) {
 					$output .= "<p style='color:red'><b>Error:</b>Could not update $stat</p>";
 				} else {
-					touch_last_updated($characterID);
+					vtm_touch_last_updated($characterID);
 					$output .= "<p style='color:green'>Updated $stat</p>";
 				}
 				// spend again button
@@ -1249,7 +1249,7 @@ function print_spend_button($atts, $content=null) {
 	$output .= "</form></div>";
 	return $output;
 }
-add_shortcode('spend_button', 'print_spend_button');
+add_shortcode('spend_button', 'vtm_print_spend_button');
 
 
 ?>

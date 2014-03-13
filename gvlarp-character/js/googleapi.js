@@ -1,5 +1,5 @@
 var map;
-function initialize() {
+function vtm_initialize() {
 
 	document.getElementById('feedingmap_status').innerHTML = 'Starting Init';
 	var centerlat  = document.getElementById('feedingmap_clatID').value;
@@ -27,23 +27,12 @@ function initialize() {
 
 
 /** @this {google.maps.Polygon} */
-function showDomainInfo(event) {
+function vtm_showDomainInfo(event) {
 
   // Since this polygon has only one path, we can call getPath()
   // to return the MVCArray of LatLngs.
   var vertices = this.getPath();
 
-/*     var contentString = '<b>My Domain</b><br>' +
-      'Clicked location: <br>' + event.latLng.lat() + ',' + event.latLng.lng() +
-      '<br>';
-
-  // Iterate over the vertices.
-for (var i =0; i < vertices.getLength(); i++) {
-    var xy = vertices.getAt(i);
-    contentString += '<br>' + 'Coordinate ' + i + ':<br>' + xy.lat() + ',' +
-        xy.lng();
-  }
- */
   // Replace the info window's content and position.
   infoWindow.setContent('<b>Domain Name</b><br>Description');
   infoWindow.setPosition(event.latLng);
@@ -53,7 +42,7 @@ for (var i =0; i < vertices.getLength(); i++) {
 
 
 
-function loadScript() {
+function vtm_loadScript() {
 	var apikey = document.getElementById('feedingmap_apikeyID').value;
 	//alert(apikey);
 
@@ -63,5 +52,5 @@ function loadScript() {
 	document.body.appendChild(script);
 }
 
-window.onload = loadScript;
-google.maps.event.addDomListener(window, 'load', initialize);
+window.onload = vtm_loadScript;
+google.maps.event.addDomListener(window, 'load', vtm_initialize);

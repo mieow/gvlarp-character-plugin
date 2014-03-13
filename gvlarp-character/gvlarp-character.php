@@ -71,7 +71,8 @@
 					  sheet. Combo-disciplines can be purchased with XP. Ritual descriptions show up  on
 					  printable sheet. Character info doesn't get displayed if you aren't logged in. Pending
 					  XP changes don't get deleted if approval fails. Extended Background widget added. Show
-					  Feeding domains in a googlemaps api shortcode
+					  Feeding domains in a googlemaps api shortcode. Fixed PDF report issue for data generated 
+					  on the 2nd page and onward
         Comments:
 
 	*/
@@ -92,126 +93,126 @@
 			Added MAPDOMAIN Table
 			
          */
-define( 'GVLARP_CHARACTER_URL', plugin_dir_path(__FILE__) );
-define( 'GVLARP_TABLE_PREFIX', $wpdb->prefix . "GVLARP_" );
-require_once GVLARP_CHARACTER_URL . 'inc/printable.php';
-require_once GVLARP_CHARACTER_URL . 'inc/install.php';
-require_once GVLARP_CHARACTER_URL . 'inc/extendedbackground.php';
-require_once GVLARP_CHARACTER_URL . 'inc/widgets.php';
-require_once GVLARP_CHARACTER_URL . 'inc/android.php';
-require_once GVLARP_CHARACTER_URL . 'inc/xpfunctions.php';
-require_once GVLARP_CHARACTER_URL . 'inc/shortcodes.php';
-require_once GVLARP_CHARACTER_URL . 'inc/adminpages.php';
-require_once GVLARP_CHARACTER_URL . 'inc/viewcharacter.php';
-require_once GVLARP_CHARACTER_URL . 'inc/profile.php';
+define( 'VTM_CHARACTER_URL', plugin_dir_path(__FILE__) );
+define( 'VTM_TABLE_PREFIX', $wpdb->prefix . "GVLARP_" );
+require_once VTM_CHARACTER_URL . 'inc/printable.php';
+require_once VTM_CHARACTER_URL . 'inc/install.php';
+require_once VTM_CHARACTER_URL . 'inc/extendedbackground.php';
+require_once VTM_CHARACTER_URL . 'inc/widgets.php';
+require_once VTM_CHARACTER_URL . 'inc/android.php';
+require_once VTM_CHARACTER_URL . 'inc/xpfunctions.php';
+require_once VTM_CHARACTER_URL . 'inc/shortcodes.php';
+require_once VTM_CHARACTER_URL . 'inc/adminpages.php';
+require_once VTM_CHARACTER_URL . 'inc/viewcharacter.php';
+require_once VTM_CHARACTER_URL . 'inc/profile.php';
 
 $title = "V:tM Character Management";
 
 /* STYLESHEETS
 ------------------------------------------------------ */
 
-function feedingmap_admin_css() {
+function vtm_feedingmap_admin_css() {
 	wp_enqueue_style('plugin-admin-style', plugins_url('gvlarp-character/css/style-admin.css'));
 }
-add_action('admin_enqueue_scripts', 'feedingmap_admin_css');
+add_action('admin_enqueue_scripts', 'vtm_feedingmap_admin_css');
 
-function plugin_style()  
+function vtm_plugin_style()  
 { 
   wp_register_style( 'plugin-style', plugins_url( 'gvlarp-character/css/style-plugin.css' ) );
   wp_enqueue_style( 'plugin-style' );
 }
-add_action('wp_enqueue_scripts', 'plugin_style');
+add_action('wp_enqueue_scripts', 'vtm_plugin_style');
 
 /* JAVASCRIPT
 ----------------------------------------------------------------- */
-function feedingmap_scripts() {
+function vtm_feedingmap_scripts() {
 	wp_enqueue_script( 'feedingmap-setup-api', plugins_url('gvlarp-character/js/googleapi.js'));
 }
 
-add_action( 'wp_enqueue_scripts', 'feedingmap_scripts' );
-add_action('admin_enqueue_scripts', 'feedingmap_scripts');
+add_action( 'wp_enqueue_scripts', 'vtm_feedingmap_scripts' );
+add_action('admin_enqueue_scripts', 'vtm_feedingmap_scripts');
 
 
 /* FUNCTIONS
 ----------------------------------------------------------------- */
 
-function get_stat_info() {
+function vtm_get_stat_info() {
 	global $wpdb;
 
-	$sql = "SELECT NAME, ID FROM " . GVLARP_TABLE_PREFIX . "STAT;";
+	$sql = "SELECT NAME, ID FROM " . VTM_TABLE_PREFIX . "STAT;";
 	$statinfo = $wpdb->get_results($sql, OBJECT_K);
 	
 	return $statinfo;
 }
-function get_booknames() {
+function vtm_get_booknames() {
 
 	global $wpdb;
 
-	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "SOURCE_BOOK;";
+	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "SOURCE_BOOK;";
 	$booklist = $wpdb->get_results($wpdb->prepare($sql,''));
 	
 	return $booklist;
 }
-function get_disciplines() {
+function vtm_get_disciplines() {
 
 	global $wpdb;
 
-	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "DISCIPLINE;";
+	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "DISCIPLINE;";
 	$list = $wpdb->get_results($wpdb->prepare($sql,''));
 	
 	return $list;
 }
-function get_costmodels() {
+function vtm_get_costmodels() {
 
 	global $wpdb;
 
-	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "COST_MODEL;";
+	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "COST_MODEL;";
 	$list = $wpdb->get_results($wpdb->prepare($sql,''));
 	
 	return $list;
 }
-function get_natures() {
+function vtm_get_natures() {
 
 	global $wpdb;
 
-	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "NATURE;";
+	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "NATURE;";
 	$list = $wpdb->get_results($wpdb->prepare($sql,''));
 	
 	return $list;
 }
-function get_backgrounds() {
+function vtm_get_backgrounds() {
 
 	global $wpdb;
 
-	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "BACKGROUND WHERE VISIBLE = 'Y';";
+	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "BACKGROUND WHERE VISIBLE = 'Y';";
 	$list = $wpdb->get_results($wpdb->prepare($sql,''));
 	
 	return $list;
 }
-function get_profile_display() {
+function vtm_get_profile_display() {
 
 	global $wpdb;
 
-	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "PROFILE_DISPLAY;";
+	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "PROFILE_DISPLAY;";
 	$list = $wpdb->get_results($wpdb->prepare($sql,''));
 	
 	return $list;
 }
-function get_sectors($showhidden = false) {
+function vtm_get_sectors($showhidden = false) {
 
 	global $wpdb;
 
-	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "SECTOR";
+	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "SECTOR";
 	if (!$showhidden)
 		$sql .= " WHERE VISIBLE = 'Y'";
 	$list = $wpdb->get_results($wpdb->prepare($sql,''));
 	
 	return $list;
 }
-function get_stlink_page($stlinkvalue) {
+function vtm_get_stlink_page($stlinkvalue) {
 	global $wpdb;
 
-	$sql = "select DESCRIPTION, LINK from " . GVLARP_TABLE_PREFIX . "ST_LINK where VALUE = %s;";
+	$sql = "select DESCRIPTION, LINK from " . VTM_TABLE_PREFIX . "ST_LINK where VALUE = %s;";
 	$results = $wpdb->get_results($wpdb->prepare($sql, $stlinkvalue));
 	
 	$pageid   = 0;
@@ -229,10 +230,10 @@ function get_stlink_page($stlinkvalue) {
 	return $pagename;
 
 }
-function get_stlink_url($stlinkvalue) {
+function vtm_get_stlink_url($stlinkvalue) {
 	global $wpdb;
 
-	$sql = "select DESCRIPTION, LINK from " . GVLARP_TABLE_PREFIX . "ST_LINK where VALUE = %s;";
+	$sql = "select DESCRIPTION, LINK from " . VTM_TABLE_PREFIX . "ST_LINK where VALUE = %s;";
 	$results = $wpdb->get_results($wpdb->prepare($sql, $stlinkvalue));
 	
 	$url = "Page not matched";
@@ -243,16 +244,16 @@ function get_stlink_url($stlinkvalue) {
 	return $url;
 
 }
-function get_total_xp($playerID = 0, $characterID = 0) {
+function vtm_get_total_xp($playerID = 0, $characterID = 0) {
 	global $wpdb;
 	
-	$config = getConfig();
+	$config = vtm_getConfig();
 	$filteron = $config->ASSIGN_XP_BY_PLAYER == 'Y' ? "PLAYER_ID" : "CHARACTER_ID";
 	$filterid = $config->ASSIGN_XP_BY_PLAYER == 'Y' ? $playerID   : $characterID;
 	
 	$sql = "SELECT SUM(xpspends.amount) as total
 			FROM
-				" . GVLARP_TABLE_PREFIX . "PLAYER_XP as xpspends
+				" . VTM_TABLE_PREFIX . "PLAYER_XP as xpspends
 			WHERE
 				xpspends.$filteron = '%s'";
 	$sql = $wpdb->prepare($sql, $filterid);
@@ -261,66 +262,66 @@ function get_total_xp($playerID = 0, $characterID = 0) {
 	return $result;
 
 }
-function get_clans() {
+function vtm_get_clans() {
 
 	global $wpdb;
 
-	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "CLAN ORDER BY NAME;";
+	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "CLAN ORDER BY NAME;";
 	$list = $wpdb->get_results($sql);
 	
 	return $list;
 }
-function get_domains() {
+function vtm_get_domains() {
 
 	global $wpdb;
 
-	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "DOMAIN;";
+	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "DOMAIN;";
 	$list = $wpdb->get_results($sql);
 	
 	return $list;
 }
-function get_player_status() {
+function vtm_get_player_status() {
 
 	global $wpdb;
 
-	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "PLAYER_STATUS;";
+	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "PLAYER_STATUS;";
 	$list = $wpdb->get_results($sql);
 	
 	return $list;
 }
-function get_player_type() {
+function vtm_get_player_type() {
 
 	global $wpdb;
 
-	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "PLAYER_TYPE ORDER BY NAME;";
-	$list = $wpdb->get_results($sql);
-	
-	//print_r($list);
-	
-	return $list;
-}
-function get_generations() {
-
-	global $wpdb;
-
-	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "GENERATION ORDER BY BLOODPOOL, MAX_DISCIPLINE;";
+	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "PLAYER_TYPE ORDER BY NAME;";
 	$list = $wpdb->get_results($sql);
 	
 	//print_r($list);
 	
 	return $list;
 }
-	function get_sects() {
+function vtm_get_generations() {
 
 	global $wpdb;
 
-	$sql = "SELECT ID, NAME FROM " . GVLARP_TABLE_PREFIX . "SECT;";
+	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "GENERATION ORDER BY BLOODPOOL, MAX_DISCIPLINE;";
+	$list = $wpdb->get_results($sql);
+	
+	//print_r($list);
+	
+	return $list;
+}
+	function vtm_get_sects() {
+
+	global $wpdb;
+
+	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "SECT;";
 	$list = $wpdb->get_results($sql);
 	
 	return $list;
 }
  
-    function print_name_value_pairs($atts, $content=null) {
+    function vtm_print_name_value_pairs($atts, $content=null) {
         $output = "";
         if (isST()) {
             $output .= "<table>";
@@ -336,9 +337,9 @@ function get_generations() {
         }
         return $output;
     }
-    add_shortcode('debug_name_value_pairs', 'print_name_value_pairs');
+    add_shortcode('debug_name_value_pairs', 'vtm_print_name_value_pairs');
 
-    function printSelectCounter($name, $selectedValue, $lowerValue, $upperValue) {
+    function vtm_printSelectCounter($name, $selectedValue, $lowerValue, $upperValue) {
         $output = "<select name=\"" . $name . "\">";
         if ($selectedValue == "") {
             $selectedValue = "-100";
@@ -355,9 +356,9 @@ function get_generations() {
         return $output;
     }
 
-    function listPlayerType() {
+    function vtm_listPlayerType() {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
         $sql = "SELECT ID, name, description
                         FROM " . $table_prefix . "PLAYER_TYPE ptype
                         ORDER BY description";
@@ -366,9 +367,9 @@ function get_generations() {
         return $playerTypes;
     }
 
-    function listPlayerStatus() {
+    function vtm_listPlayerStatus() {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
         $sql = "SELECT ID, name, description
                         FROM " . $table_prefix . "PLAYER_STATUS status
                         ORDER BY description";
@@ -377,9 +378,9 @@ function get_generations() {
         return $playerTypes;
     }
 
-    function listSTLinks() {
+    function vtm_listSTLinks() {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
         $sql = "SELECT ID, value, description, link
                         FROM " . $table_prefix . "ST_LINK stlinks
                         ORDER BY ordering";
@@ -388,9 +389,9 @@ function get_generations() {
         return $stLinks;
     }
 	
-    function listPlayers($playerStatus, $playerType) {
+    function vtm_listPlayers($playerStatus, $playerType) {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
 
         $statusClause = "";
         if ($playerStatus != null && $playerStatus != "") {
@@ -425,9 +426,9 @@ function get_generations() {
         return $players;
     }
 
-    function listClans() {
+    function vtm_listClans() {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
         $sql = "SELECT ID, name
                         FROM " . $table_prefix . "CLAN
                         ORDER BY name";
@@ -436,9 +437,9 @@ function get_generations() {
         return $clans;
     }
 
-    function listGenerations() {
+    function vtm_listGenerations() {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
         $sql = "SELECT ID, name
                 FROM " . $table_prefix . "GENERATION
                 ORDER BY BLOODPOOL, MAX_DISCIPLINE";
@@ -447,9 +448,9 @@ function get_generations() {
         return $generations;
     }
 
-    function listCharacterStatuses() {
+    function vtm_listCharacterStatuses() {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
         $sql = "SELECT ID, name
                         FROM " . $table_prefix . "CHARACTER_STATUS
                         ORDER BY name";
@@ -458,9 +459,9 @@ function get_generations() {
         return $characterStatuses;
     }
 
-    function listCharacterTypes() {
+    function vtm_listCharacterTypes() {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
         $sql = "SELECT ID, name
                         FROM " . $table_prefix . "CHARACTER_TYPE
                         ORDER BY name";
@@ -469,9 +470,9 @@ function get_generations() {
         return $characterTypes;
     }
 
-    function listRoadsOrPaths() {
+    function vtm_listRoadsOrPaths() {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
         $sql = "SELECT ID, name
                         FROM " . $table_prefix . "ROAD_OR_PATH
                         ORDER BY name";
@@ -480,9 +481,9 @@ function get_generations() {
         return $roadsOrPaths;
     }
 
-    function listDomains() {
+    function vtm_listDomains() {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
         $sql = "SELECT ID, name
                         FROM " . $table_prefix . "DOMAIN
                         ORDER BY name";
@@ -491,9 +492,9 @@ function get_generations() {
         return $domains;
     }
 
-    function listOffices($showNotVisible) {
+    function vtm_listOffices($showNotVisible) {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
 
         $visible_sector  = " VISIBLE = 'Y' ";
         if ($showNotVisible == "Y") {
@@ -510,9 +511,9 @@ function get_generations() {
         return $offices;
     }
 
-    function listCharacters($group, $activeCharacter, $playerName, $activePlayer, $showNotVisible) {
+    function vtm_listCharacters($group, $activeCharacter, $playerName, $activePlayer, $showNotVisible) {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
         $grouping_sector = "";
         $activeCharacter_sector = "";
         $activePlayer_sector = "";
@@ -610,9 +611,9 @@ function get_generations() {
         return $characters;
     }
 
-    function listStats() {
+    function vtm_listStats() {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
         $sql = "SELECT id, name, grouping
                         FROM " . $table_prefix . "STAT
                         ORDER BY ordering";
@@ -620,9 +621,9 @@ function get_generations() {
         return $wpdb->get_results($sql);
     }
 
-    function listXpReasons() {
+    function vtm_listXpReasons() {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
         $sql = "SELECT id, name
                         FROM " . $table_prefix . "XP_REASON
                         ORDER BY id";
@@ -630,9 +631,9 @@ function get_generations() {
         return $wpdb->get_results($sql);
     }
 
-    function listPathReasons() {
+    function vtm_listPathReasons() {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
         $sql = "SELECT id, name
                     FROM " . $table_prefix . "PATH_REASON
                     ORDER BY id";
@@ -640,9 +641,9 @@ function get_generations() {
         return $wpdb->get_results($sql);
     }
 
-    function listTemporaryStatReasons() {
+    function vtm_listTemporaryStatReasons() {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
         $sql = "SELECT id, name
                     FROM " . $table_prefix . "TEMPORARY_STAT_REASON
                     ORDER BY id";
@@ -651,9 +652,9 @@ function get_generations() {
 
     }
 
-    function listSkills($group, $showNotVisible) {
+    function vtm_listSkills($group, $showNotVisible) {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
         $grouping_sector = "";
         $visible_sector  = " VISIBLE = 'Y' ";
 
@@ -688,9 +689,9 @@ function get_generations() {
         return $skills;
     }
 
-    function listDisciplines($showNotVisible) {
+    function vtm_listDisciplines($showNotVisible) {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
         $visible_sector  = " VISIBLE = 'Y' ";
 
         if ($showNotVisible == "Y") {
@@ -708,9 +709,9 @@ function get_generations() {
         return $disciplines;
     }
 
-    function listComboDisciplines($showNotVisible) {
+    function vtm_listComboDisciplines($showNotVisible) {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
         $visible_sector  = " VISIBLE = 'Y' ";
 
         if ($showNotVisible == "Y") {
@@ -728,9 +729,9 @@ function get_generations() {
         return $combo_disciplines;
     }
 
-    function listPaths($showNotVisible) {
+    function vtm_listPaths($showNotVisible) {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
         $visible_sector  = " AND VISIBLE = 'Y' ";
 
         if ($showNotVisible == "Y") {
@@ -747,9 +748,9 @@ function get_generations() {
         return $paths;
     }
 
-    function listRituals($showNotVisible) {
+    function vtm_listRituals($showNotVisible) {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
         $visible_sector  = " AND VISIBLE = 'Y' ";
 
         if ($showNotVisible == "Y") {
@@ -766,9 +767,9 @@ function get_generations() {
         return $rituals;
     }
 
-    function listBackgrounds($group, $showNotVisible) {
+    function vtm_listBackgrounds($group, $showNotVisible) {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
         $grouping_sector = "";
         $visible_sector  = " VISIBLE = 'Y' ";
 
@@ -803,9 +804,9 @@ function get_generations() {
         return $backgrounds;
     }
 
-    function listMerits($group, $showNotVisible) {
+    function vtm_listMerits($group, $showNotVisible) {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
         $grouping_sector = "";
         $visible_sector  = " VISIBLE = 'Y' ";
 
@@ -840,7 +841,7 @@ function get_generations() {
         return $merits;
     }
 
-    function isST() {
+    function vtm_isST() {
         $result = false;
         $current_user = wp_get_current_user();
         $roles = $current_user->roles;
@@ -855,10 +856,10 @@ function get_generations() {
         return $result;
     }
 
-    function establishCharacter($character) {
-        if (isST()) {
-            if (isset($_POST['GVLARP_CHARACTER'])) {
-                $character = $_POST['GVLARP_CHARACTER'];
+    function vtm_establishCharacter($character) {
+        if (vtm_isST()) {
+            if (isset($_POST['VTM_CHARACTER'])) {
+                $character = $_POST['VTM_CHARACTER'];
             }
             elseif (isset($_GET['CHARACTER'])) {
                 $character = $_GET['CHARACTER'];
@@ -876,20 +877,20 @@ function get_generations() {
         return $character;
     }
 
-    function establishCharacterID($character) {
+    function vtm_establishCharacterID($character) {
         global $wpdb;
 
         $sql = "SELECT id
-                FROM " . GVLARP_TABLE_PREFIX . "CHARACTER
+                FROM " . VTM_TABLE_PREFIX . "CHARACTER
 				WHERE WORDPRESS_ID = %s";
         $cid = $wpdb->get_var($wpdb->prepare($sql, $character));
 
         return $cid;
     }
 
-    function establishPlayerID($character) {
+    function vtm_establishPlayerID($character) {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
         $sql = "SELECT player_id
                         FROM " . $table_prefix . "CHARACTER
                         WHERE WORDPRESS_ID = %s";
@@ -901,9 +902,9 @@ function get_generations() {
         return $pid;
     }
 
-    function establishXPReasonID($xpReasonString) {
+    function vtm_establishXPReasonID($xpReasonString) {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
         $sql = "SELECT id
                     FROM " . $table_prefix . "XP_REASON
                     WHERE NAME = %s";
@@ -915,9 +916,9 @@ function get_generations() {
         return $rid;
     }
 
-    function establishPathReasonID($pathReasonString) {
+    function vtm_establishPathReasonID($pathReasonString) {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
         $sql = "SELECT id
                         FROM " . $table_prefix . "PATH_REASON
                         WHERE NAME = %s";
@@ -929,9 +930,9 @@ function get_generations() {
         return $rid;
     }
 
-    function establishTempStatID($tempStatString) {
+    function vtm_establishTempStatID($tempStatString) {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
         $sql = "SELECT id
                 FROM " . $table_prefix . "TEMPORARY_STAT
                 WHERE NAME = %s";
@@ -943,9 +944,9 @@ function get_generations() {
         return $rid;
     }
 
-    function establishTempStatReasonID($tempStatReasonString) {
+    function vtm_establishTempStatReasonID($tempStatReasonString) {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
         $sql = "SELECT id
                 FROM " . $table_prefix . "TEMPORARY_STAT_REASON
                 WHERE NAME = %s";
@@ -957,9 +958,9 @@ function get_generations() {
         return $rid;
     }
 
-    function getConfig() {
+    function vtm_getConfig() {
         global $wpdb;
-        $table_prefix = GVLARP_TABLE_PREFIX;
+        $table_prefix = VTM_TABLE_PREFIX;
         $sql = "SELECT * FROM " . $table_prefix . "CONFIG";
 
         $configs = $wpdb->get_results($sql);
@@ -968,13 +969,13 @@ function get_generations() {
         }
     }
 
-    function changeDisplayNameByID ($userID, $newDisplayName) {
+    function vtm_changeDisplayNameByID ($userID, $newDisplayName) {
         $args = array ('ID' => $userID, 'display_name' => $newDisplayName);
         wp_update_user($args);
         return true;
     }
 
-    function changePasswordByID($userID, $newPassword1, $newPassword2) {
+    function vtm_changePasswordByID($userID, $newPassword1, $newPassword2) {
 
         if ($newPassword1 == $newPassword2) {
             wp_set_password($newPassword1, $userID);
@@ -985,35 +986,35 @@ function get_generations() {
         }
     }
 
-	function touch_last_updated($characterID) {
+	function vtm_touch_last_updated($characterID) {
 		global $wpdb;
 
-		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "CHARACTER",
+		$result = $wpdb->update(VTM_TABLE_PREFIX . "CHARACTER",
 				array ('LAST_UPDATED' => Date('Y-m-d')),
 				array ('ID' => $characterID)
 			);
 	}
 	
-    function handleGVLarpForm() {
-        switch($_POST['GVLARP_FORM']) {
+    function vtm_handleGVLarpForm() {
+        switch($_POST['VTM_FORM']) {
             case "new_player":
-                addNewPlayer($_POST['player_name'], $_POST['player_type'], $_POST['player_status']);
+                vtm_addNewPlayer($_POST['player_name'], $_POST['player_type'], $_POST['player_status']);
                 break;
             case "player_xp":
-                addPlayerXP($_POST['player'], $_POST['character'], $_POST['xp_type'], $_POST['xp_value'], $_POST['comment']);
+                vtm_addPlayerXP($_POST['player'], $_POST['character'], $_POST['xp_type'], $_POST['xp_value'], $_POST['comment']);
                 break;
             case "master_xp_update":
-                handleMasterXP();
+               vtm_handleMasterXP();
                 break;
         }
     }
 
-    if (isset($_POST['GVLARP_FORM'])) {
-        handleGVLarpForm();
+    if (isset($_POST['VTM_FORM'])) {
+        vtm_handleGVLarpForm();
     }
 
     /*
-            function numberToDots($base, $input) {
+            function vtm_numberToDots($base, $input) {
                 $number = (int) $input;
                 if ($number > -1 && $number < 11) {
                     $basepath = WP_PLUGIN_URL . '/' . str_replace(basename( __FILE__), "", plugin_basename(__FILE__));

@@ -11,11 +11,11 @@ include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 	- Inbox
 	- Logout
 ------------------------------------------------ */
-class GVPlugin_Widget extends WP_Widget {
+class vtmclass_Plugin_Widget extends WP_Widget {
 	/**	 * Register widget with WordPress.	 */
 	public function __construct() {
 		parent::__construct(
-	 		'gvplugin_widget', // Base ID
+	 		'vtmplugin_widget', // Base ID
 			'Character Login Widget', // Name
 			array( 'description' => __( 'For login/logout and useful links', 'text_domain' ), ) // Args
 		);
@@ -35,24 +35,7 @@ class GVPlugin_Widget extends WP_Widget {
 		if ( is_user_logged_in() ) {
 			$current_user = wp_get_current_user();
 				$title = apply_filters( 'widget_title', 'Welcome, ' . $current_user->display_name );
-		echo $before_title . $title . $after_title;
-			?>
-			<?php /* Latest DT article */ ?>
-			<?php
-				if (is_plugin_active('download-monitor/wp-download_monitor.php') && isset( $instance[ 'dl_category' ] )) {
-					$dl = get_downloads('orderby=date&category=' . $instance[ 'dl_category' ] . '&order=DESC&limit=1');
-					if (!empty($dl)) {
-						$dPm=str_split('JanFebMarAprMayJunJulAugSepOctNovDec',3);
-						echo '<p>';
-						foreach($dl as $d) {
-							$dP=date_parse($d->date);
-							echo sprintf('Download <a href="%s" title="%s">%s %d Dark Times</a><br/>',
- 									$d->url,$d->title, $dPm[--$dP['month']], $dP['year']);
-						}
-						unset($dPm);
-						echo '</p>';
-					}
-				}
+			echo $before_title . $title . $after_title;
 			?>
 			<ul>
 			<?php if ( isset( $instance[ 'charheet_link' ] ) && !empty($instance[ 'charheet_link' ]) ) { ?>
@@ -65,7 +48,7 @@ class GVPlugin_Widget extends WP_Widget {
 			<li><a href="<?php echo $instance['spendxp_link']; ?>">Spend Experience</a></li>
 			<?php } 
 			
-				$clanlink  = get_clan_link();
+				$clanlink  = vtm_get_clan_link();
 				if ( !empty($clanlink) ) { 
 			?>
 					<li><a href="<?php echo $clanlink; ?>">Clan Page</a></li> 
@@ -91,7 +74,9 @@ class GVPlugin_Widget extends WP_Widget {
 				echo $before_title . $title . $after_title;
 			wp_login_form( $args );
 		}
-				echo $after_widget;	}
+		
+		echo $after_widget;
+	}
 	/**	 * Sanitize widget form values as they are saved.
 	 *	 * @see WP_Widget::update()
 	 *	 * @param array $new_instance Values just sent to be saved.
@@ -105,7 +90,8 @@ class GVPlugin_Widget extends WP_Widget {
 		$instance['inbox_link'] = strip_tags( $new_instance['inbox_link'] );
 		$instance['spendxp_link'] = strip_tags( $new_instance['spendxp_link'] );
 		$instance['dl_category'] = strip_tags( $new_instance['dl_category'] );
-		return $instance;	}
+		return $instance;
+	}
 	/**
 	 * Back-end widget form.
 	 *
@@ -129,7 +115,8 @@ class GVPlugin_Widget extends WP_Widget {
 		}
 		if ( isset( $instance[ 'inbox_link' ] ) ) {
 			$inbox_link = $instance[ 'inbox_link' ];
-		}		else {
+		}
+		else {
 			$inbox_link = '';
 		}
 		if ( isset( $instance[ 'spendxp_link' ] ) ) {
@@ -159,23 +146,18 @@ class GVPlugin_Widget extends WP_Widget {
  		<input class="widefat" id="<?php echo $this->get_field_id( 'inbox_link' ); ?>" name="<?php echo $this->get_field_name( 'inbox_link' ); ?>" type="text" value="<?php echo esc_attr( $inbox_link ); ?>" />
 		</p>
 		<?php
- 		if (is_plugin_active('download-monitor/wp-download_monitor.php')) { ?>
-			<p>
-			<label for="<?php echo $this->get_field_id( 'dl_category' ); ?>"><?php _e( 'Download Category:' ); ?></label>
- 			<input class="widefat" id="<?php echo $this->get_field_id( 'dl_category' ); ?>" name="<?php echo $this->get_field_name( 'dl_category' ); ?>" type="text" value="<?php echo esc_attr( $dl_category ); ?>" />
-		</p>
-		<?php
-		}
-	}}
+		
+	}
+}
  // class Foo_Widget
 // register Foo_Widget widget
-add_action( 'widgets_init', create_function( '', 'register_widget( "gvplugin_widget" );' ) );
+add_action( 'widgets_init', create_function( '', 'register_widget( "vtmclass_plugin_widget" );' ) );
 
-class GVPlugin_Background_Widget extends WP_Widget {
+class vtmclass_Plugin_Background_Widget extends WP_Widget {
 	/**	 * Register widget with WordPress.	 */
 	public function __construct() {
 		parent::__construct(
-	 		'gvplugin_background_widget', // Base ID
+	 		'vtmplugin_background_widget', // Base ID
 			'Character Background Widget', // Name
 			array( 'description' => __( 'Percentage background complete', 'text_domain' ), ) // Args
 		);
@@ -193,8 +175,8 @@ class GVPlugin_Background_Widget extends WP_Widget {
 		echo $before_widget;
 		
 		if ( is_user_logged_in() ) {
-			$character = establishCharacter("");
-			$characterID = establishCharacterID($character);
+			$character = vtm_establishCharacter("");
+			$characterID = vtm_establishCharacterID($character);
 			
 						
 			$title = apply_filters( 'widget_title', 'Backgrounds' );
@@ -209,9 +191,9 @@ class GVPlugin_Background_Widget extends WP_Widget {
 				
 				// backgrounds
 				$sql = "select count(backgrounds.BACKGROUND_QUESTION) as total2do, count(charbgs.APPROVED_DETAIL) as totaldone
-						from	" . GVLARP_TABLE_PREFIX . "BACKGROUND backgrounds,
-								" . GVLARP_TABLE_PREFIX . "CHARACTER_BACKGROUND charbgs,
-								" . GVLARP_TABLE_PREFIX . "CHARACTER characters
+						from	" . VTM_TABLE_PREFIX . "BACKGROUND backgrounds,
+								" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND charbgs,
+								" . VTM_TABLE_PREFIX . "CHARACTER characters
 						where	
 							backgrounds.ID = charbgs.BACKGROUND_ID
 							and	characters.ID = %d
@@ -224,9 +206,9 @@ class GVPlugin_Background_Widget extends WP_Widget {
 				
 				// Merits and Flaws
 				$sql = "select count(charmerits.APPROVED_DETAIL) as totaldone, count(merits.BACKGROUND_QUESTION) as total2do
-						from	" . GVLARP_TABLE_PREFIX . "MERIT merits,
-								" . GVLARP_TABLE_PREFIX . "CHARACTER_MERIT charmerits,
-								" . GVLARP_TABLE_PREFIX . "CHARACTER characters
+						from	" . VTM_TABLE_PREFIX . "MERIT merits,
+								" . VTM_TABLE_PREFIX . "CHARACTER_MERIT charmerits,
+								" . VTM_TABLE_PREFIX . "CHARACTER characters
 						where	merits.ID = charmerits.MERIT_ID
 							and	characters.ID = %d
 							and characters.ID = charmerits.CHARACTER_ID
@@ -237,13 +219,13 @@ class GVPlugin_Background_Widget extends WP_Widget {
 				$totalbgs += $result2->total2do;
 				
 				// Misc questions
-				$sql = "SELECT COUNT(ID) as total2do FROM " . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND WHERE VISIBLE = 'Y'";
+				$sql = "SELECT COUNT(ID) as total2do FROM " . VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND WHERE VISIBLE = 'Y'";
 				$totalbgs += $wpdb->get_var($sql);
 				
 				$sql = "SELECT COUNT(questions.ID) AS totaldone
 						FROM
-							" . GVLARP_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND as charquest,
-							" . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND as questions
+							" . VTM_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND as charquest,
+							" . VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND as questions
 						WHERE
 							charquest.CHARACTER_ID = %s
 							AND charquest.QUESTION_ID = questions.ID
@@ -254,13 +236,13 @@ class GVPlugin_Background_Widget extends WP_Widget {
 				//echo "<p>SQL: $sql</p>"; 
 				
 				if ($totalbgs <= 0) {
-					echo "<p>There are no <a href='" . get_stlink_url('viewExtBackgrnd') . "?CHARACTER=" . urlencode($character) . "'>character background</a> questions to complete</p>";
+					echo "<p>There are no <a href='" . vtm_get_stlink_url('viewExtBackgrnd') . "?CHARACTER=" . urlencode($character) . "'>character background</a> questions to complete</p>";
 				} 
 				elseif ($donebgs == $totalbgs) {
-					echo "<p>The <a href='" . get_stlink_url('viewExtBackgrnd') . "?CHARACTER=" . urlencode($character) . "'>character background</a> for $character has been completed</p>";
+					echo "<p>The <a href='" . vtm_get_stlink_url('viewExtBackgrnd') . "?CHARACTER=" . urlencode($character) . "'>character background</a> for $character has been completed</p>";
 				}
 				else {
-					echo "<p>The <a href='" . get_stlink_url('viewExtBackgrnd') . "?CHARACTER=" . urlencode($character) . "'>character background</a>  for $character is ";
+					echo "<p>The <a href='" . vtm_get_stlink_url('viewExtBackgrnd') . "?CHARACTER=" . urlencode($character) . "'>character background</a>  for $character is ";
 					echo sprintf ("%.0f%%", $donebgs * 100 / $totalbgs);
 					echo " complete</p>";
 				}
@@ -298,17 +280,17 @@ class GVPlugin_Background_Widget extends WP_Widget {
 }
  // class Foo_Widget
 // register Foo_Widget widget
-add_action( 'widgets_init', create_function( '', 'register_widget( "gvplugin_background_widget" );' ) );
+add_action( 'widgets_init', create_function( '', 'register_widget( "vtmclass_Plugin_Background_Widget" );' ) );
 
-function get_clan_link() {
+function vtm_get_clan_link() {
 	global $wpdb;
 	
-	$character = establishCharacter('');
-	$characterID = establishCharacterID($character);
+	$character = vtm_establishCharacter('');
+	$characterID = vtm_establishCharacterID($character);
 
 	$sql = "SELECT clans.CLAN_PAGE_LINK 
-			FROM " . GVLARP_TABLE_PREFIX . "CLAN clans,
-				" . GVLARP_TABLE_PREFIX . "CHARACTER characters
+			FROM " . VTM_TABLE_PREFIX . "CLAN clans,
+				" . VTM_TABLE_PREFIX . "CHARACTER characters
 			WHERE clans.ID = characters.PRIVATE_CLAN_ID
 				AND characters.ID = %d;";
 	$result = $wpdb->get_var($wpdb->prepare($sql, $characterID));
@@ -366,7 +348,7 @@ function get_clan_link() {
 		Some edits have been made for the Character Plugin
 	*/
 	
-	//	Add function to widgets_init that'll load our widget.
+	//	Add function vtm_to widgets_init that'll load our widget.
 	add_action( 'widgets_init', 'SSC_load_widget' );
 	//  Register widget
 	function SSC_load_widget() {

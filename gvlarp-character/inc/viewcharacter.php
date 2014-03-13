@@ -1,10 +1,10 @@
 <?php
 
-function gv_viewcharacter_content_filter($content) {
+function vtm_viewcharacter_content_filter($content) {
 
-  if (is_page(get_stlink_page('viewCharSheet')))
+  if (is_page(vtm_get_stlink_page('viewCharSheet')))
 		if (is_user_logged_in()) {
-			$content .= get_viewcharacter_content();
+			$content .= vtm_get_viewcharacter_content();
 		} else {
 			$content .= "<p>You must be logged in to view this content.</p>";
 		}
@@ -12,19 +12,19 @@ function gv_viewcharacter_content_filter($content) {
   return $content;
 }
 
-add_filter( 'the_content', 'gv_viewcharacter_content_filter' );
+add_filter( 'the_content', 'vtm_viewcharacter_content_filter' );
 
 
-function get_viewcharacter_content() {
+function vtm_get_viewcharacter_content() {
 	global $wpdb;
 
-	$character = establishCharacter('');
-	$characterID = establishCharacterID($character);
+	$character = vtm_establishCharacter('');
+	$characterID = vtm_establishCharacterID($character);
 	
-	$mycharacter = new larpcharacter();
+	$mycharacter = new vtmclass_character();
 	$mycharacter->load($characterID);
 	
-	$config = getConfig();
+	$config = vtm_getConfig();
 	$maxrating = $mycharacter->max_rating > 5 ? 10 : 5;
 
 	$content = "<div class=\"gvplugin\" id=\"csheet\">";
@@ -147,7 +147,7 @@ function get_viewcharacter_content() {
 	$backgrounds = $mycharacter->getBackgrounds();
 	$disciplines = $mycharacter->getDisciplines();
 	
-	$sql = "SELECT DISTINCT GROUPING FROM " . GVLARP_TABLE_PREFIX . "SKILL skills;";
+	$sql = "SELECT DISTINCT GROUPING FROM " . VTM_TABLE_PREFIX . "SKILL skills;";
 	$allgroups = $wpdb->get_results($wpdb->prepare($sql,''));	
 	
 	$secondarygroups = array();

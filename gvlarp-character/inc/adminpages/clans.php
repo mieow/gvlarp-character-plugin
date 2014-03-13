@@ -1,10 +1,10 @@
 <?php
 
 
-function render_clan_page(){
+function vtm_render_clan_page(){
 
-    $testListTable["clans"] = new gvadmin_clans_table();
-	$doaction = clan_input_validation();
+    $testListTable["clans"] = new vtmclass_admin_clans_table();
+	$doaction = vtm_clan_input_validation();
 	
 	if ($doaction == "add-clan") {
 		$testListTable["clans"]->add_clan($_REQUEST['clan_name'], $_REQUEST['clan_description'], $_REQUEST['clan_iconlink'], 
@@ -19,7 +19,7 @@ function render_clan_page(){
 									
 	}
 
-	render_clan_add_form($doaction);
+	vtm_render_clan_add_form($doaction);
 	$testListTable["clans"]->prepare_items();
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
@@ -34,7 +34,7 @@ function render_clan_page(){
     <?php
 }
 
-function render_clan_add_form($addaction) {
+function vtm_render_clan_add_form($addaction) {
 
 	global $wpdb;
 	
@@ -65,7 +65,7 @@ function render_clan_add_form($addaction) {
 		$id   = $_REQUEST['clan'];
 		
 		$sql = "select *
-				from " . GVLARP_TABLE_PREFIX . "CLAN clan
+				from " . VTM_TABLE_PREFIX . "CLAN clan
 				where clan.ID = %d;";
 		
 		//echo "<p>$sql</p>"; 
@@ -84,8 +84,8 @@ function render_clan_add_form($addaction) {
 		$nonclan_costmodel_id = $data[0]->NONCLAN_COST_MODEL_ID;
 		
 		$sql = "select disciplines.ID, disciplines.NAME
-				from " . GVLARP_TABLE_PREFIX . "CLAN_DISCIPLINE clandisc,
-					" . GVLARP_TABLE_PREFIX . "DISCIPLINE disciplines
+				from " . VTM_TABLE_PREFIX . "CLAN_DISCIPLINE clandisc,
+					" . VTM_TABLE_PREFIX . "DISCIPLINE disciplines
 				where 
 					disciplines.ID = clandisc.DISCIPLINE_ID
 					AND clandisc.CLAN_ID = %d;";
@@ -120,7 +120,7 @@ function render_clan_add_form($addaction) {
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
 
-	$disciplines = get_disciplines();
+	$disciplines = vtm_get_disciplines();
 	?>
 	<form id="new-<?php print $type; ?>" method="post" action='<?php print htmlentities($current_url); ?>'>
 		<input type="hidden" name="<?php print $type; ?>_id" value="<?php print $id; ?>"/>
@@ -141,7 +141,7 @@ function render_clan_add_form($addaction) {
 			<td>
 				<select name="<?php print $type; ?>_costmodel">
 					<?php
-						foreach (get_costmodels() as $costmodel) {
+						foreach (vtm_get_costmodels() as $costmodel) {
 							print "<option value='{$costmodel->ID}' ";
 							selected($costmodel->ID, $costmodel_id);
 							echo ">{$costmodel->NAME}</option>";
@@ -157,7 +157,7 @@ function render_clan_add_form($addaction) {
 			<td>
 				<select name="<?php print $type; ?>_costmodel_nonclan">
 					<?php
-						foreach (get_costmodels() as $costmodel) {
+						foreach (vtm_get_costmodels() as $costmodel) {
 							print "<option value='{$costmodel->ID}' ";
 							selected($costmodel->ID, $nonclan_costmodel_id);
 							echo ">{$costmodel->NAME}</option>";
@@ -221,7 +221,7 @@ function render_clan_add_form($addaction) {
 	<?php
 }
 
-function clan_input_validation() {
+function vtm_clan_input_validation() {
 
 	$type = "clan";
 	$doaction = '';
@@ -261,7 +261,7 @@ function clan_input_validation() {
 -----------------------------------------------
 CLANS
 ------------------------------------------------ */
-class gvadmin_clans_table extends GVMultiPage_ListTable {
+class vtmclass_admin_clans_table extends vtmclass_MultiPage_ListTable {
    
     function __construct(){
         global $status, $page;
@@ -278,7 +278,7 @@ class gvadmin_clans_table extends GVMultiPage_ListTable {
 		
 		/* Check if clan id in use in a character */
 		$sql = "select characters.NAME 
-			from " . GVLARP_TABLE_PREFIX . "CHARACTER characters
+			from " . VTM_TABLE_PREFIX . "CHARACTER characters
 			where characters.PUBLIC_CLAN_ID = %d or characters.PRIVATE_CLAN_ID = %d;";
 		$isused = $wpdb->get_results($wpdb->prepare($sql, $selectedID, $selectedID));
 		
@@ -291,11 +291,11 @@ class gvadmin_clans_table extends GVMultiPage_ListTable {
 		} else {
 		
 			/* delete clan disciplines */
-			$sql = "delete from " . GVLARP_TABLE_PREFIX . "CLAN_DISCIPLINE 
+			$sql = "delete from " . VTM_TABLE_PREFIX . "CLAN_DISCIPLINE 
 					where CLAN_ID = %d;";
 			$result = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
-			$sql = "delete from " . GVLARP_TABLE_PREFIX . "CLAN where ID = %d;";
+			$sql = "delete from " . VTM_TABLE_PREFIX . "CLAN where ID = %d;";
 			$result = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
 			/* print_r($result); */
@@ -324,7 +324,7 @@ class gvadmin_clans_table extends GVMultiPage_ListTable {
 		
 		/* print_r($dataarray); */
 		
-		$wpdb->insert(GVLARP_TABLE_PREFIX . "CLAN",
+		$wpdb->insert(VTM_TABLE_PREFIX . "CLAN",
 					$dataarray,
 					array (
 						'%s',
@@ -354,7 +354,7 @@ class gvadmin_clans_table extends GVMultiPage_ListTable {
 						'DISCIPLINE_ID' => $disc
 				);
 				
-				$wpdb->insert(GVLARP_TABLE_PREFIX . "CLAN_DISCIPLINE",
+				$wpdb->insert(VTM_TABLE_PREFIX . "CLAN_DISCIPLINE",
 					$dataarray,
 					array ( '%d', '%d')
 				);
@@ -387,7 +387,7 @@ class gvadmin_clans_table extends GVMultiPage_ListTable {
 		
 		/* print_r($dataarray); */
 		
-		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "CLAN",
+		$result = $wpdb->update(VTM_TABLE_PREFIX . "CLAN",
 					$dataarray,
 					array (
 						'ID' => $clanid
@@ -403,7 +403,7 @@ class gvadmin_clans_table extends GVMultiPage_ListTable {
 		
 		if ($ok) {
 			/* clan disciplines - remove old then re-add */
-			$sql = "delete from " . GVLARP_TABLE_PREFIX . "CLAN_DISCIPLINE
+			$sql = "delete from " . VTM_TABLE_PREFIX . "CLAN_DISCIPLINE
 					where CLAN_ID = %d";
 			$result = $wpdb->get_results($wpdb->prepare($sql, $clanid));
 			
@@ -412,7 +412,7 @@ class gvadmin_clans_table extends GVMultiPage_ListTable {
 							'CLAN_ID' => $clanid,
 							'DISCIPLINE_ID' => $disc
 				);
-				$wpdb->insert(GVLARP_TABLE_PREFIX . "CLAN_DISCIPLINE",
+				$wpdb->insert(VTM_TABLE_PREFIX . "CLAN_DISCIPLINE",
 					$dataarray,
 					array ( '%d', '%d')
 				);
@@ -534,9 +534,9 @@ class gvadmin_clans_table extends GVMultiPage_ListTable {
 		$sql = "select clan.ID, clan.NAME, clan.DESCRIPTION, clan.ICON_LINK, clan.CLAN_PAGE_LINK, 
 					clan.CLAN_FLAW, clan.VISIBLE,
 					clancosts.NAME as COST_MODEL, nonclancosts.NAME as NONCLAN_MODEL
-				from " . GVLARP_TABLE_PREFIX. "CLAN clan,
-					" . GVLARP_TABLE_PREFIX. "COST_MODEL clancosts,
-					" . GVLARP_TABLE_PREFIX. "COST_MODEL nonclancosts
+				from " . VTM_TABLE_PREFIX. "CLAN clan,
+					" . VTM_TABLE_PREFIX. "COST_MODEL clancosts,
+					" . VTM_TABLE_PREFIX. "COST_MODEL nonclancosts
 				where
 					clancosts.ID = clan.CLAN_COST_MODEL_ID
 					AND nonclancosts.ID = clan.NONCLAN_COST_MODEL_ID";
@@ -572,10 +572,10 @@ class gvadmin_clans_table extends GVMultiPage_ListTable {
 	DISCIPLINES
 ------------------------------- */
 
-function render_discipline_page(){
+function vtm_render_discipline_page(){
 
-    $testListTable["disc"] = new gvadmin_disciplines_table();
-	$doaction = discipline_input_validation();
+    $testListTable["disc"] = new vtmclass_admin_disciplines_table();
+	$doaction = vtm_discipline_input_validation();
 	
 	if ($doaction == "add-disc") {
 		$testListTable["disc"]->add_discipline();							
@@ -584,7 +584,7 @@ function render_discipline_page(){
 		$testListTable["disc"]->edit_discipline();						
 	}
 
-	render_discipline_add_form($doaction);
+	vtm_render_discipline_add_form($doaction);
 	$testListTable["disc"]->prepare_items();
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
@@ -599,7 +599,7 @@ function render_discipline_page(){
     <?php
 }
 
-function render_discipline_add_form($addaction) {
+function vtm_render_discipline_add_form($addaction) {
 
 	global $wpdb;
 	
@@ -623,7 +623,7 @@ function render_discipline_add_form($addaction) {
 		$id   = $_REQUEST['discipline'];
 		
 		$sql = "select *
-				from " . GVLARP_TABLE_PREFIX . "DISCIPLINE disciplines
+				from " . VTM_TABLE_PREFIX . "DISCIPLINE disciplines
 				where disciplines.ID = %d;";
 		
 		/* echo "<p>$sql</p>"; */
@@ -667,7 +667,7 @@ function render_discipline_add_form($addaction) {
 			<td>
 				<select name="<?php print $type; ?>_sourcebook">
 					<?php
-						foreach (get_booknames() as $book) {
+						foreach (vtm_get_booknames() as $book) {
 							print "<option value='{$book->ID}' ";
 							($book->ID == $sourcebook_id) ? print "selected" : print "";
 							echo ">{$book->NAME}</option>";
@@ -696,7 +696,7 @@ function render_discipline_add_form($addaction) {
 	<?php
 }
 
-function discipline_input_validation() {
+function vtm_discipline_input_validation() {
 
 	$type = "disc";
 	$doaction = '';
@@ -732,7 +732,7 @@ function discipline_input_validation() {
 -----------------------------------------------
 CLANS
 ------------------------------------------------ */
-class gvadmin_disciplines_table extends GVMultiPage_ListTable {
+class vtmclass_admin_disciplines_table extends vtmclass_MultiPage_ListTable {
    
     function __construct(){
         global $status, $page;
@@ -750,8 +750,8 @@ class gvadmin_disciplines_table extends GVMultiPage_ListTable {
 		/* Check if discipline id in use in a character */
 		$sql = "select characters.NAME 
 				from 
-					" . GVLARP_TABLE_PREFIX . "CHARACTER characters,
-					" . GVLARP_TABLE_PREFIX . "CHARACTER_DISCIPLINE chardisc
+					" . VTM_TABLE_PREFIX . "CHARACTER characters,
+					" . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE chardisc
 				where 
 					characters.ID = chardisc.CHARACTER_ID
 					AND chardisc.DISCIPLINE_ID = %d;";
@@ -767,8 +767,8 @@ class gvadmin_disciplines_table extends GVMultiPage_ListTable {
 		
 			/* Check if discipline id in use in a clan discipline */
 			$sql = "select clans.NAME 
-				from " . GVLARP_TABLE_PREFIX . "CLAN_DISCIPLINE clandisc, 
-					 " . GVLARP_TABLE_PREFIX . "CLAN clans,
+				from " . VTM_TABLE_PREFIX . "CLAN_DISCIPLINE clandisc, 
+					 " . VTM_TABLE_PREFIX . "CLAN clans,
 				where 
 					clans.ID = clandisc.CLAN_ID
 					and clandisc.DISCIPLINE_ID = %d;";
@@ -782,7 +782,7 @@ class gvadmin_disciplines_table extends GVMultiPage_ListTable {
 				echo "</ul></p>";
 			
 			} else {
-				$sql = "delete from " . GVLARP_TABLE_PREFIX . "DISCIPLINE where ID = %d;";
+				$sql = "delete from " . VTM_TABLE_PREFIX . "DISCIPLINE where ID = %d;";
 				
 				$result = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 			
@@ -807,7 +807,7 @@ class gvadmin_disciplines_table extends GVMultiPage_ListTable {
 		
 		/* print_r($dataarray); */
 		
-		$wpdb->insert(GVLARP_TABLE_PREFIX . "DISCIPLINE",
+		$wpdb->insert(VTM_TABLE_PREFIX . "DISCIPLINE",
 					$dataarray,
 					array (
 						'%s',
@@ -841,7 +841,7 @@ class gvadmin_disciplines_table extends GVMultiPage_ListTable {
 		
 		/* print_r($dataarray); */
 		
-		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "DISCIPLINE",
+		$result = $wpdb->update(VTM_TABLE_PREFIX . "DISCIPLINE",
 					$dataarray,
 					array (
 						'ID' => $_REQUEST['disc_id']
@@ -951,8 +951,8 @@ class gvadmin_disciplines_table extends GVMultiPage_ListTable {
 		$sql = "select disciplines.ID, disciplines.NAME, disciplines.DESCRIPTION, 
 					disciplines.VISIBLE, disciplines.PAGE_NUMBER, books.NAME as SOURCE_BOOK
 				from 
-					" . GVLARP_TABLE_PREFIX. "DISCIPLINE disciplines,
-					" . GVLARP_TABLE_PREFIX. "SOURCE_BOOK books
+					" . VTM_TABLE_PREFIX. "DISCIPLINE disciplines,
+					" . VTM_TABLE_PREFIX. "SOURCE_BOOK books
 				where
 					books.ID = disciplines.SOURCE_BOOK_ID";
 		

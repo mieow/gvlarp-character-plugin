@@ -1,5 +1,5 @@
 <?php
-function character_backgrounds() {
+function vtm_character_backgrounds() {
 	if ( !current_user_can( 'manage_options' ) )  {
 		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 	}
@@ -7,7 +7,7 @@ function character_backgrounds() {
 	<div class="wrap">
 		<h2>Backgrounds</h2>
 		<script type="text/javascript">
-			function tabSwitch(tab) {
+			function vtm_tabSwitch(tab) {
 				document.getElementById('gv-approve').style.display = 'none';
 				document.getElementById(tab).style.display = '';
 				return false;
@@ -15,13 +15,13 @@ function character_backgrounds() {
 		</script>
 		<div class="gvadmin_nav">
 			<ul>
-				<li><a href="javascript:void(0);" onclick="tabSwitch('gv-approve');">Approvals</a></li>
+				<li><a href="javascript:void(0);" onclick="vtm_tabSwitch('gv-approve');">Approvals</a></li>
 			</ul>
 		</div>
 		<div class="gvadmin_content">
-			<div id="gv-approve" <?php tabdisplay("gvapprove", "gvapprove"); ?>>
+			<div id="gv-approve" <?php vtm_tabdisplay("gvapprove", "gvapprove"); ?>>
 				<h1>Extended Background Approvals</h1>
-				<?php render_approvals_data(); ?>
+				<?php vtm_render_approvals_data(); ?>
 			</div>
 		</div>
 
@@ -31,10 +31,10 @@ function character_backgrounds() {
 }
 
 
-function render_approvals_data(){
+function vtm_render_approvals_data(){
 	global $wpdb;
 
-    $testListTable['gvapprove'] = new gvadmin_extbgapproval_table();
+    $testListTable['gvapprove'] = new vtmclass_admin_extbgapproval_table();
 
 	$showform = 0;
 	if (!empty($_REQUEST['do_deny'])) {
@@ -43,7 +43,7 @@ function render_approvals_data(){
 		$data = array(
 			'DENIED_DETAIL'  => $_REQUEST['gvapprove_denied']
 		);
-		$result = $wpdb->update(GVLARP_TABLE_PREFIX . $_REQUEST['table'],
+		$result = $wpdb->update(VTM_TABLE_PREFIX . $_REQUEST['table'],
 			$data,
 			array (
 				'ID' => $_REQUEST['table_id']
@@ -74,7 +74,7 @@ function render_approvals_data(){
 		$data = array();
 	}
 
-	render_approve_form($showform, $id, $data);
+	vtm_render_approve_form($showform, $id, $data);
 	
 	$testListTable['gvapprove']->prepare_items();
 
@@ -92,10 +92,10 @@ function render_approvals_data(){
 
     <?php
 }
-function render_question_data(){
+function vtm_render_question_data(){
 
-    $testListTable['question'] = new gvadmin_questions_table();
-	$doaction = question_input_validation();
+    $testListTable['question'] = new vtmclass_admin_questions_table();
+	$doaction = vtm_question_input_validation();
 	
  	if ($doaction == "add-question") {
 		$testListTable['question']->add_question($_REQUEST['question_title'], $_REQUEST['question_order'], 
@@ -106,7 +106,7 @@ function render_question_data(){
 												$_REQUEST['question_group'], $_REQUEST['question_question'], $_REQUEST['question_visible']);
 	}
 
-	render_question_add_form($doaction); 
+	vtm_render_question_add_form($doaction); 
 	
 	$testListTable['question']->prepare_items();
  	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
@@ -122,10 +122,10 @@ function render_question_data(){
 
     <?php
 }
-function render_sector_data(){
+function vtm_render_sector_data(){
 
-    $testListTable['sector'] = new gvadmin_sectors_table();
-	$doaction = sector_input_validation();
+    $testListTable['sector'] = new vtmclass_admin_sectors_table();
+	$doaction = vtm_sector_input_validation();
 	
  	if ($doaction == "add-sector") {
 		$testListTable['sector']->add_sector($_REQUEST['sector_name'], $_REQUEST['sector_desc'], $_REQUEST['sector_visible']);
@@ -134,7 +134,7 @@ function render_sector_data(){
 		$testListTable['sector']->edit_sector($_REQUEST['sector_id'], $_REQUEST['sector_name'], $_REQUEST['sector_desc'], $_REQUEST['sector_visible']);
 	}
 
-	render_sector_add_form($doaction); 
+	vtm_render_sector_add_form($doaction); 
 	
 	$testListTable['sector']->prepare_items();
  	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
@@ -151,10 +151,10 @@ function render_sector_data(){
     <?php
 }
 
-function render_background_data(){
+function vtm_render_background_data(){
 
-    $testListTable['bgdata'] = new gvadmin_backgrounds_table();
-	$doaction = bgdata_input_validation();
+    $testListTable['bgdata'] = new vtmclass_admin_backgrounds_table();
+	$doaction = vtm_bgdata_input_validation();
 	
  	if ($doaction == "add-bgdata") {
 		$testListTable['bgdata']->add_background($_REQUEST['bgdata_name'], $_REQUEST['bgdata_desc'], $_REQUEST['bgdata_group'], 
@@ -167,7 +167,7 @@ function render_background_data(){
 									$_REQUEST['bgdata_hassector'], $_REQUEST['bgdata_question']);
 	} 
 
-	render_bgdata_add_form($doaction);
+	vtm_render_bgdata_add_form($doaction);
 	
 	$testListTable['bgdata']->prepare_items();
  	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
@@ -184,7 +184,7 @@ function render_background_data(){
     <?php
 }
 
-function render_bgdata_add_form($addaction) {
+function vtm_render_bgdata_add_form($addaction) {
 
 	global $wpdb;
 	
@@ -210,7 +210,7 @@ function render_bgdata_add_form($addaction) {
 		$id   = $_REQUEST['background'];
 		
 		$sql = "select *
-				from " . GVLARP_TABLE_PREFIX . "BACKGROUND 
+				from " . VTM_TABLE_PREFIX . "BACKGROUND 
 				where ID = %d;";
 		
 		/* echo "<p>$sql</p>"; */
@@ -264,7 +264,7 @@ function render_bgdata_add_form($addaction) {
 						selected(0, $costmodel_id);
 						echo ">[Select]</option>";
 						
-						foreach (get_costmodels() as $costmodel) {
+						foreach (vtm_get_costmodels() as $costmodel) {
 							print "<option value='{$costmodel->ID}' ";
 							selected($costmodel->ID, $costmodel_id);
 							echo ">{$costmodel->NAME}</option>";
@@ -309,7 +309,7 @@ function render_bgdata_add_form($addaction) {
 	<?php
 }
 
-function render_sector_add_form($addaction) {
+function vtm_render_sector_add_form($addaction) {
 
 	global $wpdb;
 	
@@ -329,7 +329,7 @@ function render_sector_add_form($addaction) {
 		$id   = $_REQUEST['sector'];
 		
 		$sql = "select *
-				from " . GVLARP_TABLE_PREFIX . "SECTOR 
+				from " . VTM_TABLE_PREFIX . "SECTOR 
 				where ID = %d;";
 		
 		/* echo "<p>$sql</p>"; */
@@ -385,7 +385,7 @@ function render_sector_add_form($addaction) {
 	<?php
 }
 
-function render_question_add_form($addaction) {
+function vtm_render_question_add_form($addaction) {
 
 	global $wpdb;
 	
@@ -408,7 +408,7 @@ function render_question_add_form($addaction) {
 		$id   = $_REQUEST['question'];
 		
 		$sql = "select *
-				from " . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND 
+				from " . VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND 
 				where ID = %d;";
 		
 		/* echo "<p>$sql</p>"; */
@@ -425,7 +425,7 @@ function render_question_add_form($addaction) {
 		
 	} else {
 	
-		$sql = "select * from " . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND;";
+		$sql = "select * from " . VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND;";
 		$order = count($wpdb->get_results($wpdb->prepare($sql,''))) + 1;
 	
 		/* defaults */
@@ -475,7 +475,7 @@ function render_question_add_form($addaction) {
 	
 	<?php
 }
-function render_approve_form($showform, $id, $data) {
+function vtm_render_approve_form($showform, $id, $data) {
 	
 	$type = "gvapprove";
 	
@@ -514,7 +514,7 @@ function render_approve_form($showform, $id, $data) {
 	}
 }
 
-function bgdata_input_validation() {
+function vtm_bgdata_input_validation() {
 
 	$type = "bgdata";
 	$doaction = '';
@@ -548,7 +548,7 @@ function bgdata_input_validation() {
 }
 
 
-function sector_input_validation() {
+function vtm_sector_input_validation() {
 
 	$type = "sector";
 	$doaction = '';
@@ -577,7 +577,7 @@ function sector_input_validation() {
 	return $doaction;
 }
 
-function question_input_validation() {
+function vtm_question_input_validation() {
 
 	$type = "question";
 	$doaction = '';
@@ -614,7 +614,7 @@ function question_input_validation() {
 }
 
 
-class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
+class vtmclass_admin_extbgapproval_table extends vtmclass_MultiPage_ListTable {
    
     function __construct(){
         global $status, $page;
@@ -634,7 +634,7 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
 			'PENDING_DETAIL'  => '',
 			'APPROVED_DETAIL' => $this->items[$tableid]['TABLE.DETAIL']
 		);
-		$result = $wpdb->update(GVLARP_TABLE_PREFIX . $table,
+		$result = $wpdb->update(VTM_TABLE_PREFIX . $table,
 			$data,
 			array ('ID' => $this->items[$tableid]['TABLE.ID'])
 		);
@@ -650,7 +650,7 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
 		$table = $this->items[$tableid]['TABLE'];
 		
 		$data = array('DENIED_DETAIL'  => $deny_message);
-		$result = $wpdb->update(GVLARP_TABLE_PREFIX . $table,
+		$result = $wpdb->update(VTM_TABLE_PREFIX . $table,
 			$data,
 			array ('ID' => $this->items[$tableid]['TABLE.ID'])
 		);
@@ -766,11 +766,11 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
 					backgrounds.NAME background, charbgs.LEVEL, 
 					sectors.NAME sector, charbgs.PENDING_DETAIL, charbgs.DENIED_DETAIL,
 					backgrounds.HAS_SECTOR, charbgs.COMMENT, charbgs.APPROVED_DETAIL
-				from	" . GVLARP_TABLE_PREFIX . "BACKGROUND backgrounds,
-						" . GVLARP_TABLE_PREFIX . "CHARACTER characters,
-						" . GVLARP_TABLE_PREFIX . "CHARACTER_BACKGROUND charbgs
+				from	" . VTM_TABLE_PREFIX . "BACKGROUND backgrounds,
+						" . VTM_TABLE_PREFIX . "CHARACTER characters,
+						" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND charbgs
 				left join
-						" . GVLARP_TABLE_PREFIX . "SECTOR sectors
+						" . VTM_TABLE_PREFIX . "SECTOR sectors
 				on
 					charbgs.SECTOR_ID = sectors.ID
 				where	backgrounds.ID = charbgs.BACKGROUND_ID
@@ -811,9 +811,9 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
 		$sql = "select characters.ID charID, charmerit.ID charmeritID, characters.NAME charname, 
 					merits.NAME merit, charmerit.COMMENT,
 					charmerit.PENDING_DETAIL, charmerit.DENIED_DETAIL, charmerit.APPROVED_DETAIL
-				from	" . GVLARP_TABLE_PREFIX . "MERIT merits,
-						" . GVLARP_TABLE_PREFIX . "CHARACTER characters,
-						" . GVLARP_TABLE_PREFIX . "CHARACTER_MERIT charmerit
+				from	" . VTM_TABLE_PREFIX . "MERIT merits,
+						" . VTM_TABLE_PREFIX . "CHARACTER characters,
+						" . VTM_TABLE_PREFIX . "CHARACTER_MERIT charmerit
 				where	merits.ID = charmerit.MERIT_ID
 					and characters.ID = charmerit.CHARACTER_ID
 					and charmerit.PENDING_DETAIL != ''
@@ -848,9 +848,9 @@ class gvadmin_extbgapproval_table extends GVMultiPage_ListTable {
 		$sql = "select characters.ID charID, answers.ID answerID, characters.NAME charname, 
 					questions.TITLE, questions.GROUPING,
 					answers.PENDING_DETAIL, answers.DENIED_DETAIL, answers.APPROVED_DETAIL
-				from	" . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND questions,
-						" . GVLARP_TABLE_PREFIX . "CHARACTER characters,
-						" . GVLARP_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND answers
+				from	" . VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND questions,
+						" . VTM_TABLE_PREFIX . "CHARACTER characters,
+						" . VTM_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND answers
 				where	questions.ID = answers.QUESTION_ID
 					and characters.ID = answers.CHARACTER_ID
 					and answers.PENDING_DETAIL != ''
@@ -930,7 +930,7 @@ EXTENDED BACKGROUNDS QUESTIONS TABLE
 ------------------------------------------------ */
 
 
-class gvadmin_questions_table extends GVMultiPage_ListTable {
+class vtmclass_admin_questions_table extends vtmclass_MultiPage_ListTable {
    
     function __construct(){
         global $status, $page;
@@ -947,9 +947,9 @@ class gvadmin_questions_table extends GVMultiPage_ListTable {
 		
 		/* Check if question in use */
 		$sql = "select characters.NAME
-				from " . GVLARP_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND charbgs, 
-					" . GVLARP_TABLE_PREFIX . "CHARACTER characters,
-					" . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND questions
+				from " . VTM_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND charbgs, 
+					" . VTM_TABLE_PREFIX . "CHARACTER characters,
+					" . VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND questions
 				where charbgs.QUESTION_ID = questions.ID 
 					and characters.ID = charbgs.CHARACTER_ID
 					and questions.ID = %d;";
@@ -964,7 +964,7 @@ class gvadmin_questions_table extends GVMultiPage_ListTable {
 			
 		} else {
 		
-			$sql = "delete from " . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND where ID = %d;";
+			$sql = "delete from " . VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND where ID = %d;";
 			
 			$result = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
@@ -987,7 +987,7 @@ class gvadmin_questions_table extends GVMultiPage_ListTable {
 		
 		/* print_r($dataarray); */
 		
-		$wpdb->insert(GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND",
+		$wpdb->insert(VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND",
 					$dataarray,
 					array (
 						'%s',
@@ -1021,7 +1021,7 @@ class gvadmin_questions_table extends GVMultiPage_ListTable {
 		
 		/* print_r($dataarray); */
 		
-		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND",
+		$result = $wpdb->update(VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND",
 					$dataarray,
 					array (
 						'ID' => $id
@@ -1129,7 +1129,7 @@ class gvadmin_questions_table extends GVMultiPage_ListTable {
 		
 		/* Get the data from the database */
 		$sql = "select questions.ID, questions.TITLE, questions.ORDERING, questions.GROUPING, questions.BACKGROUND_QUESTION, questions.VISIBLE
-			from " . GVLARP_TABLE_PREFIX . "EXTENDED_BACKGROUND questions;";
+			from " . VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND questions;";
 				
 		/* order the data according to sort columns */
 		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']))
@@ -1161,7 +1161,7 @@ SECTORS TABLE
 ------------------------------------------------ */
 
 
-class gvadmin_sectors_table extends GVMultiPage_ListTable {
+class vtmclass_admin_sectors_table extends vtmclass_MultiPage_ListTable {
    
     function __construct(){
         global $status, $page;
@@ -1178,9 +1178,9 @@ class gvadmin_sectors_table extends GVMultiPage_ListTable {
 		
 		/* Check if sector in use */
 		$sql = "select characters.NAME
-				from " . GVLARP_TABLE_PREFIX . "CHARACTER_BACKGROUND charbgs, 
-					" . GVLARP_TABLE_PREFIX . "CHARACTER characters,
-					" . GVLARP_TABLE_PREFIX . "SECTOR sectors
+				from " . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND charbgs, 
+					" . VTM_TABLE_PREFIX . "CHARACTER characters,
+					" . VTM_TABLE_PREFIX . "SECTOR sectors
 				where charbgs.SECTOR_ID = sectors.ID 
 					and characters.ID = charbgs.CHARACTER_ID
 					and sectors.ID = %d;";
@@ -1195,7 +1195,7 @@ class gvadmin_sectors_table extends GVMultiPage_ListTable {
 			
 		} else {
 		
-			$sql = "delete from " . GVLARP_TABLE_PREFIX . "SECTOR where ID = %d;";
+			$sql = "delete from " . VTM_TABLE_PREFIX . "SECTOR where ID = %d;";
 			
 			$result = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
@@ -1217,7 +1217,7 @@ class gvadmin_sectors_table extends GVMultiPage_ListTable {
 		
 		/* print_r($dataarray); */
 		
-		$wpdb->insert(GVLARP_TABLE_PREFIX . "SECTOR",
+		$wpdb->insert(VTM_TABLE_PREFIX . "SECTOR",
 					$dataarray,
 					array (
 						'%s',
@@ -1247,7 +1247,7 @@ class gvadmin_sectors_table extends GVMultiPage_ListTable {
 		
 		/* print_r($dataarray); */
 		
-		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "SECTOR",
+		$result = $wpdb->update(VTM_TABLE_PREFIX . "SECTOR",
 					$dataarray,
 					array (
 						'ID' => $id
@@ -1351,7 +1351,7 @@ class gvadmin_sectors_table extends GVMultiPage_ListTable {
 		
 		/* Get the data from the database */
 		$sql = "select sectors.ID, sectors.NAME, sectors.DESCRIPTION, sectors.VISIBLE
-			from " . GVLARP_TABLE_PREFIX . "SECTOR sectors;";
+			from " . VTM_TABLE_PREFIX . "SECTOR sectors;";
 				
 		/* order the data according to sort columns */
 		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']))
@@ -1383,7 +1383,7 @@ BACKGROUNDS TABLE
 ------------------------------------------------ */
 
 
-class gvadmin_backgrounds_table extends GVMultiPage_ListTable {
+class vtmclass_admin_backgrounds_table extends vtmclass_MultiPage_ListTable {
    
     function __construct(){
         global $status, $page;
@@ -1400,9 +1400,9 @@ class gvadmin_backgrounds_table extends GVMultiPage_ListTable {
 		
 		/* Check if background in use */
 		$sql = "select characters.NAME
-				from " . GVLARP_TABLE_PREFIX . "CHARACTER_BACKGROUND charbgs, 
-					" . GVLARP_TABLE_PREFIX . "BACKGROUND backgrounds,
-					" . GVLARP_TABLE_PREFIX . "CHARACTER characters
+				from " . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND charbgs, 
+					" . VTM_TABLE_PREFIX . "BACKGROUND backgrounds,
+					" . VTM_TABLE_PREFIX . "CHARACTER characters
 				where charbgs.BACKGROUND_ID = backgrounds.ID 
 					and characters.ID = charbgs.CHARACTER_ID
 					and backgrounds.ID = %d;";
@@ -1417,7 +1417,7 @@ class gvadmin_backgrounds_table extends GVMultiPage_ListTable {
 			
 		} else {
 		
-			$sql = "delete from " . GVLARP_TABLE_PREFIX . "BACKGROUND where ID = %d;";
+			$sql = "delete from " . VTM_TABLE_PREFIX . "BACKGROUND where ID = %d;";
 			
 			$result = $wpdb->get_results($wpdb->prepare($sql, $selectedID));
 		
@@ -1443,7 +1443,7 @@ class gvadmin_backgrounds_table extends GVMultiPage_ListTable {
 		
 		/* print_r($dataarray); */
 		
-		$wpdb->insert(GVLARP_TABLE_PREFIX . "BACKGROUND",
+		$wpdb->insert(VTM_TABLE_PREFIX . "BACKGROUND",
 					$dataarray,
 					array (
 						'%s',
@@ -1481,7 +1481,7 @@ class gvadmin_backgrounds_table extends GVMultiPage_ListTable {
 		
 		/* print_r($dataarray); */
 		
-		$result = $wpdb->update(GVLARP_TABLE_PREFIX . "BACKGROUND",
+		$result = $wpdb->update(VTM_TABLE_PREFIX . "BACKGROUND",
 					$dataarray,
 					array (
 						'ID' => $id
@@ -1615,7 +1615,7 @@ class gvadmin_backgrounds_table extends GVMultiPage_ListTable {
 					backgrounds.VISIBLE,
 					backgrounds.HAS_SECTOR,
 					backgrounds.BACKGROUND_QUESTION
-			from " . GVLARP_TABLE_PREFIX . "BACKGROUND backgrounds, " . GVLARP_TABLE_PREFIX . "COST_MODEL costmodels
+			from " . VTM_TABLE_PREFIX . "BACKGROUND backgrounds, " . VTM_TABLE_PREFIX . "COST_MODEL costmodels
 			where backgrounds.COST_MODEL_ID = costmodels.ID";
 				
 		/* order the data according to sort columns */
