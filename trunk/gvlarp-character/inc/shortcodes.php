@@ -1087,7 +1087,7 @@ function vtm_print_office_block($atts, $content=null) {
 					  AND coffice.domain_id     = domain.id
 					  AND chara.deleted        = 'N'
 					  AND domain.name = %s ";
-	if (!isSt()) {
+	if (!vtm_isSt()) {
 		$sql .= " AND office.visible = 'Y' AND chara.visible = 'Y' ";
 	}
 	if ($office != null && $office != "") {

@@ -519,7 +519,7 @@ function vtm_displayUpdateCharacter($characterID) {
 			$output .= "<tr><td>Nature</td><td colspan=2>";
 			$output .= "<select name = \"charNature\">";
 			$output .= "<option value=\"0\">[Select]</option>";
-			foreach (get_natures() as $nature) {
+			foreach (vtm_get_natures() as $nature) {
 				$output .= "<option value=\"" . $nature->ID . "\" ";
 				if ($nature->ID == $characterNatureId) {
 					$output .= "SELECTED";

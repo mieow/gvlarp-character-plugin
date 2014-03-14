@@ -23,9 +23,9 @@ function vtm_get_extbackgrounds_content() {
 	$content = "<div class='wrap'>
 		<script type='text/javascript'>
 			function vtm_tabSwitch(tab) {
-				setSwitchState('backgrounds', tab == 'backgrounds');
-				setSwitchState('meritflaw', tab == 'meritflaw');
-				setSwitchState('misc', tab == 'misc');
+				vtm_setSwitchState('backgrounds', tab == 'backgrounds');
+				vtm_setSwitchState('meritflaw', tab == 'meritflaw');
+				vtm_setSwitchState('misc', tab == 'misc');
 				return false;
 			}
 			function vtm_setSwitchState(tab, show) {

@@ -3,18 +3,28 @@
 register_activation_hook(__FILE__, "vtm_character_install");
 register_activation_hook( __FILE__, 'vtm_character_install_data' );
 
+global $vtm_character_version;
 global $vtm_character_db_version;
-$vtm_character_db_version = "1.9.10"; 
+$vtm_character_version = "1.10"; 
+$vtm_character_db_version = "3"; 
 
 function vtm_update_db_check() {
+    global $vtm_character_version;
     global $vtm_character_db_version;
 	
-    if (get_site_option( 'vtm_character_db_version' ) != $vtm_character_db_version) {
+    if (get_site_option( 'vtm_character_db_version' ) != $vtm_character_db_version ||
+		get_site_option( 'vtm_character_version' ) != $vtm_character_version) {
+		
+		
+        $errors = vtm_character_update();
         vtm_character_install();
 		vtm_character_install_data();
-		
-		update_option( "vtm_character_db_version", $vtm_character_db_version );
-    }
+				
+		if (!$errors) {
+			update_site_option( "vtm_character_version", $vtm_character_version );
+			update_site_option( "vtm_character_db_version", $vtm_character_db_version );
+		}
+   }
 }
 add_action( 'plugins_loaded', 'vtm_update_db_check' );
 
@@ -23,9 +33,9 @@ function vtm_character_install() {
 	global $vtm_character_db_version;
 	
 	$table_prefix = VTM_TABLE_PREFIX;
-	$installed_version = get_option( "vtm_character_db_version" );
+	$installed_version = get_site_option( "vtm_character_db_version" );
 	
-	if( $installed_version != $vtm_character_db_version ) {
+//	if( $installed_version != $vtm_character_db_version ) {
 	
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 	
@@ -166,8 +176,6 @@ function vtm_character_install() {
 					PRIMARY KEY  (ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
-		$remove = array ('COST' => '');
-		vtm_remove_columns($current_table_name, $remove);
 
 		$current_table_name = $table_prefix . "NATURE";
 		$sql = "CREATE TABLE " . $current_table_name . " (
@@ -386,9 +394,6 @@ function vtm_character_install() {
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 		
-		if (vtm_table_exists('DOMAIN', FEEDINGMAP_TABLE_PREFIX)) {
-			vtm_rename_table("DOMAIN", "MAPDOMAIN", FEEDINGMAP_TABLE_PREFIX, $table_prefix);
-		} 	
 		$current_table_name = $table_prefix . "MAPDOMAIN";
 		$sql = "CREATE TABLE " . $current_table_name . " (
 					ID              MEDIUMINT(9)  NOT NULL   AUTO_INCREMENT,
@@ -823,7 +828,7 @@ function vtm_character_install() {
 		
 
 	
-	}
+	//}
 	
 }
 
@@ -944,6 +949,31 @@ function vtm_character_install_data() {
 	
 }
 
+function vtm_character_update() {
+	global $vtm_character_version;
+	global $vtm_character_db_version;
+	
+	$errors = 0;
+
+	$installed_version = get_site_option( "vtm_character_version", "1.9" );
+	
+	switch ($installed_version) {
+		//--- FROM VERSION 1.9 -------------------------------------------------
+		case "1.9": $errors += vtm_character_update_1_9();
+	}
+	
+	// Incremental database updates, during development
+	$db_version = get_site_option( "vtm_character_db_version", "1" );
+	if ($installed_version == $vtm_character_version && $db_version != $vtm_character_db_version) {
+		switch ($installed_version) {
+			case "1.10": $errors += vtm_character_update_1_9();
+		}
+	
+	}
+	return $errors;
+
+}
+
 function vtm_remove_columns($table, $columninfo) {
 	global $wpdb;
 
@@ -1049,5 +1079,38 @@ function vtm_rename_table($from, $to, $prefixfrom = VTM_TABLE_PREFIX, $prefixto 
 
 }
 
+function vtm_character_update_1_9 () {
+	global $wpdb;
+	
+	// Rename GVLARP_ tables to VTM_ tables
+	$oldprefix = $wpdb->prefix . "GVLARP_";
+	$sql = "SHOW TABLES LIKE %s";
+	$sql = $wpdb->prepare($sql, $oldprefix . "%");
+	$result = $wpdb->get_col($sql);
+	if (count($result) > 0) {
+		foreach ($result as $table) {
+			$newtable = str_replace($oldprefix, VTM_TABLE_PREFIX, $table);
+			
+			$sql = "SHOW TABLES LIKE %s";
+			$sql = $wpdb->prepare($sql, $newtable);
+			$result = $wpdb->get_results($sql);
+			
+			if (count($result) == 0) {
+				$sql = "RENAME TABLE $table TO $newtable";
+				$result = $wpdb->query($sql);
+				if (isset($result) && $result === false) {
+					$errors++;
+				}
+			}
+		}
+		
+	}
+
+}
+
+add_action('activated_plugin','save_error');
+function save_error(){
+    update_option('vtm_plugin_error',  ob_get_contents());
+}
 
 ?>

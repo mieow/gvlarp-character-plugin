@@ -46,7 +46,7 @@ function vtm_get_profile_content() {
 	$observerClanPriv = isset($result->privclan) ? $result->privclan : '';
 	
 	// Show full character details to STs and if you are viewing your own profile
-	if (isST() || $character == $currentCharacter)
+	if (vtm_isST() || $character == $currentCharacter)
 		$showAll = true;
 
 	$sql = "SELECT ID 
@@ -63,7 +63,7 @@ function vtm_get_profile_content() {
 	$mycharacter->load($characterID);
 
 	// Update display name
-	if (isST() || $currentCharacter == $character) {
+	if (vtm_isST() || $currentCharacter == $character) {
 		$user = get_user_by('login', $character);
 		$displayName = $user->display_name;
 		$userID = $user->ID;
@@ -209,7 +209,7 @@ function vtm_get_profile_content() {
 	
 	
 	// change password and display name form
-	if (isST() || $currentCharacter == $character) {
+	if (vtm_isST() || $currentCharacter == $character) {
 		$user = get_user_by('login', $character);
 		$displayName = $user->display_name;
 		$userID = $user->ID;

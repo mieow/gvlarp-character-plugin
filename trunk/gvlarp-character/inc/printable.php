@@ -50,7 +50,7 @@ function vtm_print_redirect()
 		
 			$dotmaximum = $mycharacter->max_rating;
 
-			$pdf = new PDFcsheet('P','mm','A4');
+			$pdf = new vtmclass_PDFcsheet('P','mm','A4');
 			$pdf->LoadOptions();
 			$pdf->SetTitle($printtitle);
 			$pdf->AliasNbPages();
