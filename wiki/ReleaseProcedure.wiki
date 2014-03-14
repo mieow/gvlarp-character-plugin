@@ -13,9 +13,9 @@ This is the process to go through before the version is available for release
 
 3) Prepare summary of changes, and update in
 
-  - Web page
-
-  - Top level PHP file
+  * Web page
+  * Top level PHP file
+  * List of Tests to perform
 
 4) Prepare summary of database changes
 
