@@ -384,7 +384,7 @@ class vtmclass_character {
 		}
 		
 		/* Current Experience */
-		$this->current_experience = get_total_xp($this->player_id, $characterID);
+		$this->current_experience = vtm_get_total_xp($this->player_id, $characterID);
 		
 		// Offices / Positions
 		$sql = "SELECT offices.name, offices.visible, domains.name as domain

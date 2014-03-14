@@ -2098,18 +2098,18 @@ function vtm_cancel_pending($data) {
 
 function vtm_validate_spends($playerID, $characterID, $docancel) {
 
-	$xp_total   = get_total_xp($playerID, $characterID);
-	$xp_pending = get_pending_xp($characterID);
+	$xp_total   = vtm_get_total_xp($playerID, $characterID);
+	$xp_pending = vtm_get_pending_xp($characterID);
 	$xp_spent    = 0;
 	$outputError = "";
 	
-	if (isset($_REQUEST['stat_level'])) $xp_spent += calc_submitted_spend('stat');
-	if (isset($_REQUEST['skill_level'])) $xp_spent += calc_submitted_spend('skill');
-	if (isset($_REQUEST['disc_level'])) $xp_spent += calc_submitted_spend('disc');
-	if (isset($_REQUEST['combo_level'])) $xp_spent += calc_submitted_spend('combo');
-	if (isset($_REQUEST['path_level'])) $xp_spent += calc_submitted_spend('path');
-	if (isset($_REQUEST['ritual_level'])) $xp_spent += calc_submitted_spend('ritual');
-	if (isset($_REQUEST['merit_level'])) $xp_spent += calc_submitted_spend('merit');
+	if (isset($_REQUEST['stat_level'])) $xp_spent += vtm_calc_submitted_spend('stat');
+	if (isset($_REQUEST['skill_level'])) $xp_spent += vtm_calc_submitted_spend('skill');
+	if (isset($_REQUEST['disc_level'])) $xp_spent += vtm_calc_submitted_spend('disc');
+	if (isset($_REQUEST['combo_level'])) $xp_spent += vtm_calc_submitted_spend('combo');
+	if (isset($_REQUEST['path_level'])) $xp_spent += vtm_calc_submitted_spend('path');
+	if (isset($_REQUEST['ritual_level'])) $xp_spent += vtm_calc_submitted_spend('ritual');
+	if (isset($_REQUEST['merit_level'])) $xp_spent += vtm_calc_submitted_spend('merit');
 	
 	if ($xp_spent > ($xp_total - $xp_pending)) {
 		$outputError .= "<p>You don't have enough experience left</p>";
