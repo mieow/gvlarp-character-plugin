@@ -203,14 +203,16 @@ function vtm_character_options() {
 		
 			$i = 0;
 			foreach ($result as $character) {
+				$name = stripslashes($character->charactername);
+			
 				echo "<tr";
 				if ($i % 2) echo " class=\"alternate\"";
 				echo ">\n";
 				echo "<th>";
 				if (!empty($character->wordpress_id))
-					echo '<a href="' . $stlinks['viewCharSheet']->LINK . '?CHARACTER='. urlencode($character->wordpress_id) . '">' . $character->charactername . '</a>';
+					echo '<a href="' . $stlinks['viewCharSheet']->LINK . '?CHARACTER='. urlencode($character->wordpress_id) . '">' . $name . '</a>';
 				else 
-					echo '<a href="' . $stlinks['viewCharSheet']->LINK . '?characterID='. urlencode($character->ID) . '">' . $character->charactername . '</a>';
+					echo '<a href="' . $stlinks['viewCharSheet']->LINK . '?characterID='. urlencode($character->ID) . '">' . $name . '</a>';
 				
 				echo "</th><td>";
 				echo '<div>
@@ -218,7 +220,7 @@ function vtm_character_options() {
 
 				$delete_url = add_query_arg('action', 'delete', $current_url);
 				$delete_url = add_query_arg('characterID', $character->ID, $delete_url);
-				$delete_url = add_query_arg('characterName', urlencode($character->charactername), $delete_url);
+				$delete_url = add_query_arg('characterName', urlencode($character->wordpress_id), $delete_url);
 				echo '&nbsp;<a href="' . htmlentities($delete_url) . '"><img src="' . $iconurl . 'delete.png" alt="Delete" title="Delete Character" /></a>';
 				
 				if (!empty($character->wordpress_id)) {
@@ -350,7 +352,7 @@ function vtm_displayUpdateCharacter($characterID) {
 			$characterDetails = $wpdb->get_results($wpdb->prepare($sql, $characterID));
 
 			foreach ($characterDetails as $characterDetail) {
-				$characterName             = $characterDetail->NAME;
+				$characterName             = stripslashes($characterDetail->NAME);
 				$characterPublicClanId     = $characterDetail->PUBLIC_CLAN_ID;
 				$characterPrivateClanId    = $characterDetail->PRIVATE_CLAN_ID;
 				$characterGenerationId     = $characterDetail->GENERATION_ID;

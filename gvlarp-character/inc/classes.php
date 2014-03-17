@@ -95,7 +95,7 @@ class vtmclass_character {
 		//print_r($result);
 		
 		if (count($result) > 0) {
-			$this->name         = $result[0]->cname;
+			$this->name         = stripslashes($result[0]->cname);
 			$this->clan         = $result[0]->public_clan;
 			$this->private_clan = $result[0]->private_clan;
 			$this->public_icon  = $result[0]->public_icon;
