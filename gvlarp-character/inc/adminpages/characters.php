@@ -210,7 +210,7 @@ function vtm_character_options() {
 				if (!empty($character->wordpress_id))
 					echo '<a href="' . $stlinks['viewCharSheet']->LINK . '?CHARACTER='. urlencode($character->wordpress_id) . '">' . $character->charactername . '</a>';
 				else 
-					echo $character->charactername;
+					echo '<a href="' . $stlinks['viewCharSheet']->LINK . '?characterID='. urlencode($character->ID) . '">' . $character->charactername . '</a>';
 				
 				echo "</th><td>";
 				echo '<div>
