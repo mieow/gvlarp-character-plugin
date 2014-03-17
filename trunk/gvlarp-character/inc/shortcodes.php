@@ -60,7 +60,7 @@ function vtm_get_profilelink($wordpressid, $character) {
 
 	return str_replace(
 		Array('@PROFILELINK@','@WORDPRESS@','@EXTRA@','@NAME@'),
-			Array(vtm_get_stlink_url('viewProfile'), urlencode($wordpressid), "",$character),
+			Array(vtm_get_stlink_url('viewProfile'), urlencode($wordpressid), "",stripslashes($character)),
 			$markup
 		);
 }
@@ -578,7 +578,7 @@ function vtm_print_character_xp_table($atts, $content=null) {
 		$arr = array();
 		$i = 0;
 		foreach ($character_xp as $current_xp) {
-			$arr[$i] = "<tr><td class=\"gvcol_1 gvcol_key\">" . $current_xp->char_name   . "</td><td class=\"gvcol_2 gvcol_val\">"
+			$arr[$i] = "<tr><td class=\"gvcol_1 gvcol_key\">" . stripslashes($current_xp->char_name)   . "</td><td class=\"gvcol_2 gvcol_val\">"
 				. $current_xp->reason_name . "</td><td class=\"gvcol_3 gvcol_val\">"
 				. $current_xp->amount      . "</td><td class='gvcol_4 gvcol_val'>"
 				. stripslashes($current_xp->comment)     . "</td><td class='gvcol_5 gvcol_val'>"
@@ -907,7 +907,7 @@ function vtm_print_character_details($atts, $content=null) {
 
 	if (count($character_details) > 0) {
 		if ($group == "") {
-			$output  = "<table class='gvplugin' id=\"" . vtm_get_shortcode_id("gvid_cdb") . "\"><tr><td class=\"gvcol_1 gvcol_key\">Character_name</td><td class=\"gvcol_2 gvcol_val\">" . $character_details->char_name       . "</td></tr>";
+			$output  = "<table class='gvplugin' id=\"" . vtm_get_shortcode_id("gvid_cdb") . "\"><tr><td class=\"gvcol_1 gvcol_key\">Character_name</td><td class=\"gvcol_2 gvcol_val\">" . stripslashes($character_details->char_name) . "</td></tr>";
 			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Public Clan</td><td class=\"gvcol_2 gvcol_val\">"           . $character_details->pub_clan        . "</td></tr>";
 			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Private Clan</td><td class=\"gvcol_2 gvcol_val\">"          . $character_details->priv_clan       . "</td></tr>";
 			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Date of Birth</td><td class=\"gvcol_2 gvcol_val\">"         . $character_details->date_of_birth   . "</td></tr>";
@@ -933,7 +933,7 @@ function vtm_print_character_details($atts, $content=null) {
 			$output .= "</table>";
 		}
 		else {
-			$output = "<span class=\"gvcol_val\" id=\"gvid_cdeb_" . $group . "\">" . $character_details->$group . "</span>";
+			$output = "<span class=\"gvcol_val\" id=\"gvid_cdeb_" . $group . "\">" . stripslashes($character_details->$group) . "</span>";
 		}
 	}
 
@@ -1115,7 +1115,7 @@ function vtm_print_office_block($atts, $content=null) {
 			else {
 				$sqlOutput .= "<tr><td class=\"gvcol_1 gvcol_key\">&nbsp;</td>";
 			}
-			$sqlOutput .= "<td class=\"gvcol_2 gvcol_val\">" . $characterOffice->charname . "</td><td class=\"gvcol_3 gvcol_val\">" . stripslashes($characterOffice->comment) . "</td></tr>";
+			$sqlOutput .= "<td class=\"gvcol_2 gvcol_val\">" . stripslashes($characterOffice->charname) . "</td><td class=\"gvcol_3 gvcol_val\">" . stripslashes($characterOffice->comment) . "</td></tr>";
 		}
 
 		if ($sqlOutput != "") {
