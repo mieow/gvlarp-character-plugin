@@ -18,7 +18,7 @@ add_filter( 'the_content', 'vtm_viewcharacter_content_filter' );
 function vtm_get_viewcharacter_content() {
 	global $wpdb;
 
-	$character = vtm_establishCharacter('');
+	$character   = vtm_establishCharacter('');
 	$characterID = vtm_establishCharacterID($character);
 	
 	$mycharacter = new vtmclass_character();
