@@ -31,6 +31,9 @@ function vtm_character_reports () {
 		case 'sect_report':
 			vtm_render_report(new vtmclass_report_sect());
 			break;
+		case 'activity_report':
+			vtm_render_report(new vtmclass_report_activity());
+			break;
 	
 	}
 	
@@ -67,6 +70,10 @@ function vtm_render_select_report($report) {
 	echo "<option value='sect_report' ";
 	selected($report,'sect_report');
 	echo ">Sect List</option>\n";
+
+	echo "<option value='activity_report' ";
+	selected($report,'activity_report');
+	echo ">Character Activity</option>\n";
 
 	echo "</select>\n";
 	echo "<input type='submit' name='submit_report' class='button-primary' value='Display Report' />\n";
