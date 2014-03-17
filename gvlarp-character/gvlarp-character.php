@@ -879,13 +879,17 @@ function vtm_get_generations() {
         return $character;
     }
 
-    function vtm_establishCharacterID($character) {
+    function vtm_establishCharacterID($character = '') {
         global $wpdb;
 
-        $sql = "SELECT id
-                FROM " . VTM_TABLE_PREFIX . "CHARACTER
+		$sql = "SELECT id
+				FROM " . VTM_TABLE_PREFIX . "CHARACTER
 				WHERE WORDPRESS_ID = %s";
-        $cid = $wpdb->get_var($wpdb->prepare($sql, $character));
+		$cid = $wpdb->get_var($wpdb->prepare($sql, $character));
+		
+		if (empty($cid) && isset($_REQUEST['characterID'])) {
+			$cid = $_REQUEST['characterID'];
+		}
 
         return $cid;
     }
