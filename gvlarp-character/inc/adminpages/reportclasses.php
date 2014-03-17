@@ -655,7 +655,7 @@ class vtmclass_report_sect extends vtmclass_Report_ListTable {
 			echo '<option value="all" ';
 			selected( $this->active_filter_selectsect, 'all' );
 			echo '>All</option>';
-			foreach (get_sects() as $sect) {
+			foreach (vtm_get_sects() as $sect) {
 				echo '<option value="' . $sect->ID . '" ';
 				echo selected( $this->active_filter_selectsect, $sect->ID );
 				echo '>' . $sect->NAME . '</option>';
@@ -737,5 +737,93 @@ class vtmclass_report_sect extends vtmclass_Report_ListTable {
 	}
 }
 
+class vtmclass_report_activity extends vtmclass_Report_ListTable {
+
+    function column_default($item, $column_name){
+        switch($column_name){
+            case 'PLAYERNAME':
+                return $item->$column_name;
+            case 'CHARACTERNAME':
+                return $item->$column_name;
+            case 'LAST_UPDATED':
+                return $item->$column_name;
+            default:
+                return print_r($item,true); 
+        }
+    }
+
+    function get_columns(){
+        $columns = array(
+            'PLAYERNAME'    => 'Player',
+            'CHARACTERNAME' => 'Character',
+            'LAST_UPDATED'  => 'Last character activity',
+        );
+        return $columns;
+	}
+		
+   function get_sortable_columns() {
+        $sortable_columns = array(
+            'CHARACTERNAME' => array('CHARACTERNAME',false),
+            'PLAYERNAME'    => array('PLAYERNAME',false),
+            'LAST_UPDATED'  => array('LAST_UPDATED',true)
+        );
+        return $sortable_columns;
+    }
+
+	function prepare_items() {
+        global $wpdb; 
+        
+        $columns  = $this->get_columns();
+        $hidden   = array();
+        $sortable = $this->get_sortable_columns();
+
+		/* filters */
+		$this->load_filters();
+
+		
+		$sql = "SELECT characters.NAME as CHARACTERNAME, players.NAME as PLAYERNAME, characters.LAST_UPDATED
+				FROM 
+					" . VTM_TABLE_PREFIX. "PLAYER players, 
+					" . VTM_TABLE_PREFIX. "CHARACTER characters
+				WHERE 
+					players.ID = characters.PLAYER_ID
+					AND characters.DELETED = 'N'";
+					
+		$filterinfo = $this->get_filter_sql();
+		$args = array();
+		$args = array_merge($args, $filterinfo[1]);
+		
+		$sql .= $filterinfo[0];
+		
+		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']))
+			$sql .= " ORDER BY {$_REQUEST['orderby']} {$_REQUEST['order']}";
+		else
+			$sql .= " ORDER BY LAST_UPDATED ASC";
+
+		$this->_column_headers = array($columns, $hidden, $sortable);
+        $this->process_bulk_action();
+		
+		/* run query */
+		$sql = $wpdb->prepare($sql,$args);
+		//echo "<p>SQL: $sql (";
+		//print_r($filterinfo[1]);
+		//echo ")</p>";
+		$data = $wpdb->get_results($sql);
+ 		
+        $current_page = $this->get_pagenum();
+        $total_items = count($data);
+
+        $this->items = $data;
+		
+		$this->output_report("Character Activity", 'P');
+		$this->output_csv();
+        
+        $this->set_pagination_args( array(
+            'total_items' => $total_items,                  
+            'per_page'    => $total_items,                  
+            'total_pages' => 1
+        ) );
+	}
+}
 
 ?>
