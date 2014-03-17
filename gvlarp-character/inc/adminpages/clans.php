@@ -7,15 +7,18 @@ function vtm_render_clan_page(){
 	$doaction = vtm_clan_input_validation();
 	
 	if ($doaction == "add-clan") {
-		$testListTable["clans"]->add_clan($_REQUEST['clan_name'], $_REQUEST['clan_description'], $_REQUEST['clan_iconlink'], 
-			$_REQUEST['clan_clanpage'], $_REQUEST['clan_flaw'], $_REQUEST['clan_visible'], $_REQUEST['clan_costmodel'],
-			$_REQUEST['clan_costmodel_nonclan'], array($_REQUEST['clan_clan_disc1'], $_REQUEST['clan_clan_disc2'], $_REQUEST['clan_clan_disc3']));
+		$testListTable["clans"]->add_clan($_REQUEST['clan_name'], $_REQUEST['clan_description'], 
+			$_REQUEST['clan_iconlink'], $_REQUEST['clan_clanpage'], $_REQUEST['clan_flaw'], 
+			$_REQUEST['clan_visible'], $_REQUEST['clan_costmodel'],
+			$_REQUEST['clan_costmodel_nonclan'], array($_REQUEST['clan_clan_disc1'], 
+			$_REQUEST['clan_clan_disc2'], $_REQUEST['clan_clan_disc3'], $_REQUEST['clan_clan_disc4']));
 									
 	}
 	if ($doaction == "save-clan") {
 		$testListTable["clans"]->edit_clan($_REQUEST['clan_id'], $_REQUEST['clan_name'], $_REQUEST['clan_description'], $_REQUEST['clan_iconlink'], 
 			$_REQUEST['clan_clanpage'], $_REQUEST['clan_flaw'], $_REQUEST['clan_visible'], $_REQUEST['clan_costmodel'],
-			$_REQUEST['clan_costmodel_nonclan'], array($_REQUEST['clan_clan_disc1'], $_REQUEST['clan_clan_disc2'], $_REQUEST['clan_clan_disc3']));
+			$_REQUEST['clan_costmodel_nonclan'], array($_REQUEST['clan_clan_disc1'], $_REQUEST['clan_clan_disc2'], $_REQUEST['clan_clan_disc3'], 
+			$_REQUEST['clan_clan_disc4']));
 									
 	}
 
@@ -57,6 +60,7 @@ function vtm_render_clan_add_form($addaction) {
 		$clan_discipline1_id = $_REQUEST[$type . '_clan_disc1'];
 		$clan_discipline2_id = $_REQUEST[$type . '_clan_disc2'];
 		$clan_discipline3_id = $_REQUEST[$type . '_clan_disc3'];
+		$clan_discipline4_id = $_REQUEST[$type . '_clan_disc4'];
 		
 		$nextaction = $_REQUEST['action'];
 		
@@ -96,6 +100,7 @@ function vtm_render_clan_add_form($addaction) {
 		$clan_discipline1_id = $data[0]->ID;
 		$clan_discipline2_id = $data[1]->ID;
 		$clan_discipline3_id = $data[2]->ID;	
+		$clan_discipline4_id = isset($data[3]->ID) ? $data[3]->ID : 0;	
 		
 		$nextaction = "save";
 		
@@ -114,6 +119,7 @@ function vtm_render_clan_add_form($addaction) {
 		$clan_discipline1_id = 0;
 		$clan_discipline2_id = 0;
 		$clan_discipline3_id = 0;	
+		$clan_discipline4_id = 0;	
 		
 		$nextaction = "add";
 	}
@@ -208,6 +214,22 @@ function vtm_render_clan_add_form($addaction) {
 						foreach ($disciplines as $discipline) {
 							print "<option value='{$discipline->ID}' ";
 							selected($discipline->ID, $clan_discipline3_id);
+							echo ">{$discipline->NAME}</option>";
+						}
+					?>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td colspan=4>&nbsp;</td>
+			<td>Clan Discipline 4: </td>
+			<td>
+				<select name="<?php print $type; ?>_clan_disc4">
+					<option value='0' <?php selected($discipline->ID, $clan_discipline4_id); ?>>[Optional]</option>
+					<?php
+						foreach ($disciplines as $discipline) {
+							print "<option value='{$discipline->ID}' ";
+							selected($discipline->ID, $clan_discipline4_id);
 							echo ">{$discipline->NAME}</option>";
 						}
 					?>
@@ -349,18 +371,20 @@ class vtmclass_admin_clans_table extends vtmclass_MultiPage_ListTable {
 		
 			/* add clan disciplines */
 			foreach ($discids as $disc) {
-				$dataarray = array(
-						'CLAN_ID'       => $clanid,
-						'DISCIPLINE_ID' => $disc
-				);
-				
-				$wpdb->insert(VTM_TABLE_PREFIX . "CLAN_DISCIPLINE",
-					$dataarray,
-					array ( '%d', '%d')
-				);
-				
-				if ($wpdb->insert_id == 0) {
-					echo "<p style='color:green'>Failed to add clan discipline $disc for clan $name</p>";
+				if ($disc > 0) {
+					$dataarray = array(
+							'CLAN_ID'       => $clanid,
+							'DISCIPLINE_ID' => $disc
+					);
+					
+					$wpdb->insert(VTM_TABLE_PREFIX . "CLAN_DISCIPLINE",
+						$dataarray,
+						array ( '%d', '%d')
+					);
+					
+					if ($wpdb->insert_id == 0) {
+						echo "<p style='color:green'>Failed to add clan discipline $disc for clan $name</p>";
+					}
 				}
 			}
 			
@@ -408,20 +432,21 @@ class vtmclass_admin_clans_table extends vtmclass_MultiPage_ListTable {
 			$result = $wpdb->get_results($wpdb->prepare($sql, $clanid));
 			
 			foreach ($discids as $disc) {
-				$dataarray = array(
-							'CLAN_ID' => $clanid,
-							'DISCIPLINE_ID' => $disc
-				);
-				$wpdb->insert(VTM_TABLE_PREFIX . "CLAN_DISCIPLINE",
-					$dataarray,
-					array ( '%d', '%d')
-				);
-				
-				if ($wpdb->insert_id == 0) {
-					$ok = 0;
-					echo "<p style='color:green'>Failed to update clan discipline $disc for clan $name</p>";
+				if ($disc > 0) {
+					$dataarray = array(
+								'CLAN_ID' => $clanid,
+								'DISCIPLINE_ID' => $disc
+					);
+					$wpdb->insert(VTM_TABLE_PREFIX . "CLAN_DISCIPLINE",
+						$dataarray,
+						array ( '%d', '%d')
+					);
+					
+					if ($wpdb->insert_id == 0) {
+						$ok = 0;
+						echo "<p style='color:green'>Failed to update clan discipline $disc for clan $name</p>";
+					}
 				}
-				
 			}
 				
 		}
