@@ -49,7 +49,7 @@ function vtm_toolbar_link_admin( $wp_admin_bar ) {
 		$args = array(
 			'id'    => 'vtmcharacters',
 			'title' => 'Characters',
-			'href'  => admin_url('admin.php?page=vtmcharacter-plugin'),
+			'href'  => admin_url('admin.php?page=character-plugin'),
 			'meta'  => array( 'class' => 'vtm-toolbar-page' )
 		);
 		$wp_admin_bar->add_node( $args );
@@ -57,7 +57,7 @@ function vtm_toolbar_link_admin( $wp_admin_bar ) {
 		$args = array(
 			'id'    => 'vtmcharacters2',
 			'title' => 'Character Admin',
-			'href'  => admin_url('admin.php?page=vtmcharacter-plugin'),
+			'href'  => admin_url('admin.php?page=character-plugin'),
 			'parent' => 'vtmcharacters',
 			'meta'  => array( 'class' => 'vtm-toolbar-page' )
 		); 
