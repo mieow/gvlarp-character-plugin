@@ -89,10 +89,10 @@ class vtmclass_character {
 					  AND chara.SECT_ID = sects.ID
                       AND chara.ID = '%s';";
 		$sql = $wpdb->prepare($sql, $characterID);
-		/* echo "<p>SQL: $sql</p>"; */
+		//echo "<p>SQL: ($characterID) $sql</p>";
 		
 		$result = $wpdb->get_results($sql);
-		/* print_r($result); */
+		//print_r($result);
 		
 		if (count($result) > 0) {
 			$this->name         = $result[0]->cname;
