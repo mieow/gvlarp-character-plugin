@@ -38,14 +38,14 @@ class vtmclass_Plugin_Widget extends WP_Widget {
 			echo $before_title . $title . $after_title;
 			?>
 			<ul>
-			<?php if ( isset( $instance[ 'charheet_link' ] ) && !empty($instance[ 'charheet_link' ]) ) { ?>
-			<li><a href="<?php echo $instance['charheet_link']; ?>">Character Sheet</a></li>
+			<?php if ( isset( $instance[ 'charsheet_link' ] ) ) { ?>
+			<li><a href="<?php echo vtm_get_stlink_url('viewCharSheet'); ?>">Character Sheet</a></li>
 			<?php } ?>
-			<?php if ( isset( $instance[ 'profile_link' ] ) && !empty($instance[ 'profile_link' ]) ) { ?>
-			<li><a href="<?php echo $instance['profile_link']; ?>">Character Profile</a></li>
+			<?php if ( isset( $instance[ 'profile_link' ] ) ) { ?>
+			<li><a href="<?php echo vtm_get_stlink_url('viewProfile'); ?>">Character Profile</a></li>
 			<?php } ?>
-			<?php if ( isset( $instance[ 'spendxp_link' ] ) && !empty($instance[ 'spendxp_link' ]) ) { ?>
-			<li><a href="<?php echo $instance['spendxp_link']; ?>">Spend Experience</a></li>
+			<?php if ( isset( $instance[ 'spendxp_link' ] ) ) { ?>
+			<li><a href="<?php echo vtm_get_stlink_url('viewXPSpend'); ?>">Spend Experience</a></li>
 			<?php } 
 			
 				$clanlink  = vtm_get_clan_link();
@@ -85,10 +85,10 @@ class vtmclass_Plugin_Widget extends WP_Widget {
 	 */
 	public function update( $new_instance, $old_instance ) {
 		$instance = array();
-		$instance['charheet_link'] = strip_tags( $new_instance['charheet_link'] );
-		$instance['profile_link'] = strip_tags( $new_instance['profile_link'] );
-		$instance['inbox_link'] = strip_tags( $new_instance['inbox_link'] );
-		$instance['spendxp_link'] = strip_tags( $new_instance['spendxp_link'] );
+		$instance['charsheet_link'] = $new_instance['charsheet_link'];
+		$instance['profile_link']  = $new_instance['profile_link'];
+		$instance['inbox_link']    = $new_instance['inbox_link'];
+		$instance['spendxp_link']  = $new_instance['spendxp_link'];
 		$instance['dl_category'] = strip_tags( $new_instance['dl_category'] );
 		return $instance;
 	}
@@ -101,47 +101,28 @@ class vtmclass_Plugin_Widget extends WP_Widget {
 	 * @param array $instance Previously saved values from database.
 	 */
 	public function form( $instance ) {
-		if ( isset( $instance[ 'charheet_link' ] ) ) {
-			$charheet_link = $instance[ 'charheet_link' ];
-		}
-		else {
-			$charheet_link = '';
-		}
-		if ( isset( $instance[ 'profile_link' ] ) ) {
-			$profile_link = $instance[ 'profile_link' ];
-		}
-		else {
-			$profile_link = '';
-		}
+		
+		$charsheet_link = isset( $instance[ 'charsheet_link' ] );
+		$profile_link   = isset( $instance[ 'profile_link' ] );
+		$spendxp_link   = isset( $instance[ 'spendxp_link' ] );
 		if ( isset( $instance[ 'inbox_link' ] ) ) {
 			$inbox_link = $instance[ 'inbox_link' ];
-		}
-		else {
+		} else {
 			$inbox_link = '';
 		}
-		if ( isset( $instance[ 'spendxp_link' ] ) ) {
-			$spendxp_link = $instance[ 'spendxp_link' ];
-		}
-		else {
-			$spendxp_link = '';
-		}
-		if ( isset( $instance[ 'dl_category' ] ) ) {
-			$dl_category = $instance[ 'dl_category' ];
-		}
-		else {
-			$dl_category = '';
-		}
+
 		?>
 		<p>
-		<label for="<?php echo $this->get_field_id( 'charheet_link' ); ?>"><?php _e( 'Character Sheet Link:' ); ?></label>
- 		<input class="widefat" id="<?php echo $this->get_field_id( 'charheet_link' ); ?>" name="<?php echo $this->get_field_name( 'charheet_link' ); ?>" type="text" value="<?php echo esc_attr( $charheet_link ); ?>" />
+		<label for="<?php echo $this->get_field_id( 'charsheet_link' ); ?>"><?php _e( 'Show Character Sheet Link:' ); ?></label>
+ 		<input id="<?php echo $this->get_field_id( 'charsheet_link' ); ?>" name="<?php echo $this->get_field_name( 'charsheet_link' ); ?>" type="checkbox" <?php echo checked( $charsheet_link, true ); ?> />
+ 		</p><p>
+		<label for="<?php echo $this->get_field_id( 'profile_link' ); ?>"><?php _e( 'Show Profile Link:' ); ?></label>
+ 		<input id="<?php echo $this->get_field_id( 'profile_link' ); ?>" name="<?php echo $this->get_field_name( 'profile_link' ); ?>" type="checkbox" <?php echo checked( $profile_link, true ); ?> />
 		</p><p>
-		<label for="<?php echo $this->get_field_id( 'profile_link' ); ?>"><?php _e( 'Profile Link:' ); ?></label>
- 		<input class="widefat" id="<?php echo $this->get_field_id( 'profile_link' ); ?>" name="<?php echo $this->get_field_name( 'profile_link' ); ?>" type="text" value="<?php echo esc_attr( $profile_link ); ?>" />
-		</p><p>
-		<label for="<?php echo $this->get_field_id( 'spendxp_link' ); ?>"><?php _e( 'Spend XP Link:' ); ?></label>
- 		<input class="widefat" id="<?php echo $this->get_field_id( 'spendxp_link' ); ?>" name="<?php echo $this->get_field_name( 'spendxp_link' ); ?>" type="text" value="<?php echo esc_attr( $spendxp_link ); ?>" />
-		</p><p>
+		<label for="<?php echo $this->get_field_id( 'spendxp_link' ); ?>"><?php _e( 'Show Spend XP Link:' ); ?></label>
+ 		<input id="<?php echo $this->get_field_id( 'spendxp_link' ); ?>" name="<?php echo $this->get_field_name( 'spendxp_link' ); ?>" type="checkbox" <?php echo checked( $spendxp_link, true ); ?> />
+		</p>
+		<p>
 		<label for="<?php echo $this->get_field_id( 'inbox_link' ); ?>"><?php _e( 'Inbox Link:' ); ?></label>
  		<input class="widefat" id="<?php echo $this->get_field_id( 'inbox_link' ); ?>" name="<?php echo $this->get_field_name( 'inbox_link' ); ?>" type="text" value="<?php echo esc_attr( $inbox_link ); ?>" />
 		</p>
