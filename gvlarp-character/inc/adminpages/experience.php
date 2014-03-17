@@ -431,7 +431,7 @@ class vtmclass_admin_xpapproval_table extends vtmclass_MultiPage_ListTable {
 			$result = $wpdb->get_results($sql);
 			
 			$specialisation = $data[0]->SPECIALISATION ? ("(" . $data[0]->SPECIALISATION . ") ") : "";
-			touch_last_updated($data[0]->CHARACTER_ID);
+			vtm_touch_last_updated($data[0]->CHARACTER_ID);
 			
 			$data = array (
 				'PLAYER_ID'    => $data[0]->PLAYER_ID,
@@ -520,7 +520,7 @@ class vtmclass_admin_xpapproval_table extends vtmclass_MultiPage_ListTable {
 					'%d', '%d', '%d', '%s'
 				)
 			);
-			touch_last_updated($data2update->CHARACTER_ID);
+			vtm_touch_last_updated($data2update->CHARACTER_ID);
 		}
 		elseif ($data2update->CHARTABLE_ID != 0 && $data2update->CHARTABLE_LEVEL < 0) { /* remove flaw */
 			$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "CHARACTER_MERIT where ID = %d;";

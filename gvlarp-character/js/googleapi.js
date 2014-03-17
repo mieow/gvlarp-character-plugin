@@ -20,7 +20,7 @@ function vtm_initialize() {
 	map = new google.maps.Map(canvas, mapOptions);
 	
 	document.getElementById('feedingmap_status').innerHTML = 'Loading Domains';
-	loadDomains(map);
+	vtm_loadDomains(map);
   
 	document.getElementById('feedingmap_status').innerHTML = 'Ready';
 }
@@ -48,7 +48,7 @@ function vtm_loadScript() {
 
 	var script = document.createElement("script");
 	script.type = "text/javascript";
-	script.src = "http://maps.googleapis.com/maps/api/js?key=" + apikey + "&sensor=false&callback=initialize";
+	script.src = "http://maps.googleapis.com/maps/api/js?key=" + apikey + "&sensor=false&callback=vtm_initialize";
 	document.body.appendChild(script);
 }
 
