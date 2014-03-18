@@ -18,7 +18,6 @@ function vtm_doPendingXPSpend($character) {
 	$characterID = vtm_establishCharacterID($character);
 	$playerID    = vtm_establishPlayerID($character);
 		
-	/* Stats */
 	if (isset($_REQUEST['stat_level'])) {
 		$newid = vtm_save_to_pending('stat', 'CHARACTER_STAT', 'STAT', 'STAT_ID', $playerID, $characterID);
 	}
@@ -779,6 +778,7 @@ function vtm_render_disciplines($characterID, $maxRating, $pendingSpends, $xp_av
 				NOT(ISNULL(clandisc.DISCIPLINE_ID)) as isclan,
 				IF(ISNULL(clandisc.DISCIPLINE_ID),'Non-Clan Discipline','Clan Discipline') as grp,
 				cha_disc.level,
+				cha_disc.ID as id,
 				disc.ID as item_id,
 				pendingspend.CHARTABLE_LEVEL,
 				IF(ISNULL(clandisc.DISCIPLINE_ID),nonclansteps.XP_COST,clansteps.XP_COST) as XP_COST,
@@ -868,6 +868,7 @@ function vtm_render_paths($characterID, $maxRating, $pendingSpends, $xp_avail) {
 				disc.name as grp,
 				char_disc.level as disclevel,
 				cha_path.level,
+				cha_path.ID as id,
 				path.ID as item_id,
 				pendingspend.CHARTABLE_LEVEL,
 				steps.XP_COST as XP_COST,
@@ -1911,13 +1912,13 @@ function vtm_save_to_pending ($type, $table, $itemtable, $itemidname, $playerID,
 
 	$newid = "";
 
-	$ids             = $_REQUEST[$type . '_id'];
-	$levels          = $_REQUEST[$type . '_level'];
-	$specialisations = $_REQUEST[$type . '_spec'];
-	$training        = $_REQUEST[$type . '_training'];
-	$itemid          = $_REQUEST[$type . '_itemid'];
-	$costlvls        = $_REQUEST[$type . '_cost'];
-	$comments        = $_REQUEST[$type . '_comment'];
+	$ids             = isset($_REQUEST[$type . '_id'])       ? $_REQUEST[$type . '_id'] : array();
+	$levels          = isset($_REQUEST[$type . '_level'])    ? $_REQUEST[$type . '_level'] : array();
+	$specialisations = isset($_REQUEST[$type . '_spec'])     ? $_REQUEST[$type . '_spec'] : array();
+	$training        = isset($_REQUEST[$type . '_training']) ? $_REQUEST[$type . '_training'] : array();
+	$itemid          = isset($_REQUEST[$type . '_itemid'])   ? $_REQUEST[$type . '_itemid'] : array();
+	$costlvls        = isset($_REQUEST[$type . '_cost'])     ? $_REQUEST[$type . '_cost'] : array();
+	$comments        = isset($_REQUEST[$type . '_comment'])  ? $_REQUEST[$type . '_comment'] : array();
 	
 	//print_r($_REQUEST);
 	//echo "<pre>";
@@ -1935,8 +1936,8 @@ function vtm_save_to_pending ($type, $table, $itemtable, $itemidname, $playerID,
 				'CHARTABLE_LEVEL' => $level,
 				'AWARDED'         => Date('Y-m-d'),
 				'AMOUNT'          => $costlvls[$index] * -1,
-				'COMMENT'         => $comments[$index],
-				'SPECIALISATION'  => $specialisations[$index],
+				'COMMENT'         => isset($comments[$index]) ? $comments[$index] : '',
+				'SPECIALISATION'  => isset($specialisations[$index]) ? $specialisations[$index] : '',
 				'TRAINING_NOTE'   => $training[$index],
 				'ITEMTABLE'       => $itemtable,
 				'ITEMNAME'        => $itemidname,
@@ -2130,6 +2131,9 @@ function vtm_validate_details($characterID) {
 
 	$outputError = "";
 	
+	$defaultTrainingString = "";
+	$defaultSpecialisation = "";
+	
 	if (isset($_REQUEST['stat_level'])) {
 		$spec_at      = $_REQUEST['stat_spec_at'];
 		$statlevels   = $_REQUEST['stat_level'];
@@ -2150,8 +2154,7 @@ function vtm_validate_details($characterID) {
 			$outputError .= "<p>Please fix missing or invalid <a href='#gvid_xpst_stat'>Attribute</a> specialisations</p>";
 			
 		foreach ($stattraining as $id => $trainingnote) {
-			if ($statlevels[$id] &&
-				($trainingnote == "" || $trainingnote == $defaultTrainingString)) {
+			if ($statlevels[$id] && ($trainingnote == "" || $trainingnote == $defaultTrainingString)) {
 				$stat_train_error[$id] = 1;
 			}
 		}
