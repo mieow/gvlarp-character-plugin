@@ -82,10 +82,9 @@ function nocturnus_logo_url_title() {
 }
 add_filter( 'login_headertitle', 'nocturnus_logo_url_title' );
 
-function nocturnus_stylesheet() { ?>
-    <link rel="stylesheet" id="custom_wp_admin_css"  href="<?php echo get_stylesheet_directory_uri() . '/css/style-login.css'; ?>" type="text/css" media="all" />
-<?php }
+function nocturnus_stylesheet() {
+	 wp_enqueue_style('custom_wp_admin_css', get_template_directory_uri() . '/css/style-login.css', false, null);
+}
 add_action( 'login_enqueue_scripts', 'nocturnus_stylesheet' );
-
 
 ?>

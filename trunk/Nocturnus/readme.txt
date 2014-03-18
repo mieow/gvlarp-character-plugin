@@ -29,6 +29,10 @@ As standard
 
 == Changelog ==
 
+= 2.2 = 
+* Used 'wp_enqueue_style' function for setting up login stylesheet
+* Moved 'wp_head' function to immediately before </head> HTML tag
+
 = 2.1 = 
 * Name updated in style.css to remove the word "Theme", as per feedback from submission
 
