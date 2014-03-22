@@ -11,7 +11,6 @@ div.gvspendbutton  {
 div.gvspendbutton input.gvxp_submit {
 	float: none;
 }
-
 /* =Character Sheet
 -------------------------------------------------------------- */
 div#csheet {
@@ -40,6 +39,7 @@ div#csheet {
     font-size:10pt;
     padding:1px;
 	border:none;
+	vertical-align:top;
 }
 
 #csheet .gvcol_spec {
