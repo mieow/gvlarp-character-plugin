@@ -443,3 +443,60 @@ h4.gvxp_head  {
 #map-canvas img {max-width: none;}
 table.feedingmapkey {width:auto;}
 #feedingmap_status {display:none;}
+
+/* =Character Generation
+-------------------------------------------------------------- */
+
+#vtm-chargen-flow {
+	clear: both;
+	display: block;
+}
+#chargen_form #vtm-chargen-flow .step-button {
+	border-radius: 0;
+	width: 65px;
+	padding: 5px;
+	margin: 0;
+	font-size: 10px;
+	color: black;
+	min-height: 50px
+}
+#chargen_form #vtm-chargen-flow  li{
+	float: left;
+	position: relative;
+}
+
+#chargen_form #vtm-chargen-flow li.step-selected {
+	background: darkgrey;
+	border: 1px solid grey;
+}
+#chargen_form #vtm-chargen-flow li.step-disable {
+	background: darkgrey;
+	border: 1px solid grey;
+	color: grey;
+}
+#chargen_form #vtm-chargen-flow li.step-enable {
+	padding: 0px;
+	width: 75px;
+}
+#chargen_form #vtm-chargen-flow input.button-chargen-step  {
+	background: grey;
+	border: 1px solid darkgrey;
+	white-space: normal;
+	border-radius: 0;
+	margin: 0px;
+	padding: 5px;
+	width: 75px;
+}
+#chargen_form #vtm-chargen-flow input.button-chargen-step:hover {
+	background: #444444;
+}
+
+#chargen_form #vtm-chargen-flow ul {
+	list-style: none;
+	margin: 0;
+	z-index:1;
+}
+#chargen-main {
+	clear: both;
+	padding-top: 10px;
+}

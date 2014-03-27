@@ -64,6 +64,9 @@ function vtm_register_character_settings() {
 	register_setting( 'vtm_options_group', 'vtm_xp_dotcolour' );
 	register_setting( 'vtm_options_group', 'vtm_xp_dotlinewidth' );
 
+	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_mustbeloggedin' );
+	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_wpaccount' );
+	
 	register_setting( 'feedingmap_options_group', 'feedingmap_google_api' );  // google api key
 	register_setting( 'feedingmap_options_group', 'feedingmap_centre_lat' );  // centre point, latitude
 	register_setting( 'feedingmap_options_group', 'feedingmap_centre_long' ); // centre point, latitude

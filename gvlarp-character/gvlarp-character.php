@@ -107,6 +107,7 @@ require_once VTM_CHARACTER_URL . 'inc/shortcodes.php';
 require_once VTM_CHARACTER_URL . 'inc/adminpages.php';
 require_once VTM_CHARACTER_URL . 'inc/viewcharacter.php';
 require_once VTM_CHARACTER_URL . 'inc/profile.php';
+require_once VTM_CHARACTER_URL . 'inc/chargen.php';
 
 $title = "V:tM Character Management";
 
@@ -342,6 +343,15 @@ function vtm_get_generations() {
     add_shortcode('debug_name_value_pairs', 'vtm_print_name_value_pairs');
 
     function vtm_printSelectCounter($name, $selectedValue, $lowerValue, $upperValue) {
+	
+		switch ($name) {
+			case 'Conscience'  : $upperValue = 5; break;
+			case 'Conviction'  : $upperValue = 5; break;
+			case 'Self Control': $upperValue = 5; break;
+			case 'Courage'     : $upperValue = 5; break;
+			case 'Instinct'    : $upperValue = 5; break;
+		}
+	
         $output = "<select name=\"" . $name . "\">";
         if ($selectedValue == "") {
             $selectedValue = "-100";
