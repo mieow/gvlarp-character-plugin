@@ -37,6 +37,8 @@ function vtm_character_options() {
 	// Get web pages
 	$stlinks = $wpdb->get_results("SELECT VALUE, LINK FROM " . VTM_TABLE_PREFIX. "ST_LINK ORDER BY ORDERING", OBJECT_K);
 	
+	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+	$noclan_url = remove_query_arg( 'clan', $current_url );
 	?>
 	<div class="wrap">
 		<h2>Characters <a class="add-new-h2" href="<?php echo $stlinks['editCharSheet']->LINK ; ?>">Add New</a></h2>
@@ -69,9 +71,6 @@ function vtm_character_options() {
 		
 		<div class="char_clan_menu">
 		<?php
-			$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
-			
-			$noclan_url = remove_query_arg( 'clan', $current_url );
 			$arr = array('<a href="' . htmlentities($noclan_url) . '" class="nav_clan">All</a>');
 			foreach (vtm_get_clans() as $clan) {
 				$clanurl = add_query_arg('clan', $clan->ID);
@@ -279,7 +278,6 @@ function vtm_get_edit_character_content() {
 
 	if (isset($_REQUEST['cSubmit']) && $_REQUEST['cSubmit'] == "Submit character changes") {
 		$characterID = vtm_processCharacterUpdate($characterID);
-		$output .= "<br /><center><strong>Update successful</strong></center><br />";
 	}
 	$output .= vtm_displayUpdateCharacter($characterID);
 	
@@ -405,7 +403,7 @@ function vtm_displayUpdateCharacter($characterID) {
 
 		if ((int) ($characterID) > 0) { $output .= "<input type='HIDDEN' name=\"characterID\" value=\"" . $characterID . "\" />"; }
 		$output .= "<table class='gvplugin' id=\"gvid_uctu\">
-						<tr><td class=\"gvcol_1 gvcol_key\">Character Name</td>
+						<tr><td class=\"gvcol_1 gvcol_key\">Character Name*</td>
 							<td class=\"gvcol_2 gvcol_val\" colspan=2><input type='text' maxlength=60 name=\"charName\" value=\"" . $characterName . "\"></td>
 							<td class=\"gvcol_4 gvcol_key\">Player Name</td>
 							<td class='gvcol_5 gvcol_val' colspan=2><select name=\"charPlayer\">";
@@ -452,8 +450,9 @@ function vtm_displayUpdateCharacter($characterID) {
 						   <td class=\"gvcol_2 gvcol_val\" colspan=2><input type='text' maxlength=10 name=\"charDoB\" value=\"" . $characterDateOfBirth . "\" /> YYYY-MM-DD</td>
 								<td class=\"gvcol_4 gvcol_key\">Date of Embrace</td>
 						   <td class='gvcol_5 gvcol_val' colspan=2><input type='text' maxlength=10 name=\"charDoE\" value=\"" . $characterDateOfEmbrace . "\" /> YYYY-MM-DD</td></tr>";
-		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Road or Path</td>
-							<td class=\"gvcol_2 gvcol_val\"><select name=\"charRoadOrPath\">";
+		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Road or Path*</td>
+							<td class=\"gvcol_2 gvcol_val\">";
+		$output .= "<select name=\"charRoadOrPath\">";
 		foreach ($roadsOrPaths as $roadOrPath) {
 			$output .= "<option value=\"" . $roadOrPath->ID . "\" ";
 			if ($roadOrPath->ID == $characterRoadOrPathId || ($characterID == 0 && $roadOrPath->name == 'Humanity')) {
@@ -461,8 +460,22 @@ function vtm_displayUpdateCharacter($characterID) {
 			}
 			$output .= ">" . $roadOrPath->name . "</option>";
 		}
-		$output .= "</select></td><td class=\"gvcol_3 gvcol_val\"><input type='text' maxlength=3 name=\"charRoadOrPathRating\" value=\"" . $characterRoadOrPathRating . "\" /></td>";
-		$output .= "<td class=\"gvcol_4 gvcol_key\">Domain</td>
+		$output .= "</select>";
+		$output .= "</td><td class=\"gvcol_3 gvcol_val\">";
+		
+		$sql = "SELECT SUM(AMOUNT) FROM " . VTM_TABLE_PREFIX . "CHARACTER_ROAD_OR_PATH WHERE CHARACTER_ID = %d";
+		$sql = $wpdb->prepare($sql, $characterID);
+		$result = $wpdb->get_var($sql);
+		if ($result > 0) {
+			$sql = "SELECT NAME FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s";
+			$pathname = $wpdb->get_var($wpdb->prepare($sql, $characterRoadOrPathId));
+			$output .= "<input type='hidden' name=\"charRoadOrPathRating\" value=\"" . $result . "\" />";
+			$output .= "<span>$result</span>";
+		} else {
+			$output .= "<input type='text' maxlength=3 name=\"charRoadOrPathRating\" value=\"" . $characterRoadOrPathRating . "\" />";
+		}
+		
+		$output .= "</td><td class=\"gvcol_4 gvcol_key\">Domain</td>
 						<td class='gvcol_5 gvcol_val' colspan=2><select name=\"charDomain\">";
 		foreach ($domains as $domain) {
 			$output .= "<option value=\"" . $domain->ID . "\" ";
@@ -573,33 +586,41 @@ function vtm_displayUpdateCharacter($characterID) {
 		}
 		$stats = vtm_listStats();
 
-		$output .= "<hr /><table class='gvplugin' id=\"gvid_uctsto\">
-							  <tr><td class=\"gvcol_1 gvcol_val\"><table class='gvplugin' id=\"gvid_uctsti\">
-									  <tr><th class=\"gvthead gvcol_1\">Stat Name</th>
+		$i = 0;
+		$head = "<tr><th class=\"gvthead gvcol_1\">Stat Name</th>
 										  <th class=\"gvthead gvcol_2\">Value</th>
 										  <th class=\"gvthead gvcol_3\">Comment</th>
 										  <th class=\"gvthead gvcol_4\">Delete</th></tr>";
 
-		$i = 0;
+		$output .= "<hr /><table class='gvplugin' id=\"gvid_uctsto\">
+							  <tr><td class=\"gvcol_1 gvcol_val\"><table class='gvplugin' id=\"gvid_uctsti$i\">$head";
+		$lastgroup;
+		$thisgroup;
+		$col = 0;
 		foreach ($stats as $stat) {
-			if ($i == 3) {
-				$output .= "</table></td><td class=\"gvcol\"><table class='gvplugin' id=\"gvid_uctsti\"><tr><th class=\"gvthead gvcol_1\">Stat Name</th>
-																								  <th class=\"gvthead gvcol_2\">Value</th>
-																								  <th class=\"gvthead gvcol_3\">Comment</th>
-																								  <th class=\"gvthead gvcol_4\">Delete</th></tr>";
+			$thisgroup = $stat->grouping;
+			
+			if ($i > 0 && $thisgroup != $lastgroup) {
+				$output .= "</table></td>";
+				
+				if ($col == 1) {
+					$output .= "</tr><tr>";
+					$col = 0;
+				} else {
+					$col++;
+				}
+				
+				$output .= "<td class=\"gvcol\"><table class='gvplugin' id=\"gvid_uctsti$i\">$head";
 			}
-			elseif ($i == 9) {
-				$output .= "</table></td><td class=\"gvcol\"><table class='gvplugin' id=\"gvid_uctsti\">";
-			}
-			elseif ($i == 6) {
-				$output .= "</table></td></tr><tr><td class=\"gvcol\"><table class='gvplugin' id=\"gvid_uctsti\">";
-			}
-			elseif ($i == 14) {
-				$output .= "</table></td></tr><tr><td class=\"gvcol\"><table class='gvplugin' id=\"gvid_uctsti\">";
-			}
+
 			$statName = $stat->name;
 			$currentStat = $arr[$statName];
-			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $stat->name . "</td>"
+			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $stat->name;
+			switch($stat->name) {
+				case 'Willpower': $output .= "*"; break;
+			}
+			
+			$output .= "</td>"
 				. "<td class=\"gvcol_2 gvcol_val\">" . vtm_printSelectCounter($statName, $currentStat->level, 0, 10) . "</td>"
 				. "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\"" . $statName . "Comment\" value=\"" . stripslashes($currentStat->comment) . "\" /></td>"
 				. "<td class='gvcol_4 gvcol_val'>";
@@ -611,6 +632,7 @@ function vtm_displayUpdateCharacter($characterID) {
 			$output .= "<input type='HIDDEN' name=\"" . $statName . "ID\" value=\"" . $currentStat->cstatid . "\" />"
 				. "</td></tr>";
 			$i++;
+			$lastgroup = $thisgroup;
 		}
 		$output .= "</table></td></tr></table><hr />";
 
@@ -1168,105 +1190,113 @@ function vtm_processCharacterUpdate($characterID) {
 		$characterHarpyQuote = $_POST['charHarpyQuote'];
 	}
 	$characterPortraitURL      = $_POST['charPortraitURL'];
+	
+	// Input Validation
+	//	* Check that the wordpress ID exists
+	//	* Check that no other characters have the wordpress ID
+	//	* Check that no other characters have the same character name
+	//	* New characters - Check that a path rating has been entered (required)
+	//	* New characters - Check that a willpower rating has been entered (required)
+	
+	if (isset($characterWordPress) && $characterWordPress != "") {
+		if (!username_exists( $characterWordPress )) {
+			echo "<p class=\"vtm_warn\">Warning: Wordpress username $characterWordPress does not exist and will need to be created</p>";
+		}
+		if (vtm_wordpressid_used($characterWordPress, $characterID)) {
+			echo "<p class=\"vtm_error\">Error: Wordpress username $characterWordPress is used for another character</p>";
+			$characterWordPress = "";
+		}
+	} else {
+			echo "<p class=\"vtm_warn\">Warning: No Wordpress username has been specified</p>";
+	}
+	if (vtm_charactername_used($characterName, $characterID)) {
+			echo "<p class=\"vtm_error\">Error: Character name " . stripslashes($characterName) . " already exists</p>";
+			$characterName .= "(duplicate)";
+	}
 
 	if ((int) $characterID > 0) {
-		$sql = "UPDATE " . $table_prefix . "CHARACTER
-						SET name                     = %s,
-							public_clan_id           = %d,
-							private_clan_id          = %d,
-							generation_id            = %d,
-							date_of_birth            = %s,
-							date_of_embrace          = %s,
-							sire                     = %s,
-							player_id                = %d,
-							character_type_id        = %d,
-							character_status_id      = %d,
-							character_status_comment = %s,
-							road_or_path_id          = %d,
-							road_or_path_rating      = %d,
-							domain_id                = %d,
-							sect_id                  = %d,
-							wordpress_id             = %s,
-							visible                  = %s
-						WHERE ID = " . $characterID;
-		$sql = $wpdb->prepare($sql, $characterName,             $characterPublicClan,    $characterPrivateClan,   $characterGeneration,
-			$characterDateOfBirth,      $characterDateOfEmbrace, $characterSire,          $characterPlayer,
-			$characterType,             $characterStatus,        $characterStatusComment, $characterRoadOrPath,
-			$characterRoadOrPathRating, $characterDomain,        $characterSect,
-			$characterWordPress,     $characterVisible);
-					}
-	else {
-		$sql = "INSERT INTO " . $table_prefix . "CHARACTER (name,                public_clan_id,      private_clan_id,          generation_id,
-															date_of_birth,       date_of_embrace,     sire,                     player_id,
-															character_type_id,   character_status_id, character_status_comment, road_or_path_id,
-															road_or_path_rating, domain_id,           sect_id,					wordpress_id,             
-															visible, deleted)
-						VALUES (%s, %d, %d, %d, %s, %s, %s, %d, %d, %d, %s, %d, %d, %d, %d, %s, %s, 'N')";
-		$sql = $wpdb->prepare($sql, $characterName,             $characterPublicClan,    $characterPrivateClan,   $characterGeneration,
-			$characterDateOfBirth,      $characterDateOfEmbrace, $characterSire,          $characterPlayer,
-			$characterType,             $characterStatus,        $characterStatusComment, $characterRoadOrPath,
-			$characterRoadOrPathRating, $characterDomain,        $characterSect,
-			$characterWordPress,     $characterVisible);
-	}
-	$wpdb->query($sql);
-
-	if (!((int) $characterID > 0)) {
-		$sql = "SELECT id
-						FROM " . $table_prefix . "CHARACTER
-						WHERE name         = %s
-						  AND wordpress_id = %s";
-		$characterIDs = $wpdb->get_results($wpdb->prepare($sql, $characterName, $characterWordPress));
-		foreach ($characterIDs as $id) {
-			$characterID = $id->id;
+		
+		$result = $wpdb->update($table_prefix . "CHARACTER",
+				array (
+					'NAME' => $characterName, 								'PUBLIC_CLAN_ID' => $characterPublicClan,
+					'PRIVATE_CLAN_ID' => $characterPrivateClan, 			'GENERATION_ID' => $characterGeneration,
+					'DATE_OF_BIRTH' => $characterDateOfBirth, 				'DATE_OF_EMBRACE' => $characterDateOfEmbrace,
+					'SIRE' => $characterSire,								'PLAYER_ID' => $characterPlayer,
+					'CHARACTER_TYPE_ID' => $characterType,					'CHARACTER_STATUS_ID' => $characterStatus,
+					'CHARACTER_STATUS_COMMENT' =>  $characterStatusComment,	'ROAD_OR_PATH_ID' => $characterRoadOrPath,
+					'ROAD_OR_PATH_RATING' => $characterRoadOrPathRating,	'DOMAIN_ID' => $characterDomain,
+					'SECT_ID' => $characterSect,							'WORDPRESS_ID' => $characterWordPress,
+					'VISIBLE' => $characterVisible
+				),
+				array (
+					'ID' => $characterID
+				)
+		);
+		if (!$result && $result !== 0){
+			$wpdb->print_error();
+			echo "<p style='color:red'>Could not update $characterName ($characterID)</p>";
+			return $characterID;
 		}
-
-		$sql = "INSERT INTO ". $table_prefix . "CHARACTER_PROFILE (character_id, quote, portrait)
-						VALUES (%d, %s, %s)";
-		$wpdb->query($wpdb->prepare($sql, $characterID, $characterHarpyQuote, $characterPortraitURL));
-
-		$xpReasonID = vtm_establishXPReasonID('Initial XP');
-		$sql = "INSERT INTO " . $table_prefix . "PLAYER_XP (player_id, character_id, xp_reason_id, awarded, amount, comment) "
-			. "VALUES (%d, %d, %d, SYSDATE(), 0, 'New character added')";
-		$wpdb->query($wpdb->prepare($sql, $characterPlayer, $characterID, $xpReasonID));
-
-		$pathReasonID = vtm_establishPathReasonID('Initial');
-		$sql = "INSERT INTO ". $table_prefix . "CHARACTER_ROAD_OR_PATH (character_id, path_reason_id, awarded, amount, comment) "
-			.  "VALUES (%d, %d, SYSDATE(), %d, 'Character creation')";
-		$sql = $wpdb->prepare($sql, $characterID, $pathReasonID, $characterRoadOrPathRating);
-		//echo "<p>SQL: $sql</p>";
-		$wpdb->query($sql);
-
-		$tempStatReasonID = vtm_establishTempStatReasonID('Initial');
-		$tempStatID = vtm_establishTempStatID('Blood');
-		$sql = "INSERT INTO " . $table_prefix . "CHARACTER_TEMPORARY_STAT (character_id, temporary_stat_id, temporary_stat_reason_id, awarded, amount, comment) "
-			. " VALUES (%d, %d, %d, SYSDATE(), 10, 'Character creation')";
-		$wpdb->query($wpdb->prepare($sql, $characterID, $tempStatID, $tempStatReasonID));
+		
 	}
 	else {
-		$sql = "SELECT id
-						FROM " . $table_prefix . "CHARACTER_PROFILE
-						WHERE character_id = %d";
-
-		$profileIDs = $characterIDs = $wpdb->get_results($wpdb->prepare($sql, $characterID));
-		$profileID = -1;
-
-		foreach ($profileIDs as $currentProfileID) {
-			$profileID = $currentProfileID->id;
+		$fail = 0;
+		if (!isset($characterName) || $characterName == "New Name") {
+			echo "<p class=\"vtm_error\">Error: You must specify a name for the character</p>";
+			$fail = 1;
 		}
+		if (!isset($characterRoadOrPathRating) || $characterRoadOrPathRating == "") {
+			$sql = "SELECT NAME FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s";
+			$pathname = $wpdb->get_var($wpdb->prepare($sql, $characterRoadOrPath));
+			
+			echo "<p class=\"vtm_error\">Error: You must enter a $pathname rating for the character</p>";
+			$fail = 1;
+		}
+		if (!isset($_POST['Willpower']) || $_POST['Willpower'] == ""  || $_POST['Willpower'] == -100) {
+			echo "<p class=\"vtm_error\">Error: You must enter a Willpower rating for the character</p>";
+			$fail = 1;
+		}
+		if ($fail)
+			return $characterID;
 
-		if ($profileID == -1) {
-			$sql = "INSERT INTO ". $table_prefix . "CHARACTER_PROFILE (character_id, quote, portrait)
-							VALUES (%d, %s, %s)";
-			$sql = $wpdb->prepare($sql, $characterID, $characterHarpyQuote, $characterPortraitURL);
-		}
-		else {
-			$sql = "UPDATE " . $table_prefix . "CHARACTER_PROFILE
-							SET quote    = %s,
-								portrait = %s
-							WHERE id = %d";
-			$sql = $wpdb->prepare($sql, $characterHarpyQuote, $characterPortraitURL, $profileID);
-		}
-		$wpdb->query($sql);
+		$wpdb->insert($table_prefix . "CHARACTER",
+				array (
+					'NAME' => $characterName, 								'PUBLIC_CLAN_ID' => $characterPublicClan,
+					'PRIVATE_CLAN_ID' => $characterPrivateClan, 			'GENERATION_ID' => $characterGeneration,
+					'DATE_OF_BIRTH' => $characterDateOfBirth, 				'DATE_OF_EMBRACE' => $characterDateOfEmbrace,
+					'SIRE' => $characterSire,								'PLAYER_ID' => $characterPlayer,
+					'CHARACTER_TYPE_ID' => $characterType,					'CHARACTER_STATUS_ID' => $characterStatus,
+					'CHARACTER_STATUS_COMMENT' =>  $characterStatusComment,	'ROAD_OR_PATH_ID' => $characterRoadOrPath,
+					'ROAD_OR_PATH_RATING' => $characterRoadOrPathRating,	'DOMAIN_ID' => $characterDomain,
+					'SECT_ID' => $characterSect,							'WORDPRESS_ID' => $characterWordPress,
+					'VISIBLE' => $characterVisible,							'DELETED' => 'N'
+				),
+				array (
+					'%s', '%d', '%d', '%d', '%s', '%s', '%s', '%d', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%s', '%s', '%s'
+				)
+		);
+		$characterID = $wpdb->insert_id;
+		if ($wpdb->insert_id == 0) {
+			echo "<p style='color:red'><b>Error:</b> Character $characterName could not be added</p>";
+			$wpdb->print_error();
+			return $characterID;
+		} 
+		
+	}
+	
+	// Put an initial value into data tables, if they don't already exist
+	// Returns the IDs for the relevant rows in each table
+	$tableIDs = vtm_setupInitialCharTables($characterID, $characterPlayer, $characterRoadOrPathRating,
+		array('Blood' => 10, 'Willpower' => $_POST['Willpower']));
+	
+	// Update Profile
+	$result = $wpdb->update($table_prefix . "CHARACTER_PROFILE",
+				array ('QUOTE' => $characterHarpyQuote, 'PORTRAIT' => $characterPortraitURL),
+				array ('ID' => $tableIDs['profile']));
+	if (!$result && $result !== 0) {
+		$wpdb->print_error();
+		echo "<p style='color:red'>Could not update profile for $characterName ({$tableIDs['profile']})</p>";
+		return $characterID;
 	}
 
 	$stats = vtm_listStats();
@@ -1285,13 +1315,6 @@ function vtm_processCharacterUpdate($characterID) {
 				$sql = $wpdb->prepare($sql, $_POST[$currentStat], $_POST[$currentStat . "Comment"], $_POST[$currentStat . "ID"]);
 			}
 			else {
-				if ($currentStat == "Willpower") {
-					$tempStatReasonID = vtm_establishTempStatReasonID('Initial');
-					$tempStatID       = vtm_establishTempStatID('Willpower');
-					$sql = "INSERT INTO " . $table_prefix . "CHARACTER_TEMPORARY_STAT (character_id, temporary_stat_id, temporary_stat_reason_id, awarded, amount, comment) "
-						. " VALUES (%d, %d, %d, SYSDATE(), %d, 'Character creation')";
-					$wpdb->query($wpdb->prepare($sql, $characterID, $tempStatID, $tempStatReasonID, $_POST[$currentStat]));
-				}
 
 				$sql = "INSERT INTO " . $table_prefix . "CHARACTER_STAT (character_id, stat_id, level, comment)
 								VALUES (%d, %d, %d, %s)";
@@ -1563,6 +1586,8 @@ function vtm_processCharacterUpdate($characterID) {
 	}
 	
 	vtm_touch_last_updated($characterID);
+	
+	echo "<p><center><strong>Update successful</strong></center></p>";
 
 	return $characterID;
 }
@@ -1605,6 +1630,144 @@ function vtm_deleteCharacter($characterID) {
 	vtm_touch_last_updated($characterID);
 	
 	return $output;
+}
+
+function vtm_setupInitialCharTables($characterID, $playerID, $characterRoadOrPathRating,
+	$tempStatRating = array ('Blood' => 10, 'Willpower' => 10)) {
+	global $wpdb;
+	
+	$outIDs = array();
+
+	// CHARACTER PROFILE
+	$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARACTER_PROFILE WHERE CHARACTER_ID = %s";
+	$result = $wpdb->get_var($wpdb->prepare($sql, $characterID));
+	
+	if (!$result) {
+		$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_PROFILE",
+			array (
+				'CHARACTER_ID' => $characterID,
+				'QUOTE' => '',
+				'PORTRAIT' => ''
+			),
+			array ('%s', '%s')
+		);
+		$outIDs['profile'] = $wpdb->insert_id;
+	} else {
+		$outIDs['profile'] = $result;
+	}
+	
+	// INITIAL XP
+	$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "PLAYER_XP WHERE CHARACTER_ID = %s";
+	$result = $wpdb->get_var($wpdb->prepare($sql, $characterID));
+
+	if (!$result) {
+		$xpReasonID = vtm_establishXPReasonID('Initial XP');
+		$wpdb->insert(VTM_TABLE_PREFIX . "PLAYER_XP",
+			array (
+				'PLAYER_ID' => $characterID,
+				'CHARACTER_ID' => $playerID,
+				'XP_REASON_ID' => $xpReasonID,
+				'AWARDED' => Date('Y-m-d'),
+				'AMOUNT'  => 0,
+				'COMMENT' => "Initial Experience"
+			),
+			array ('%d', '%d', '%d', '%s', '%d', '%s')
+		);
+		$outIDs['xp'] = $wpdb->insert_id;
+	} else {
+		$outIDs['xp'] = $result;
+	}
+
+	// INITIAL PATH
+	$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARACTER_ROAD_OR_PATH WHERE CHARACTER_ID = %s";
+	$result = $wpdb->get_var($wpdb->prepare($sql, $characterID));
+	
+	if (!$result) {
+		$pathReasonID = vtm_establishPathReasonID('Initial');
+		$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_ROAD_OR_PATH",
+			array (
+				'CHARACTER_ID' => $characterID,
+				'PATH_REASON_ID' => $pathReasonID,
+				'AWARDED' => Date('Y-m-d'),
+				'AMOUNT'  => $characterRoadOrPathRating,
+				'COMMENT' => "Initial Path of Enlightenment"
+			),
+			array ('%d', '%d', '%s', '%d', '%s')
+		);
+		$outIDs['path'] = $wpdb->insert_id;
+	} else {
+		$outIDs['path'] = $result;
+	}
+
+	// INITIAL TEMP STATS
+	$tempstatIDs = array (
+		'Blood'     => vtm_establishTempStatID('Blood'), 
+		'Willpower' => vtm_establishTempStatID('Willpower')
+	);
+	$tempStatReasonID = vtm_establishTempStatReasonID('Initial');
+	foreach ($tempstatIDs as $tempstatID) {
+		$sql = "SELECT ID
+				FROM " . VTM_TABLE_PREFIX . "CHARACTER_TEMPORARY_STAT 
+				WHERE CHARACTER_ID = %s AND TEMPORARY_STAT_ID = %d";
+		$result = $wpdb->get_var($wpdb->prepare($sql, $characterID, $tempstatID));
+	
+		if (!$result) {
+			$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_TEMPORARY_STAT",
+				array (
+					'CHARACTER_ID' => $characterID,
+					'TEMPORARY_STAT_ID' => $tempstatID,
+					'TEMPORARY_STAT_REASON_ID' => $tempStatReasonID,
+					'AWARDED' => Date('Y-m-d'),
+					'AMOUNT'  => 10,
+					'COMMENT' => "Initial Temporary Stat Level"
+				),
+				array ('%d', '%d', '%d', '%s', '%d', '%s')
+			);
+			$outIDs['stat' . $tempstatID] = $wpdb->insert_id;
+		} else {
+			$outIDs['stat' . $tempstatID] = $result;
+		}
+	}
+	
+	return $outIDs;
+}
+
+function vtm_wordpressid_used ($wordpressid, $characterID = "") {
+	global $wpdb;
+		
+	$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE WORDPRESS_ID = %s";
+	$sql = $wpdb->prepare($sql, $wordpressid);
+	$result = $wpdb->get_col($sql);
+	
+	//print_r($result);
+	
+	// no matches => not used anywhere
+	if ($wpdb->num_rows == 0) {
+		return 0;
+	// one match, but it is for this character
+	} elseif ($wpdb->num_rows == 1 && $characterID == $result[0] && $characterID != "") {
+		return 0;
+	} else {
+		return 1;
+	}
+}
+
+function vtm_charactername_used ($name, $characterID = "") {
+	global $wpdb;
+	
+	$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE NAME = %s AND DELETED = 'N'";
+	$sql = $wpdb->prepare($sql, $name);
+	$result = $wpdb->get_col($sql);
+	
+	if ($wpdb->num_rows == 0) {
+		return 0;
+	// one match, but it is for this character
+	} elseif ($wpdb->num_rows == 1 && $characterID == $result[0] && $characterID != "") {
+		return 0;
+	} else {
+		return 1;
+	}
+
 }
 
 ?>

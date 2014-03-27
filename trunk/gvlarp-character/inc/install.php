@@ -6,7 +6,7 @@ register_activation_hook( __FILE__, 'vtm_character_install_data' );
 global $vtm_character_version;
 global $vtm_character_db_version;
 $vtm_character_version = "1.10"; 
-$vtm_character_db_version = "3"; 
+$vtm_character_db_version = "14"; 
 
 function vtm_update_db_check() {
     global $vtm_character_version;
@@ -31,6 +31,8 @@ add_action( 'plugins_loaded', 'vtm_update_db_check' );
 function vtm_character_install() {
 	global $wpdb;
 	global $vtm_character_db_version;
+	
+	//$wpdb->show_errors();
 	
 	$table_prefix = VTM_TABLE_PREFIX;
 	$installed_version = get_site_option( "vtm_character_db_version" );
@@ -236,8 +238,38 @@ function vtm_character_install() {
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 		
+		$current_table_name = $table_prefix . "CHARGEN_TEMPLATE";
+		$sql = "CREATE TABLE " . $current_table_name . " (
+					ID              MEDIUMINT(9)	NOT NULL   AUTO_INCREMENT,
+					NAME            VARCHAR(60)		NOT NULL,
+					DESCRIPTION     TINYTEXT      	NOT NULL,
+					VISIBLE         VARCHAR(1)		NOT NULL,
+					PRIMARY KEY  (ID)
+					) ENGINE=INNODB;";
+		dbDelta($sql);
+		
+		$current_table_name = $table_prefix . "CHARGEN_STATUS";
+		$sql = "CREATE TABLE " . $current_table_name . " (
+					ID              MEDIUMINT(9)	NOT NULL   AUTO_INCREMENT,
+					NAME            VARCHAR(60)		NOT NULL,
+					DESCRIPTION     TINYTEXT      	NOT NULL,
+					PRIMARY KEY  (ID)
+					) ENGINE=INNODB;";
+		dbDelta($sql);
+		
 		// LEVEL 2 TABLES - TABLES WITH A FOREIGN KEY CONSTRAINT TO A LEVEL 1 TABLE
 		
+		$current_table_name = $table_prefix . "CHARGEN_TEMPLATE_OPTIONS";
+		$sql = "CREATE TABLE " . $current_table_name . " (
+					ID              MEDIUMINT(9)	NOT NULL   AUTO_INCREMENT,
+					NAME            VARCHAR(60)		NOT NULL,
+					VALUE    		TINYTEXT      	NOT NULL,
+					TEMPLATE_ID		MEDIUMINT(9)	NOT NULL,
+					PRIMARY KEY  (ID),
+					CONSTRAINT `" . $table_prefix . "template_constraint_1` FOREIGN KEY (TEMPLATE_ID)   REFERENCES " . $table_prefix . "CHARGEN_TEMPLATE(ID)
+					) ENGINE=INNODB;";
+		dbDelta($sql);
+
 		$current_table_name = $table_prefix . "PLAYER";
 		$sql = "CREATE TABLE " . $current_table_name . " (
 					ID                 MEDIUMINT(9) NOT NULL AUTO_INCREMENT,
@@ -532,19 +564,23 @@ function vtm_character_install() {
 					SECT_ID                   MEDIUMINT(9)  NOT NULL,
 					NATURE_ID                 MEDIUMINT(9)  NOT NULL,
 					DEMEANOUR_ID              MEDIUMINT(9)  NOT NULL,
+					CHARGEN_STATUS_ID		  MEDIUMINT(9)  NOT NULL,
+					CONCEPT					  TINYTEXT		NOT NULL,
+					EMAIL					  VARCHAR(60)	NOT NULL,
 					LAST_UPDATED              DATE          NOT NULL,
 					VISIBLE                   VARCHAR(1)    NOT NULL,
 					DELETED                   VARCHAR(1)    NOT NULL,
 					PRIMARY KEY  (ID),
-					CONSTRAINT `" . $table_prefix . "char_constraint_1`  FOREIGN KEY (PUBLIC_CLAN_ID)       REFERENCES " . $table_prefix . "CLAN(ID),
-					CONSTRAINT `" . $table_prefix . "char_constraint_2`  FOREIGN KEY (PRIVATE_CLAN_ID)      REFERENCES " . $table_prefix . "CLAN(ID),
-					CONSTRAINT `" . $table_prefix . "char_constraint_3`  FOREIGN KEY (GENERATION_ID)        REFERENCES " . $table_prefix . "GENERATION(ID),
-					CONSTRAINT `" . $table_prefix . "char_constraint_4`  FOREIGN KEY (PLAYER_ID)            REFERENCES " . $table_prefix . "PLAYER(ID),
-					CONSTRAINT `" . $table_prefix . "char_constraint_5`  FOREIGN KEY (CHARACTER_TYPE_ID)    REFERENCES " . $table_prefix . "CHARACTER_TYPE(ID),
-					CONSTRAINT `" . $table_prefix . "char_constraint_6`  FOREIGN KEY (CHARACTER_STATUS_ID)  REFERENCES " . $table_prefix . "CHARACTER_STATUS(ID),
-					CONSTRAINT `" . $table_prefix . "char_constraint_7`  FOREIGN KEY (ROAD_OR_PATH_ID)      REFERENCES " . $table_prefix . "ROAD_OR_PATH(ID),
-					CONSTRAINT `" . $table_prefix . "char_constraint_8`  FOREIGN KEY (DOMAIN_ID)            REFERENCES " . $table_prefix . "DOMAIN(ID),
-					CONSTRAINT `" . $table_prefix . "char_constraint_9`  FOREIGN KEY (SECT_ID)              REFERENCES " . $table_prefix . "SECT(ID)
+					CONSTRAINT `" . $table_prefix . "char_constraint_1`  FOREIGN KEY  (PUBLIC_CLAN_ID)       REFERENCES " . $table_prefix . "CLAN(ID),
+					CONSTRAINT `" . $table_prefix . "char_constraint_2`  FOREIGN KEY  (PRIVATE_CLAN_ID)      REFERENCES " . $table_prefix . "CLAN(ID),
+					CONSTRAINT `" . $table_prefix . "char_constraint_3`  FOREIGN KEY  (GENERATION_ID)        REFERENCES " . $table_prefix . "GENERATION(ID),
+					CONSTRAINT `" . $table_prefix . "char_constraint_4`  FOREIGN KEY  (PLAYER_ID)            REFERENCES " . $table_prefix . "PLAYER(ID),
+					CONSTRAINT `" . $table_prefix . "char_constraint_5`  FOREIGN KEY  (CHARACTER_TYPE_ID)    REFERENCES " . $table_prefix . "CHARACTER_TYPE(ID),
+					CONSTRAINT `" . $table_prefix . "char_constraint_6`  FOREIGN KEY  (CHARACTER_STATUS_ID)  REFERENCES " . $table_prefix . "CHARACTER_STATUS(ID),
+					CONSTRAINT `" . $table_prefix . "char_constraint_7`  FOREIGN KEY  (ROAD_OR_PATH_ID)      REFERENCES " . $table_prefix . "ROAD_OR_PATH(ID),
+					CONSTRAINT `" . $table_prefix . "char_constraint_8`  FOREIGN KEY  (DOMAIN_ID)            REFERENCES " . $table_prefix . "DOMAIN(ID),
+					CONSTRAINT `" . $table_prefix . "char_constraint_9`  FOREIGN KEY  (SECT_ID)              REFERENCES " . $table_prefix . "SECT(ID)
+					CONSTRAINT `" . $table_prefix . "char_constraint_10`  FOREIGN KEY (CHARGEN_STATUS_ID)    REFERENCES " . $table_prefix . "CHARGEN_STATUS(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 
@@ -873,6 +909,11 @@ function vtm_character_install_data() {
 								'LINK' => '',
 								'ORDERING' => 7,
 						),
+		'viewCharGen' => array(	'VALUE' => 'viewCharGen',
+								'DESCRIPTION' => 'Character Generation',
+								'LINK' => '',
+								'ORDERING' => 8,
+						),
 	);
 	foreach ($data as $key => $entry) {
 		$sql = "select VALUE from " . VTM_TABLE_PREFIX . "ST_LINK where VALUE = %s;";
@@ -1029,6 +1070,26 @@ function vtm_remove_constraint($table, $constraint) {
 
 }
 
+function vtm_add_constraint($table, $constraint, $foreignkey, $reference) {
+	global $wpdb;
+
+	$existing_keys = $wpdb->get_col("SHOW INDEX FROM $table WHERE Key_name != 'PRIMARY';",2);
+	
+	$constraint = VTM_TABLE_PREFIX . $constraint;
+	$reference  = VTM_TABLE_PREFIX . $reference;
+	
+	/* which constraints/foreign keys to remove */
+	$check_constraints = array_intersect(array($constraint), $existing_keys);
+	$sql = "ALTER TABLE $table ADD CONSTRAINT $constraint FOREIGN KEY ($foreignkey) REFERENCES $reference;";
+	
+	echo "SQL: $sql<br />";
+	
+	/* do remove */
+	if( empty($check_constraints) ) $wpdb->query($sql);			
+
+
+}
+
 function vtm_table_exists($table, $prefix = VTM_TABLE_PREFIX) {
 	global $wpdb;
 
@@ -1082,6 +1143,8 @@ function vtm_rename_table($from, $to, $prefixfrom = VTM_TABLE_PREFIX, $prefixto 
 function vtm_character_update_1_9 () {
 	global $wpdb;
 	
+	//$wpdb->show_errors();
+	
 	// Rename GVLARP_ tables to VTM_ tables
 	$oldprefix = $wpdb->prefix . "GVLARP_";
 	$sql = "SHOW TABLES LIKE %s";
@@ -1105,6 +1168,28 @@ function vtm_character_update_1_9 () {
 		}
 		
 	}
+	
+	// Add Character Generation Status to all characters
+	$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARGEN_STATUS WHERE NAME = 'Approved'";
+	$approvedid = $wpdb->get_var($sql);
+	//echo "ApprovedID: $approvedid<br />";
+	$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ISNULL(CHARGEN_STATUS_ID) OR CHARGEN_STATUS_ID = 0";
+	$result = $wpdb->get_col($sql);
+	if (count($result) > 0) {
+		//echo "Updating characters with character generation status<br />";
+		foreach ($result as $characterID) {
+			$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER",
+				array('CHARGEN_STATUS_ID' => $approvedid),
+				array('ID' => $characterID)
+			);
+			
+		}
+	}
+	
+	// Add new foreign key(s)
+	vtm_add_constraint(VTM_TABLE_PREFIX . "CHARACTER", "char_constraint_10", "CHARGEN_STATUS_ID", "CHARGEN_STATUS(ID)"
+	
+	);
 
 }
 

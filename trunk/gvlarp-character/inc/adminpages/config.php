@@ -191,7 +191,7 @@ function vtm_character_config() {
 				}
 			}
 			$sql = "select * from " . VTM_TABLE_PREFIX . "ST_LINK;";
-			$stlinks = $wpdb->get_results($wpdb->prepare($sql,''));
+			$stlinks = $wpdb->get_results($sql);
 			
 			$args = array(
 				'sort_order' => 'ASC',
@@ -211,6 +211,12 @@ function vtm_character_config() {
 				'post_status' => 'publish'
 			); 
 			$pages = get_pages($args);
+			$pageuris = array();
+			$pagetitles = array();
+			foreach ( $pages as $page ) {
+				$pageuris[$page->ID] = get_page_uri( $page->ID );
+				$pagetitles[$page->ID] = $page->post_title;
+			}								
 		?>
 		
 		<form id='ST_Links_form' method='post'>
@@ -233,12 +239,12 @@ function vtm_character_config() {
 							<select name="selectpage<?php print $i; ?>">
 							<?php
 								$match = 0;
-								foreach ( $pages as $page ) {
-									if ('/' . get_page_uri( $page->ID ) == $stlink->LINK)
+								foreach ( $pageuris as $pageid => $pageuri ) {
+									if ('/' . $pageuri == $stlink->LINK)
 										$match = 1;
-									echo "<option value='/" . get_page_uri( $page->ID ) . "' ";
-									selected('/' . get_page_uri( $page->ID ), $stlink->LINK);
-									echo ">{$page->post_title}</option>";
+									echo "<option value='/$pageuri' ";
+									selected('/' . $pageuri, $stlink->LINK);
+									echo ">{$pagetitles[$pageid]}</option>";
 								}								
 								echo "<option value='0' ";
 								if (!$match)
@@ -298,6 +304,34 @@ function vtm_character_config() {
 		
 		</form>
 
+		<h3>Character Generation Options</h3>
+		<form method="post" action="options.php">
+		<?php
+		
+		settings_fields( 'vtm_chargen_options_group' );
+		do_settings_sections('vtm_chargen_options_group');
+		?>
+
+		<table>
+		<tr>
+			<td><label>User must be logged in: </label></td>
+			<td><input type="checkbox" name="vtm_chargen_mustbeloggedin" value="1" <?php checked( '1', get_option( 'vtm_chargen_mustbeloggedin' ) ); ?> /></td>
+		</tr>
+		<tr>
+			<td><label>Wordpress Account used for character generation</label></td>
+			<td>
+				<?php wp_dropdown_users(
+						array(
+							'show_option_none' 	=> '[None]',
+							'name'  			=> 'vtm_chargen_wpaccount',
+							'selected' 			=> get_option( 'vtm_chargen_wpaccount' )
+						)
+					); ?>
+			</td>
+		</tr>
+		</table>
+		<?php submit_button("Save Character Generation Options", "primary", "save_chargen_button"); ?>
+		</form>
 		
 		<h3>General Options</h3>
 		<form method="post" action="options.php">
