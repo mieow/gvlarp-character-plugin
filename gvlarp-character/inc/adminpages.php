@@ -66,6 +66,9 @@ function vtm_register_character_settings() {
 
 	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_mustbeloggedin' );
 	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_wpaccount' );
+	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_emailtag' );
+	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_email_from_name' );
+	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_email_from_address' );
 	
 	register_setting( 'feedingmap_options_group', 'feedingmap_google_api' );  // google api key
 	register_setting( 'feedingmap_options_group', 'feedingmap_centre_lat' );  // centre point, latitude

@@ -318,6 +318,18 @@ function vtm_character_config() {
 			<td><input type="checkbox" name="vtm_chargen_mustbeloggedin" value="1" <?php checked( '1', get_option( 'vtm_chargen_mustbeloggedin' ) ); ?> /></td>
 		</tr>
 		<tr>
+			<td><label>Tag to add to the start of notification email subject: </label></td>
+			<td><input type="text" name="vtm_chargen_emailtag" value="<?php echo get_option( 'vtm_chargen_emailtag' ); ?>" /></td>
+		</tr>
+		<tr>
+			<td><label>From name of notification emails: </label></td>
+			<td><input type="text" name="vtm_chargen_email_from_name" value="<?php echo get_option( 'vtm_chargen_email_from_name', 'The Storytellers'); ?>" /></td>
+		</tr>
+		<tr>
+			<td><label>From address of notification emails: </label></td>
+			<td><input type="text" name="vtm_chargen_email_from_address" value="<?php echo get_option( 'vtm_chargen_email_from_address', get_bloginfo('admin_email') ); ?>" /></td>
+		</tr>
+		<tr>
 			<td><label>Wordpress Account used for character generation</label></td>
 			<td>
 				<?php wp_dropdown_users(

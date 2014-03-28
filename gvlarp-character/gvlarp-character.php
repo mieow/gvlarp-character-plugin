@@ -233,7 +233,7 @@ function vtm_get_stlink_page($stlinkvalue) {
 	return $pagename;
 
 }
-function vtm_get_stlink_url($stlinkvalue) {
+function vtm_get_stlink_url($stlinkvalue, $fullurl = false) {
 	global $wpdb;
 
 	$sql = "select DESCRIPTION, LINK from " . VTM_TABLE_PREFIX . "ST_LINK where VALUE = %s;";
@@ -242,6 +242,10 @@ function vtm_get_stlink_url($stlinkvalue) {
 	$url = "Page not matched";
 	if (count($results) == 1) {
 		$url = $results[0]->LINK;
+		
+		if ($fullurl == true)
+			$url = get_site_url() . $url;
+		
 	}
 	
 	return $url;

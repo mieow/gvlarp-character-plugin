@@ -325,8 +325,10 @@ function vtm_render_choose_template() {
 	}
 	$output .= "</select></p>";
 	
+	$ref = isset($_GET['reference']) ? $_GET['reference'] : '';
+	
 	$output .= "<p>Or, update a character: 
-		<label>Reference:</label> <input type='text' name='chargen_reference' value='' size=5 ></p>";
+		<label>Reference:</label> <input type='text' name='chargen_reference' value='$ref' size=5 ></p>";
 	
 	return $output;
 }
@@ -551,6 +553,9 @@ function vtm_save_basic_info($characterID) {
 		if ($characterID == 0) {
 			echo "<p style='color:red'><b>Error:</b> Character could not be added</p>";
 		}
+		
+		vtm_email_new_character($_POST['email'], $characterID, $playerid, 
+			$_POST['character'], $_POST['priv_clan'], $_POST['player'], $_POST['concept']);
 	}
 
 	// any initial tables to set up?
@@ -586,11 +591,26 @@ function vtm_get_chargen_characterID() {
 			}
 			elseif ($wpid != 0)
 				$id = -1;
+			
+			// ensure character gen is in progress (and not approved)
+			if ($id > 0) {
+				$sql = "SELECT cgstat.NAME
+						FROM
+							" . VTM_TABLE_PREFIX . "CHARACTER cha,
+							" . VTM_TABLE_PREFIX . "CHARGEN_STATUS cgstat
+						WHERE
+							cha.CHARGEN_STATUS_ID = cgstat.ID
+							AND cha.ID = %s";
+				$result = $wpdb->get_var($wpdb->prepare($sql, $id));
+				
+				if ($result == 'Approved')
+					$id = -1;
+			}
 		} else {
 			$id = -1;
 		}
 	}
-	elseif (isset($_POST['characterID'])) {
+	elseif (isset($_POST['characterID']) && $_POST['characterID'] > 0) {
 		$id = $_POST['characterID'];
 		if (is_user_logged_in()) {
 			get_currentuserinfo();
@@ -665,4 +685,56 @@ function vtm_get_player_name($playerid) {
 	return $wpdb->get_var($sql);
 
 }
+function vtm_get_clan_name($clanid) {
+	global $wpdb;
+		
+	$sql = "SELECT NAME FROM " . VTM_TABLE_PREFIX . "CLAN WHERE ID = %s";
+	$sql = $wpdb->prepare($sql, $clanid);
+	return $wpdb->get_var($sql);
+
+}
+
+function vtm_email_new_character($email, $characterID, $playerid, $name, $clanid, $player, $concept) {
+	global $current_user;
+
+	if (is_user_logged_in()) {
+		get_currentuserinfo();
+		$userid       = $current_user->ID;
+	} else {
+		$userid = 0;
+	}
+	
+	$ref = $characterID . '-' . $userid . '-' . $playerid;
+	$clan = vtm_get_clan_name($clanid);
+	$tag = get_option( 'vtm_chargen_emailtag' );
+	$toname = get_option( 'vtm_chargen_email_from_name', 'The Storytellers');
+	$toaddr = get_option( 'vtm_chargen_email_from_address', get_bloginfo('admin_email') );
+	$url = add_query_arg('reference', $ref, vtm_get_stlink_url('viewCharGen', true));
+	
+	$subject   = "$tag New Character Created: $name";
+	$headers[] = "From: \"$toname\" <$toaddr>";
+	$headers[] = "Cc: \"$toname\" <$toaddr>";
+	
+	$userbody = "Hello $player,
+	
+Your new character has been created:
+	
+	* Reference: $ref
+	* Character Name: $name
+	* Clan: $clan
+	* Concept: 
+	
+" . stripslashes($concept) . "
+	
+You can return to character generation by following this link: $url";
+	
+	echo "<pre>$userbody</pre>";
+	
+	$result = wp_mail($email, $subject, $userbody, $headers);
+	
+	if (!$result)
+		echo "<p>Failed to send email. Character Ref: $ref</p>";
+	
+}
+
 ?>
