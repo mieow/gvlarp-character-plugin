@@ -14,11 +14,13 @@ function vtm_character_options() {
 	$options_player_status    = vtm_make_filter($wpdb->get_results("SELECT ID, NAME FROM " . VTM_TABLE_PREFIX. "PLAYER_STATUS"));
 	$options_character_status = vtm_make_filter($wpdb->get_results("SELECT ID, NAME FROM " . VTM_TABLE_PREFIX. "CHARACTER_STATUS"));
 	$options_character_type   = vtm_make_filter($wpdb->get_results("SELECT ID, NAME FROM " . VTM_TABLE_PREFIX. "CHARACTER_TYPE"));
+	$options_chargen_status   = vtm_make_filter($wpdb->get_results("SELECT ID, NAME FROM " . VTM_TABLE_PREFIX. "CHARGEN_STATUS"));
 	
 	// Set up default filter values
 	$default_player_status     = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . VTM_TABLE_PREFIX. "PLAYER_STATUS     WHERE NAME = %s",'Active'));
 	$default_character_status  = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . VTM_TABLE_PREFIX. "CHARACTER_STATUS  WHERE NAME = %s",'Alive'));
 	$default_character_type    = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . VTM_TABLE_PREFIX. "CHARACTER_TYPE    WHERE NAME = %s",'PC'));
+	$default_chargen_status    = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . VTM_TABLE_PREFIX. "CHARGEN_STATUS    WHERE NAME = %s",'Approved'));
 	$default_character_visible = "y";
 	
 	// set active filter
@@ -31,6 +33,9 @@ function vtm_character_options() {
 	if ( isset( $_REQUEST['character_type'] ) && array_key_exists( $_REQUEST['character_type'], $options_character_type ) )
 		$active_character_type = sanitize_key( $_REQUEST['character_type'] );
 	else $active_character_type = $default_character_type;
+	if ( isset( $_REQUEST['chargen_status'] ) && array_key_exists( $_REQUEST['chargen_status'], $options_character_status ) )
+		$active_chargen_status = sanitize_key( $_REQUEST['chargen_status'] );
+	else $active_chargen_status = $default_chargen_status;
 	if ( isset( $_REQUEST['character_visible'] ) ) $active_character_visible = sanitize_key( $_REQUEST['character_visible'] );
 	else $active_character_visible = $default_character_visible;
 	
@@ -125,6 +130,15 @@ function vtm_character_options() {
 					echo '>No</option>';
 					?>
 				</select>
+				<label>Character Gen Status: </label>
+				<select name='chargen_status'>
+					<?php foreach( $options_chargen_status as $key => $value ) {
+							echo '<option value="' . esc_attr( $key ) . '" ';
+							selected( $active_chargen_status, $key );
+							echo '>' . esc_attr( $value ) . '</option>';
+						}
+					?>
+				</select>
 				
 				<?php submit_button( 'Filter', 'secondary', 'do_filter_character', false); ?>
 			</form>
@@ -155,20 +169,23 @@ function vtm_character_options() {
 						ctypes.name as character_type,
 						cstatus.name as character_status,
 						chara.visible,
-						chara.wordpress_id
+						chara.wordpress_id,
+						cgstat.name as chargen_status
 					FROM
 						" . VTM_TABLE_PREFIX. "CHARACTER chara,
 						" . VTM_TABLE_PREFIX. "CLAN clans,
 						" . VTM_TABLE_PREFIX. "PLAYER players,
 						" . VTM_TABLE_PREFIX. "PLAYER_STATUS pstatus,
 						" . VTM_TABLE_PREFIX. "CHARACTER_TYPE ctypes,
-						" . VTM_TABLE_PREFIX. "CHARACTER_STATUS cstatus
+						" . VTM_TABLE_PREFIX. "CHARACTER_STATUS cstatus,
+						" . VTM_TABLE_PREFIX. "CHARGEN_STATUS cgstat
 					WHERE
 						clans.ID = chara.PRIVATE_CLAN_ID
 						AND players.ID = chara.PLAYER_ID
 						AND pstatus.ID = players.PLAYER_STATUS_ID
 						AND ctypes.ID = chara.CHARACTER_TYPE_ID
 						AND cstatus.ID = chara.CHARACTER_STATUS_ID
+						AND cgstat.ID  = chara.CHARGEN_STATUS_ID
 						AND chara.DELETED != 'Y'";
 						
 			$args = array();
@@ -188,6 +205,10 @@ function vtm_character_options() {
 			if ( "all" !== $active_character_visible) {
 				$sql .= " AND chara.VISIBLE = %s";
 				array_push($args, $active_character_visible);
+			}
+			if ( "all" !== $active_chargen_status) {
+				$sql .= " AND chara.CHARGEN_STATUS_ID = %s";
+				array_push($args, $active_chargen_status);
 			}
 			if ( isset($_REQUEST['clan']) ) {
 				$sql .= " AND clans.ID = %s";
@@ -214,15 +235,16 @@ function vtm_character_options() {
 					echo '<a href="' . $stlinks['viewCharSheet']->LINK . '?characterID='. urlencode($character->ID) . '">' . $name . '</a>';
 				
 				echo "</th><td>";
-				echo '<div>
-					&nbsp;<a href="' . $stlinks['editCharSheet']->LINK . '?characterID=' . urlencode($character->ID) . '"><img src="' . $iconurl . 'edit.png" alt="Edit" title="Edit Character" /></a>';
+				echo '<div>';
+				if ($character->chargen_status == 'Approved')
+					echo '&nbsp;<a href="' . $stlinks['editCharSheet']->LINK . '?characterID=' . urlencode($character->ID) . '"><img src="' . $iconurl . 'edit.png" alt="Edit" title="Edit Character" /></a>';
 
 				$delete_url = add_query_arg('action', 'delete', $current_url);
 				$delete_url = add_query_arg('characterID', $character->ID, $delete_url);
 				$delete_url = add_query_arg('characterName', urlencode($character->wordpress_id), $delete_url);
 				echo '&nbsp;<a href="' . htmlentities($delete_url) . '"><img src="' . $iconurl . 'delete.png" alt="Delete" title="Delete Character" /></a>';
 				
-				if (!empty($character->wordpress_id)) {
+				if (!empty($character->wordpress_id) && $character->chargen_status == 'Approved') {
 					echo '&nbsp;<a href="' . $stlinks['printCharSheet']->LINK  . '?CHARACTER='. urlencode($character->wordpress_id) . '"><img src="' . $iconurl . 'print.png" alt="Print" title="Print Character" /></a>';
 					echo '&nbsp;<a href="' . $stlinks['viewProfile']->LINK     . '?CHARACTER='. urlencode($character->wordpress_id) . '"><img src="' . $iconurl . 'profile.png" alt="Profile" title="View Profile" /></a>';
 					echo '&nbsp;<a href="' . $stlinks['viewXPSpend']->LINK     . '?CHARACTER='. urlencode($character->wordpress_id) . '"><img src="' . $iconurl . 'spendxp.png" alt="XP Spend" title="Spend Experience" /></a>';
@@ -343,6 +365,7 @@ function vtm_displayUpdateCharacter($characterID) {
 								   DOMAIN_ID,
 								   SECT_ID,
 								   WORDPRESS_ID,
+								   CHARGEN_STATUS_ID,
 								   VISIBLE
 							FROM " . $table_prefix . "CHARACTER
 							WHERE ID = %d";
@@ -367,6 +390,12 @@ function vtm_displayUpdateCharacter($characterID) {
 				$characterSectId           = $characterDetail->SECT_ID;
 				$characterWordpressName    = $characterDetail->WORDPRESS_ID;
 				$characterVisible          = $characterDetail->VISIBLE;
+				$chargenStatus             = $characterDetail->CHARGEN_STATUS_ID;
+			}
+			
+			$cgstatus = $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . $table_prefix . "CHARGEN_STATUS WHERE ID = %s", $chargenStatus));
+			if ($cgstatus != 'Approved') {
+				return 'Characters cannot be edited while in the middle of character generation';
 			}
 
 			$sql = "SELECT QUOTE, PORTRAIT
