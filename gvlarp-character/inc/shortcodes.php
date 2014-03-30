@@ -109,7 +109,8 @@ function vtm_print_background_shortcode($atts, $content = null) {
 				char_bg.level as level,
 				char_bg.comment as comment,
 				domains.name as domain,
-				sector.name as sectorname
+				sector.name as sectorname,
+				cgstatus.name as chargenstat
 			FROM
 				" . VTM_TABLE_PREFIX . "CHARACTER chara,
 				" . VTM_TABLE_PREFIX . "PLAYER player,
@@ -118,6 +119,7 @@ function vtm_print_background_shortcode($atts, $content = null) {
 				" . VTM_TABLE_PREFIX . "CLAN pubclan,
 				" . VTM_TABLE_PREFIX . "CLAN privclan,
 				" . VTM_TABLE_PREFIX . "BACKGROUND background,
+				" . VTM_TABLE_PREFIX . "CHARGEN_STATUS cgstatus,
 				" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND char_bg
 				LEFT JOIN
 					" . VTM_TABLE_PREFIX . "SECTOR sector
@@ -135,8 +137,10 @@ function vtm_print_background_shortcode($atts, $content = null) {
 				AND chara.PRIVATE_CLAN_ID = privclan.ID
 				AND background.ID = char_bg.BACKGROUND_ID
 				AND domains.ID = chara.DOMAIN_ID
+				AND cgstatus.ID = chara.CHARGEN_STATUS_ID
 				AND chara.VISIBLE = 'Y'
 				AND chara.DELETED = 'N'
+				AND cgstatus.NAME = 'Approved'
 				AND background.name = %s";
 	$sqlmainargs = array($background);
 	
@@ -152,7 +156,8 @@ function vtm_print_background_shortcode($atts, $content = null) {
 				0 as level,
 				\"\" as comment,
 				domains.name as domain,
-				\"\" as sectorname
+				\"\" as sectorname,
+				cgstatus.name as chargenstat
 			FROM
 				" . VTM_TABLE_PREFIX . "CHARACTER chara
 				LEFT JOIN
@@ -170,6 +175,7 @@ function vtm_print_background_shortcode($atts, $content = null) {
 				" . VTM_TABLE_PREFIX . "PLAYER player,
 				" . VTM_TABLE_PREFIX . "PLAYER_STATUS pstatus,
 				" . VTM_TABLE_PREFIX . "CHARACTER_STATUS cstatus,
+				" . VTM_TABLE_PREFIX . "CHARGEN_STATUS cgstatus,
 				" . VTM_TABLE_PREFIX . "CLAN pubclan,
 				" . VTM_TABLE_PREFIX . "CLAN privclan,
 				" . VTM_TABLE_PREFIX . "DOMAIN domains
@@ -181,8 +187,10 @@ function vtm_print_background_shortcode($atts, $content = null) {
 				AND chara.PUBLIC_CLAN_ID = pubclan.ID
 				AND chara.PRIVATE_CLAN_ID = privclan.ID
 				AND domains.ID = chara.DOMAIN_ID
+				AND cgstatus.ID = chara.CHARGEN_STATUS_ID
 				AND chara.VISIBLE = 'Y'
 				AND chara.DELETED = 'N'
+				AND cgstatus.NAME = 'Approved'
 				AND ISNULL(char_bg.ID)
 				";
 	$sqlzeroargs = array($background, $background);

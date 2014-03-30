@@ -292,15 +292,15 @@ class vtmclass_report_prestige extends vtmclass_Report_ListTable {
     function column_default($item, $column_name){
         switch($column_name){
             case 'PLAYERNAME':
-                return $item->$column_name;
+                return stripslashes($item->$column_name);
             case 'CHARACTERNAME':
-                return $item->$column_name;
+                return stripslashes($item->$column_name);
             case 'PUBLIC_CLAN':
                 return $item->$column_name;
             case 'PRIVATE_CLAN':
                 return $item->$column_name;
             case 'COMMENT':
-                return $item->$column_name;
+                return stripslashes($item->$column_name);
             case 'LEVEL':
                 return $item->$column_name;
             default:
@@ -338,7 +338,7 @@ class vtmclass_report_prestige extends vtmclass_Report_ListTable {
 			echo "<span>Clan: </span>";
 			echo "<select name='clanfilter'>\n";
 			echo '<option value="all">All</option>';
-			foreach (get_clans() as $clan) {
+			foreach (vtm_get_clans() as $clan) {
 				echo '<option value="' . $clan->ID . '" ';
 				selected( $this->active_filter_clan, $clan->ID );
 				echo '>' . $clan->NAME , '</option>';
@@ -424,9 +424,9 @@ class vtmclass_report_prestige extends vtmclass_Report_ListTable {
 
 		$args = array_merge($args, $args);
 		$sql = $wpdb->prepare($sql,$args);
-		/* echo "<p>SQL: $sql (";
-		print_r($args);
-		echo ")</p>"; */
+		//echo "<p>SQL: $sql (";
+		//print_r($args);
+		//echo ")</p>";
 		$data =$wpdb->get_results($sql);
  		
         $current_page = $this->get_pagenum();
@@ -451,11 +451,11 @@ class vtmclass_report_signin extends vtmclass_Report_ListTable {
     function column_default($item, $column_name){
         switch($column_name){
             case 'PLAYERNAME':
-                return $item->$column_name;
+                return stripslashes($item->$column_name);
             case 'CHARACTERNAME':
-                return $item->$column_name;
+                return stripslashes($item->$column_name);
             case 'BACKGROUND':
-                return $item->$column_name;
+                return stripslashes($item->$column_name);
             case 'SIGNATURE':
                 return $item->$column_name;
             default:
@@ -528,6 +528,7 @@ class vtmclass_report_signin extends vtmclass_Report_ListTable {
 					(IFNULL(SUM(bginfo.TOTAL2DO),0) + IFNULL(SUM(mfinfo.TOTAL2DO),0) + IFNULL(SUM(totalqs.TOTAL2DO),0)),0),'%%') as BACKGROUND 
 				FROM 
 					" . VTM_TABLE_PREFIX. "PLAYER players, 
+					" . VTM_TABLE_PREFIX. "CHARGEN_STATUS cgstatus,
 					" . VTM_TABLE_PREFIX. "CHARACTER characters
 					LEFT JOIN (
 						SELECT charbgs.CHARACTER_ID, 
@@ -575,7 +576,9 @@ class vtmclass_report_signin extends vtmclass_Report_ListTable {
 					as totalqs
 				WHERE 
 					players.ID = characters.PLAYER_ID
-					AND characters.DELETED = 'N'";
+					AND cgstatus.ID = characters.CHARGEN_STATUS_ID
+					AND characters.DELETED = 'N'
+					AND cgstatus.NAME = 'Approved'";
 		$sql .= $filterinfo[0];
 		$sql .= " GROUP BY characters.ID";
 		
@@ -618,9 +621,9 @@ class vtmclass_report_sect extends vtmclass_Report_ListTable {
     function column_default($item, $column_name){
         switch($column_name){
             case 'PLAYERNAME':
-                return $item->$column_name;
+                return stripslashes($item->$column_name);
             case 'CHARACTERNAME':
-                return $item->$column_name;
+                return stripslashes($item->$column_name);
             case 'SECT':
                 return $item->$column_name;
             default:
@@ -688,11 +691,14 @@ class vtmclass_report_sect extends vtmclass_Report_ListTable {
 				FROM 
 					" . VTM_TABLE_PREFIX. "PLAYER players, 
 					" . VTM_TABLE_PREFIX. "CHARACTER characters,
-					" . VTM_TABLE_PREFIX. "SECT sects
+					" . VTM_TABLE_PREFIX. "SECT sects,
+					" . VTM_TABLE_PREFIX. "CHARGEN_STATUS cgstatus
 				WHERE 
 					players.ID = characters.PLAYER_ID
 					AND sects.ID = characters.SECT_ID
-					AND characters.DELETED = 'N'";
+					AND cgstatus.ID = characters.CHARGEN_STATUS_ID
+					AND characters.DELETED = 'N'
+					AND cgstatus.NAME = 'Approved'";
 					
 		$filterinfo = $this->get_filter_sql();
 		$args = array();
@@ -742,9 +748,9 @@ class vtmclass_report_activity extends vtmclass_Report_ListTable {
     function column_default($item, $column_name){
         switch($column_name){
             case 'PLAYERNAME':
-                return $item->$column_name;
+                return stripslashes($item->$column_name);
             case 'CHARACTERNAME':
-                return $item->$column_name;
+                return stripslashes($item->$column_name);
             case 'LAST_UPDATED':
                 return $item->$column_name;
             default:
@@ -781,12 +787,16 @@ class vtmclass_report_activity extends vtmclass_Report_ListTable {
 		$this->load_filters();
 
 		
-		$sql = "SELECT characters.NAME as CHARACTERNAME, players.NAME as PLAYERNAME, characters.LAST_UPDATED
+		$sql = "SELECT players.NAME as PLAYERNAME, 
+					characters.LAST_UPDATED,
+					IF(cgstatus.NAME = 'Approved', characters.NAME, CONCAT(characters.NAME, ' (being generated)')) as CHARACTERNAME
 				FROM 
 					" . VTM_TABLE_PREFIX. "PLAYER players, 
-					" . VTM_TABLE_PREFIX. "CHARACTER characters
+					" . VTM_TABLE_PREFIX. "CHARACTER characters,
+					" . VTM_TABLE_PREFIX. "CHARGEN_STATUS cgstatus
 				WHERE 
 					players.ID = characters.PLAYER_ID
+					AND cgstatus.ID = characters.CHARGEN_STATUS_ID
 					AND characters.DELETED = 'N'";
 					
 		$filterinfo = $this->get_filter_sql();
