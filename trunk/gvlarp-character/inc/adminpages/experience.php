@@ -853,18 +853,21 @@ function vtm_render_xp_by_player () {
 				chara.name as CHARACTERNAME,
 				player.name as PLAYER,
 				player.ID as PLAYER_ID,
-				cstatus.name as CSTATUS
+				cstatus.name as CSTATUS,
+				cgstatus.name as CHARGENSTATUS
 			FROM
 				" . VTM_TABLE_PREFIX . "CHARACTER chara,
 				" . VTM_TABLE_PREFIX . "PLAYER player,
 				" . VTM_TABLE_PREFIX . "PLAYER_STATUS pstatus,
 				" . VTM_TABLE_PREFIX . "CHARACTER_STATUS cstatus,
-				" . VTM_TABLE_PREFIX . "CHARACTER_TYPE ctype
+				" . VTM_TABLE_PREFIX . "CHARACTER_TYPE ctype,
+				" . VTM_TABLE_PREFIX . "CHARGEN_STATUS cgstatus
 			WHERE
 				chara.PLAYER_ID = player.ID
 				AND pstatus.ID = player.PLAYER_STATUS_ID
 				AND cstatus.ID = chara.CHARACTER_STATUS_ID
 				AND ctype.ID   = chara.CHARACTER_TYPE_ID
+				AND cgstatus.ID = chara.CHARGEN_STATUS_ID
 				AND pstatus.NAME = 'Active'
 				AND cstatus.NAME != 'Dead'
 				AND ctype.NAME   = 'PC'
@@ -890,10 +893,14 @@ function vtm_render_xp_by_player () {
 			$rowclass = !$rowclass;
 		}
 		$lastplayer = $row->PLAYER;
+		
+		$charactername = stripslashes($row->CHARACTERNAME);
+		if ($row->CHARGENSTATUS == 'In Progress')
+			$charactername .= ' (chargen)';
 	
 		$output .= "<tr" . $rowclasses[$rowclass] . ">";
 		$output .= "<td>$player<input name='xp_player[{$row->ID}]' value=\"{$row->PLAYER_ID}\" type=\"hidden\" /></td>";
-		$output .= "<td>{$row->CHARACTERNAME}</td><td>{$row->CSTATUS}</td><td>$xp</td>";
+		$output .= "<td>$charactername</td><td>{$row->CSTATUS}</td><td>$xp</td>";
 		$output .= "<td><select name='xp_reason[{$row->ID}]'>\n";
 		foreach (vtm_listXpReasons() as $reason) {
 			$output .= "<option value='{$reason->id}'>{$reason->name}</option>\n";
@@ -923,12 +930,14 @@ function vtm_render_xp_by_character () {
 				" . VTM_TABLE_PREFIX . "PLAYER_STATUS pstatus,
 				" . VTM_TABLE_PREFIX . "CHARACTER_STATUS cstatus,
 				" . VTM_TABLE_PREFIX . "CHARACTER_TYPE ctype,
-				" . VTM_TABLE_PREFIX . "PLAYER_XP xp
+				" . VTM_TABLE_PREFIX . "PLAYER_XP xp,
+				" . VTM_TABLE_PREFIX . "CHARGEN_STATUS cgstatus
 			WHERE
 				chara.PLAYER_ID = player.ID
 				AND pstatus.ID = player.PLAYER_STATUS_ID
 				AND cstatus.ID = chara.CHARACTER_STATUS_ID
 				AND ctype.ID   = chara.CHARACTER_TYPE_ID
+				AND cgstatus.ID = chara.CHARGEN_STATUS_ID
 				AND xp.CHARACTER_ID = chara.ID
 				AND xp.PLAYER_ID = player.ID
 				AND pstatus.NAME = 'Active'
@@ -936,6 +945,7 @@ function vtm_render_xp_by_character () {
 				AND ctype.NAME   = 'PC'
 				AND chara.DELETED != 'Y'
 				AND chara.VISIBLE = 'Y'
+				AND cgstatus.NAME = 'Approved'
 			GROUP BY chara.ID
 			ORDER BY PLAYER, CHARACTERNAME, cstatus.ID, CHARACTER_XP";
 	

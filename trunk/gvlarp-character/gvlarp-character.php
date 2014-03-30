@@ -174,6 +174,15 @@ function vtm_get_costmodels() {
 	
 	return $list;
 }
+function vtm_get_templates() {
+
+	global $wpdb;
+
+	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE;";
+	$list = $wpdb->get_results($wpdb->prepare($sql,''));
+	
+	return $list;
+}
 function vtm_get_natures() {
 
 	global $wpdb;

@@ -21,6 +21,7 @@ require_once VTM_CHARACTER_URL . 'inc/adminpages/players.php';
 require_once VTM_CHARACTER_URL . 'inc/adminpages/masterpath.php';
 require_once VTM_CHARACTER_URL . 'inc/adminpages/generation.php';
 require_once VTM_CHARACTER_URL . 'inc/adminpages/tempstats.php';
+require_once VTM_CHARACTER_URL . 'inc/adminpages/chargentemplates.php';
 
 if(!class_exists('WP_List_Table')){
     require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
@@ -200,6 +201,7 @@ function vtm_character_datatables() {
 				<li><?php echo vtm_get_tablink('generation', 'Generation'); ?></li>
 				<li><?php echo vtm_get_tablink('mapowner', 'Map Domain Owners'); ?></li>
 				<li><?php echo vtm_get_tablink('mapdomain','Map Domains'); ?></li>
+				<li><?php echo vtm_get_tablink('template', 'Character Templates'); ?></li>
 			</ul>
 		</div>
 		<div class="gvadmin_content">
@@ -270,6 +272,9 @@ function vtm_character_datatables() {
 				break;
 			case 'generation':
 				vtm_render_generation_data();
+				break;
+			case 'template':
+				vtm_render_template_data();
 				break;
 			default:
 				vtm_render_stat_page("stat");

@@ -23,6 +23,7 @@ function vtm_get_chargen_content() {
 	
 	$characterID = vtm_get_chargen_characterID();
 	$laststep = isset($_POST['step']) ? $_POST['step'] : 0;
+	$progress = isset($_POST['progress']) ? $_POST['progress'] : array('0' => 1);
 	
 	if ($characterID == -1) {
 		$output .= "<p>Invalid Reference</p>";
@@ -39,12 +40,21 @@ function vtm_get_chargen_content() {
 	$dataok = vtm_validate_chargen($laststep);
 	if ($dataok) {
 		$characterID = vtm_save_progress($laststep, $characterID);
+		$progress[$laststep] = 1;
+		
 	} else {
 		$step = $laststep;
+		$progress[$laststep] = 0;
+	}
+	print_r($progress);
+	// setup progress
+	for ($i = 0 ; $i <= 10 ; $i++) {
+		$val = isset($progress[$i]) ? $progress[$i] : 0;
+		$output .= "<input type='hidden' name='progress[$i]' value='$val' />\n";
 	}
 	
 	// output flow buttons
-	$output .= vtm_render_flow($step, $characterID);
+	$output .= vtm_render_flow($step, $characterID, $progress);
 	
 	$output .= "<div id='chargen-main'>";
 	
@@ -89,7 +99,7 @@ function vtm_get_step() {
 	return $step;
 }
 
-function vtm_render_flow($step, $characterID) {
+function vtm_render_flow($step, $characterID, $progress) {
 
 	$output = "";
 	
@@ -106,28 +116,13 @@ function vtm_render_flow($step, $characterID) {
 		'10' => array('title' => "Extended Backgrounds", 'dependency' => 9)
 	);
 	
-	// Obtain this information from a DB table. Save to the table on each check.
-	$complete = array (
-		'0' => 1,
-		'1' => 0,
-		'2' => 0,
-		'3' => 0,
-		'4' => 0,
-		'5' => 0,
-		'6' => 0,
-		'7' => 0,
-		'8' => 0,
-		'9' => 0,
-		'10' => 0,			// WILL BE OPTIONAL
-		'11' => 0
-	);
-	
 	$output .= "<div id='vtm-chargen-flow'>\n";
 	
 	$template = isset($_POST['chargen_template']) ? $_POST['chargen_template'] : ( isset($_POST['selected_template']) ? $_POST['selected_template'] : "");
 	$output .= "<input type='hidden' name='selected_template' value='$template' />\n";
 	$output .= "<input type='hidden' name='characterID' value='$characterID' />\n";
 	$output .= "<input type='hidden' name='step' value='$step' />\n";
+
 	
 	if ($step > 0) {
 		$output .= "<ul>\n";
@@ -137,7 +132,7 @@ function vtm_render_flow($step, $characterID) {
 			if ($step == $stepid) {
 				$output .= "<li class='step-button step-selected'><strong>Step $stepid:</strong> $steptitle</li>";
 			} 
-			elseif ($complete[$dependancy]) {
+			elseif (isset($progress[$dependancy]) && $progress[$dependancy]) {
 				$output .= "<li class='step-button step-enable'><input type='submit' name='chargen-step[$stepid]' class='button-chargen-step' value='Step $stepid: $steptitle' /></li>\n";
 			}
 			else {
