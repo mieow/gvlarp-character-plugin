@@ -38,7 +38,7 @@ function vtm_get_chargen_content() {
 	$output .= "<p>Last at step $laststep</p>";
 	print_r($_POST);
 	// validate & save data from last step
-	$dataok = vtm_validate_chargen($laststep);
+	$dataok = vtm_validate_chargen($laststep, $templateID);
 	if ($dataok) {
 		$characterID = vtm_save_progress($laststep, $characterID, $templateID);
 		$progress[$laststep] = 1;
@@ -293,6 +293,7 @@ function vtm_render_basic_info($step, $characterID) {
 	return $output;
 }
 function vtm_render_attributes($step, $characterID, $templateID) {
+	global $wpdb;
 
 	$output = "";
 	$settings   = vtm_get_chargen_settings($templateID);
@@ -306,6 +307,20 @@ function vtm_render_attributes($step, $characterID, $templateID) {
 	} else {
 		$output .= "<p>You have {$settings['attributes-points']} dots to spend on your attributes</p>";
 	}
+	
+	// read/guess initial values
+	$sql = "SELECT STAT_ID, LEVEL FROM " . VTM_TABLE_PREFIX . "CHARACTER_STAT
+			WHERE CHARACTER_ID = %s";
+	$sql = $wpdb->prepare($sql, $characterID);
+	$keys = $wpdb->get_col($sql);
+	if (count($keys) > 0) {
+		$vals = $wpdb->get_col($sql,1);
+		$stats = array_combine($keys, $vals);
+	}
+	elseif (isset($_POST['attribute_value'])) {
+		$stats = $_POST['attribute_value'];
+	}
+	
 		
 	$group = "";
 	foreach ($attributes as $attribute) {
@@ -313,18 +328,16 @@ function vtm_render_attributes($step, $characterID, $templateID) {
 			if ($group != "")
 				$output .= "</table>\n";
 			$group = $attribute->GROUPING;
-			$output .= "<h4>$group</h4>";
+			$output .= "<h4>$group</h4><p>";
 			if ($settings['attributes-method'] == "PST")
-				$output .= "[PST pull-down]<br />";
-			$output .= "<table><tr><th>Attribute</th><th>Speciality</th><th>Rating</th><th>Description</th></tr>\n";
+				$output .= vtm_render_pst_select($group, isset($_POST[$group]) ? $_POST[$group] : 0);
+			$output .= "</p>
+				<input type='hidden' name='group[]' value='$group' />
+				<table><tr><th>Attribute</th><th>Rating</th><th>Description</th></tr>\n";
 		}
-		$output .= "<tr><td class=\"gvcol_key\">" . $attribute->NAME . "</td><td class=\"gvcol_spec\">";
-		if ($attribute->SPECIALISATION_AT > 0)
-			$output .= "<input type='text' name='attribute_spec[" . $attribute->ID . "]' value=''>";
-		else
-			$output .= "&nbsp;";
-		$output .= "</td><td>";
-		$output .= vtm_render_dot_select("attribute_value", $attribute->ID);
+		$output .= "<tr><td class=\"gvcol_key\">" . $attribute->NAME . "</td>";
+		$output .= "<td>";
+		$output .= vtm_render_dot_select("attribute_value", $attribute->ID, isset($stats[$attribute->ID]) ? $stats[$attribute->ID] : -1);
 		$output .= "</td><td>";
 		$output .= stripslashes($attribute->DESCRIPTION);
 		$output .= "</td></tr>\n";
@@ -359,9 +372,12 @@ function vtm_render_choose_template() {
 	return $output;
 }
 
-function vtm_validate_chargen($laststep) {
+function vtm_validate_chargen($laststep, $templateID) {
 
 	$ok = 1;
+	
+	$settings = vtm_get_chargen_settings($templateID);
+
 	
 	switch ($laststep) {
 		case 0:
@@ -440,6 +456,70 @@ function vtm_validate_chargen($laststep) {
 			
 			break;
 		case 2:
+			// VALIDATE ATTRIBUTES
+			// P/S/T
+			//		- P / S / T options only picked once
+			//		- correct number of points spent in each group
+			// Point Spent
+			//		- point total correct
+			if (isset($_POST['attribute_value'])) {
+				$values = $_POST['attribute_value'];
+				
+				if ($settings['attributes-method'] == 'PST') {
+								
+					$groups = $_POST['group'];
+					$attributes = vtm_get_chargen_attributes();
+					$target = array($settings['attributes-primary'], $settings['attributes-secondary'], $settings['attributes-tertiary']);
+					$check = 0;
+					
+					foreach ($_POST['group'] as $group) {
+						$sectiontype = $_POST[$group];
+						if ($sectiontype == -1) {
+							echo "<p>You have not selected if $group is Primary, Secondary or Tertiary</p>";
+							$ok = 0;
+						} else {
+							$check += $sectiontype;
+							$sectiontotal = 0;
+							foreach  ($attributes as $attribute) {
+								if ($attribute->GROUPING == $group) {
+									$sectiontotal += isset($values[$attribute->ID]) ? $values[$attribute->ID] : 0;
+								}
+							}
+							//echo "<p>group $group: target = " . $target[$sectiontype-1] . ", total = $sectiontotal</p>";
+							if ($sectiontotal > $target[$sectiontype-1]) {
+								echo "<p>You have spent too many dots in $group</p>";
+								$ok = 0;
+							}
+							elseif ($sectiontotal < $target[$sectiontype-1])  {
+								echo "<p>You haven't spent enough dots in $group</p>";
+								$ok = 0;
+							}
+						}
+					}
+					if ($ok && $check != 6) {
+						echo "<p>Check that you have chosen Primary, Secondary and Tertiary once only for each type of Attribute</p>";
+						$ok = 0;
+					}
+					
+					
+				} else {
+					$target = $settings['attributes-points'];
+					$total = array_sum(array_values($values));
+					
+					if ($total > $target) {
+						echo "<p>You have spent too many points</p>";
+						$ok = 0;
+					}
+					elseif ($total < $target)  {
+						echo "<p>You haven't spent enough points</p>";
+						$ok = 0;
+					}
+				}
+			} else {
+				echo "<p>You have not spent any dots</p>";
+				$ok = 0;
+			}
+			
 			break;
 		default:
 			$ok = 0;
@@ -788,19 +868,23 @@ You can return to character generation by following this link: $url";
 	
 }
 
-function vtm_get_chargen_settings($templateID) {
+function vtm_get_chargen_settings($templateID = 1) {
 	global $wpdb;
 		
 	$sql = "SELECT NAME, VALUE FROM " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_OPTIONS WHERE TEMPLATE_ID = %s";
 	$sql = $wpdb->prepare($sql, $templateID);
-	echo "<p>SQL: $sql</p>";
+	//echo "<p>SQL: $sql</p>";
 	$result = $wpdb->get_results($sql);
+	
+	if (count($result) == 0)
+		return array();
+	
 	$keys = $wpdb->get_col($sql);
 	$vals = $wpdb->get_col($sql,1);
 	
-	print_r($result);
-	print_r($keys);
-	print_r($vals);
+	//print_r($result);
+	//print_r($keys);
+	//print_r($vals);
 
 	return array_combine($keys, $vals);
 	
@@ -822,17 +906,31 @@ function vtm_get_chargen_attributes() {
 
 }
 
-function vtm_render_dot_select($type, $itemid) {
+function vtm_render_dot_select($type, $itemid, $current, $start = 1) {
 
 	$output = "";
 	$fulldoturl = plugins_url( 'gvlarp-character/images/viewfulldot.jpg' );
 	
 	$output .= "<img alt='*' width=14 src='$fulldoturl'>";
-	for ($i = 2 ; $i <= 5 ; $i++) {
-		$output .= "<input type='radio' name='" . $type . "[" . $itemid . "]' value='$i' >\n";
+	for ($i = $start ; $i < 5 ; $i++) {
+		$output .= "<input type='radio' name='" . $type . "[" . $itemid . "]' value='$i' ";
+		$output .= checked($current, $i, false);
+		$output .= ">\n";
 	}
 	
 	return $output;
 
+}
+
+function vtm_render_pst_select($name, $selected) {
+
+	$output = "<select name='$name'>\n";
+	$output .= "<option value='-1'>[Select]</option>\n";
+	$output .= "<option value='1' " . selected($selected, 1, false) . ">Primary</option>\n";
+	$output .= "<option value='2' " . selected($selected, 2, false) . ">Secondary</option>\n";
+	$output .= "<option value='3' " . selected($selected, 3, false) . ">Tertiary</option>\n";
+	$output .= "</select>\n";
+	
+	return $output;
 }
 ?>
