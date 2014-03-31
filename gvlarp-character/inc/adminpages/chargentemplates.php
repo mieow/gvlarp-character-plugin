@@ -12,7 +12,8 @@ function vtm_render_template_data(){
 		'attributes-method' => "PST",
 		'attributes-primary' => 7,
 		'attributes-secondary' => 5,
-		'attributes-tertiary' => 3
+		'attributes-tertiary' => 3,
+		'attributes-points' => 0
 	);
 
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
@@ -109,13 +110,37 @@ function vtm_render_template_data(){
 						'ID' => $id
 					)
 				);
-					
-				if ($result) $updates++;
-				else if ($result !== 0) $fail = 1;
-
-				if ($fail) echo "<p style='color:red'>Could not update template</p>";
-				elseif ($updates) echo "<p style='color:green'>Updated template</p>";
-				else echo "<p style='color:orange'>No updates made to template</p>";
+				
+				$sql = "SELECT NAME, VALUE, ID FROM " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_OPTIONS WHERE TEMPLATE_ID = %s";
+				$sql = $wpdb->prepare($sql, $id);
+				$results = $wpdb->get_results($sql, OBJECT_K);
+				
+				// save template options
+				foreach ($settings as $option => $val) {
+					$data = array(
+								'NAME' => $option,
+								'VALUE' => isset($_REQUEST[$option]) ? $_REQUEST[$option] : $val,
+								'TEMPLATE_ID' => $id
+							);
+					if (isset($results[$option])) {
+						$result = $wpdb->update(VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_OPTIONS",
+							$data,
+							array ('ID' => $results[$option]->ID)
+						);
+						if (!$result && $result !== 0) {
+							$wpdb->print_error();
+							echo "<p style='color:red'>Could not update $option</p>";
+						}
+					} else {
+						$wpdb->insert(VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_OPTIONS",
+							$data,
+							array('%s', '%s', '%d')
+						);
+						if ($wpdb->insert_id == 0) {
+							echo "<p style='color:red'><b>Error:</b> $option could not be inserted</p>";
+						}
+					}
+				}
 				
 			}
 			break;		
@@ -135,6 +160,10 @@ function vtm_render_template_data(){
 		$results = $wpdb->get_results($sql, OBJECT_K);
 		
 		$settings['attributes-method'] = $results['attributes-method']->VALUE;
+		$settings['attributes-primary'] = $results['attributes-primary']->VALUE;
+		$settings['attributes-secondary'] = $results['attributes-secondary']->VALUE;
+		$settings['attributes-tertiary'] = $results['attributes-tertiary']->VALUE;
+		$settings['attributes-points'] = $results['attributes-points']->VALUE;
 			
 	} else {
 		$name   = "";
@@ -157,9 +186,13 @@ function vtm_render_template_data(){
 	<p>Template Name:
 	<input type="text"   name="template_name" value="<?php print $name; ?>"></p>
 	<p>Description:
-	<input type="text"   name="template_desc" value="<?php print $description; ?>"></p>
+	<input type="text"   name="template_desc" value="<?php print $description; ?>" size=50 ></p>
 	<p>Visible:
-	[pulldown]</p>
+		<select name="template_visible">
+			<option value="N" <?php selected($visible, "N"); ?>>No</option>
+			<option value="Y" <?php selected($visible, "Y"); ?>>Yes</option>
+		</select>
+	</p>
 
 	<h4>Character Generation Template Options</h4>
 	<table>
@@ -167,14 +200,14 @@ function vtm_render_template_data(){
 		<td rowspan=1>Assigning Attributes</td>
 		<td><input type="radio" name="attributes-method" value="PST" <?php checked( 'PST', $settings['attributes-method']); ?>>Primary/Secondary/Tertiary
 			<table>
-			<tr><td>Primary Dots</td><td>[box]</td></tr>
-			<tr><td>Secondary Dots</td><td>[box]</td></tr>
-			<tr><td>Tertiary Dots</td><td>[box]</td></tr>
+			<tr><td>Primary Dots</td>  <td><input type="text" name="attributes-primary"   value="<?php print $settings['attributes-primary']; ?>"></td></tr>
+			<tr><td>Secondary Dots</td><td><input type="text" name="attributes-secondary" value="<?php print $settings['attributes-secondary']; ?>"></td></tr>
+			<tr><td>Tertiary Dots</td> <td><input type="text" name="attributes-tertiary"  value="<?php print $settings['attributes-tertiary']; ?>"></td></tr>
 			</table>
 		</td>
 		<td><input type="radio" name="attributes-method" value="point" <?php checked( 'point', $settings['attributes-method']); ?>>Point Spend
 			<table>
-			<tr><td>Dots</td><td>[box]</td></tr>
+			<tr><td>Dots</td><td><input type="text" name="attributes-points"  value="<?php print $settings['attributes-points']; ?>"></td></tr>
 			</table>
 		</td>
 	</tr>

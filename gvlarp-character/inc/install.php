@@ -6,23 +6,25 @@ register_activation_hook( __FILE__, 'vtm_character_install_data' );
 global $vtm_character_version;
 global $vtm_character_db_version;
 $vtm_character_version = "1.10"; 
-$vtm_character_db_version = "14"; 
+$vtm_character_db_version = "15"; 
 
 function vtm_update_db_check() {
     global $vtm_character_version;
     global $vtm_character_db_version;
 	
-    if (get_site_option( 'vtm_character_db_version' ) != $vtm_character_db_version ||
-		get_site_option( 'vtm_character_version' ) != $vtm_character_version) {
+    if (get_option( 'vtm_character_db_version' ) != $vtm_character_db_version ||
+		get_option( 'vtm_character_version' ) != $vtm_character_version) {
 		
+		echo "<p>Updating from " . get_option( 'vtm_character_version' ) . "." . get_option( 'vtm_character_db_version' );
+		echo " to  $vtm_character_version.$vtm_character_db_version</p>";
 		
         $errors = vtm_character_update();
         vtm_character_install();
 		vtm_character_install_data();
 				
 		if (!$errors) {
-			update_site_option( "vtm_character_version", $vtm_character_version );
-			update_site_option( "vtm_character_db_version", $vtm_character_db_version );
+			update_option( "vtm_character_version", $vtm_character_version );
+			update_option( "vtm_character_db_version", $vtm_character_db_version );
 		}
    }
 }
@@ -565,6 +567,7 @@ function vtm_character_install() {
 					NATURE_ID                 MEDIUMINT(9)  NOT NULL,
 					DEMEANOUR_ID              MEDIUMINT(9)  NOT NULL,
 					CHARGEN_STATUS_ID		  MEDIUMINT(9)  NOT NULL,
+					CHARGEN_TEMPLATE_ID		  MEDIUMINT(9)  NOT NULL,
 					CONCEPT					  TINYTEXT		NOT NULL,
 					EMAIL					  VARCHAR(60)	NOT NULL,
 					LAST_UPDATED              DATE          NOT NULL,
@@ -1082,7 +1085,7 @@ function vtm_add_constraint($table, $constraint, $foreignkey, $reference) {
 	$check_constraints = array_intersect(array($constraint), $existing_keys);
 	$sql = "ALTER TABLE $table ADD CONSTRAINT $constraint FOREIGN KEY ($foreignkey) REFERENCES $reference;";
 	
-	echo "SQL: $sql<br />";
+	//echo "SQL: $sql<br />";
 	
 	/* do remove */
 	if( empty($check_constraints) ) $wpdb->query($sql);			
