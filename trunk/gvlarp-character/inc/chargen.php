@@ -24,6 +24,7 @@ function vtm_get_chargen_content() {
 	$characterID = vtm_get_chargen_characterID();
 	$laststep = isset($_POST['step']) ? $_POST['step'] : 0;
 	$progress = isset($_POST['progress']) ? $_POST['progress'] : array('0' => 1);
+	$templateID = vtm_get_templateid($characterID);
 	
 	if ($characterID == -1) {
 		$output .= "<p>Invalid Reference</p>";
@@ -39,14 +40,14 @@ function vtm_get_chargen_content() {
 	// validate & save data from last step
 	$dataok = vtm_validate_chargen($laststep);
 	if ($dataok) {
-		$characterID = vtm_save_progress($laststep, $characterID);
+		$characterID = vtm_save_progress($laststep, $characterID, $templateID);
 		$progress[$laststep] = 1;
 		
 	} else {
 		$step = $laststep;
 		$progress[$laststep] = 0;
 	}
-	print_r($progress);
+	//print_r($progress);
 	// setup progress
 	for ($i = 0 ; $i <= 10 ; $i++) {
 		$val = isset($progress[$i]) ? $progress[$i] : 0;
@@ -54,7 +55,7 @@ function vtm_get_chargen_content() {
 	}
 	
 	// output flow buttons
-	$output .= vtm_render_flow($step, $characterID, $progress);
+	$output .= vtm_render_flow($step, $characterID, $progress, $templateID);
 	
 	$output .= "<div id='chargen-main'>";
 	
@@ -64,7 +65,7 @@ function vtm_get_chargen_content() {
 			$output .= vtm_render_basic_info($step, $characterID);
 			break;
 		case 2:
-			$output .= vtm_render_attributes($step, $characterID);
+			$output .= vtm_render_attributes($step, $characterID, $templateID);
 			break;
 		default:
 			$output .= vtm_render_choose_template();
@@ -99,7 +100,7 @@ function vtm_get_step() {
 	return $step;
 }
 
-function vtm_render_flow($step, $characterID, $progress) {
+function vtm_render_flow($step, $characterID, $progress, $templateID) {
 
 	$output = "";
 	
@@ -116,13 +117,10 @@ function vtm_render_flow($step, $characterID, $progress) {
 		'10' => array('title' => "Extended Backgrounds", 'dependency' => 9)
 	);
 	
-	$output .= "<div id='vtm-chargen-flow'>\n";
-	
-	$template = isset($_POST['chargen_template']) ? $_POST['chargen_template'] : ( isset($_POST['selected_template']) ? $_POST['selected_template'] : "");
-	$output .= "<input type='hidden' name='selected_template' value='$template' />\n";
+	$output .= "<div id='vtm-chargen-flow'>\n";	
+	$output .= "<input type='hidden' name='selected_template' value='$templateID' />\n";
 	$output .= "<input type='hidden' name='characterID' value='$characterID' />\n";
 	$output .= "<input type='hidden' name='step' value='$step' />\n";
-
 	
 	if ($step > 0) {
 		$output .= "<ul>\n";
@@ -294,12 +292,45 @@ function vtm_render_basic_info($step, $characterID) {
 
 	return $output;
 }
-function vtm_render_attributes($step) {
+function vtm_render_attributes($step, $characterID, $templateID) {
 
 	$output = "";
+	$settings   = vtm_get_chargen_settings($templateID);
+	$attributes = vtm_get_chargen_attributes();
 	
 	$output .= "<h3>Step $step: Attributes</h3>";
-
+	
+	if ($settings['attributes-method'] == "PST") {
+		// Primary, Secondary, Tertiary
+		$output .= "<p>You have {$settings['attributes-primary']} dots to spend on your Primary attributes, {$settings['attributes-secondary']} to spend on Secondary and {$settings['attributes-tertiary']} to spend on Tertiary.</p>";
+	} else {
+		$output .= "<p>You have {$settings['attributes-points']} dots to spend on your attributes</p>";
+	}
+		
+	$group = "";
+	foreach ($attributes as $attribute) {
+		if ($attribute->GROUPING != $group) {
+			if ($group != "")
+				$output .= "</table>\n";
+			$group = $attribute->GROUPING;
+			$output .= "<h4>$group</h4>";
+			if ($settings['attributes-method'] == "PST")
+				$output .= "[PST pull-down]<br />";
+			$output .= "<table><tr><th>Attribute</th><th>Speciality</th><th>Rating</th><th>Description</th></tr>\n";
+		}
+		$output .= "<tr><td class=\"gvcol_key\">" . $attribute->NAME . "</td><td class=\"gvcol_spec\">";
+		if ($attribute->SPECIALISATION_AT > 0)
+			$output .= "<input type='text' name='attribute_spec[" . $attribute->ID . "]' value=''>";
+		else
+			$output .= "&nbsp;";
+		$output .= "</td><td>";
+		$output .= vtm_render_dot_select("attribute_value", $attribute->ID);
+		$output .= "</td><td>";
+		$output .= stripslashes($attribute->DESCRIPTION);
+		$output .= "</td></tr>\n";
+	}
+	$output .= "</table>\n";
+	
 	return $output;
 }
 
@@ -312,7 +343,7 @@ function vtm_render_choose_template() {
 	
 	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE WHERE VISIBLE = 'Y' ORDER BY NAME";
 	$result = $wpdb->get_results($sql);
-	print_r($result);
+	//print_r($result);
 	
 	$output .= "<p><label>Character Generation Template:</label> <select name='chargen_template'>";
 	foreach ($result as $template) {
@@ -420,12 +451,12 @@ function vtm_validate_chargen($laststep) {
 	return $ok;
 }
 
-function vtm_save_progress($laststep, $characterID) {
+function vtm_save_progress($laststep, $characterID, $templateID) {
 	
 	
 	switch ($laststep) {
 		case 1:
-			$characterID = vtm_save_basic_info($characterID);
+			$characterID = vtm_save_basic_info($characterID, $templateID);
 			break;
 	
 	}
@@ -433,7 +464,7 @@ function vtm_save_progress($laststep, $characterID) {
 	return $characterID;
 }
 
-function vtm_save_basic_info($characterID) {
+function vtm_save_basic_info($characterID, $templateID) {
 	global $wpdb;
 		
 	// New Player?
@@ -512,8 +543,9 @@ function vtm_save_basic_info($characterID) {
 		'VISIBLE'					=> 'Y',
 		'DELETED'					=> 'N',
 
+		'CHARGEN_TEMPLATE_ID'		=> $templateID
 	);
-	print_r($dataarray);
+	//print_r($dataarray);
 	
 	// new character or update character?
 	if ($characterID > 0) {
@@ -542,6 +574,7 @@ function vtm_save_basic_info($characterID) {
 						'%d', 		'%d', 		'%s', 		'%d',
 						'%d', 		'%d', 		'%d', 		'%s',
 						'%s', 		'%s', 		'%s', 		'%s',
+						'%d'
 					)
 				);
 		$characterID = $wpdb->insert_id;
@@ -550,7 +583,7 @@ function vtm_save_basic_info($characterID) {
 		}
 		
 		vtm_email_new_character($_POST['email'], $characterID, $playerid, 
-			$_POST['character'], $_POST['priv_clan'], $_POST['player'], $_POST['concept']);
+			$_POST['character'], $_POST['priv_clan'], $_POST['player'], $_POST['concept'], $templateID);
 	}
 
 	// any initial tables to set up?
@@ -672,6 +705,28 @@ function vtm_get_player_id_from_characterID($characterID) {
 	return $wpdb->get_var($sql);
 
 }
+function vtm_get_templateid($characterID) {
+	global $wpdb;
+	
+	if (isset($_POST['chargen_template'])) {
+		if (isset($_POST['chargen_reference']) && $_POST['chargen_reference'] != "") {
+			// look up what template the character was generated with
+			$sql = "SELECT CHARGEN_TEMPLATE_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER
+				WHERE ID = %s";
+			$sql = $wpdb->prepare($sql, $characterID);
+			$template = $wpdb->get_var($sql);
+			echo "Looked up template ID from character : $template<br />";
+		} else {
+			$template = $_POST['chargen_template'];
+			echo "Looked up template ID from Step 0 : $template<br />";
+		}
+	} else {
+		$template = isset($_POST['selected_template']) ? $_POST['selected_template'] : "";
+		echo "Looked up template ID from last step : $template<br />";
+	}
+	
+	return $template;
+}
 function vtm_get_player_name($playerid) {
 	global $wpdb;
 		
@@ -689,7 +744,7 @@ function vtm_get_clan_name($clanid) {
 
 }
 
-function vtm_email_new_character($email, $characterID, $playerid, $name, $clanid, $player, $concept) {
+function vtm_email_new_character($email, $characterID, $playerid, $name, $clanid, $player, $concept, $template) {
 	global $current_user;
 
 	if (is_user_logged_in()) {
@@ -717,6 +772,7 @@ Your new character has been created:
 	* Reference: $ref
 	* Character Name: $name
 	* Clan: $clan
+	* Template: $template
 	* Concept: 
 	
 " . stripslashes($concept) . "
@@ -732,4 +788,51 @@ You can return to character generation by following this link: $url";
 	
 }
 
+function vtm_get_chargen_settings($templateID) {
+	global $wpdb;
+		
+	$sql = "SELECT NAME, VALUE FROM " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_OPTIONS WHERE TEMPLATE_ID = %s";
+	$sql = $wpdb->prepare($sql, $templateID);
+	echo "<p>SQL: $sql</p>";
+	$result = $wpdb->get_results($sql);
+	$keys = $wpdb->get_col($sql);
+	$vals = $wpdb->get_col($sql,1);
+	
+	print_r($result);
+	print_r($keys);
+	print_r($vals);
+
+	return array_combine($keys, $vals);
+	
+}
+
+function vtm_get_chargen_attributes() {
+	global $wpdb;
+	
+	$sql = "SELECT ID, NAME, DESCRIPTION, GROUPING, SPECIALISATION_AT
+			FROM " . VTM_TABLE_PREFIX . "STAT
+			WHERE
+				GROUPING = 'Physical'
+				OR GROUPING = 'Social'
+				OR GROUPING = 'Mental'
+			ORDER BY ORDERING";
+	$results = $wpdb->get_results($sql);
+	
+	return $results;
+
+}
+
+function vtm_render_dot_select($type, $itemid) {
+
+	$output = "";
+	$fulldoturl = plugins_url( 'gvlarp-character/images/viewfulldot.jpg' );
+	
+	$output .= "<img alt='*' width=14 src='$fulldoturl'>";
+	for ($i = 2 ; $i <= 5 ; $i++) {
+		$output .= "<input type='radio' name='" . $type . "[" . $itemid . "]' value='$i' >\n";
+	}
+	
+	return $output;
+
+}
 ?>
