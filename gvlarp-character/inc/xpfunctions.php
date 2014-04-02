@@ -833,7 +833,7 @@ function vtm_render_disciplines($characterID, $maxRating, $pendingSpends, $xp_av
 				AND clans.NONCLAN_COST_MODEL_ID = nonclanmodels.ID
 				AND chars.PRIVATE_CLAN_ID = clans.ID
 				AND chars.ID = %s
-				AND (NOT(ISNULL(clandisc.DISCIPLINE_ID)) OR disc.VISIBLE = 'Y')
+				AND (NOT(ISNULL(clandisc.DISCIPLINE_ID)) OR disc.VISIBLE = 'Y' OR NOT(ISNULL(cha_disc.level)))
 				AND (
 					(ISNULL(cha_disc.LEVEL) AND clansteps.CURRENT_VALUE = 0)
 					OR clansteps.CURRENT_VALUE = cha_disc.level
