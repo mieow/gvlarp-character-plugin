@@ -297,7 +297,7 @@ function vtm_render_attributes($step, $characterID, $templateID) {
 
 	$output = "";
 	$settings   = vtm_get_chargen_settings($templateID);
-	$attributes = vtm_get_chargen_attributes();
+	$attributes = vtm_get_chargen_attributes($characterID);
 	
 	$output .= "<h3>Step $step: Attributes</h3>";
 	
@@ -316,11 +316,34 @@ function vtm_render_attributes($step, $characterID, $templateID) {
 	if (count($keys) > 0) {
 		$vals = $wpdb->get_col($sql,1);
 		$stats = array_combine($keys, $vals);
+		
+		if ($settings['attributes-method'] == "PST") {
+			$grouptotals = array();
+			foreach  ($attributes as $attribute) {
+				if (isset($stats[$attribute->ID])) {
+					if (isset($grouptotals[$attribute->GROUPING]))
+						$grouptotals[$attribute->GROUPING] += $stats[$attribute->ID];
+					else
+						$grouptotals[$attribute->GROUPING] = $stats[$attribute->ID];
+				}
+			}
+			$groupselected = array();
+			foreach ($grouptotals as $grp => $total) {
+				switch($total) {
+					case $settings['attributes-primary']: $groupselected[$grp] = 1;break;
+					case $settings['attributes-secondary']: $groupselected[$grp] = 2;break;
+					case $settings['attributes-tertiary']: $groupselected[$grp] = 3;break;
+					default: $groupselected[$grp] = 0;
+				}
+			}
+		}
+		
 	}
 	elseif (isset($_POST['attribute_value'])) {
 		$stats = $_POST['attribute_value'];
 	}
 	
+	// DONT SHOW APPEARANCE FOR NOSFERATU
 		
 	$group = "";
 	foreach ($attributes as $attribute) {
@@ -329,14 +352,17 @@ function vtm_render_attributes($step, $characterID, $templateID) {
 				$output .= "</table>\n";
 			$group = $attribute->GROUPING;
 			$output .= "<h4>$group</h4><p>";
-			if ($settings['attributes-method'] == "PST")
-				$output .= vtm_render_pst_select($group, isset($_POST[$group]) ? $_POST[$group] : 0);
+			if ($settings['attributes-method'] == "PST") {
+				$val = isset($_POST[$group]) ? $_POST[$group] : (isset($groupselected[$group]) ? $groupselected[$group] : 0);
+				$output .= vtm_render_pst_select($group, $val);
+			}
 			$output .= "</p>
 				<input type='hidden' name='group[]' value='$group' />
 				<table><tr><th>Attribute</th><th>Rating</th><th>Description</th></tr>\n";
 		}
 		$output .= "<tr><td class=\"gvcol_key\">" . $attribute->NAME . "</td>";
 		$output .= "<td>";
+		
 		$output .= vtm_render_dot_select("attribute_value", $attribute->ID, isset($stats[$attribute->ID]) ? $stats[$attribute->ID] : -1);
 		$output .= "</td><td>";
 		$output .= stripslashes($attribute->DESCRIPTION);
@@ -521,6 +547,8 @@ function vtm_validate_chargen($laststep, $templateID) {
 			}
 			
 			break;
+		case 3:
+			break;
 		default:
 			$ok = 0;
 	}
@@ -538,10 +566,70 @@ function vtm_save_progress($laststep, $characterID, $templateID) {
 		case 1:
 			$characterID = vtm_save_basic_info($characterID, $templateID);
 			break;
+		case 2:
+			vtm_save_attributes($characterID);
+			break;
 	
 	}
 
 	return $characterID;
+}
+
+function vtm_save_attributes($characterID) {
+	global $wpdb;
+
+	$newattributes = $_POST['attribute_value'];
+	
+	$sql = "SELECT cstat.STAT_ID, cstat.ID, stats.NAME
+			FROM 
+				" . VTM_TABLE_PREFIX . "CHARACTER_STAT cstat,
+				" . VTM_TABLE_PREFIX . "STAT stats
+			WHERE 
+				stats.ID = cstat.STAT_ID
+				AND CHARACTER_ID = %s";
+	$sql = $wpdb->prepare($sql, $characterID);
+	$keys = $wpdb->get_col($sql);
+	if (count($keys) > 0) {
+		$vals = $wpdb->get_col($sql,1);
+		$names = $wpdb->get_col($sql,2);
+		$curattributes = array_combine($keys, $vals);
+		$map = array_combine($names, $keys);
+	} else {
+		$curattributes = array();
+		$map = array();
+	}
+	
+	foreach ($newattributes as $attributeid => $value) {
+		$data = array(
+			'CHARACTER_ID' => $characterID,
+			'STAT_ID'      => $attributeid,
+			'LEVEL'        => $value
+		);
+		if (isset($curattributes[$attributeid])) {
+			// update
+			$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_STAT",
+				$data,
+				array (
+					'ID' => $curattributes[$attributeid]
+				)
+			);
+		} else {
+			// insert
+			$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_STAT",
+						$data,
+						array ('%d', '%d', '%d')
+					);
+		}
+	}
+	
+	// Delete appearance, if it's no longer needed
+	if (isset($map['Appearance']) && !isset($newattributes[$map['Appearance']])) {
+		// Delete
+		$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "CHARACTER_STAT
+				WHERE ID = %s";
+		$wpdb->get_results($wpdb->prepare($sql,$curattributes[$map['Appearance']]));
+	}
+
 }
 
 function vtm_save_basic_info($characterID, $templateID) {
@@ -890,32 +978,55 @@ function vtm_get_chargen_settings($templateID = 1) {
 	
 }
 
-function vtm_get_chargen_attributes() {
+function vtm_get_chargen_attributes($characterID = 0) {
 	global $wpdb;
+	
+	$sql = "SELECT clans.NAME
+			FROM
+				" . VTM_TABLE_PREFIX . "CHARACTER chara,
+				" . VTM_TABLE_PREFIX . "CLAN clans
+			WHERE
+				chara.PRIVATE_CLAN_ID = clans.ID
+				AND chara.ID = %s";
+	$clan = $wpdb->get_var($wpdb->prepare($sql, $characterID));
+	
+	$filter = "GROUPING = 'Physical' OR GROUPING = 'Social' OR GROUPING = 'Mental'";
+	
+	if (isset($clan) && ($clan == 'Nosferatu' || $clan == 'Samedi'))
+		$filter = "NAME != 'Appearance' AND ($filter)";
+	
+	//echo "<p>Clan: $clan</p>";
 	
 	$sql = "SELECT ID, NAME, DESCRIPTION, GROUPING, SPECIALISATION_AT
 			FROM " . VTM_TABLE_PREFIX . "STAT
 			WHERE
-				GROUPING = 'Physical'
-				OR GROUPING = 'Social'
-				OR GROUPING = 'Mental'
+				$filter
 			ORDER BY ORDERING";
+	//echo "<p>SQL: $sql</p>";
 	$results = $wpdb->get_results($sql);
 	
 	return $results;
 
 }
 
-function vtm_render_dot_select($type, $itemid, $current, $start = 1) {
+function vtm_render_dot_select($type, $itemid, $current, $free = 1, $max = 5) {
 
 	$output = "";
 	$fulldoturl = plugins_url( 'gvlarp-character/images/viewfulldot.jpg' );
 	
-	$output .= "<img alt='*' width=14 src='$fulldoturl'>";
-	for ($i = $start ; $i < 5 ; $i++) {
-		$output .= "<input type='radio' name='" . $type . "[" . $itemid . "]' value='$i' ";
+	$output .= "<fieldset class='dotselect'>";
+	
+	//$output .= "<img alt='*' width=14 src='$fulldoturl'>";
+	for ($i = ($max - $free) ; $i >= 0 ; $i--) {
+		$radioid = "dot_{$type}_{$itemid}_{$i}";
+		$output .= "<input type='radio' id='$radioid' name='" . $type . "[" . $itemid . "]' value='$i' ";
 		$output .= checked($current, $i, false);
-		$output .= ">\n";
+		$output .= " /><label for='$radioid' title='" . ($i + $free) . "'";
+		
+		if ($i < $free)
+			$output .= " class='freedot'";
+		
+		$output .= ">&nbsp;</label>\n";
 	}
 	
 	return $output;
