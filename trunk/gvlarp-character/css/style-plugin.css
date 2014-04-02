@@ -209,8 +209,8 @@ div#csheet {
 .gvdot_5_5 {
     width:90px;
     background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-5-5.gif');
-    background-repeat:no-repeat;
     background-size:76px;
+    background-repeat:no-repeat;
     background-position:center; 
 }
 .gvdot_10_1 {
@@ -499,4 +499,63 @@ table.feedingmapkey {width:auto;}
 #chargen-main {
 	clear: both;
 	padding-top: 10px;
+}
+
+/* =Character Generation
+-------------------------------------------------------------- */
+.dotselect {
+    float:left;
+}
+
+.dotselect label.freedot {
+    background-image: url('/wp-content/plugins/gvlarp-character/images/xpdot.jpg') !important;
+}
+
+/* :not(:checked) is a filter, so that browsers that don’t support :checked don’t 
+   follow these rules. Every browser that supports :checked also supports :not(), so
+   it doesn’t make the test unnecessarily selective */
+.dotselect:not(:checked) > input {
+    /*position:absolute;
+    top:-9999px;
+    clip:rect(0,0,0,0); */
+	display: none;
+}
+
+.dotselect:not(:checked) > label {
+    float:right;
+    width:12px;
+    padding:0 .1em;
+    overflow:hidden;
+    white-space:nowrap;
+    cursor:pointer;
+    color:#ddd;
+    line-height:1.2;
+    background-repeat:no-repeat;
+    background-position:center; 
+	background-size: 12px;
+}
+
+.dotselect:not(:checked) > label {
+    background-image: url('/wp-content/plugins/gvlarp-character/images/viewemptydot.jpg');
+}
+
+.dotselect > input:checked ~ label {
+    background-image: url('/wp-content/plugins/gvlarp-character/images/viewfulldot.jpg');
+}
+
+.dotselect:not(:checked) > label:hover,
+.dotselect:not(:checked) > label:hover ~ label {
+    background-image: url('/wp-content/plugins/gvlarp-character/images/pendingdot.jpg');
+}
+
+.dotselect > input:checked + label:hover,
+.dotselect > input:checked + label:hover ~ label,
+.dotselect > input:checked ~ label:hover,
+.dotselect > input:checked ~ label:hover ~ label,
+.dotselect > label:hover ~ input:checked ~ label {
+    background-image: url('/wp-content/plugins/gvlarp-character/images/pendingdot.jpg');
+}
+
+.dotselect > label:active {
+    content: url('/wp-content/plugins/gvlarp-character/images/pendingdot.jpg');
 }
