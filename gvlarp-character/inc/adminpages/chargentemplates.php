@@ -1,5 +1,7 @@
 <?php
 
+
+
 function vtm_render_template_data(){
 
 	global $wpdb;
@@ -8,17 +10,10 @@ function vtm_render_template_data(){
 	$type = "template";
 	
 	//Default template options
-	$settings = array(
-		'attributes-method' => "PST",
-		'attributes-primary' => 7,
-		'attributes-secondary' => 5,
-		'attributes-tertiary' => 3,
-		'attributes-points' => 0
-	);
+	$settings = vtm_default_chargen_settings();
 
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
-
 	$wpdb->show_errors();
 	
 	$thisaction = isset($_REQUEST['action']) ? $_REQUEST['action'] : '';
@@ -159,11 +154,14 @@ function vtm_render_template_data(){
 		$sql = $wpdb->prepare($sql, $id);
 		$results = $wpdb->get_results($sql, OBJECT_K);
 		
-		$settings['attributes-method'] = $results['attributes-method']->VALUE;
-		$settings['attributes-primary'] = $results['attributes-primary']->VALUE;
-		$settings['attributes-secondary'] = $results['attributes-secondary']->VALUE;
-		$settings['attributes-tertiary'] = $results['attributes-tertiary']->VALUE;
-		$settings['attributes-points'] = $results['attributes-points']->VALUE;
+		$settings['attributes-method']    = isset($results['attributes-method']->VALUE) ? $results['attributes-method']->VALUE : $settings['attributes-method'];
+		$settings['attributes-primary']   = isset($results['attributes-primary']->VALUE) ? $results['attributes-primary']->VALUE : $settings['attributes-primary'];
+		$settings['attributes-secondary'] = isset($results['attributes-secondary']->VALUE) ? $results['attributes-secondary']->VALUE : $settings['attributes-secondary'];
+		$settings['attributes-tertiary']  = isset($results['attributes-tertiary']->VALUE) ? $results['attributes-tertiary']->VALUE : $settings['attributes-tertiary'];
+		$settings['attributes-points']    = isset($results['attributes-points']->VALUE) ? $results['attributes-points']->VALUE : $settings['attributes-points'];
+		$settings['abilities-primary']    = isset($results['abilities-primary']->VALUE) ? $results['abilities-primary']->VALUE : $settings['abilities-primary'];
+		$settings['abilities-secondary']  = isset($results['abilities-secondary']->VALUE) ? $results['abilities-secondary']->VALUE : $settings['abilities-secondary'];
+		$settings['abilities-tertiary']   = isset($results['abilities-tertiary']->VALUE) ? $results['abilities-tertiary']->VALUE : $settings['abilities-tertiary'];
 			
 	} else {
 		$name   = "";
@@ -208,6 +206,16 @@ function vtm_render_template_data(){
 		<td><input type="radio" name="attributes-method" value="point" <?php checked( 'point', $settings['attributes-method']); ?>>Point Spend
 			<table>
 			<tr><td>Dots</td><td><input type="text" name="attributes-points"  value="<?php print $settings['attributes-points']; ?>"></td></tr>
+			</table>
+		</td>
+	</tr>
+	<tr>
+		<td rowspan=1>Assigning Abilities</td>
+		<td rowspan=2>
+			<table>
+			<tr><td>Primary Dots</td>  <td><input type="text" name="abilities-primary"   value="<?php print $settings['abilities-primary']; ?>"></td></tr>
+			<tr><td>Secondary Dots</td><td><input type="text" name="abilities-secondary" value="<?php print $settings['abilities-secondary']; ?>"></td></tr>
+			<tr><td>Tertiary Dots</td> <td><input type="text" name="abilities-tertiary"  value="<?php print $settings['abilities-tertiary']; ?>"></td></tr>
 			</table>
 		</td>
 	</tr>

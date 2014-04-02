@@ -1,5 +1,21 @@
 <?php
 
+function vtm_default_chargen_settings() {
+
+	return array(
+		'attributes-method'    => "PST",
+		'attributes-primary'   => 7,
+		'attributes-secondary' => 5,
+		'attributes-tertiary'  => 3,
+		'attributes-points'    => 0,
+		'abilities-primary'    => 13,
+		'abilities-secondary'  => 9,
+		'abilities-tertiary'   => 5,
+		'abilities-max'        => 3,
+	);
+
+}
+
 function vtm_chargen_content_filter($content) {
 
 
@@ -66,6 +82,9 @@ function vtm_get_chargen_content() {
 			break;
 		case 2:
 			$output .= vtm_render_attributes($step, $characterID, $templateID);
+			break;
+		case 3:
+			$output .= vtm_render_abilities($step, $characterID, $templateID);
 			break;
 		default:
 			$output .= vtm_render_choose_template();
@@ -342,9 +361,7 @@ function vtm_render_attributes($step, $characterID, $templateID) {
 	elseif (isset($_POST['attribute_value'])) {
 		$stats = $_POST['attribute_value'];
 	}
-	
-	// DONT SHOW APPEARANCE FOR NOSFERATU
-		
+			
 	$group = "";
 	foreach ($attributes as $attribute) {
 		if ($attribute->GROUPING != $group) {
@@ -372,7 +389,74 @@ function vtm_render_attributes($step, $characterID, $templateID) {
 	
 	return $output;
 }
+function vtm_render_abilities($step, $characterID, $templateID) {
+	global $wpdb;
 
+	$output = "";
+	$settings   = vtm_get_chargen_settings($templateID);
+	$abilities  = vtm_get_chargen_abilities($characterID);
+	
+	$output .= "<h3>Step $step: Abilities</h3>";
+	$output .= "<p>You have {$settings['abilities-primary']} dots to spend on your Primary abilities, {$settings['abilities-secondary']} to spend on Secondary and {$settings['abilities-tertiary']} to spend on Tertiary.</p>";
+	
+
+	// read/guess initial values
+	$sql = "SELECT SKILL_ID, LEVEL FROM " . VTM_TABLE_PREFIX . "CHARACTER_SKILL
+			WHERE CHARACTER_ID = %s";
+	$sql = $wpdb->prepare($sql, $characterID);
+	$keys = $wpdb->get_col($sql);
+	if (count($keys) > 0) {
+		$vals = $wpdb->get_col($sql,1);
+		$skills = array_combine($keys, $vals);
+		
+		$grouptotals = array();
+		foreach  ($abilities as $skill) {
+			if (isset($skills[$skill->ID])) {
+				if (isset($grouptotals[$skill->GROUPING]))
+					$grouptotals[$skill->GROUPING] += $skills[$skill->ID];
+				else
+					$grouptotals[$skill->GROUPING] = $skills[$skill->ID];
+			}
+		}
+		$groupselected = array();
+		foreach ($grouptotals as $grp => $total) {
+			switch($total) {
+				case $settings['abilities-primary']: $groupselected[$grp] = 1;break;
+				case $settings['abilities-secondary']: $groupselected[$grp] = 2;break;
+				case $settings['abilities-tertiary']: $groupselected[$grp] = 3;break;
+				default: $groupselected[$grp] = 0;
+			}
+		}
+		
+	}
+	elseif (isset($_POST['ability_value'])) {
+		$skills = $_POST['ability_value'];
+	}
+	$group = "";
+	foreach ($abilities as $skill) {
+		if ($skill->GROUPING != $group) {
+			if ($group != "")
+				$output .= "</table>\n";
+			$group = $skill->GROUPING;
+			$output .= "<h4>$group</h4><p>";
+			$val = isset($_POST[$group]) ? $_POST[$group] : (isset($groupselected[$group]) ? $groupselected[$group] : 0);
+			$output .= vtm_render_pst_select($group, $val);
+			$output .= "</p>
+				<input type='hidden' name='group[]' value='$group' />
+				<table><tr><th>Ability</th><th>Rating</th><th>Description</th></tr>\n";
+		}
+		$output .= "<tr><td class=\"gvcol_key\">" . $skill->NAME . "</td>";
+		$output .= "<td>";
+		
+		$output .= vtm_render_dot_select("ability_value", $skill->ID, isset($skills[$skill->ID]) ? $skills[$skill->ID] : -1, 0);
+		$output .= "</td><td>";
+		$output .= stripslashes($skill->DESCRIPTION);
+		$output .= "</td></tr>\n";
+	}
+	$output .= "</table>\n";
+	
+	return $output;
+}
 function vtm_render_choose_template() {
 	global $wpdb;
 
@@ -548,6 +632,56 @@ function vtm_validate_chargen($laststep, $templateID) {
 			
 			break;
 		case 3:
+			// VALIDATE ABILITIES
+			// P/S/T
+			//		- P / S / T options only picked once
+			//		- correct number of points spent in each group
+			// 		- check that nothing is over the max
+			if (isset($_POST['ability_value'])) {
+				$values = $_POST['ability_value'];
+				
+				$groups = $_POST['group'];
+				$abilities = vtm_get_chargen_abilities();
+				$target = array($settings['abilities-primary'], $settings['abilities-secondary'], $settings['abilities-tertiary']);
+				$check = 0;
+				
+				foreach ($_POST['group'] as $group) {
+					$sectiontype = $_POST[$group];
+					if ($sectiontype == -1) {
+						echo "<p>You have not selected if $group is Primary, Secondary or Tertiary</p>";
+						$ok = 0;
+					} else {
+						$check += $sectiontype;
+						$sectiontotal = 0;
+						foreach  ($abilities as $skill) {
+							if ($skill->GROUPING == $group) {
+								$sectiontotal += isset($values[$skill->ID]) ? $values[$skill->ID] : 0;
+								if (isset($values[$skill->ID]) && $values[$skill->ID] > $settings['abilities-max']) {
+									echo "<p>Abilities should not go higher than level {$settings['abilities-max']}. Please reduce the dots spend in {$skill->NAME}</p>";
+									$ok = 0;
+								}
+							}
+						}
+						//echo "<p>group $group: target = " . $target[$sectiontype-1] . ", total = $sectiontotal</p>";
+						if ($sectiontotal > $target[$sectiontype-1]) {
+							echo "<p>You have spent too many dots in $group</p>";
+							$ok = 0;
+						}
+						elseif ($sectiontotal < $target[$sectiontype-1])  {
+							echo "<p>You haven't spent enough dots in $group</p>";
+							$ok = 0;
+						}
+					}
+				}
+				if ($ok && $check != 6) {
+					echo "<p>Check that you have chosen Primary, Secondary and Tertiary once only for each type of Ability</p>";
+					$ok = 0;
+				}
+					
+			} else {
+				echo "<p>You have not spent any dots</p>";
+				$ok = 0;
+			}
 			break;
 		default:
 			$ok = 0;
@@ -675,6 +809,7 @@ function vtm_save_basic_info($characterID, $templateID) {
 	$charstatus	= $wpdb->get_var("SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARACTER_STATUS WHERE NAME = 'Alive';");
 	$path		= $wpdb->get_var("SELECT ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE NAME = 'Humanity';");
 	$genstatus	= $wpdb->get_var("SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARGEN_STATUS WHERE NAME = 'In Progress';");
+	$template	= $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE WHERE ID = %s;", $templateID));
 	if (isset($_POST['pub_clan']) && $_POST['pub_clan'] > 0)
 		$pub_clan = $_POST['pub_clan'];
 	else
@@ -751,7 +886,7 @@ function vtm_save_basic_info($characterID, $templateID) {
 		}
 		
 		vtm_email_new_character($_POST['email'], $characterID, $playerid, 
-			$_POST['character'], $_POST['priv_clan'], $_POST['player'], $_POST['concept'], $templateID);
+			$_POST['character'], $_POST['priv_clan'], $_POST['player'], $_POST['concept'], $template);
 	}
 
 	// any initial tables to set up?
@@ -958,7 +1093,7 @@ You can return to character generation by following this link: $url";
 
 function vtm_get_chargen_settings($templateID = 1) {
 	global $wpdb;
-		
+	
 	$sql = "SELECT NAME, VALUE FROM " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_OPTIONS WHERE TEMPLATE_ID = %s";
 	$sql = $wpdb->prepare($sql, $templateID);
 	//echo "<p>SQL: $sql</p>";
@@ -974,7 +1109,10 @@ function vtm_get_chargen_settings($templateID = 1) {
 	//print_r($keys);
 	//print_r($vals);
 
-	return array_combine($keys, $vals);
+	$settings = vtm_default_chargen_settings();
+	$settings = array_merge($settings, array_combine($keys, $vals));
+	
+	return $settings;
 	
 }
 
@@ -1008,7 +1146,23 @@ function vtm_get_chargen_attributes($characterID = 0) {
 	return $results;
 
 }
+function vtm_get_chargen_abilities($characterID = 0) {
+	global $wpdb;
+	
+	
+	$sql = "SELECT ID, NAME, DESCRIPTION, GROUPING, SPECIALISATION_AT, 
+				CASE GROUPING WHEN 'Talents' THEN 3 WHEN 'Skills' THEN 2 WHEN 'Knowledges' THEN 1 ELSE 0 END as ORDERING
+			FROM " . VTM_TABLE_PREFIX . "SKILL
+			WHERE
+				VISIBLE = 'Y'
+				AND (GROUPING = 'Talents' OR GROUPING = 'Skills' OR GROUPING = 'Knowledges')
+			ORDER BY ORDERING DESC, NAME";
+	//echo "<p>SQL: $sql</p>";
+	$results = $wpdb->get_results($sql);
+	
+	return $results;
 
+}
 function vtm_render_dot_select($type, $itemid, $current, $free = 1, $max = 5) {
 
 	$output = "";
@@ -1017,11 +1171,12 @@ function vtm_render_dot_select($type, $itemid, $current, $free = 1, $max = 5) {
 	$output .= "<fieldset class='dotselect'>";
 	
 	//$output .= "<img alt='*' width=14 src='$fulldoturl'>";
-	for ($i = ($max - $free) ; $i >= 0 ; $i--) {
-		$radioid = "dot_{$type}_{$itemid}_{$i}";
-		$output .= "<input type='radio' id='$radioid' name='" . $type . "[" . $itemid . "]' value='$i' ";
-		$output .= checked($current, $i, false);
-		$output .= " /><label for='$radioid' title='" . ($i + $free) . "'";
+	for ($i = $max ; $i > 0 ; $i--) {
+		$index = $i - $free;
+		$radioid = "dot_{$type}_{$itemid}_{$index}";
+		$output .= "<input type='radio' id='$radioid' name='" . $type . "[" . $itemid . "]' value='$index' ";
+		$output .= checked($current, $index, false);
+		$output .= " /><label for='$radioid' title='" . ($index + $free) . "'";
 		
 		if ($i < $free)
 			$output .= " class='freedot'";
@@ -1044,4 +1199,6 @@ function vtm_render_pst_select($name, $selected) {
 	
 	return $output;
 }
+
+
 ?>
