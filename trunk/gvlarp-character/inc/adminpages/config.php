@@ -472,6 +472,17 @@ function vtm_character_config() {
 			$image->drawImage($draw);
 			$image->writeImage(VTM_CHARACTER_URL . 'images/viewfulldot.' . $imagetype);
 
+			$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
+			$draw = new ImagickDraw();
+			$draw->setStrokeColor($drawcolour);
+			$draw->setStrokeWidth($drawborder);
+			$draw->setFillColor($drawbgcolour);
+			$draw->rectangle( $drawborder, $drawborder, $drawwidth - $drawborder - 1, $drawheight - $drawborder - 1);
+			$draw->line( $drawborder, $drawborder, $drawwidth - $drawborder - 1, $drawheight - $drawborder - 1);
+			$draw->line( $drawborder, $drawheight - $drawborder - 1, $drawwidth - $drawborder - 1, $drawborder);
+			$image->drawImage($draw);
+			$image->writeImage(VTM_CHARACTER_URL . 'images/crossclear.' . $imagetype);
+
 			/* Pending XP Dots */
 			$drawbgcolour = get_option('vtm_pend_bgcolour');
 			$drawcolour   = get_option('vtm_pend_dotcolour');

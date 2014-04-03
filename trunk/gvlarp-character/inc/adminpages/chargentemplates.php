@@ -162,6 +162,8 @@ function vtm_render_template_data(){
 		$settings['abilities-primary']    = isset($results['abilities-primary']->VALUE) ? $results['abilities-primary']->VALUE : $settings['abilities-primary'];
 		$settings['abilities-secondary']  = isset($results['abilities-secondary']->VALUE) ? $results['abilities-secondary']->VALUE : $settings['abilities-secondary'];
 		$settings['abilities-tertiary']   = isset($results['abilities-tertiary']->VALUE) ? $results['abilities-tertiary']->VALUE : $settings['abilities-tertiary'];
+		$settings['abilities-max']        = isset($results['abilities-max']->VALUE) ? $results['abilities-max']->VALUE : $settings['abilities-max'];
+		$settings['disciplines-points']    = isset($results['disciplines-points']->VALUE) ? $results['disciplines-points']->VALUE : $settings['disciplines-points'];
 			
 	} else {
 		$name   = "";
@@ -198,24 +200,36 @@ function vtm_render_template_data(){
 		<td rowspan=1>Assigning Attributes</td>
 		<td><input type="radio" name="attributes-method" value="PST" <?php checked( 'PST', $settings['attributes-method']); ?>>Primary/Secondary/Tertiary
 			<table>
-			<tr><td>Primary Dots</td>  <td><input type="text" name="attributes-primary"   value="<?php print $settings['attributes-primary']; ?>"></td></tr>
-			<tr><td>Secondary Dots</td><td><input type="text" name="attributes-secondary" value="<?php print $settings['attributes-secondary']; ?>"></td></tr>
-			<tr><td>Tertiary Dots</td> <td><input type="text" name="attributes-tertiary"  value="<?php print $settings['attributes-tertiary']; ?>"></td></tr>
+			<tr><th>Primary Dots</th>  <td><input type="text" name="attributes-primary"   value="<?php print $settings['attributes-primary']; ?>"></td></tr>
+			<tr><th>Secondary Dots</th><td><input type="text" name="attributes-secondary" value="<?php print $settings['attributes-secondary']; ?>"></td></tr>
+			<tr><th>Tertiary Dots</th> <td><input type="text" name="attributes-tertiary"  value="<?php print $settings['attributes-tertiary']; ?>"></td></tr>
 			</table>
 		</td>
 		<td><input type="radio" name="attributes-method" value="point" <?php checked( 'point', $settings['attributes-method']); ?>>Point Spend
 			<table>
-			<tr><td>Dots</td><td><input type="text" name="attributes-points"  value="<?php print $settings['attributes-points']; ?>"></td></tr>
+			<tr><th>Dots</th><td><input type="text" name="attributes-points"  value="<?php print $settings['attributes-points']; ?>"></td></tr>
 			</table>
 		</td>
 	</tr>
 	<tr>
 		<td rowspan=1>Assigning Abilities</td>
-		<td rowspan=2>
+		<td colspan=2>
 			<table>
-			<tr><td>Primary Dots</td>  <td><input type="text" name="abilities-primary"   value="<?php print $settings['abilities-primary']; ?>"></td></tr>
-			<tr><td>Secondary Dots</td><td><input type="text" name="abilities-secondary" value="<?php print $settings['abilities-secondary']; ?>"></td></tr>
-			<tr><td>Tertiary Dots</td> <td><input type="text" name="abilities-tertiary"  value="<?php print $settings['abilities-tertiary']; ?>"></td></tr>
+			<tr>
+				<th>Max in any one Ability at Abilities Character Generation Stage</th>
+				<td><input type="text" name="abilities-max"   value="<?php print $settings['abilities-max']; ?>"></td>
+			</tr>
+			<tr><th>Primary Dots</th>  <td><input type="text" name="abilities-primary"   value="<?php print $settings['abilities-primary']; ?>"></td></tr>
+			<tr><th>Secondary Dots</th><td><input type="text" name="abilities-secondary" value="<?php print $settings['abilities-secondary']; ?>"></td></tr>
+			<tr><th>Tertiary Dots</th> <td><input type="text" name="abilities-tertiary"  value="<?php print $settings['abilities-tertiary']; ?>"></td></tr>
+			</table>
+		</td>
+	</tr>
+	<tr>
+		<td rowspan=1>Assigning Disciplines</td>
+		<td colspan=2>
+			<table>
+			<tr><th>Number of Discipline Dots</th> <td><input type="text" name="disciplines-points"  value="<?php print $settings['disciplines-points']; ?>"></td></tr>
 			</table>
 		</td>
 	</tr>

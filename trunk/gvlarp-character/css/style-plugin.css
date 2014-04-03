@@ -510,6 +510,9 @@ table.feedingmapkey {width:auto;}
 .dotselect label.freedot {
     background-image: url('/wp-content/plugins/gvlarp-character/images/xpdot.jpg') !important;
 }
+.dotselect label.cleardot {
+    background-image: url('/wp-content/plugins/gvlarp-character/images/crossclear.jpg') !important;
+}
 
 /* :not(:checked) is a filter, so that browsers that don’t support :checked don’t 
    follow these rules. Every browser that supports :checked also supports :not(), so
