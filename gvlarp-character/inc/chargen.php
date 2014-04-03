@@ -14,6 +14,7 @@ function vtm_default_chargen_settings() {
 		'abilities-max'        => 3,
 		'disciplines-points'   => 3,
 		'backgrounds-points'   => 5,
+		'virtues-points'       => 7,
 	);
 
 }
@@ -93,6 +94,9 @@ function vtm_get_chargen_content() {
 			break;
 		case 5:
 			$output .= vtm_render_chargen_backgrounds($step, $characterID, $templateID);
+			break;
+		case 6:
+			$output .= vtm_render_chargen_virtues($step, $characterID, $templateID);
 			break;
 		default:
 			$output .= vtm_render_choose_template();
@@ -397,6 +401,76 @@ function vtm_render_attributes($step, $characterID, $templateID) {
 	
 	return $output;
 }
+function vtm_render_chargen_virtues($step, $characterID, $templateID) {
+	global $wpdb;
+
+	$output = "";
+	$settings = vtm_get_chargen_settings($templateID);
+	$virtues  = vtm_get_chargen_virtues($characterID);
+	
+	$output .= "<h3>Step $step: Virtues</h3>";
+	$output .= "<p>You have {$settings['virtues-points']} dots to spend on your virtues.</p>";
+	
+	// read initial values
+	$sql = "SELECT STAT_ID, LEVEL FROM " . VTM_TABLE_PREFIX . "CHARACTER_STAT
+			WHERE CHARACTER_ID = %s";
+	$sql = $wpdb->prepare($sql, $characterID);
+	$keys = $wpdb->get_col($sql);
+	if (count($keys) > 0) {
+		$vals = $wpdb->get_col($sql,1);
+		$stats = array_combine($keys, $vals);
+	}
+	elseif (isset($_POST['virtue_value'])) {
+		$stats = $_POST['virtue_value'];
+	}
+	
+	$config = vtm_getConfig();
+	
+	if (isset($_POST['path'])) {
+		$selectedpath = $_POST['path'];
+	} else {
+		$selectedpath = $wpdb->get_var($wpdb->prepare("SELECT ROAD_OR_PATH_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
+	}
+	$statid1      = $wpdb->get_var($wpdb->prepare("SELECT STAT1_ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $selectedpath));
+	$statid2      = $wpdb->get_var($wpdb->prepare("SELECT STAT2_ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $selectedpath));
+	$courage      = $wpdb->get_var("SELECT ID FROM " . VTM_TABLE_PREFIX . "STAT WHERE NAME = 'Courage'");
+	$output .= "<p><label>Path of Enlightenment:</label><select name='path' autocomplete='off'>\n";
+	foreach (vtm_get_chargen_roads() as $path) {
+		$output .= "<option value='{$path->ID}' " . selected($path->ID, $selectedpath, false) . ">" . stripslashes($path->NAME) . "</option>";
+	}
+	$output .= "</select>\n";
+	
+	$output .= "<table><tr><th>Virtue</th><th>Rating</th><th>Description</th></tr>\n";
+	
+	// Stat1
+	$output .= "<tr><td class=\"gvcol_key\">" . $virtues[$statid1]->NAME . "</td>";
+	$output .= "<td>";
+	$output .= vtm_render_dot_select("virtue_value", $statid1, isset($stats[$statid1]) ? $stats[$statid1] : -1);
+	$output .= "</td><td>";
+	$output .= stripslashes($virtues[$statid1]->DESCRIPTION);
+	$output .= "</td></tr>\n";
+
+	// Stat2
+	$output .= "<tr><td class=\"gvcol_key\">" . $virtues[$statid2]->NAME . "</td>";
+	$output .= "<td>";
+	$output .= vtm_render_dot_select("virtue_value", $statid2, isset($stats[$statid2]) ? $stats[$statid2] : -1);
+	$output .= "</td><td>";
+	$output .= stripslashes($virtues[$statid2]->DESCRIPTION);
+	$output .= "</td></tr>\n";
+
+	// Courage
+	$output .= "<tr><td class=\"gvcol_key\">" . $virtues[$courage]->NAME . "</td>";
+	$output .= "<td>";
+	$output .= vtm_render_dot_select("virtue_value", $courage, isset($stats[$courage]) ? $stats[$courage] : -1);
+	$output .= "</td><td>";
+	$output .= stripslashes($virtues[$courage]->DESCRIPTION);
+	$output .= "</td></tr>\n";
+
+	$output .= "</table>\n";
+	
+	return $output;
+}
+
 function vtm_render_abilities($step, $characterID, $templateID) {
 	global $wpdb;
 
@@ -1485,7 +1559,25 @@ function vtm_get_chargen_attributes($characterID = 0) {
 	return $results;
 
 }
+function vtm_get_chargen_virtues($characterID = 0) {
+	global $wpdb;
+	
+	
+	$filter = "GROUPING = 'Virtue'";
+		
+	$sql = "SELECT ID, NAME, DESCRIPTION, GROUPING, SPECIALISATION_AT
+			FROM " . VTM_TABLE_PREFIX . "STAT
+			WHERE
+				$filter
+			ORDER BY ORDERING";
+	//echo "<p>SQL: $sql</p>";
+	$results = $wpdb->get_results($sql, OBJECT_K);
+	
+	//print_r($results);
+	
+	return $results;
 
+}
 function vtm_get_chargen_disciplines($characterID = 0) {
 	global $wpdb;
 	
@@ -1553,6 +1645,19 @@ function vtm_get_chargen_abilities($characterID = 0) {
 	return $results;
 
 }
+
+function vtm_get_chargen_roads() {
+	global $wpdb;
+
+	$sql = "SELECT ID, NAME
+			FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH
+			WHERE VISIBLE = 'Y'
+			ORDER BY NAME";
+
+	$roadsOrPaths = $wpdb->get_results($sql);
+	return $roadsOrPaths;
+}
+
 function vtm_render_dot_select($type, $itemid, $current, $free = 1, $max = 5) {
 
 	$output = "";
