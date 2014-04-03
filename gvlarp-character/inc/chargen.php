@@ -12,6 +12,7 @@ function vtm_default_chargen_settings() {
 		'abilities-secondary'  => 9,
 		'abilities-tertiary'   => 5,
 		'abilities-max'        => 3,
+		'disciplines-points'    => 3,
 	);
 
 }
@@ -85,6 +86,9 @@ function vtm_get_chargen_content() {
 			break;
 		case 3:
 			$output .= vtm_render_abilities($step, $characterID, $templateID);
+			break;
+		case 4:
+			$output .= vtm_render_chargen_disciplines($step, $characterID, $templateID);
 			break;
 		default:
 			$output .= vtm_render_choose_template();
@@ -457,6 +461,53 @@ function vtm_render_abilities($step, $characterID, $templateID) {
 	
 	return $output;
 }
+
+function vtm_render_chargen_disciplines($step, $characterID, $templateID) {
+	global $wpdb;
+
+	$output = "";
+	$settings    = vtm_get_chargen_settings($templateID);
+	$disciplines = vtm_get_chargen_disciplines($characterID);
+	//print_r($disciplines);
+	
+	$output .= "<h3>Step $step: Disciplines</h3>";
+	$output .= "<p>You have {$settings['disciplines-points']} dots to spend on your Disciplines</p>";
+	
+
+	// read initial values
+	$sql = "SELECT DISCIPLINE_ID, LEVEL FROM " . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE
+			WHERE CHARACTER_ID = %s";
+	$sql = $wpdb->prepare($sql, $characterID);
+	$keys = $wpdb->get_col($sql);
+	if (count($keys) > 0) {
+		$vals = $wpdb->get_col($sql,1);
+		$mydisc = array_combine($keys, $vals);
+	}
+	elseif (isset($_POST['discipline_value'])) {
+		$mydisc = $_POST['discipline_value'];
+	}
+	$group = "";
+	foreach ($disciplines as $discipline) {
+		if ($discipline->GROUPING != $group) {
+			if ($group != "")
+				$output .= "</table>\n";
+			$group = $discipline->GROUPING;
+			$output .= "<h4>$group</h4>";
+			$output .= "<table><tr><th>Discipline</th><th>Rating</th><th>Description</th></tr>\n";
+		}
+		$output .= "<tr><td class=\"gvcol_key\">" . $discipline->NAME . "</td>";
+		$output .= "<td>";
+		
+		$output .= vtm_render_dot_select("discipline_value", $discipline->ID, isset($mydisc[$discipline->ID]) ? $mydisc[$discipline->ID] : -1, 0);
+		$output .= "</td><td>";
+		$output .= stripslashes($discipline->DESCRIPTION);
+		$output .= "</td></tr>\n";
+	}
+	$output .= "</table>\n";
+	
+	return $output;
+}
+
 function vtm_render_choose_template() {
 	global $wpdb;
 
@@ -683,6 +734,32 @@ function vtm_validate_chargen($laststep, $templateID) {
 				$ok = 0;
 			}
 			break;
+		case 4:
+			// VALIDATE DISCIPLINES
+			//		- spend the right amount of points
+			if (isset($_POST['discipline_value'])) {
+				$values = $_POST['discipline_value'];
+				$disciplines = vtm_get_chargen_disciplines();
+				
+				$total = 0;
+				foreach  ($values as $id => $val) {
+					$total += $val;
+				}
+				
+				if ($total > $settings['disciplines-points']) {
+					echo "<p>You have spent too many dots</p>";
+					$ok = 0;
+				}
+				elseif ($total < $settings['disciplines-points'])  {
+					echo "<p>You haven't spent enough dots</p>";
+					$ok = 0;
+				}
+					
+			} else {
+				echo "<p>You have not spent any dots</p>";
+				$ok = 0;
+			}
+			break;
 		default:
 			$ok = 0;
 	}
@@ -702,6 +779,12 @@ function vtm_save_progress($laststep, $characterID, $templateID) {
 			break;
 		case 2:
 			vtm_save_attributes($characterID);
+			break;
+		case 3:
+			vtm_save_abilities($characterID);
+			break;
+		case 4:
+			vtm_save_disciplines($characterID);
 			break;
 	
 	}
@@ -762,6 +845,130 @@ function vtm_save_attributes($characterID) {
 		$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "CHARACTER_STAT
 				WHERE ID = %s";
 		$wpdb->get_results($wpdb->prepare($sql,$curattributes[$map['Appearance']]));
+	}
+
+}
+
+function vtm_save_abilities($characterID) {
+	global $wpdb;
+
+
+	$new = $_POST['ability_value'];
+	
+	$sql = "SELECT cskill.SKILL_ID, cskill.ID, skills.NAME
+			FROM 
+				" . VTM_TABLE_PREFIX . "CHARACTER_SKILL cskill,
+				" . VTM_TABLE_PREFIX . "SKILL skills
+			WHERE 
+				cskill.SKILL_ID = skills.ID
+				AND cskill.CHARACTER_ID = %s";
+	$sql = $wpdb->prepare($sql, $characterID);
+	$keys = $wpdb->get_col($sql);
+	if (count($keys) > 0) {
+		$vals = $wpdb->get_col($sql,1);
+		$names = $wpdb->get_col($sql,2);
+		$current = array_combine($keys, $vals);
+	} else {
+		$current = array();
+	}
+	print_r($new);
+	print_r($current);
+
+	foreach ($new as $id => $value) {
+		$data = array(
+			'CHARACTER_ID' => $characterID,
+			'SKILL_ID'      => $id,
+			'LEVEL'        => $value
+		);
+		if (isset($current[$id])) {
+			//echo "<li>Updated $id at $value</li>";
+			// update
+			$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_SKILL",
+				$data,
+				array (
+					'ID' => $current[$id]
+				)
+			);
+		} else {
+			//echo "<li>Added $id at $value</li>";
+			// insert
+			$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_SKILL",
+						$data,
+						array ('%d', '%d', '%d')
+					);
+		}
+	}
+		
+	// Delete anything no longer needed
+	foreach ($current as $id => $value) {
+	
+		if (!isset($new[$id])) {
+			//echo "<li>Deleted $id</li>";
+			// Delete
+			$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "CHARACTER_SKILL
+					WHERE ID = %s";
+			$wpdb->get_results($wpdb->prepare($sql,$id));
+		}
+	}
+	
+}
+function vtm_save_disciplines($characterID) {
+	global $wpdb;
+
+
+	$new = $_POST['discipline_value'];
+	
+	$sql = "SELECT cdisc.DISCIPLINE_ID, cdisc.ID, disc.NAME
+			FROM 
+				" . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE cdisc,
+				" . VTM_TABLE_PREFIX . "DISCIPLINE disc
+			WHERE 
+				cdisc.DISCIPLINE_ID = disc.ID
+				AND CHARACTER_ID = %s";
+	$sql = $wpdb->prepare($sql, $characterID);
+	$keys = $wpdb->get_col($sql);
+	if (count($keys) > 0) {
+		$vals = $wpdb->get_col($sql,1);
+		$names = $wpdb->get_col($sql,2);
+		$current = array_combine($keys, $vals);
+	} else {
+		$current = array();
+	}
+	print_r($new);
+	print_r($current);
+
+	foreach ($new as $id => $value) {
+		$data = array(
+			'CHARACTER_ID'  => $characterID,
+			'DISCIPLINE_ID' => $id,
+			'LEVEL'         => $value
+		);
+		if (isset($current[$id])) {
+			// update
+			$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE",
+				$data,
+				array (
+					'ID' => $current[$id]
+				)
+			);
+		} else {
+			// insert
+			$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE",
+						$data,
+						array ('%d', '%d', '%d')
+					);
+		}
+	}
+		
+	// Delete anything no longer needed
+	foreach ($current as $id => $value) {
+	
+		if (!isset($new[$id])) {
+			// Delete
+			$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE
+					WHERE ID = %s";
+			$wpdb->get_results($wpdb->prepare($sql,$id));
+		}
 	}
 
 }
@@ -912,7 +1119,7 @@ function vtm_get_chargen_characterID() {
 			$sql = "SELECT PLAYER_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s";
 			$result = $wpdb->get_row($wpdb->prepare($sql, $id));
 			
-			if ($result->PLAYER_ID != $pid)
+			if (count($result) == 0 || $result->PLAYER_ID != $pid)
 				$id = -1;
 			
 			if (is_user_logged_in()) {
@@ -1146,6 +1353,40 @@ function vtm_get_chargen_attributes($characterID = 0) {
 	return $results;
 
 }
+
+function vtm_get_chargen_disciplines($characterID = 0) {
+	global $wpdb;
+	
+	
+	$sql = "SELECT disc.ID, disc.NAME, disc.DESCRIPTION, 
+				IF(ISNULL(clandisc.DISCIPLINE_ID),'Non-Clan Discipline','Clan Discipline') as GROUPING
+			FROM " . VTM_TABLE_PREFIX . "DISCIPLINE disc
+				LEFT JOIN (
+					SELECT DISCIPLINE_ID, CLAN_ID
+					FROM
+						" . VTM_TABLE_PREFIX . "CLAN clans,
+						" . VTM_TABLE_PREFIX . "CLAN_DISCIPLINE cd,
+						" . VTM_TABLE_PREFIX . "CHARACTER chars
+					WHERE
+						chars.ID = %s
+						AND chars.PRIVATE_CLAN_ID = clans.ID
+						AND cd.CLAN_ID = clans.ID
+				) as clandisc
+				ON 
+					clandisc.DISCIPLINE_ID = disc.id
+			WHERE
+				disc.VISIBLE = 'Y'
+				OR NOT(ISNULL(clandisc.DISCIPLINE_ID))
+			ORDER BY GROUPING, NAME";
+	$sql = $wpdb->prepare($sql, $characterID);
+	//echo "<p>SQL: $sql</p>";
+	$results = $wpdb->get_results($sql);
+	
+	
+	return $results;
+
+}
+
 function vtm_get_chargen_abilities($characterID = 0) {
 	global $wpdb;
 	
@@ -1178,10 +1419,17 @@ function vtm_render_dot_select($type, $itemid, $current, $free = 1, $max = 5) {
 		$output .= checked($current, $index, false);
 		$output .= " /><label for='$radioid' title='" . ($index + $free) . "'";
 		
-		if ($i < $free)
+		if ($index < $free)
 			$output .= " class='freedot'";
 		
 		$output .= ">&nbsp;</label>\n";
+	}
+	
+	if ($free == 0) {
+		$radioid = "dot_{$type}_{$itemid}_clear";
+		$output .= "<input type='radio' id='$radioid' name='" . $type . "[" . $itemid . "]' value='0' ";
+		$output .= checked($current, 0, false);
+		$output .= " /><label for='$radioid' title='Clear' class='cleardot'>&nbsp;</label>\n";
 	}
 	
 	return $output;
