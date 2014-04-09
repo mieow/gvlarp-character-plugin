@@ -163,7 +163,9 @@ function vtm_render_template_data(){
 		$settings['abilities-secondary']  = isset($results['abilities-secondary']->VALUE) ? $results['abilities-secondary']->VALUE : $settings['abilities-secondary'];
 		$settings['abilities-tertiary']   = isset($results['abilities-tertiary']->VALUE) ? $results['abilities-tertiary']->VALUE : $settings['abilities-tertiary'];
 		$settings['abilities-max']        = isset($results['abilities-max']->VALUE) ? $results['abilities-max']->VALUE : $settings['abilities-max'];
-		$settings['disciplines-points']    = isset($results['disciplines-points']->VALUE) ? $results['disciplines-points']->VALUE : $settings['disciplines-points'];
+		$settings['disciplines-points']   = isset($results['disciplines-points']->VALUE) ? $results['disciplines-points']->VALUE : $settings['disciplines-points'];
+		$settings['virtues-points']       = isset($results['virtues-points']->VALUE) ? $results['virtues-points']->VALUE : $settings['virtues-points'];
+		$settings['road-multiplier']      = isset($results['road-multiplier']->VALUE) ? $results['road-multiplier']->VALUE : $settings['road-multiplier'];
 			
 	} else {
 		$name   = "";
@@ -216,7 +218,7 @@ function vtm_render_template_data(){
 		<td colspan=2>
 			<table>
 			<tr>
-				<th>Max in any one Ability at Abilities Character Generation Stage</th>
+				<th>Maximum in any one Ability at Abilities Step</th>
 				<td><input type="text" name="abilities-max"   value="<?php print $settings['abilities-max']; ?>"></td>
 			</tr>
 			<tr><th>Primary Dots</th>  <td><input type="text" name="abilities-primary"   value="<?php print $settings['abilities-primary']; ?>"></td></tr>
@@ -230,6 +232,22 @@ function vtm_render_template_data(){
 		<td colspan=2>
 			<table>
 			<tr><th>Number of Discipline Dots</th> <td><input type="text" name="disciplines-points"  value="<?php print $settings['disciplines-points']; ?>"></td></tr>
+			</table>
+		</td>
+	</tr>
+	<tr>
+		<td rowspan=1>Assigning Virtues</td>
+		<td colspan=2>
+			<table>
+			<tr><th>Number of Virtue Dots</th> <td><input type="text" name="virtues-points"  value="<?php print $settings['virtues-points']; ?>"></td></tr>
+			</table>
+		</td>
+	</tr>
+	<tr>
+		<td rowspan=1>Paths of Enlightenment</td>
+		<td colspan=2>
+			<table>
+			<tr><th>Rating is Conscience + Self-Control multiplied by</th> <td><input type="text" name="road-multiplier"  value="<?php print $settings['road-multiplier']; ?>" size=5 ></td></tr>
 			</table>
 		</td>
 	</tr>

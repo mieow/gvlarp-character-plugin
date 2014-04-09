@@ -6,9 +6,9 @@ class vtmclass_report_flaws extends vtmclass_Report_ListTable {
     function column_default($item, $column_name){
         switch($column_name){
             case 'PLAYERNAME':
-                return $item->$column_name;
+                return stripslashes($item->$column_name);
             case 'CHARACTERNAME':
-                return $item->$column_name;
+                return stripslashes($item->$column_name);
             case 'MERIT':
                 return stripslashes($item->$column_name);
             case 'LEVEL':
@@ -181,9 +181,9 @@ class vtmclass_report_quotes extends vtmclass_Report_ListTable {
     function column_default($item, $column_name){
         switch($column_name){
             case 'PLAYERNAME':
-                return $item->$column_name;
+                return stripslashes($item->$column_name);
             case 'CHARACTERNAME':
-                return $item->$column_name;
+                return stripslashes($item->$column_name);
             case 'CLAN':
                 return stripslashes($item->$column_name);
             case 'QUOTE':
@@ -383,6 +383,7 @@ class vtmclass_report_prestige extends vtmclass_Report_ListTable {
 							" . VTM_TABLE_PREFIX. "BACKGROUND backgrounds,
 							" . VTM_TABLE_PREFIX. "CLAN pubclans, 
 							" . VTM_TABLE_PREFIX. "CLAN privclans, 
+							" . VTM_TABLE_PREFIX. "CHARGEN_STATUS cgstatus,
 							" . VTM_TABLE_PREFIX. "CHARACTER characters
 						WHERE
 							charbgs.BACKGROUND_ID = backgrounds.ID
@@ -390,7 +391,10 @@ class vtmclass_report_prestige extends vtmclass_Report_ListTable {
 							AND characters.ID = charbgs.CHARACTER_ID
 							AND characters.PUBLIC_CLAN_ID = pubclans.ID
 							AND characters.PRIVATE_CLAN_ID = privclans.ID
-							AND backgrounds.NAME = 'Clan Prestige'";
+							AND characters.CHARGEN_STATUS_ID = cgstatus.ID
+							AND cgstatus.NAME = 'Approved'
+							AND backgrounds.NAME = 'Clan Prestige'
+							AND characters.DELETED = 'N'";
 		$subtable .= $clanfilter;
 		$subtable .= $filterinfo[0];
 				
@@ -401,6 +405,7 @@ class vtmclass_report_prestige extends vtmclass_Report_ListTable {
 					" . VTM_TABLE_PREFIX. "PLAYER players, 
 					" . VTM_TABLE_PREFIX. "CLAN pubclans, 
 					" . VTM_TABLE_PREFIX. "CLAN privclans, 
+					" . VTM_TABLE_PREFIX. "CHARGEN_STATUS cgstatus,
 					" . VTM_TABLE_PREFIX. "CHARACTER characters
 					LEFT JOIN 
 						($subtable) as TBGRND 
@@ -409,7 +414,10 @@ class vtmclass_report_prestige extends vtmclass_Report_ListTable {
 				WHERE 
 					players.ID = characters.PLAYER_ID
 					AND characters.PUBLIC_CLAN_ID = pubclans.ID
-					AND characters.PRIVATE_CLAN_ID = privclans.ID";
+					AND characters.PRIVATE_CLAN_ID = privclans.ID
+					AND characters.CHARGEN_STATUS_ID = cgstatus.ID
+					AND cgstatus.NAME = 'Approved'
+					AND characters.DELETED = 'N'";
 		$sql .= $clanfilter;
 		$sql .= $filterinfo[0];
 		
@@ -424,9 +432,9 @@ class vtmclass_report_prestige extends vtmclass_Report_ListTable {
 
 		$args = array_merge($args, $args);
 		$sql = $wpdb->prepare($sql,$args);
-		//echo "<p>SQL: $sql (";
+		//echo "<pre>SQL: $sql (>";
 		//print_r($args);
-		//echo ")</p>";
+		//echo ")</pre>";
 		$data =$wpdb->get_results($sql);
  		
         $current_page = $this->get_pagenum();
