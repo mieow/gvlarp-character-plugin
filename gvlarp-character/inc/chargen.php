@@ -341,7 +341,7 @@ function vtm_render_attributes($step, $characterID, $templateID) {
 	}
 	
 	// read/guess initial values
-	$sql = "SELECT STAT_ID, LEVEL FROM " . VTM_TABLE_PREFIX . "CHARACTER_STAT
+	$sql = "SELECT STAT_ID, LEVEL - 1 FROM " . VTM_TABLE_PREFIX . "CHARACTER_STAT
 			WHERE CHARACTER_ID = %s";
 	$sql = $wpdb->prepare($sql, $characterID);
 	$keys = $wpdb->get_col($sql);
@@ -356,7 +356,7 @@ function vtm_render_attributes($step, $characterID, $templateID) {
 					if (isset($grouptotals[$attribute->GROUPING]))
 						$grouptotals[$attribute->GROUPING] += $stats[$attribute->ID];
 					else
-						$grouptotals[$attribute->GROUPING] = $stats[$attribute->ID];
+						$grouptotals[$attribute->GROUPING] = $stats[$attribute->ID] ;
 				}
 			}
 			$groupselected = array();
@@ -413,7 +413,7 @@ function vtm_render_chargen_virtues($step, $characterID, $templateID) {
 	$output .= "<p>You have {$settings['virtues-points']} dots to spend on your virtues.</p>";
 	
 	// read initial values
-	$sql = "SELECT cstat.STAT_ID, cstat.LEVEL 
+	$sql = "SELECT cstat.STAT_ID, cstat.LEVEL - 1
 			FROM 
 				" . VTM_TABLE_PREFIX . "CHARACTER_STAT cstat,
 				" . VTM_TABLE_PREFIX . "STAT stats
@@ -993,6 +993,7 @@ function vtm_save_attributes($characterID) {
 	global $wpdb;
 
 	$newattributes = $_POST['attribute_value'];
+	$attributes    = vtm_get_chargen_attributes();
 	
 	$sql = "SELECT cstat.STAT_ID, cstat.ID, stats.NAME
 			FROM 
@@ -1013,11 +1014,14 @@ function vtm_save_attributes($characterID) {
 		$map = array();
 	}
 	
-	foreach ($newattributes as $attributeid => $value) {
+	foreach ($attributes as $attribute) {
+		$attributeid = $attribute->ID;
+		$value = isset($newattributes[$attributeid]) ? $newattributes[$attributeid] : 0;
+	
 		$data = array(
 			'CHARACTER_ID' => $characterID,
 			'STAT_ID'      => $attributeid,
-			'LEVEL'        => $value
+			'LEVEL'        => $value + 1
 		);
 		if (isset($curattributes[$attributeid])) {
 			// update
@@ -1040,8 +1044,8 @@ function vtm_save_attributes($characterID) {
 	if (isset($map['Appearance']) && !isset($newattributes[$map['Appearance']])) {
 		// Delete
 		$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "CHARACTER_STAT
-				WHERE ID = %s";
-		$wpdb->get_results($wpdb->prepare($sql,$curattributes[$map['Appearance']]));
+				WHERE CHARACTER_ID = %s AND STAT_ID = %s";
+		$wpdb->get_results($wpdb->prepare($sql,$characterID,$curattributes[$map['Appearance']]));
 	}
 
 }
@@ -1099,12 +1103,13 @@ function vtm_save_abilities($characterID) {
 	// Delete anything no longer needed
 	foreach ($current as $id => $value) {
 	
-		if (!isset($new[$id])) {
-			//echo "<li>Deleted $id</li>";
+		if (!isset($new[$id]) || $new[$id] == 0) {
 			// Delete
 			$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "CHARACTER_SKILL
-					WHERE ID = %s";
-			$wpdb->get_results($wpdb->prepare($sql,$id));
+					WHERE CHARACTER_ID = %s AND SKILL_ID = %s";
+			$sql = $wpdb->prepare($sql,$characterID,$id);
+			echo "<li>Delete $id ($sql)</li>";
+			$wpdb->get_results($sql);
 		}
 	}
 	
@@ -1160,11 +1165,11 @@ function vtm_save_disciplines($characterID) {
 	// Delete anything no longer needed
 	foreach ($current as $id => $value) {
 	
-		if (!isset($new[$id])) {
+		if (!isset($new[$id]) || $new[$id] == 0) {
 			// Delete
 			$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE
-					WHERE ID = %s";
-			$wpdb->get_results($wpdb->prepare($sql,$id));
+					WHERE CHARACTER_ID = %s AND DISCIPLINE_ID = %s";
+			$wpdb->get_results($wpdb->prepare($sql,$characterID,$id));
 		}
 	}
 
@@ -1222,12 +1227,12 @@ function vtm_save_backgrounds($characterID) {
 	// Delete anything no longer needed
 	foreach ($current as $id => $value) {
 	
-		if (!isset($new[$id])) {
+		if (!isset($new[$id]) || $new[$id] == 0) {
 			//echo "<li>Deleted $id</li>";
 			// Delete
 			$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND
-					WHERE ID = %s";
-			$wpdb->get_results($wpdb->prepare($sql,$id));
+					WHERE CHARACTER_ID = %s AND BACKGROUND_ID = %s";
+			$wpdb->get_results($wpdb->prepare($sql,$characterID,$id));
 		}
 	}
 	
@@ -1237,12 +1242,16 @@ function vtm_save_virtues($characterID, $templateID) {
 
 	$new      = $_POST['virtue_value'];
 	$settings = vtm_get_chargen_settings($templateID);
+	$virtues  = vtm_get_chargen_virtues();
 	$selectedpath = $_POST['path'];
 	$statid1  = $wpdb->get_var($wpdb->prepare("SELECT STAT1_ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $selectedpath));
 	$statid2  = $wpdb->get_var($wpdb->prepare("SELECT STAT2_ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $selectedpath));
+	$courage = $wpdb->get_var("SELECT ID FROM " . VTM_TABLE_PREFIX . "STAT WHERE NAME = 'Courage'");
 	
 	// Update CHARACTER with road/path ID and Rating
-	$rating = ($new[$statid1] + 1 + $new[$statid2] + 1) * $settings['road-multiplier'];
+	$statval1 = isset($new[$statid1]) ? $new[$statid1] : 0;
+	$statval2 = isset($new[$statid2]) ? $new[$statid2] : 0;
+	$rating = ($statval1 + 1 + $statval2 + 1) * $settings['road-multiplier'];
 	$data = array (
 		'ROAD_OR_PATH_ID'     => $selectedpath,
 		'ROAD_OR_PATH_RATING' => $rating
@@ -1256,66 +1265,67 @@ function vtm_save_virtues($characterID, $templateID) {
 	);
 	
 	// Update CHARACTER_STAT with virtue ratings
-	
-	
-	// Remove extra virtue ratings
-	
-	
-	/* 	$sql = "SELECT cstat.STAT_ID, cstat.ID, stats.NAME
+	$sql = "SELECT cstat.STAT_ID, cstat.ID, stats.NAME
 			FROM 
 				" . VTM_TABLE_PREFIX . "CHARACTER_STAT cstat,
 				" . VTM_TABLE_PREFIX . "STAT stats
 			WHERE 
 				stats.ID = cstat.STAT_ID
+				AND stats.GROUPING = 'Virtue'
 				AND CHARACTER_ID = %s";
 	$sql = $wpdb->prepare($sql, $characterID);
 	$keys = $wpdb->get_col($sql);
 	if (count($keys) > 0) {
 		$vals = $wpdb->get_col($sql,1);
 		$names = $wpdb->get_col($sql,2);
-		$curattributes = array_combine($keys, $vals);
-		$map = array_combine($names, $keys);
+		$current = array_combine($keys, $vals);
 	} else {
-		$curattributes = array();
-		$map = array();
+		$current = array();
 	}
-	
-	foreach ($newattributes as $attributeid => $value) {
-		$data = array(
-			'CHARACTER_ID' => $characterID,
-			'STAT_ID'      => $attributeid,
-			'LEVEL'        => $value
-		);
-		if (isset($curattributes[$attributeid])) {
-			// update
-			$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_STAT",
-				$data,
-				array (
-					'ID' => $curattributes[$attributeid]
-				)
+
+	foreach ($virtues as $attribute) {
+		$attributeid = $attribute->ID;
+		$value = isset($new[$attributeid]) ? $new[$attributeid] : 0;
+		if ($attributeid == $statid1 || $attributeid == $statid2 || $attributeid == $courage) {
+			$data = array(
+				'CHARACTER_ID' => $characterID,
+				'STAT_ID'      => $attributeid,
+				'LEVEL'        => $value + 1
 			);
-		} else {
-			// insert
-			$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_STAT",
-						$data,
-						array ('%d', '%d', '%d')
-					);
+			if (isset($current[$attributeid])) {
+				// update
+				$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_STAT",
+					$data,
+					array (
+						'ID' => $current[$attributeid]
+					)
+				);
+			} 
+			else {
+				// insert
+				$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_STAT",
+							$data,
+							array ('%d', '%d', '%d')
+						);
+			}
 		}
 	}
-		
+	
 	// Delete anything no longer needed
 	foreach ($current as $id => $value) {
 	
 		if (!isset($new[$id])) {
-			//echo "<li>Deleted $id</li>";
 			// Delete
-			$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND
-					WHERE ID = %s";
-			$wpdb->get_results($wpdb->prepare($sql,$id));
+			$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "CHARACTER_STAT
+					WHERE CHARACTER_ID = %s AND STAT_ID = %s";
+			$sql = $wpdb->prepare($sql,$characterID,$id);
+			echo "<li>Delete $id ($sql)</li>";
+			$wpdb->get_results($sql);
 		}
 	}
-	*/
+	
 }
+
 function vtm_save_basic_info($characterID, $templateID) {
 	global $wpdb;
 		
@@ -1698,14 +1708,11 @@ function vtm_get_chargen_attributes($characterID = 0) {
 }
 function vtm_get_chargen_virtues($characterID = 0) {
 	global $wpdb;
-	
-	
-	$filter = "GROUPING = 'Virtue'";
-		
+			
 	$sql = "SELECT ID, NAME, DESCRIPTION, GROUPING, SPECIALISATION_AT
 			FROM " . VTM_TABLE_PREFIX . "STAT
 			WHERE
-				$filter
+				GROUPING = 'Virtue'
 			ORDER BY ORDERING";
 	//echo "<p>SQL: $sql</p>";
 	$results = $wpdb->get_results($sql, OBJECT_K);
