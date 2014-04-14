@@ -6,7 +6,7 @@ register_activation_hook( __FILE__, 'vtm_character_install_data' );
 global $vtm_character_version;
 global $vtm_character_db_version;
 $vtm_character_version = "1.10"; 
-$vtm_character_db_version = "15"; 
+$vtm_character_db_version = "17"; 
 
 function vtm_update_db_check() {
     global $vtm_character_version;
@@ -668,6 +668,23 @@ function vtm_character_install() {
 					PRIMARY KEY  (ID),
 					CONSTRAINT `" . $table_prefix . "pending_xp_constraint_1` FOREIGN KEY (PLAYER_ID)    REFERENCES " . $table_prefix . "PLAYER(ID),
 					CONSTRAINT `" . $table_prefix . "pending_xp_constraint_2` FOREIGN KEY (CHARACTER_ID) REFERENCES " . $table_prefix . "CHARACTER(ID)
+					) ENGINE=INNODB;";
+		dbDelta($sql);
+
+		$current_table_name = $table_prefix . "PENDING_FREEBIE_SPEND";
+		$sql = "CREATE TABLE " . $current_table_name . " (
+					ID             MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
+					CHARACTER_ID   MEDIUMINT(9)  NOT NULL,
+					CHARTABLE      TINYTEXT      NOT NULL,
+					CHARTABLE_ID   MEDIUMINT(9)  NOT NULL,
+					LEVEL_FROM     MEDIUMINT(9)  NOT NULL,
+					LEVEL_TO  	   MEDIUMINT(9)  NOT NULL,
+					AMOUNT         SMALLINT(3)   NOT NULL,
+					ITEMTABLE      TINYTEXT      NOT NULL,
+					ITEMNAME       TINYTEXT      NOT NULL,
+					ITEMTABLE_ID   MEDIUMINT(9)  NOT NULL,
+					PRIMARY KEY  (ID),
+					CONSTRAINT `" . $table_prefix . "pending_freebie_constraint_1` FOREIGN KEY (CHARACTER_ID) REFERENCES " . $table_prefix . "CHARACTER(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 

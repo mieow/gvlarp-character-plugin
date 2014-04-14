@@ -16,6 +16,9 @@ function vtm_default_chargen_settings() {
 		'backgrounds-points'   => 5,
 		'virtues-points'       => 7,
 		'road-multiplier'      => 1,
+		'merits-max'           => 7,
+		'flaws-max'            => 7,
+		'freebies-points'      => 15,
 	);
 
 }
@@ -99,6 +102,9 @@ function vtm_get_chargen_content() {
 		case 6:
 			$output .= vtm_render_chargen_virtues($step, $characterID, $templateID);
 			break;
+		case 7:
+			$output .= vtm_render_chargen_freebies($step, $characterID, $templateID);
+			break;
 		default:
 			$output .= vtm_render_choose_template();
 	}
@@ -127,7 +133,7 @@ function vtm_get_step() {
 		$buttons = array_keys($_POST['chargen-step']);
 		$step = $buttons[0];
 	}
-	echo "<p>Selected Step $step</p>";
+	//echo "<p>Selected Step $step</p>";
 		
 	return $step;
 }
@@ -143,10 +149,9 @@ function vtm_render_flow($step, $characterID, $progress, $templateID) {
 		'4' => array('title' => "Disciplines", 'dependency' => 3),
 		'5' => array('title' => "Backgrounds", 'dependency' => 4),
 		'6' => array('title' => "Virtues", 'dependency' => 5),
-		'7' => array('title' => "Merits and Flaws", 'dependency' => 6),
-		'8' => array('title' => "Freebie Points", 'dependency' => 7),
-		'9' => array('title' => "Spend Experience", 'dependency' => 8),			// WILL BE OPTIONAL
-		'10' => array('title' => "Extended Backgrounds", 'dependency' => 9)
+		'7' => array('title' => "Freebie Points", 'dependency' => 6),
+		'8' => array('title' => "Spend Experience", 'dependency' => 7),			// WILL BE OPTIONAL
+		'9' => array('title' => "Extended Backgrounds", 'dependency' => 1)
 	);
 	
 	$output .= "<div id='vtm-chargen-flow'>\n";	
@@ -477,7 +482,45 @@ function vtm_render_chargen_virtues($step, $characterID, $templateID) {
 	
 	return $output;
 }
+function vtm_render_chargen_freebies($step, $characterID, $templateID) {
+	global $wpdb;
 
+	$output = "";
+	$settings = vtm_get_chargen_settings($templateID);
+	
+	// Work out how much points are currently available
+	$meritsspent = 0;
+	$flawsgained = 0;
+	$points = $settings['freebies-points'] - $meritsspent + $flawsgained;
+	
+	$output .= "<h3>Step $step: Freebie Points</h3>";
+	$output .= "<p>";
+	if ($settings['merits-max'] > 0)
+		$output .= "You can have a maximum of {$settings['merits-max']} points of Merits. ";
+	if ($settings['flaws-max'] > 0)
+		$output .= "You can have a maximum of {$settings['flaws-max']} points of Flaws. ";
+	$output .= "You have $points points available to spend on your character. 
+	Hover over the dot to show the freebie point cost.</p>";
+	
+	$sectiontitle   = array(
+						'stat'       => "Attributes",
+						'skill'      => "Abilities",
+						'disc'       => "Disciplines",
+						'combo'      => "Combo Disciplines",
+						'path'       => "Paths",
+						'ritual'     => "Rituals",
+						'background' => "Backgrounds",
+						'merit'      => "Merits and Flaws"
+					);
+	$sectionorder   = array('stat', 'skill', 'disc', 'combo', 'path', 'background', 'ritual', 'merit');
+	
+	$pendingSpends = array();
+	$sectioncontent['stat']   = vtm_render_freebie_stats($characterID, $pendingSpends, $points);
+	
+	$output .= $sectioncontent['stat'];
+	
+	return $output;
+}
 function vtm_render_abilities($step, $characterID, $templateID) {
 	global $wpdb;
 
@@ -1247,6 +1290,7 @@ function vtm_save_virtues($characterID, $templateID) {
 	$statid1  = $wpdb->get_var($wpdb->prepare("SELECT STAT1_ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $selectedpath));
 	$statid2  = $wpdb->get_var($wpdb->prepare("SELECT STAT2_ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $selectedpath));
 	$courage = $wpdb->get_var("SELECT ID FROM " . VTM_TABLE_PREFIX . "STAT WHERE NAME = 'Courage'");
+	$wpid    = $wpdb->get_var("SELECT ID FROM " . VTM_TABLE_PREFIX . "STAT WHERE NAME = 'Willpower'");
 	
 	// Update CHARACTER with road/path ID and Rating
 	$statval1 = isset($new[$statid1]) ? $new[$statid1] : 0;
@@ -1264,6 +1308,41 @@ function vtm_save_virtues($characterID, $templateID) {
 		)
 	);
 	
+	// Update CHARACTER_STAT with virtue ratings
+	$sql = "SELECT cstat.STAT_ID, cstat.ID, stats.NAME
+			FROM 
+				" . VTM_TABLE_PREFIX . "CHARACTER_STAT cstat,
+				" . VTM_TABLE_PREFIX . "STAT stats
+			WHERE 
+				stats.ID = cstat.STAT_ID
+				AND stats.GROUPING = 'Willpower'
+				AND CHARACTER_ID = %s";
+	$sql = $wpdb->prepare($sql, $characterID);
+	$willpower = $wpdb->get_row($sql);
+	$value = isset($new[$courage]) ? $new[$courage] : 0;
+	$data = array(
+		'CHARACTER_ID' => $characterID,
+		'STAT_ID'      => $wpid,
+		'LEVEL'        => $value + 1
+	);
+	if (isset($willpower->STAT_ID)) {
+		// update
+		$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_STAT",
+			$data,
+			array (
+				'ID' => $willpower->STAT_ID
+			)
+		);
+	} 
+	else {
+		// insert
+		$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_STAT",
+					$data,
+					array ('%d', '%d', '%d')
+				);
+	}
+	
+
 	// Update CHARACTER_STAT with virtue ratings
 	$sql = "SELECT cstat.STAT_ID, cstat.ID, stats.NAME
 			FROM 
@@ -1510,7 +1589,7 @@ function vtm_get_chargen_characterID() {
 			$wpid = 0;
 		}
 		$pid = vtm_get_player_id_from_characterID($id);
-		echo "<p>REF: $id-$wpid-$pid</p>";
+		//echo "<p>REF: $id-$wpid-$pid</p>";
 	}
 	else {
 		$id = 0;
@@ -1578,14 +1657,14 @@ function vtm_get_templateid($characterID) {
 				WHERE ID = %s";
 			$sql = $wpdb->prepare($sql, $characterID);
 			$template = $wpdb->get_var($sql);
-			echo "Looked up template ID from character : $template<br />";
+			//echo "Looked up template ID from character : $template<br />";
 		} else {
 			$template = $_POST['chargen_template'];
-			echo "Looked up template ID from Step 0 : $template<br />";
+			//echo "Looked up template ID from Step 0 : $template<br />";
 		}
 	} else {
 		$template = isset($_POST['selected_template']) ? $_POST['selected_template'] : "";
-		echo "Looked up template ID from last step : $template<br />";
+		//echo "Looked up template ID from last step : $template<br />";
 	}
 	
 	return $template;
@@ -1846,5 +1925,194 @@ function vtm_render_pst_select($name, $selected) {
 	return $output;
 }
 
+function vtm_render_freebie_stats($characterID, $pendingSpends, $points) {
+	global $wpdb;
+	
+	$output = "";
+	$rowoutput = "";
+	$max2display = 5;
+	$columns = 3;
+	$fulldoturl = plugins_url( 'gvlarp-character/images/viewfulldot.jpg' );
+	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
+	
+	// PENDING_FREEBIE_SPEND
+	//	characterID
+	//	chartable		= CHARACTER_STAT
+	//	chartableid		= ID of entry in CHARACTER_STAT
+	//	level_from		= Level stat is currently at
+	//	level_to		= Level stat is going to
+	//	amount			= cost
+	//	itemtable		= STAT
+	//	itemname		= Name of Stat, e.g. Strength
+	//	itemid			= ID of entry in STAT
 
+	// COSTS OF STATS - if entry doesn't exist then you can't buy it
+	//	$cost['<statname>'] = array( '<from>' => array( '<to>' => <cost>))
+	$freebiecosts = vtm_get_freebie_costs('STAT');
+
+	// display stats to buy
+	//	hover over radiobutton to show the cost
+	$sql = "SELECT 
+				stat.name, 
+				cha_stat.level	as level_from,
+				cha_stat.id 	as chartableid, 
+				stat.ID 		as itemid, 
+				stat.GROUPING 	as grp
+			FROM 
+				" . VTM_TABLE_PREFIX . "CHARACTER_STAT cha_stat,
+				" . VTM_TABLE_PREFIX . "STAT stat
+			WHERE 
+				cha_stat.STAT_ID      = stat.ID
+				AND cha_stat.CHARACTER_ID = %s
+		   ORDER BY stat.ordering";
+	$sql   = $wpdb->prepare($sql, $characterID);
+	$items = $wpdb->get_results($sql);
+	
+	//print_r($items);
+	
+	if (count($items) > 0) {
+		$id = 0;
+		$grp = "";
+		$grpcount = 0;
+		$col = 0;
+		foreach ($items as $item) {
+			
+			$tmp_max2display = $max2display;
+			switch ($item->name) {
+				case 'Willpower':    
+					$tmp_max2display = 10;
+					$maxRating = 10;
+					break;
+				case 'Conscience':   
+					$tmp_max2display = 5;
+					$maxRating = 5;
+					break;
+				case 'Conviction':
+					$tmp_max2display = 5;
+					$maxRating = 5;
+					break;
+				case 'Self Control': 
+					$tmp_max2display = 5;
+					$maxRating = 5;
+					break;
+				case 'Courage':      
+					$tmp_max2display = 5;
+					$maxRating = 5;
+					break;
+				case 'Instinct':     
+					$tmp_max2display = 5;
+					$maxRating = 5;
+					break;
+			}
+			$colspan = 2 + $tmp_max2display;
+			
+			// start column / new column
+			if (isset($item->grp)) {
+				if ($grp != $item->grp) {
+					$grpcount++;
+					if (empty($grp)) {
+						$rowoutput .= "<tr><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
+						$col++;
+					} 
+					elseif ($col == $columns) {
+						$rowoutput .= "</table>\n</td></tr>\n<tr><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
+						$col = 1;
+					}
+					else {
+						$rowoutput .= "</table>\n</td><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
+						$col++;
+					}
+					$grp = $item->grp;
+				}
+			}
+
+			// Hidden fields
+			$rowoutput .= "<tr style='display:none'><td colspan=$colspan>\n";
+			//$rowoutput .= "<input type='hidden' name='{$type}_spec_at[" . $id . "]' value='" . $spec_at . "' >";
+			$rowoutput .= "</td></tr>\n";
+			
+			//dots row
+			$rowoutput .= "<tr><th class='gvthleft'><span>" . stripslashes($item->name) . "</span></th><td>\n";
+			$rowoutput .= "<fieldset class='dotselect'>";
+			for ($i=$tmp_max2display;$i>=1;$i--) {
+				$radioid = "dot_{$item->name}_{$item->itemid}_{$i}";
+				
+				if ($item->level_from >= $i)
+					$rowoutput .= "<img src='$fulldoturl' alt='*' id='$radioid' />";
+				elseif (isset($freebiecosts[$item->name][$item->level_from][$i])) {
+					$cost = $freebiecosts[$item->name][$item->level_from][$i];
+					$rowoutput .= "<input type='radio' id='$radioid' name='" . $item->name . "[" . $item->itemid . "]' value='$i' ";
+					//$rowoutput .= checked($current, $i, false);
+					$rowoutput .= " /><label for='$radioid' title='Level $i ($cost freebies)'";
+					$rowoutput .= ">&nbsp;</label>\n";
+				}
+				else {
+					$rowoutput .= "<img src='$emptydoturl' alt='X' id='$radioid' />";
+				}
+			}
+			$rowoutput .= "</fieldset></td></tr>\n";
+		
+		}
+	
+	}
+	
+	if ($rowoutput != "")
+		$output .= "<table>$rowoutput</table></td></tr></table>\n";
+
+	return $output;
+
+}
+
+function vtm_get_freebie_costs($type) {
+	global $wpdb;
+
+	$outdata = array();
+	//	$cost['<statname>'] = array( '<from>' => array( '<to>' => <cost>))
+	
+	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . $type . " ORDER BY ID";
+	$items = $wpdb->get_results($sql, OBJECT_K);
+	
+	foreach ($items as $item) {
+	
+		$sql = "SELECT 
+					steps.CURRENT_VALUE, steps.NEXT_VALUE, steps.FREEBIE_COST
+				FROM
+					" . VTM_TABLE_PREFIX . $type . " itemtable,
+					" . VTM_TABLE_PREFIX . "COST_MODEL_STEP steps,
+					" . VTM_TABLE_PREFIX . "COST_MODEL models
+				WHERE
+					itemtable.COST_MODEL_ID = models.ID
+					AND steps.COST_MODEL_ID = models.ID
+					AND itemtable.ID = %s
+				ORDER BY
+					itemtable.ID, steps.CURRENT_VALUE";
+		//echo "<p>SQL: $sql</p>";
+		$data    = $wpdb->get_results($wpdb->prepare($sql, $item->ID), ARRAY_A);
+		
+		//print_r($data);
+		
+		for ($i = 0 ; $i < 10 ; $i++) {
+			$from = $data[$i]['CURRENT_VALUE'];
+			$to   = $data[$i]['NEXT_VALUE'];
+			$cost = 0;
+			
+			while ($from != $to && $to <= 10) {
+				if ($data[$from]['FREEBIE_COST'] != 0) {
+					$cost += $data[$from]['FREEBIE_COST'];
+					$outdata[$item->NAME][$i][$to] = $cost;
+				}
+				$from = $to;
+				$to   = $data[$from]['NEXT_VALUE'];
+			}
+		
+		}
+	
+	}
+	
+	//echo "<pre>";
+	//print_r($outdata);
+	//echo "</pre>";
+
+	return $outdata;
+}
 ?>
