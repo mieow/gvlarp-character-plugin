@@ -166,6 +166,9 @@ function vtm_render_template_data(){
 		$settings['disciplines-points']   = isset($results['disciplines-points']->VALUE) ? $results['disciplines-points']->VALUE : $settings['disciplines-points'];
 		$settings['virtues-points']       = isset($results['virtues-points']->VALUE) ? $results['virtues-points']->VALUE : $settings['virtues-points'];
 		$settings['road-multiplier']      = isset($results['road-multiplier']->VALUE) ? $results['road-multiplier']->VALUE : $settings['road-multiplier'];
+		$settings['merits-max']           = isset($results['merits-max']->VALUE) ? $results['merits-max']->VALUE : $settings['merits-max'];
+		$settings['flaws-max']            = isset($results['flaws-max']->VALUE) ? $results['flaws-max']->VALUE : $settings['flaws-max'];
+		$settings['freebies-points']      = isset($results['freebies-points']->VALUE) ? $results['freebies-points']->VALUE : $settings['freebies-points'];
 			
 	} else {
 		$name   = "";
@@ -248,6 +251,23 @@ function vtm_render_template_data(){
 		<td colspan=2>
 			<table>
 			<tr><th>Rating is Conscience + Self-Control multiplied by</th> <td><input type="text" name="road-multiplier"  value="<?php print $settings['road-multiplier']; ?>" size=5 ></td></tr>
+			</table>
+		</td>
+	</tr>
+	<tr>
+		<td rowspan=1>Merits and Flaws</td>
+		<td colspan=2>
+			<table>
+			<tr><th>Maximum points spent in Merits (0 for no limit)</th> <td><input type="text" name="merits-max"  value="<?php print $settings['merits-max']; ?>" size=5 ></td></tr>
+			<tr><th>Maximum points spent in Flaws (0 for no limit)</th> <td><input type="text" name="flaws-max"  value="<?php print $settings['flaws-max']; ?>" size=5 ></td></tr>
+			</table>
+		</td>
+	</tr>
+	<tr>
+		<td rowspan=1>Freebie Points</td>
+		<td colspan=2>
+			<table>
+			<tr><th>Number of Freebie Points</th> <td><input type="text" name="freebies-points"  value="<?php print $settings['freebies-points']; ?>" size=5 ></td></tr>
 			</table>
 		</td>
 	</tr>
