@@ -354,7 +354,7 @@ function vtm_render_attributes($step, $characterID, $templateID) {
 	}
 	
 	// read/guess initial values
-	$sql = "SELECT STAT_ID, LEVEL - 1 FROM " . VTM_TABLE_PREFIX . "CHARACTER_STAT
+	$sql = "SELECT STAT_ID, LEVEL FROM " . VTM_TABLE_PREFIX . "CHARACTER_STAT
 			WHERE CHARACTER_ID = %s";
 	$sql = $wpdb->prepare($sql, $characterID);
 	$keys = $wpdb->get_col($sql);
@@ -367,9 +367,9 @@ function vtm_render_attributes($step, $characterID, $templateID) {
 			foreach  ($attributes as $attribute) {
 				if (isset($stats[$attribute->ID])) {
 					if (isset($grouptotals[$attribute->GROUPING]))
-						$grouptotals[$attribute->GROUPING] += $stats[$attribute->ID];
+						$grouptotals[$attribute->GROUPING] += $stats[$attribute->ID] - 1;
 					else
-						$grouptotals[$attribute->GROUPING] = $stats[$attribute->ID] ;
+						$grouptotals[$attribute->GROUPING] = $stats[$attribute->ID] - 1;
 				}
 			}
 			$groupselected = array();
@@ -429,7 +429,7 @@ function vtm_render_chargen_virtues($step, $characterID, $templateID) {
 	$output .= "<p>You have {$settings['virtues-points']} dots to spend on your virtues.</p>";
 	
 	// read initial values
-	$sql = "SELECT cstat.STAT_ID, cstat.LEVEL - 1
+	$sql = "SELECT cstat.STAT_ID, cstat.LEVEL
 			FROM 
 				" . VTM_TABLE_PREFIX . "CHARACTER_STAT cstat,
 				" . VTM_TABLE_PREFIX . "STAT stats
@@ -841,7 +841,7 @@ function vtm_validate_chargen($laststep, $templateID, $characterID) {
 							$sectiontotal = 0;
 							foreach  ($attributes as $attribute) {
 								if ($attribute->GROUPING == $group) {
-									$sectiontotal += isset($values[$attribute->ID]) ? $values[$attribute->ID] : 0;
+									$sectiontotal += isset($values[$attribute->ID]) ? $values[$attribute->ID] - 1 : 0;
 								}
 							}
 							//echo "<p>group $group: target = " . $target[$sectiontype-1] . ", total = $sectiontotal</li>";
@@ -863,7 +863,9 @@ function vtm_validate_chargen($laststep, $templateID, $characterID) {
 					
 				} else {
 					$target = $settings['attributes-points'];
-					$total = array_sum(array_values($values));
+					$total = 0;
+					foreach ($values as $att => $val)
+						$total += $val - 1;
 					
 					if ($total > $target) {
 						$errormessages .= "<li>ERROR: You have spent too many points</li>";
@@ -998,7 +1000,7 @@ function vtm_validate_chargen($laststep, $templateID, $characterID) {
 				$total = 0;
 				$statfail = 0;
 				foreach  ($values as $id => $val) {
-					$total += $val;
+					$total += $val - 1;
 					
 					if ($id != $statid1 && $id != $statid2 && $id != $courage) {
 						$statfail = 1;
@@ -1127,7 +1129,7 @@ function vtm_save_attributes($characterID) {
 		$data = array(
 			'CHARACTER_ID' => $characterID,
 			'STAT_ID'      => $attributeid,
-			'LEVEL'        => $value + 1
+			'LEVEL'        => $value
 		);
 		if (isset($curattributes[$attributeid])) {
 			// update
@@ -1404,7 +1406,7 @@ function vtm_save_virtues($characterID, $templateID) {
 	// Update CHARACTER with road/path ID and Rating
 	$statval1 = isset($new[$statid1]) ? $new[$statid1] : 0;
 	$statval2 = isset($new[$statid2]) ? $new[$statid2] : 0;
-	$rating = ($statval1 + 1 + $statval2 + 1) * $settings['road-multiplier'];
+	$rating = ($statval1 + $statval2) * $settings['road-multiplier'];
 	$data = array (
 		'ROAD_OR_PATH_ID'     => $selectedpath,
 		'ROAD_OR_PATH_RATING' => $rating
@@ -1432,7 +1434,7 @@ function vtm_save_virtues($characterID, $templateID) {
 	$data = array(
 		'CHARACTER_ID' => $characterID,
 		'STAT_ID'      => $wpid,
-		'LEVEL'        => $value + 1
+		'LEVEL'        => $value
 	);
 	if (isset($willpower->STAT_ID)) {
 		// update
@@ -1478,7 +1480,7 @@ function vtm_save_virtues($characterID, $templateID) {
 			$data = array(
 				'CHARACTER_ID' => $characterID,
 				'STAT_ID'      => $attributeid,
-				'LEVEL'        => $value + 1
+				'LEVEL'        => $value
 			);
 			if (isset($current[$attributeid])) {
 				// update
@@ -2025,29 +2027,28 @@ function vtm_render_dot_select($type, $itemid, $current, $free = 1, $max = 5, $p
 	$freebiedoturl   = plugins_url( 'gvlarp-character/images/cg_freebiedot.jpg' );
 	
 	if ($pending) {
-		$output .= "<input type='hidden' name='" . $type . "[" . $itemid . "]' value='" . ($current + $free) . "' />";
+		$output .= "<input type='hidden' name='" . $type . "[" . $itemid . "]' value='$current' />";
 	}
 	$output .= "<fieldset class='dotselect'>";
 	
-	//$output .= "<img alt='*' width=14 src='$fulldoturl'>";
-	for ($i = $max ; $i > 0 ; $i--) {
-		$index = $i - $free;
+	for ($index = $max ; $index > 0 ; $index--) {
 		$radioid = "dot_{$type}_{$itemid}_{$index}";
+		//echo "<li>$radioid: current:$current / index:$index / free:$free (" . ($index - $free) . ")</li>";
 		if ($pending) {
-			if ($index < $free)
+			if ($index <= $free)
 				$output .= "<img src='$fulldoturl' alt='*' id='$radioid' />";
-			elseif ($index < ($current + $free) )
+			elseif ($index <= $current )
 				$output .= "<img src='$doturl' alt='*' id='$radioid' />";
-			elseif ($index < $pending)
+			elseif ($index <= $pending)
 				$output .= "<img src='$freebiedoturl' alt='*' id='$radioid' />";
 			else
 				$output .= "<img src='$emptydoturl' alt='*' id='$radioid' />";
 		} else {
 			$output .= "<input type='radio' id='$radioid' name='" . $type . "[" . $itemid . "]' value='$index' ";
 			$output .= checked($current, $index, false);
-			$output .= " /><label for='$radioid' title='" . ($index + $free) . "'";
+			$output .= " /><label for='$radioid' title='$index'";
 			
-			if ($index < $free)
+			if ($index <= $free)
 				$output .= " class='freedot'";
 			
 			$output .= ">&nbsp;</label>\n";
