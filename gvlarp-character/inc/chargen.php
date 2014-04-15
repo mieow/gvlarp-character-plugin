@@ -58,7 +58,7 @@ function vtm_get_chargen_content() {
 	
 	$output .= "<form id='chargen_form' method='post'>";
 	
-	$output .= "<p>Last at step $laststep</p>";
+	//$output .= "<p>Last at step $laststep</p>";
 	print_r($_POST);
 	// validate & save data from last step
 	$dataok = vtm_validate_chargen($laststep, $templateID, $characterID);
@@ -424,6 +424,7 @@ function vtm_render_chargen_virtues($step, $characterID, $templateID) {
 	$output = "";
 	$settings = vtm_get_chargen_settings($templateID);
 	$virtues  = vtm_get_chargen_virtues($characterID);
+	$pending  = vtm_get_pending_freebies('STAT', 'freebie_stat', $characterID);  // name => value
 	
 	$output .= "<h3>Step $step: Virtues</h3>";
 	$output .= "<p>You have {$settings['virtues-points']} dots to spend on your virtues.</p>";
@@ -468,7 +469,9 @@ function vtm_render_chargen_virtues($step, $characterID, $templateID) {
 	// Stat1
 	$output .= "<tr><td class=\"gvcol_key\">" . $virtues[$statid1]->NAME . "</td>";
 	$output .= "<td>";
-	$output .= vtm_render_dot_select("virtue_value", $statid1, isset($stats[$statid1]) ? $stats[$statid1] : -1);
+	$output .= vtm_render_dot_select("virtue_value", $statid1, 
+					isset($stats[$statid1]) ? $stats[$statid1] : -1,
+					1,5,isset($pending[$virtues[$statid1]->NAME]) ? $pending[$virtues[$statid1]->NAME] : 0);
 	$output .= "</td><td>";
 	$output .= stripslashes($virtues[$statid1]->DESCRIPTION);
 	$output .= "</td></tr>\n";
@@ -476,7 +479,8 @@ function vtm_render_chargen_virtues($step, $characterID, $templateID) {
 	// Stat2
 	$output .= "<tr><td class=\"gvcol_key\">" . $virtues[$statid2]->NAME . "</td>";
 	$output .= "<td>";
-	$output .= vtm_render_dot_select("virtue_value", $statid2, isset($stats[$statid2]) ? $stats[$statid2] : -1);
+	$output .= vtm_render_dot_select("virtue_value", $statid2, isset($stats[$statid2]) ? $stats[$statid2] : -1,
+					1,5,isset($pending[$virtues[$statid2]->NAME]) ? $pending[$virtues[$statid2]->NAME] : 0);
 	$output .= "</td><td>";
 	$output .= stripslashes($virtues[$statid2]->DESCRIPTION);
 	$output .= "</td></tr>\n";
@@ -484,7 +488,8 @@ function vtm_render_chargen_virtues($step, $characterID, $templateID) {
 	// Courage
 	$output .= "<tr><td class=\"gvcol_key\">" . $virtues[$courage]->NAME . "</td>";
 	$output .= "<td>";
-	$output .= vtm_render_dot_select("virtue_value", $courage, isset($stats[$courage]) ? $stats[$courage] : -1);
+	$output .= vtm_render_dot_select("virtue_value", $courage, isset($stats[$courage]) ? $stats[$courage] : -1, 
+						1,5,isset($pending[$virtues[$courage]->NAME]) ? $pending[$virtues[$courage]->NAME] : 0);
 	$output .= "</td><td>";
 	$output .= stripslashes($virtues[$courage]->DESCRIPTION);
 	$output .= "</td></tr>\n";
@@ -2322,7 +2327,7 @@ function vtm_get_pending_freebies($table, $postvariable, $characterID) {
 				AND freebie.ITEMTABLE = '$table'
 				AND freebie.ITEMTABLE_ID = items.ID";
 	$sql = $wpdb->prepare($sql, $characterID);
-	echo "SQL: $sql</p>";
+	//echo "SQL: $sql</p>";
 	$keys = $wpdb->get_col($sql);
 	if (count($keys) > 0) {
 		$vals = $wpdb->get_col($sql,1);
