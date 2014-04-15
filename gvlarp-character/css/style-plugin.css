@@ -541,6 +541,12 @@ table.feedingmapkey {width:auto;}
     background-position:center; 
 	background-size: 12px;
 }
+.dotselect:not(:checked) > img {
+    float:right;
+    width:12px;
+    padding:0 .1em;
+    line-height:1.2;
+}
 
 .dotselect:not(:checked) > label {
     background-image: url('/wp-content/plugins/gvlarp-character/images/viewemptydot.jpg');
