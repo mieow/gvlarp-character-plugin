@@ -387,6 +387,19 @@ function vtm_character_config() {
 			</tr>
 		</table>
 
+		<h4>Character Generation Graphics</h4>
+		<table>
+			<tr>
+				<td>Dot/Box Line Width (mm)</td><td><input type="text" name="vtm_chargen_dotlinewidth" value="<?php echo get_option('vtm_chargen_dotlinewidth'); ?>" size=4 /></td>
+				<td>Background Colour (#RRGGBB)</td><td><input type="color" name="vtm_chargen_bgcolour" value="<?php echo get_option('vtm_chargen_bgcolour'); ?>" /></td>
+				<td>Free Dot colour (#RRGGBB)</td><td><input type="color" name="vtm_chargen_freedot" value="<?php echo get_option('vtm_chargen_freedot'); ?>" /></td>
+			</tr><tr>
+				<td>Select Dot colour (#RRGGBB)</td><td><input type="color" name="vtm_chargen_selectdot" value="<?php echo get_option('vtm_chargen_selectdot'); ?>" /></td>
+				<td>Freebie Dot colour (#RRGGBB)</td><td><input type="color" name="vtm_chargen_freebie" value="<?php echo get_option('vtm_chargen_freebie'); ?>" /></td>
+				<td>Empty Dot colour (#RRGGBB)</td><td><input type="color" name="vtm_chargen_empty" value="<?php echo get_option('vtm_chargen_empty'); ?>" /></td>
+			</tr>
+		</table>
+
 		<h4>PDF Character Sheet Options</h4>
 		<table>
 			<tr>
@@ -482,6 +495,50 @@ function vtm_character_config() {
 			$draw->line( $drawborder, $drawheight - $drawborder - 1, $drawwidth - $drawborder - 1, $drawborder);
 			$image->drawImage($draw);
 			$image->writeImage(VTM_CHARACTER_URL . 'images/crossclear.' . $imagetype);
+
+			/* Character Generation Dots */
+			$drawbgcolour = get_option('vtm_chargen_bgcolour', '#000000');
+			$drawborder   = get_option('vtm_chargen_dotlinewidth', 2);
+			// Empty
+			$drawcolour   = get_option('vtm_chargen_empty', '#CCCCCC');
+			$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
+			$draw = new ImagickDraw();
+			$draw->setStrokeColor($drawcolour);
+			$draw->setStrokeWidth($drawborder);
+			$draw->setFillColor($drawbgcolour);
+			$draw->circle( ceil($drawwidth / 2), ceil($drawheight / 2), ceil($drawwidth / 2), $drawborder + $drawmargin);
+			$image->drawImage($draw);
+			$image->writeImage(VTM_CHARACTER_URL . 'images/cg_emptydot.' . $imagetype);
+			// Free
+			$drawcolour   = get_option('vtm_chargen_freedot', '#808080');
+			$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
+			$draw = new ImagickDraw();
+			$draw->setStrokeColor($drawcolour);
+			$draw->setStrokeWidth($drawborder);
+			$draw->setFillColor($drawcolour);
+			$draw->circle( ceil($drawwidth / 2), ceil($drawheight / 2), ceil($drawwidth / 2), $drawborder + $drawmargin);
+			$image->drawImage($draw);
+			$image->writeImage(VTM_CHARACTER_URL . 'images/cg_freedot.' . $imagetype);
+			// Select
+			$drawcolour   = get_option('vtm_chargen_selectdot', '#FF0000');
+			$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
+			$draw = new ImagickDraw();
+			$draw->setStrokeColor($drawcolour);
+			$draw->setStrokeWidth($drawborder);
+			$draw->setFillColor($drawcolour);
+			$draw->circle( ceil($drawwidth / 2), ceil($drawheight / 2), ceil($drawwidth / 2), $drawborder + $drawmargin);
+			$image->drawImage($draw);
+			$image->writeImage(VTM_CHARACTER_URL . 'images/cg_selectdot.' . $imagetype);
+			// Freebie
+			$drawcolour   = get_option('vtm_chargen_freebie', '#CCCCCC');
+			$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
+			$draw = new ImagickDraw();
+			$draw->setStrokeColor($drawcolour);
+			$draw->setStrokeWidth($drawborder);
+			$draw->setFillColor($drawcolour);
+			$draw->circle( ceil($drawwidth / 2), ceil($drawheight / 2), ceil($drawwidth / 2), $drawborder + $drawmargin);
+			$image->drawImage($draw);
+			$image->writeImage(VTM_CHARACTER_URL . 'images/cg_freebiedot.' . $imagetype);
 
 			/* Pending XP Dots */
 			$drawbgcolour = get_option('vtm_pend_bgcolour');

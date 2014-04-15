@@ -549,17 +549,17 @@ table.feedingmapkey {width:auto;}
 }
 
 .dotselect:not(:checked) > label {
-    background-image: url('/wp-content/plugins/gvlarp-character/images/viewemptydot.jpg');
+    background-image: url('/wp-content/plugins/gvlarp-character/images/cg_emptydot.jpg');
 }
 
 .dotselect > input:checked ~ label {
     /*background-image: url('/wp-content/plugins/gvlarp-character/images/viewfulldot.jpg'); */
-    background-image: url('/wp-content/plugins/gvlarp-character/images/pendingdot.jpg');
+    background-image: url('/wp-content/plugins/gvlarp-character/images/cg_selectdot.jpg');
 }
 
 .dotselect:not(:checked) > label:hover,
 .dotselect:not(:checked) > label:hover ~ label {
-    background-image: url('/wp-content/plugins/gvlarp-character/images/pendingdot.jpg');
+    background-image: url('/wp-content/plugins/gvlarp-character/images/cg_selectdot.jpg');
 }
 
 /* .dotselect > input:checked + label:hover,
@@ -571,5 +571,5 @@ table.feedingmapkey {width:auto;}
 } */
 
 .dotselect > label:active {
-    content: url('/wp-content/plugins/gvlarp-character/images/pendingdot.jpg');
+    content: url('/wp-content/plugins/gvlarp-character/images/cg_selectdot.jpg');
 }

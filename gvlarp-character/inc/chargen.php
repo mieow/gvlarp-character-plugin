@@ -342,6 +342,7 @@ function vtm_render_attributes($step, $characterID, $templateID) {
 	$output = "";
 	$settings   = vtm_get_chargen_settings($templateID);
 	$attributes = vtm_get_chargen_attributes($characterID);
+	$pending    = vtm_get_pending_freebies('STAT', 'freebie_stat', $characterID);  // name => value
 	
 	$output .= "<h3>Step $step: Attributes</h3>";
 	
@@ -405,7 +406,10 @@ function vtm_render_attributes($step, $characterID, $templateID) {
 		$output .= "<tr><td class=\"gvcol_key\">" . $attribute->NAME . "</td>";
 		$output .= "<td>";
 		
-		$output .= vtm_render_dot_select("attribute_value", $attribute->ID, isset($stats[$attribute->ID]) ? $stats[$attribute->ID] : -1);
+		$output .= vtm_render_dot_select("attribute_value", 
+						$attribute->ID, 
+						isset($stats[$attribute->ID]) ? $stats[$attribute->ID] : -1, 
+						1,5,isset($pending[$attribute->NAME]) ? $pending[$attribute->NAME] : 0);
 		$output .= "</td><td>";
 		$output .= stripslashes($attribute->DESCRIPTION);
 		$output .= "</td></tr>\n";
@@ -1082,6 +1086,9 @@ function vtm_save_progress($laststep, $characterID, $templateID) {
 		case 6:
 			vtm_save_virtues($characterID, $templateID);
 			break;
+		case 7:
+			vtm_save_freebies($characterID, $templateID);
+			break;
 	
 	}
 
@@ -1148,7 +1155,53 @@ function vtm_save_attributes($characterID) {
 	}
 
 }
+function vtm_save_freebies($characterID, $templateID) {
+	global $wpdb;
 
+	
+	// Delete current pending spends
+	$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
+			WHERE CHARACTER_ID = %s";
+	$sql = $wpdb->prepare($sql, $characterID);
+	$result = $wpdb->get_results($sql);
+	
+	// (re)Add pending spends - stats
+	$new = isset($_POST['freebie_stat']) ? $_POST['freebie_stat'] : array();
+	$freebiecosts = vtm_get_freebie_costs('STAT');
+	$current = vtm_get_current_stats($characterID, OBJECT_K);
+	$stats   = vtm_get_chargen_stats($characterID, OBJECT_K);
+	foreach ($new as $name => $value) {
+		$chartableid = isset($current[$name]->chartableid) ? $current[$name]->chartableid : 0;
+		$levelfrom   = isset($current[$name]->level_from)  ? $current[$name]->level_from  : 0;
+		
+		if ($value > $levelfrom) {
+			$data = array (
+				'CHARACTER_ID' => $characterID,
+				'CHARTABLE'    => 'CHARACTER_STAT',
+				'CHARTABLE_ID' => $chartableid,
+				'LEVEL_FROM'   => $levelfrom,
+				'LEVEL_TO'     => $value,
+				'AMOUNT'       => $freebiecosts[$name][$levelfrom][$value],
+				'ITEMTABLE'    => 'STAT',
+				'ITEMNAME'     => $name,
+				'ITEMTABLE_ID' => $stats[$name]->ID
+			);
+			$wpdb->insert(VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND",
+						$data,
+						array (
+							'%d', '%s', '%d', '%d',
+							'%d', '%d', '%s', '%s',
+							'%d'
+						)
+					);
+			if ($wpdb->insert_id == 0) {
+				echo "<p style='color:red'><b>Error:</b> $name could not be inserted</p>";
+			}		
+			//print_r($data);
+		}
+	}
+
+}
 function vtm_save_abilities($characterID) {
 	global $wpdb;
 
@@ -1841,6 +1894,32 @@ function vtm_get_chargen_attributes($characterID = 0) {
 	return $results;
 
 }
+function vtm_get_chargen_stats($characterID = 0, $output_type = OBJECT) {
+	global $wpdb;
+	
+	$sql = "SELECT clans.NAME
+			FROM
+				" . VTM_TABLE_PREFIX . "CHARACTER chara,
+				" . VTM_TABLE_PREFIX . "CLAN clans
+			WHERE
+				chara.PRIVATE_CLAN_ID = clans.ID
+				AND chara.ID = %s";
+	$clan = $wpdb->get_var($wpdb->prepare($sql, $characterID));
+	
+	$filter = "";
+	if (isset($clan) && ($clan == 'Nosferatu' || $clan == 'Samedi'))
+		$filter = "WHERE NAME != 'Appearance' AND ($filter)";
+	
+	$sql = "SELECT NAME, ID, DESCRIPTION, GROUPING, SPECIALISATION_AT
+			FROM " . VTM_TABLE_PREFIX . "STAT
+			$filter
+			ORDER BY ORDERING";
+	//echo "<p>SQL: $sql</p>";
+	$results = $wpdb->get_results($sql, $output_type);
+	//print_r($results);
+	return $results;
+
+}
 function vtm_get_chargen_virtues($characterID = 0) {
 	global $wpdb;
 			
@@ -1937,28 +2016,45 @@ function vtm_get_chargen_roads() {
 	return $roadsOrPaths;
 }
 
-function vtm_render_dot_select($type, $itemid, $current, $free = 1, $max = 5) {
+function vtm_render_dot_select($type, $itemid, $current, $free = 1, $max = 5, $pending = 0) {
 
 	$output = "";
-	$fulldoturl = plugins_url( 'gvlarp-character/images/viewfulldot.jpg' );
+	$fulldoturl = plugins_url( 'gvlarp-character/images/cg_freedot.jpg' );
+	$doturl = plugins_url( 'gvlarp-character/images/cg_selectdot.jpg' );
+	$emptydoturl   = plugins_url( 'gvlarp-character/images/cg_emptydot.jpg' );
+	$freebiedoturl   = plugins_url( 'gvlarp-character/images/cg_freebiedot.jpg' );
 	
+	if ($pending) {
+		$output .= "<input type='hidden' name='" . $type . "[" . $itemid . "]' value='" . ($current + $free) . "' />";
+	}
 	$output .= "<fieldset class='dotselect'>";
 	
 	//$output .= "<img alt='*' width=14 src='$fulldoturl'>";
 	for ($i = $max ; $i > 0 ; $i--) {
 		$index = $i - $free;
 		$radioid = "dot_{$type}_{$itemid}_{$index}";
-		$output .= "<input type='radio' id='$radioid' name='" . $type . "[" . $itemid . "]' value='$index' ";
-		$output .= checked($current, $index, false);
-		$output .= " /><label for='$radioid' title='" . ($index + $free) . "'";
-		
-		if ($index < $free)
-			$output .= " class='freedot'";
-		
-		$output .= ">&nbsp;</label>\n";
+		if ($pending) {
+			if ($index < $free)
+				$output .= "<img src='$fulldoturl' alt='*' id='$radioid' />";
+			elseif ($index < ($current + $free) )
+				$output .= "<img src='$doturl' alt='*' id='$radioid' />";
+			elseif ($index < $pending)
+				$output .= "<img src='$freebiedoturl' alt='*' id='$radioid' />";
+			else
+				$output .= "<img src='$emptydoturl' alt='*' id='$radioid' />";
+		} else {
+			$output .= "<input type='radio' id='$radioid' name='" . $type . "[" . $itemid . "]' value='$index' ";
+			$output .= checked($current, $index, false);
+			$output .= " /><label for='$radioid' title='" . ($index + $free) . "'";
+			
+			if ($index < $free)
+				$output .= " class='freedot'";
+			
+			$output .= ">&nbsp;</label>\n";
+		}
 	}
 	
-	if ($free == 0) {
+	if ($free == 0 && $pending == 0) {
 		$radioid = "dot_{$type}_{$itemid}_clear";
 		$output .= "<input type='radio' id='$radioid' name='" . $type . "[" . $itemid . "]' value='0' ";
 		$output .= checked($current, 0, false);
@@ -1966,6 +2062,7 @@ function vtm_render_dot_select($type, $itemid, $current, $free = 1, $max = 5) {
 	}
 	
 	$output .= "</fieldset>\n";
+	
 	
 	return $output;
 
@@ -1990,8 +2087,8 @@ function vtm_render_freebie_stats($characterID, $pendingSpends, $points) {
 	$rowoutput = "";
 	$max2display = 5;
 	$columns = 3;
-	$fulldoturl = plugins_url( 'gvlarp-character/images/viewfulldot.jpg' );
-	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
+	$fulldoturl = plugins_url( 'gvlarp-character/images/cg_freedot.jpg' );
+	$emptydoturl   = plugins_url( 'gvlarp-character/images/cg_emptydot.jpg' );
 	
 	// PENDING_FREEBIE_SPEND
 	//	characterID
@@ -2013,11 +2110,7 @@ function vtm_render_freebie_stats($characterID, $pendingSpends, $points) {
 	$items = vtm_get_current_stats($characterID);
 	
 	// Current spent
-	if (isset($_POST['freebie_stat'])) {
-		$current_stat = $_POST['freebie_stat'];
-	} else {
-		$current_stat = array();
-	}
+	$current_stat = vtm_get_pending_freebies('STAT', 'freebie_stat', $characterID);
 	
 	//print_r($items);
 	
@@ -2213,5 +2306,31 @@ function vtm_get_freebies_spent($table, $postvariable, $characterID) {
 	}
 
 	return $spent;
+}
+
+function vtm_get_pending_freebies($table, $postvariable, $characterID) {
+	global $wpdb;
+
+	$pending = array();
+	$sql = "SELECT items.NAME as name, freebie.LEVEL_TO as value
+			FROM
+				" . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND freebie,
+				" . VTM_TABLE_PREFIX . "$table items
+			WHERE
+				freebie.CHARACTER_ID = %s
+				AND freebie.ITEMTABLE = '$table'
+				AND freebie.ITEMTABLE_ID = items.ID";
+	$sql = $wpdb->prepare($sql, $characterID);
+	echo "SQL: $sql</p>";
+	$keys = $wpdb->get_col($sql);
+	if (count($keys) > 0) {
+		$vals = $wpdb->get_col($sql,1);
+		$pending = array_combine($keys, $vals);
+	} 
+	elseif (isset($_POST[$postvariable])) {
+		$pending = $_POST[$postvariable];
+	}
+
+	return $pending;
 }
 ?>
