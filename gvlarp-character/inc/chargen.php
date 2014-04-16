@@ -143,15 +143,16 @@ function vtm_render_flow($step, $characterID, $progress, $templateID) {
 	$output = "";
 	
 	$buttons = array (
-		'1' => array('title' => "Basic Information", 'dependency' => 0),
-		'2' => array('title' => "Attributes", 'dependency' => 1),
-		'3' => array('title' => "Abilities", 'dependency' => 2),
-		'4' => array('title' => "Disciplines", 'dependency' => 3),
-		'5' => array('title' => "Backgrounds", 'dependency' => 4),
-		'6' => array('title' => "Virtues", 'dependency' => 5),
-		'7' => array('title' => "Freebie Points", 'dependency' => 6),
-		'8' => array('title' => "Spend Experience", 'dependency' => 7),			// WILL BE OPTIONAL
-		'9' => array('title' => "Extended Backgrounds", 'dependency' => 1)
+		'1'  => array('title' => "Basic Information", 'dependency' => 0),
+		'2'  => array('title' => "Attributes", 'dependency' => 1),
+		'3'  => array('title' => "Abilities", 'dependency' => 2),
+		'4'  => array('title' => "Disciplines", 'dependency' => 3),
+		'5'  => array('title' => "Backgrounds", 'dependency' => 4),
+		'6'  => array('title' => "Virtues", 'dependency' => 5),
+		'7'  => array('title' => "Freebie Points", 'dependency' => 6),
+		'8'  => array('title' => "Spend Experience", 'dependency' => 7),			// WILL BE OPTIONAL
+		'9'  => array('title' => "Specialities", 'dependency' => 8),
+		'10' => array('title' => "Extended Backgrounds", 'dependency' => 1)
 	);
 	
 	$output .= "<div id='vtm-chargen-flow'>\n";	
@@ -535,6 +536,7 @@ function vtm_render_chargen_freebies($step, $characterID, $templateID) {
 	
 	$pendingSpends = array();
 	$sectioncontent['stat']   = vtm_render_freebie_stats($characterID, $pendingSpends, $points);
+	$sectioncontent['skill']  = vtm_render_freebie_skills($characterID, $pendingSpends, $points);
 	
 	/* DISPLAY TABLES 
 	-------------------------------*/
@@ -2216,6 +2218,115 @@ function vtm_render_freebie_stats($characterID, $pendingSpends, $points) {
 	return $output;
 
 }
+function vtm_render_freebie_skills($characterID, $pendingSpends, $points) {
+	global $wpdb;
+	
+	$output      = "";
+	$rowoutput   = "";
+	$max2display = 5;
+	$columns     = 3;
+	$fulldoturl  = plugins_url( 'gvlarp-character/images/cg_freedot.jpg' );
+	$emptydoturl = plugins_url( 'gvlarp-character/images/cg_emptydot.jpg' );
+	
+	// PENDING_FREEBIE_SPEND
+	//	characterID
+	//	chartable		= CHARACTER_STAT
+	//	chartableid		= ID of entry in CHARACTER_STAT
+	//	level_from		= Level stat is currently at
+	//	level_to		= Level stat is going to
+	//	amount			= cost
+	//	itemtable		= STAT
+	//	itemname		= Name of Stat, e.g. Strength
+	//	itemid			= ID of entry in STAT
+
+	// COSTS OF STATS - if entry doesn't exist then you can't buy it
+	//	$cost['<statname>'] = array( '<from>' => array( '<to>' => <cost>))
+	$freebiecosts = vtm_get_freebie_costs('SKILL');
+
+	// display stats to buy
+	//	hover over radiobutton to show the cost
+	$items = vtm_get_current_skills($characterID);
+	
+	// Current spent
+	$current = vtm_get_pending_freebies('SKILL', 'freebie_skill', $characterID);
+	
+	//print_r($items);
+	
+	if (count($items) > 0) {
+		$id = 0;
+		$grp = "";
+		$grpcount = 0;
+		$col = 0;
+		foreach ($items as $item) {
+		
+			$loop = ($item->multiple == 'Y') ? 5 : 1;
+			
+			$tmp_max2display = $max2display;
+			$colspan = 2 + $tmp_max2display;
+			
+			for ($j = 1 ; $j <= $loop ; $j++) {
+				$skillname = ($item->multiple == 'Y') ? $item->name . "_" . $j : $item->name;
+			
+				// start column / new column
+				if (isset($item->grp)) {
+					if ($grp != $item->grp) {
+						$grpcount++;
+						if (empty($grp)) {
+							$rowoutput .= "<tr><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
+							$col++;
+						} 
+						elseif ($col == $columns) {
+							$rowoutput .= "</table>\n</td></tr>\n<tr><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
+							$col = 1;
+						}
+						else {
+							$rowoutput .= "</table>\n</td><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
+							$col++;
+						}
+						$grp = $item->grp;
+					}
+				}
+
+				// Hidden fields
+				$rowoutput .= "<tr style='display:none'><td colspan=$colspan>\n";
+				$rowoutput .= "</td></tr>\n";
+				
+				//dots row
+				$rowoutput .= "<tr><th class='gvthleft'><span>" . stripslashes($item->name) . "</span></th><td>\n";
+				$rowoutput .= "<fieldset class='dotselect'>";
+				for ($i=$tmp_max2display;$i>=1;$i--) {
+					$radioid = "dot_{$skillname}_{$j}_{$item->itemid}_{$i}";
+					$current = isset($current[$skillname]) ? $current[$skillname] : 0;
+					
+					if ($item->level_from >= $i)
+						$rowoutput .= "<img src='$fulldoturl' alt='*' id='$radioid' />";
+					elseif (isset($freebiecosts[$item->name][$item->level_from][$i])) {
+						$cost = $freebiecosts[$item->name][$item->level_from][$i];
+						$rowoutput .= "<input type='radio' id='$radioid' name='freebie_stat[" . $skillname . "]' value='$i' ";
+						$rowoutput .= checked($current, $i, false);
+						$rowoutput .= " /><label for='$radioid' title='Level $i ($cost freebies)'";
+						$rowoutput .= ">&nbsp;</label>\n";
+					}
+					else {
+						$rowoutput .= "<img src='$emptydoturl' alt='X' id='$radioid' />";
+					}
+				}
+				$radioid = "dot_{$skillname}_{$item->itemid}_clear";
+				$rowoutput .= "<input type='radio' id='$radioid' name='freebie_stat[" . $skillname . "]' value='0' ";
+				//$rowoutput .= checked($current, 0, false);
+				$rowoutput .= " /><label for='$radioid' title='Clear' class='cleardot'>&nbsp;</label>\n";
+				$rowoutput .= "</fieldset></td></tr>\n";
+			}
+		}
+	
+	}
+	
+	if ($rowoutput != "")
+		$output .= "<table>$rowoutput</table></td></tr></table>\n";
+
+	return $output;
+
+}
 
 function vtm_get_freebie_costs($type) {
 	global $wpdb;
@@ -2257,6 +2368,8 @@ function vtm_get_freebie_costs($type) {
 				}
 				$from = $to;
 				$to   = $data[$from]['NEXT_VALUE'];
+				
+				//echo "<li>name:{$item->NAME}, i: $i, from: $from, to: $to</li>";
 			}
 		
 		}
@@ -2291,7 +2404,39 @@ function vtm_get_current_stats($characterID, $output_type = OBJECT) {
 	
 	return $items;
 }
+function vtm_get_current_skills($characterID, $output_type = OBJECT) {
+	global $wpdb;
 
+	$sql = "SELECT 
+				skill.name, 
+				IFNULL(cha_skill.LEVEL,0) as level_from,
+				IFNULL(cha_skill.ID,0) 	  as chartableid, 
+				skill.ID 		as itemid, 
+				skill.GROUPING 	as grp,
+				CASE skill.grouping WHEN 'Talents' THEN 3 WHEN 'Skills' THEN 2 WHEN 'Knowledges' THEN 1 ELSE 0 END as ordering,
+				skill.MULTIPLE  as multiple
+			FROM 
+				" . VTM_TABLE_PREFIX . "SKILL skill
+				LEFT JOIN
+					(SELECT ID, SKILL_ID, LEVEL
+					FROM
+						" . VTM_TABLE_PREFIX . "CHARACTER_SKILL cha_skill
+					WHERE
+						CHARACTER_ID = %s
+					) as cha_skill
+				ON
+					cha_skill.SKILL_ID = skill.ID
+			WHERE 
+				skill.VISIBLE = 'Y'
+		    ORDER BY ordering DESC, skill.name";
+	$sql   = $wpdb->prepare($sql, $characterID);
+	$items = $wpdb->get_results($sql, $output_type);
+	
+	//echo "<p>SQL: $sql</p>";
+	print_r($items);
+	
+	return $items;
+}
 function vtm_get_freebies_spent($table, $postvariable, $characterID) {
 
 	switch ($table) {
