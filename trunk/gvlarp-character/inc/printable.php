@@ -149,7 +149,7 @@ function vtm_print_redirect()
 			$paths       = $mycharacter->paths;
 			
 			$sql = "SELECT DISTINCT GROUPING FROM " . VTM_TABLE_PREFIX . "SKILL skills;";
-			$allgroups = $wpdb->get_results($wpdb->prepare($sql,''));	
+			$allgroups = $wpdb->get_results($sql);	
 			
 			$secondarygroups = array();
 			foreach ($allgroups as $group) {

@@ -1052,7 +1052,7 @@ class vtmclass_admin_meritsflaws_table extends vtmclass_MultiPage_ListTable {
 		$sql .= ";";
 		/* echo "<p>SQL: " . $sql . "</p>"; */
 		
-		$data =$wpdb->get_results($wpdb->prepare($sql,''));
+		$data =$wpdb->get_results($sql);
         
         $current_page = $this->get_pagenum();
         $total_items = count($data);
@@ -1346,19 +1346,19 @@ class vtmclass_admin_rituals_table extends vtmclass_MultiPage_ListTable {
 		$sql = "SELECT DISTINCT disciplines.ID as ID, disciplines.NAME as NAME
 				FROM " . VTM_TABLE_PREFIX . "RITUAL rituals, " . VTM_TABLE_PREFIX . "DISCIPLINE disciplines
 				WHERE disciplines.ID = rituals.DISCIPLINE_ID;";
-		$disciplines = $wpdb->get_results($wpdb->prepare($sql,''));
+		$disciplines = $wpdb->get_results($sql);
 		$this->filter_discipline = vtm_make_filter($disciplines);
 		
 		/* Ritual Level filter */
 		$sql = "SELECT DISTINCT LEVEL FROM " . VTM_TABLE_PREFIX . "RITUAL;";
-		$levels = $wpdb->get_results($wpdb->prepare($sql,''));
+		$levels = $wpdb->get_results($sql);
 		$this->filter_level = vtm_make_filter($levels);
 			
 		/* Book filter */
 		$sql = "SELECT DISTINCT books.ID, books.NAME 
 				FROM " . VTM_TABLE_PREFIX . "RITUAL rituals, " . VTM_TABLE_PREFIX . "SOURCE_BOOK books
 				WHERE rituals.SOURCE_BOOK_ID = books.ID;";
-		$books = $wpdb->get_results($wpdb->prepare($sql,''));
+		$books = $wpdb->get_results($sql);
 		$this->filter_book = vtm_make_filter($books);
 						
 		if ( isset( $_REQUEST[$type . '_discipline'] ) && array_key_exists( $_REQUEST[$type . '_discipline'], $this->filter_discipline ) ) {
@@ -1409,7 +1409,7 @@ class vtmclass_admin_rituals_table extends vtmclass_MultiPage_ListTable {
 		
 		/* echo "<p>SQL: $sql</p>"; */
 		
-		$data =$wpdb->get_results($wpdb->prepare($sql,''));
+		$data =$wpdb->get_results($sql);
         
         $current_page = $this->get_pagenum();
         $total_items = count($data);
@@ -1653,7 +1653,7 @@ class vtmclass_admin_books_table extends vtmclass_MultiPage_ListTable {
 		
 		/* echo "<p>SQL: $sql</p>"; */
 		
-		$data =$wpdb->get_results($wpdb->prepare($sql,''));
+		$data =$wpdb->get_results($sql);
         
         $current_page = $this->get_pagenum();
         $total_items = count($data);

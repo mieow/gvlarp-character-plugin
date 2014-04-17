@@ -918,7 +918,7 @@ function vtm_validate_chargen($laststep, $templateID, $characterID) {
 						$sectiontotal = 0;
 						foreach  ($abilities as $skill) {
 							if ($skill->GROUPING == $group) {
-								$sectiontotal += isset($values[$skill->ID]) ? $values[$skill->ID] : 0;
+								$sectiontotal += isset($values[$skill->ID]) ? max(0,$values[$skill->ID]) : 0;
 								if (isset($values[$skill->ID]) && $values[$skill->ID] > $settings['abilities-max']) {
 									$errormessages .= "<li>ERROR: Abilities should not go higher than level {$settings['abilities-max']}. Please reduce the dots spend in {$skill->NAME}</li>";
 									$ok = 0;
