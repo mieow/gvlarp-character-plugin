@@ -152,7 +152,7 @@ function vtm_get_booknames() {
 	global $wpdb;
 
 	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "SOURCE_BOOK;";
-	$booklist = $wpdb->get_results($wpdb->prepare($sql,''));
+	$booklist = $wpdb->get_results($sql);
 	
 	return $booklist;
 }
@@ -161,7 +161,7 @@ function vtm_get_disciplines() {
 	global $wpdb;
 
 	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "DISCIPLINE;";
-	$list = $wpdb->get_results($wpdb->prepare($sql,''));
+	$list = $wpdb->get_results($sql);
 	
 	return $list;
 }
@@ -170,7 +170,7 @@ function vtm_get_costmodels() {
 	global $wpdb;
 
 	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "COST_MODEL;";
-	$list = $wpdb->get_results($wpdb->prepare($sql,''));
+	$list = $wpdb->get_results($sql);
 	
 	return $list;
 }
@@ -179,7 +179,7 @@ function vtm_get_templates() {
 	global $wpdb;
 
 	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE;";
-	$list = $wpdb->get_results($wpdb->prepare($sql,''));
+	$list = $wpdb->get_results($sql);
 	
 	return $list;
 }
@@ -188,7 +188,7 @@ function vtm_get_natures() {
 	global $wpdb;
 
 	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "NATURE;";
-	$list = $wpdb->get_results($wpdb->prepare($sql,''));
+	$list = $wpdb->get_results($sql);
 	
 	return $list;
 }
@@ -197,7 +197,7 @@ function vtm_get_backgrounds() {
 	global $wpdb;
 
 	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "BACKGROUND WHERE VISIBLE = 'Y';";
-	$list = $wpdb->get_results($wpdb->prepare($sql,''));
+	$list = $wpdb->get_results($sql);
 	
 	return $list;
 }
@@ -206,7 +206,7 @@ function vtm_get_profile_display() {
 	global $wpdb;
 
 	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "PROFILE_DISPLAY;";
-	$list = $wpdb->get_results($wpdb->prepare($sql,''));
+	$list = $wpdb->get_results($sql);
 	
 	return $list;
 }
@@ -217,7 +217,7 @@ function vtm_get_sectors($showhidden = false) {
 	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "SECTOR";
 	if (!$showhidden)
 		$sql .= " WHERE VISIBLE = 'Y'";
-	$list = $wpdb->get_results($wpdb->prepare($sql,''));
+	$list = $wpdb->get_results($sql);
 	
 	return $list;
 }

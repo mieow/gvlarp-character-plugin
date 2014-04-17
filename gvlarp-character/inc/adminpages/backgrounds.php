@@ -426,7 +426,7 @@ function vtm_render_question_add_form($addaction) {
 	} else {
 	
 		$sql = "select * from " . VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND;";
-		$order = count($wpdb->get_results($wpdb->prepare($sql,''))) + 1;
+		$order = count($wpdb->get_results($sql)) + 1;
 	
 		/* defaults */
 		$title   = "";
@@ -781,7 +781,7 @@ class vtmclass_admin_extbgapproval_table extends vtmclass_MultiPage_ListTable {
 				order by
 					charbgs.ID;";
 				
-		$tempdata =$wpdb->get_results($wpdb->prepare($sql,''));
+		$tempdata =$wpdb->get_results($sql);
 		//echo "<p>SQL: $sql</p>";
 		//print_r($tempdata);
 		
@@ -822,7 +822,7 @@ class vtmclass_admin_extbgapproval_table extends vtmclass_MultiPage_ListTable {
 				order by charmerit.ID;";
 				
 		
-		$tempdata =$wpdb->get_results($wpdb->prepare($sql,''));
+		$tempdata =$wpdb->get_results($sql);
 		//echo "<p>SQL: $sql</p>";
 		//print_r($tempdata);
 		foreach ($tempdata as $tablerow) {
@@ -857,7 +857,7 @@ class vtmclass_admin_extbgapproval_table extends vtmclass_MultiPage_ListTable {
 					and answers.DENIED_DETAIL = ''
 				order by answers.ID;";
 					
-		$tempdata =$wpdb->get_results($wpdb->prepare($sql,''));
+		$tempdata =$wpdb->get_results($sql);
 		//echo "<p>SQL: $sql</p>";
 		//print_r($tempdata);
 		foreach ($tempdata as $tablerow) {
@@ -1139,7 +1139,7 @@ class vtmclass_admin_questions_table extends vtmclass_MultiPage_ListTable {
 		
 		/* echo "<p>SQL: $sql</p>"; */
 		
-		$data =$wpdb->get_results($wpdb->prepare($sql,''));
+		$data =$wpdb->get_results($sql);
         
         $current_page = $this->get_pagenum();
         $total_items = count($data);
@@ -1361,7 +1361,7 @@ class vtmclass_admin_sectors_table extends vtmclass_MultiPage_ListTable {
 		
 		/* echo "<p>SQL: $sql</p>"; */
 		
-		$data =$wpdb->get_results($wpdb->prepare($sql,''));
+		$data =$wpdb->get_results($sql);
         
         $current_page = $this->get_pagenum();
         $total_items = count($data);
@@ -1626,7 +1626,7 @@ class vtmclass_admin_backgrounds_table extends vtmclass_MultiPage_ListTable {
 		
 		/* echo "<p>SQL: $sql</p>"; */
 		
-		$data =$wpdb->get_results($wpdb->prepare($sql,''));
+		$data =$wpdb->get_results($sql);
         
         $current_page = $this->get_pagenum();
         $total_items = count($data);

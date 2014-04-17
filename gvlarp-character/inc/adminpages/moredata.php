@@ -436,7 +436,7 @@ class vtmclass_admin_stats_table extends vtmclass_MultiPage_ListTable {
 		
 		/* echo "<p>SQL: $sql</p>"; */
 		
-		$data =$wpdb->get_results($wpdb->prepare($sql,''));
+		$data =$wpdb->get_results($sql);
         
         $current_page = $this->get_pagenum();
         $total_items = count($data);
@@ -686,7 +686,7 @@ class vtmclass_admin_skills_table extends vtmclass_MultiPage_ListTable {
 		
 		/* echo "<p>SQL: $sql</p>"; */
 		
-		$data =$wpdb->get_results($wpdb->prepare($sql,''));
+		$data =$wpdb->get_results($sql);
         
         $current_page = $this->get_pagenum();
         $total_items = count($data);

@@ -56,7 +56,7 @@ function vtm_character_config() {
 				
 			}
 			$sql = "select * from " . VTM_TABLE_PREFIX . "CONFIG;";
-			$options = $wpdb->get_results($wpdb->prepare($sql,''));
+			$options = $wpdb->get_results($sql);
 		?>
 
 		<form id='options_form' method='post'>

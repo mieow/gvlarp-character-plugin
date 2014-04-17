@@ -971,7 +971,7 @@ function vtm_character_install_data() {
 		$tablename = $temp[1];
 		
 		$sql = "select ID from " . VTM_TABLE_PREFIX . $tablename;
-		$rows = count($wpdb->get_results($wpdb->prepare($sql,'')));
+		$rows = count($wpdb->get_results($sql));
 		if (!$rows) {
 			//print "<p>Reading data for table $tablename</p>";
 			$filehandle = fopen($datafile,"r");
