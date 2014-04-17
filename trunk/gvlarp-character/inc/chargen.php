@@ -511,6 +511,7 @@ function vtm_render_chargen_freebies($step, $characterID, $templateID) {
 	$points = $settings['freebies-points'] - $meritsspent + $flawsgained;
 	$spent = 0;
 	$spent += vtm_get_freebies_spent('STAT', 'freebie_stat', $characterID);
+	$spent += vtm_get_freebies_spent('SKILL', 'freebie_skill', $characterID);
 	$remaining = $points - $spent;
 	
 	$output .= "<h3>Step $step: Freebie Points</h3>";
@@ -566,7 +567,8 @@ function vtm_render_abilities($step, $characterID, $templateID) {
 	$output = "";
 	$settings   = vtm_get_chargen_settings($templateID);
 	$abilities  = vtm_get_chargen_abilities($characterID);
-	
+	$pending    = vtm_get_pending_freebies('SKILL', 'freebie_skill', $characterID);  // name => value
+		
 	$output .= "<h3>Step $step: Abilities</h3>";
 	$output .= "<p>You have {$settings['abilities-primary']} dots to spend on your Primary abilities, {$settings['abilities-secondary']} to spend on Secondary and {$settings['abilities-tertiary']} to spend on Tertiary.</p>";
 	
@@ -619,7 +621,10 @@ function vtm_render_abilities($step, $characterID, $templateID) {
 		$output .= "<tr><td class=\"gvcol_key\">" . $skill->NAME . "</td>";
 		$output .= "<td>";
 		
-		$output .= vtm_render_dot_select("ability_value", $skill->ID, isset($skills[$skill->ID]) ? $skills[$skill->ID] : -1, 0);
+		$output .= vtm_render_dot_select("ability_value", 
+						$skill->ID, 
+						isset($skills[$skill->ID]) ? $skills[$skill->ID] : -1, 
+						0, 5, isset($pending[$skill->NAME]) ? $pending[$skill->NAME] : 0);
 		$output .= "</td><td>";
 		$output .= stripslashes($skill->DESCRIPTION);
 		$output .= "</td></tr>\n";
@@ -1045,6 +1050,7 @@ function vtm_validate_chargen($laststep, $templateID, $characterID) {
 			$spent = 0;
 			
 			$spent += vtm_get_freebies_spent('STAT', 'freebie_stat', $characterID);
+			$spent += vtm_get_freebies_spent('SKILL', 'freebie_skill', $characterID);
 			
 			if ($spent == 0) {
 				$errormessages .= "<li>WARNING: You have not spent any dots</li>";
@@ -1174,39 +1180,68 @@ function vtm_save_freebies($characterID, $templateID) {
 	$sql = $wpdb->prepare($sql, $characterID);
 	$result = $wpdb->get_results($sql);
 	
-	// (re)Add pending spends - stats
-	$new = isset($_POST['freebie_stat']) ? $_POST['freebie_stat'] : array();
-	$freebiecosts = vtm_get_freebie_costs('STAT');
-	$current = vtm_get_current_stats($characterID, OBJECT_K);
-	$stats   = vtm_get_chargen_stats($characterID, OBJECT_K);
-	foreach ($new as $name => $value) {
-		$chartableid = isset($current[$name]->chartableid) ? $current[$name]->chartableid : 0;
-		$levelfrom   = isset($current[$name]->level_from)  ? $current[$name]->level_from  : 0;
-		
-		if ($value > $levelfrom) {
-			$data = array (
-				'CHARACTER_ID' => $characterID,
-				'CHARTABLE'    => 'CHARACTER_STAT',
-				'CHARTABLE_ID' => $chartableid,
-				'LEVEL_FROM'   => $levelfrom,
-				'LEVEL_TO'     => $value,
-				'AMOUNT'       => $freebiecosts[$name][$levelfrom][$value],
-				'ITEMTABLE'    => 'STAT',
-				'ITEMNAME'     => $name,
-				'ITEMTABLE_ID' => $stats[$name]->ID
-			);
-			$wpdb->insert(VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND",
-						$data,
-						array (
-							'%d', '%s', '%d', '%d',
-							'%d', '%d', '%s', '%s',
-							'%d'
-						)
+	// (re)Add pending spends
+	$new['STAT']          = isset($_POST['freebie_stat']) ? $_POST['freebie_stat'] : array();
+	$freebiecosts['STAT'] = vtm_get_freebie_costs('STAT');
+	$current['STAT']      = vtm_get_current_stats($characterID, OBJECT_K);
+	$items['STAT']        = vtm_get_chargen_stats($characterID, OBJECT_K);
+
+	$new['SKILL']          = isset($_POST['freebie_skill']) ? $_POST['freebie_skill'] : array();
+	$freebiecosts['SKILL'] = vtm_get_freebie_costs('SKILL');
+	$current['SKILL']      = vtm_get_current_skills($characterID, OBJECT_K);
+	$items['SKILL']        = vtm_get_chargen_abilities($characterID, 1, OBJECT_K);
+
+	foreach ($new as $type => $row) {
+		foreach ($row as $name => $value) {
+			if ($value > 0) {
+				// Check for things like Lore_1 - multiples
+				if (!isset($freebiecosts[$type][$name])) {
+					$actualname = preg_replace("/_\d+$/", "", $name);
+					//echo "$name becomes $actualname: {$items[$type][$actualname]->MULTIPLE}<br />";
+					if (isset($items[$type][$actualname]->MULTIPLE) && $items[$type][$actualname]->MULTIPLE == 'Y') {
+						$chartableid = isset($current[$type][$actualname]->chartableid) ? $current[$type][$actualname]->chartableid : 0;
+						$levelfrom   = isset($current[$type][$actualname]->level_from)  ? $current[$type][$actualname]->level_from  : 0;
+						$amount      = $freebiecosts[$type][$actualname][$levelfrom][$value];
+						$itemid      = $items[$type][$actualname]->ID;
+					} else {
+						$chartableid = 0;
+						$levelfrom   = 0;
+						$amount      = 0;
+						$itemid      = 0;
+					}
+				} else {
+					$chartableid = isset($current[$type][$name]->chartableid) ? $current[$type][$name]->chartableid : 0;
+					$levelfrom   = isset($current[$type][$name]->level_from)  ? $current[$type][$name]->level_from  : 0;
+					$amount      = $freebiecosts[$type][$name][$levelfrom][$value];
+					$itemid      = $items[$type][$name]->ID;
+				}
+				
+				if ($value > $levelfrom) {
+					$data = array (
+						'CHARACTER_ID' => $characterID,
+						'CHARTABLE'    => 'CHARACTER_' . $type,
+						'CHARTABLE_ID' => $chartableid,
+						'LEVEL_FROM'   => $levelfrom,
+						'LEVEL_TO'     => $value,
+						'AMOUNT'       => $amount,
+						'ITEMTABLE'    => $type,
+						'ITEMNAME'     => $name,
+						'ITEMTABLE_ID' => $itemid
 					);
-			if ($wpdb->insert_id == 0) {
-				echo "<p style='color:red'><b>Error:</b> $name could not be inserted</p>";
-			}		
-			//print_r($data);
+					$wpdb->insert(VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND",
+								$data,
+								array (
+									'%d', '%s', '%d', '%d',
+									'%d', '%d', '%s', '%s',
+									'%d'
+								)
+							);
+					if ($wpdb->insert_id == 0) {
+						echo "<p style='color:red'><b>Error:</b> $name could not be inserted</p>";
+					}		
+					//print_r($data);
+				}
+			}
 		}
 	}
 
@@ -1233,38 +1268,40 @@ function vtm_save_abilities($characterID) {
 	} else {
 		$current = array();
 	}
-	print_r($new);
-	print_r($current);
+	//print_r($new);
+	//print_r($current);
 
 	foreach ($new as $id => $value) {
-		$data = array(
-			'CHARACTER_ID' => $characterID,
-			'SKILL_ID'      => $id,
-			'LEVEL'        => $value
-		);
-		if (isset($current[$id])) {
-			//echo "<li>Updated $id at $value</li>";
-			// update
-			$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_SKILL",
-				$data,
-				array (
-					'ID' => $current[$id]
-				)
+		if ($value > 0) {
+			$data = array(
+				'CHARACTER_ID' => $characterID,
+				'SKILL_ID'      => $id,
+				'LEVEL'        => $value
 			);
-		} else {
-			//echo "<li>Added $id at $value</li>";
-			// insert
-			$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_SKILL",
-						$data,
-						array ('%d', '%d', '%d')
-					);
+			if (isset($current[$id])) {
+				//echo "<li>Updated $id at $value</li>";
+				// update
+				$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_SKILL",
+					$data,
+					array (
+						'ID' => $current[$id]
+					)
+				);
+			} else {
+				//echo "<li>Added $id at $value</li>";
+				// insert
+				$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_SKILL",
+							$data,
+							array ('%d', '%d', '%d')
+						);
+			}
 		}
 	}
 		
 	// Delete anything no longer needed
 	foreach ($current as $id => $value) {
 	
-		if (!isset($new[$id]) || $new[$id] == 0) {
+		if (!isset($new[$id]) || $new[$id] <= 0) {
 			// Delete
 			$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "CHARACTER_SKILL
 					WHERE CHARACTER_ID = %s AND SKILL_ID = %s";
@@ -1297,8 +1334,8 @@ function vtm_save_disciplines($characterID) {
 	} else {
 		$current = array();
 	}
-	print_r($new);
-	print_r($current);
+	//print_r($new);
+	//print_r($current);
 
 	foreach ($new as $id => $value) {
 		$data = array(
@@ -1418,7 +1455,7 @@ function vtm_save_virtues($characterID, $templateID) {
 		'ROAD_OR_PATH_ID'     => $selectedpath,
 		'ROAD_OR_PATH_RATING' => $rating
 	);
-	print_r($data);
+	//print_r($data);
 	$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER",
 		$data,
 		array (
@@ -1986,7 +2023,7 @@ function vtm_get_chargen_backgrounds($characterID = 0) {
 			WHERE
 				bg.VISIBLE = 'Y'
 			ORDER BY NAME";
-	$sql = $wpdb->prepare($sql, $characterID);
+	//$sql = $wpdb->prepare($sql, $characterID);
 	//echo "<p>SQL: $sql</p>";
 	$results = $wpdb->get_results($sql);
 	
@@ -1995,19 +2032,24 @@ function vtm_get_chargen_backgrounds($characterID = 0) {
 
 }
 
-function vtm_get_chargen_abilities($characterID = 0) {
+function vtm_get_chargen_abilities($characterID = 0, $showsecondary = 0, $output_type = OBJECT) {
 	global $wpdb;
 	
+	if ($showsecondary)
+		$filter = "";
+	else
+		$filter = "AND (GROUPING = 'Talents' OR GROUPING = 'Skills' OR GROUPING = 'Knowledges')";
 	
-	$sql = "SELECT ID, NAME, DESCRIPTION, GROUPING, SPECIALISATION_AT, 
-				CASE GROUPING WHEN 'Talents' THEN 3 WHEN 'Skills' THEN 2 WHEN 'Knowledges' THEN 1 ELSE 0 END as ORDERING
+	$sql = "SELECT NAME, ID, DESCRIPTION, GROUPING, SPECIALISATION_AT, 
+				CASE GROUPING WHEN 'Talents' THEN 3 WHEN 'Skills' THEN 2 WHEN 'Knowledges' THEN 1 ELSE 0 END as ORDERING,
+				MULTIPLE
 			FROM " . VTM_TABLE_PREFIX . "SKILL
 			WHERE
 				VISIBLE = 'Y'
-				AND (GROUPING = 'Talents' OR GROUPING = 'Skills' OR GROUPING = 'Knowledges')
+				$filter
 			ORDER BY ORDERING DESC, NAME";
 	//echo "<p>SQL: $sql</p>";
-	$results = $wpdb->get_results($sql);
+	$results = $wpdb->get_results($sql, $output_type);
 	
 	return $results;
 
@@ -2248,7 +2290,7 @@ function vtm_render_freebie_skills($characterID, $pendingSpends, $points) {
 	$items = vtm_get_current_skills($characterID);
 	
 	// Current spent
-	$current = vtm_get_pending_freebies('SKILL', 'freebie_skill', $characterID);
+	$currentpending = vtm_get_pending_freebies('SKILL', 'freebie_skill', $characterID);
 	
 	//print_r($items);
 	
@@ -2296,23 +2338,24 @@ function vtm_render_freebie_skills($characterID, $pendingSpends, $points) {
 				$rowoutput .= "<fieldset class='dotselect'>";
 				for ($i=$tmp_max2display;$i>=1;$i--) {
 					$radioid = "dot_{$skillname}_{$j}_{$item->itemid}_{$i}";
-					$current = isset($current[$skillname]) ? $current[$skillname] : 0;
+					$current = isset($currentpending[$skillname]) ? $currentpending[$skillname] : 0;
 					
 					if ($item->level_from >= $i)
 						$rowoutput .= "<img src='$fulldoturl' alt='*' id='$radioid' />";
 					elseif (isset($freebiecosts[$item->name][$item->level_from][$i])) {
 						$cost = $freebiecosts[$item->name][$item->level_from][$i];
-						$rowoutput .= "<input type='radio' id='$radioid' name='freebie_stat[" . $skillname . "]' value='$i' ";
+						$rowoutput .= "<input type='radio' id='$radioid' name='freebie_skill[" . $skillname . "]' value='$i' ";
 						$rowoutput .= checked($current, $i, false);
 						$rowoutput .= " /><label for='$radioid' title='Level $i ($cost freebies)'";
 						$rowoutput .= ">&nbsp;</label>\n";
 					}
 					else {
 						$rowoutput .= "<img src='$emptydoturl' alt='X' id='$radioid' />";
+						//$rowoutput .= "itemname: {$item->name}, skillname: $skillname, levelfrom: {$item->level_from} i: $i";
 					}
 				}
 				$radioid = "dot_{$skillname}_{$item->itemid}_clear";
-				$rowoutput .= "<input type='radio' id='$radioid' name='freebie_stat[" . $skillname . "]' value='0' ";
+				$rowoutput .= "<input type='radio' id='$radioid' name='freebie_skill[" . $skillname . "]' value='0' ";
 				//$rowoutput .= checked($current, 0, false);
 				$rowoutput .= " /><label for='$radioid' title='Clear' class='cleardot'>&nbsp;</label>\n";
 				$rowoutput .= "</fieldset></td></tr>\n";
@@ -2433,27 +2476,48 @@ function vtm_get_current_skills($characterID, $output_type = OBJECT) {
 	$items = $wpdb->get_results($sql, $output_type);
 	
 	//echo "<p>SQL: $sql</p>";
-	print_r($items);
+	//print_r($items);
 	
 	return $items;
 }
 function vtm_get_freebies_spent($table, $postvariable, $characterID) {
+	global $wpdb;
 
-	switch ($table) {
-		case 'STAT':
-			$current = vtm_get_current_stats($characterID, OBJECT_K);
-			break;
-		default:
-			$current = array();
-	}
-	$freebiecosts = vtm_get_freebie_costs($table);
-	$bought = isset($_POST[$postvariable]) ? $_POST[$postvariable] : array();
-	
 	$spent = 0;
-	
-	foreach ($bought as $name => $level_to) {
-		$spent += isset($freebiecosts[$name][$current[$name]->level_from][$level_to]) ? $freebiecosts[$name][$current[$name]->level_from][$level_to] : 0;
-		//echo "<li>Running total is $spent. Bought $name to $level_to</li>";
+	$freebiecosts = vtm_get_freebie_costs($table);
+	if (isset($_POST[$postvariable])) {
+		switch ($table) {
+			case 'STAT':
+				$current = vtm_get_current_stats($characterID, OBJECT_K);
+				break;
+			case 'SKILL':
+				$current = vtm_get_current_skills($characterID, OBJECT_K);
+				//print_r($current);
+				//echo "<br /><br />";
+				//print_r($freebiecosts);
+				break;
+			default:
+				$current = array();
+		}
+		$bought = $_POST[$postvariable];
+		foreach ($bought as $name => $level_to) {
+			if (!isset($current[$name])) {
+				$actualname = preg_replace("/_\d+$/", "", $name);
+				//echo "$name becomes $actualname, <br />";
+				if (isset($current[$actualname]->multiple) && $current[$actualname]->multiple == 'Y') {
+					//echo "$name - from: {$current[$actualname]->level_from}, to: {$level_to}, cost: {$freebiecosts[$actualname][$current[$actualname]->level_from][$level_to]}<br />";
+					$spent += isset($freebiecosts[$actualname][$current[$actualname]->level_from][$level_to]) ? $freebiecosts[$actualname][$current[$actualname]->level_from][$level_to] : 0;
+				}
+			} else {
+				$spent += isset($freebiecosts[$name][$current[$name]->level_from][$level_to]) ? $freebiecosts[$name][$current[$name]->level_from][$level_to] : 0;
+			}
+			//echo "<li>Running total is $spent. Bought $name to $level_to</li>";
+		}
+	} else {
+		$sql = "SELECT SUM(AMOUNT) FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
+				WHERE CHARACTER_ID = %s AND ITEMTABLE = %s";
+		$sql = $wpdb->prepare($sql, $characterID, $table);
+		$spent = $wpdb->get_var($sql);
 	}
 
 	return $spent;
@@ -2463,23 +2527,23 @@ function vtm_get_pending_freebies($table, $postvariable, $characterID) {
 	global $wpdb;
 
 	$pending = array();
-	$sql = "SELECT items.NAME as name, freebie.LEVEL_TO as value
+	if (isset($_POST[$postvariable])) {
+		$pending = $_POST[$postvariable];
+	} 
+	else {
+		$sql = "SELECT freebie.ITEMNAME as name, freebie.LEVEL_TO as value
 			FROM
-				" . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND freebie,
-				" . VTM_TABLE_PREFIX . "$table items
+				" . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND freebie
 			WHERE
 				freebie.CHARACTER_ID = %s
-				AND freebie.ITEMTABLE = '$table'
-				AND freebie.ITEMTABLE_ID = items.ID";
-	$sql = $wpdb->prepare($sql, $characterID);
-	//echo "SQL: $sql</p>";
-	$keys = $wpdb->get_col($sql);
-	if (count($keys) > 0) {
-		$vals = $wpdb->get_col($sql,1);
-		$pending = array_combine($keys, $vals);
-	} 
-	elseif (isset($_POST[$postvariable])) {
-		$pending = $_POST[$postvariable];
+				AND freebie.ITEMTABLE = '$table'";
+		$sql = $wpdb->prepare($sql, $characterID);
+		//echo "SQL: $sql</p>";
+		$keys = $wpdb->get_col($sql);
+		if (count($keys) > 0) {
+			$vals = $wpdb->get_col($sql,1);
+			$pending = array_combine($keys, $vals);
+		} 
 	}
 
 	return $pending;
