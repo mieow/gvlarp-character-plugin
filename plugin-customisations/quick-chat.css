@@ -1,0 +1,59 @@
+
+div.quick-chat-users-container div.quick-chat-admin, 
+div.quick-chat-users-container div.quick-chat-admin a, 
+div.quick-chat-admin div.quick-chat-history-alias, 
+div.quick-chat-admin div.quick-chat-history-alias a {
+    color: #FF0000;
+    display: inline;
+}
+
+div.quick-chat-history-timestring {
+    float: left;
+	color: #666666;
+}
+div.quick-chat-history-alias {
+	float: left;
+}
+
+div.quick-chat-users-container {
+	background-color: #111111;
+	border: 1px solid #444444;
+}
+div.quick-chat-history-header {
+	font-size:0.8em;
+}
+
+div.quick-chat-history-message-alias-container {
+    display: block;
+	border: 1px solid #222;
+	padding: 2px;
+}
+div.quick-chat-history-header img.avatar {
+	float:right;
+}
+div.quick-chat-container-private {
+	background-color: #111111;
+	border-color: #444444;
+	
+}
+div.quick-chat-admin div.quick-chat-history-alias a {
+	color: #FF0000;
+}
+div.quick-chat-loggedin div.quick-chat-history-alias a {
+	color: #BB0506;
+}
+div.quick-chat-guest div.quick-chat-history-alias a {
+	color: #888888;
+}
+div.quick-chat-users-container {
+	font-size: 0.8em;
+}
+div.quick-chat-users-container div.quick-chat-admin a {
+	color: #FF0000;
+}
+div.quick-chat-users-container div.quick-chat-loggedin a {
+	color: #BB0506;
+}
+div.quick-chat-users-container div.quick-chat-guest a  {
+	color: #888888;
+}
