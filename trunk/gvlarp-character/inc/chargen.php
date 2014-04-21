@@ -56,7 +56,7 @@ function vtm_get_chargen_content() {
 		$step = vtm_get_step($characterID);
 	}
 	
-	$output .= "<form id='chargen_form' method='post'>";
+	$output .= "<form id='chargen_form' method='post'>($characterID)";
 	
 	//$output .= "<p>Last at step $laststep</p>";
 	print_r($_POST);
@@ -528,17 +528,15 @@ function vtm_render_chargen_freebies($step, $characterID, $templateID) {
 						'stat'       => "Attributes and Stats",
 						'skill'      => "Abilities",
 						'disc'       => "Disciplines",
-						'combo'      => "Combo Disciplines",
-						'path'       => "Paths",
-						'ritual'     => "Rituals",
 						'background' => "Backgrounds",
 						'merit'      => "Merits and Flaws"
+						'path'       => "Paths",
 					);
-	$sectionorder   = array('stat', 'skill', 'background', 'disc', 'combo', 'merit', 'path', 'ritual');
+	$sectionorder   = array('stat', 'skill', 'background', 'disc', 'path', 'merit');
 	
 	$pendingSpends = array();
-	$sectioncontent['stat']   = vtm_render_freebie_stats($characterID, $pendingSpends, $points);
-	$sectioncontent['skill']  = vtm_render_freebie_skills($characterID, $pendingSpends, $points);
+	$sectioncontent['stat']  = vtm_render_freebie_stats($characterID, $pendingSpends, $points);
+	$sectioncontent['skill'] = vtm_render_freebie_skills($characterID, $pendingSpends, $points);
 	$sectioncontent['disc']  = vtm_render_freebie_disciplines($characterID, $pendingSpends, $points);
 	
 	/* DISPLAY TABLES 
@@ -642,8 +640,8 @@ function vtm_render_chargen_disciplines($step, $characterID, $templateID) {
 	$output = "";
 	$settings    = vtm_get_chargen_settings($templateID);
 	$disciplines = vtm_get_chargen_disciplines($characterID);
-	//print_r($disciplines);
-	
+	$pending     = vtm_get_pending_freebies('DISCIPLINE', 'freebie_discipline', $characterID);  // name => value
+		
 	$output .= "<h3>Step $step: Disciplines</h3>";
 	$output .= "<p>You have {$settings['disciplines-points']} dots to spend on your Disciplines</p>";
 	
@@ -672,7 +670,10 @@ function vtm_render_chargen_disciplines($step, $characterID, $templateID) {
 		$output .= "<tr><td class=\"gvcol_key\">" . $discipline->NAME . "</td>";
 		$output .= "<td>";
 		
-		$output .= vtm_render_dot_select("discipline_value", $discipline->ID, isset($mydisc[$discipline->ID]) ? $mydisc[$discipline->ID] : -1, 0);
+		$output .= vtm_render_dot_select("discipline_value", 
+						$discipline->ID, 
+						isset($mydisc[$discipline->ID]) ? $mydisc[$discipline->ID] : -1,
+						0, 5, isset($pending[$discipline->NAME]) ? $pending[$discipline->NAME] : 0);
 		$output .= "</td><td>";
 		$output .= stripslashes($discipline->DESCRIPTION);
 		$output .= "</td></tr>\n";
@@ -1053,6 +1054,7 @@ function vtm_validate_chargen($laststep, $templateID, $characterID) {
 			
 			$spent += vtm_get_freebies_spent('STAT', 'freebie_stat', $characterID);
 			$spent += vtm_get_freebies_spent('SKILL', 'freebie_skill', $characterID);
+			$spent += vtm_get_freebies_spent('DISCIPLINE', 'freebie_discipline', $characterID);
 			
 			if ($spent == 0) {
 				$errormessages .= "<li>WARNING: You have not spent any dots</li>";
@@ -1193,6 +1195,11 @@ function vtm_save_freebies($characterID, $templateID) {
 	$current['SKILL']      = vtm_get_current_skills($characterID, OBJECT_K);
 	$items['SKILL']        = vtm_get_chargen_abilities($characterID, 1, OBJECT_K);
 
+	$new['DISCIPLINE']          = isset($_POST['freebie_discipline']) ? $_POST['freebie_discipline'] : array();
+	$freebiecosts['DISCIPLINE'] = vtm_get_freebie_costs('DISCIPLINE', $characterID);
+	$current['DISCIPLINE']      = vtm_get_current_disciplines($characterID, OBJECT_K);
+	$items['DISCIPLINE']        = vtm_get_chargen_disciplines($characterID, OBJECT_K);
+	
 	foreach ($new as $type => $row) {
 		foreach ($row as $name => $value) {
 			if ($value > 0) {
@@ -1340,25 +1347,27 @@ function vtm_save_disciplines($characterID) {
 	//print_r($current);
 
 	foreach ($new as $id => $value) {
-		$data = array(
-			'CHARACTER_ID'  => $characterID,
-			'DISCIPLINE_ID' => $id,
-			'LEVEL'         => $value
-		);
-		if (isset($current[$id])) {
-			// update
-			$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE",
-				$data,
-				array (
-					'ID' => $current[$id]
-				)
+		if ($value > 0) {
+			$data = array(
+				'CHARACTER_ID'  => $characterID,
+				'DISCIPLINE_ID' => $id,
+				'LEVEL'         => $value
 			);
-		} else {
-			// insert
-			$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE",
-						$data,
-						array ('%d', '%d', '%d')
-					);
+			if (isset($current[$id])) {
+				// update
+				$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE",
+					$data,
+					array (
+						'ID' => $current[$id]
+					)
+				);
+			} else {
+				// insert
+				$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE",
+							$data,
+							array ('%d', '%d', '%d')
+						);
+			}
 		}
 	}
 		
@@ -1984,11 +1993,11 @@ function vtm_get_chargen_virtues($characterID = 0) {
 	return $results;
 
 }
-function vtm_get_chargen_disciplines($characterID = 0) {
+function vtm_get_chargen_disciplines($characterID = 0, $output_type = OBJECT) {
 	global $wpdb;
 	
 	
-	$sql = "SELECT disc.ID, disc.NAME, disc.DESCRIPTION, 
+	$sql = "SELECT disc.NAME, disc.ID, disc.DESCRIPTION, 
 				IF(ISNULL(clandisc.DISCIPLINE_ID),'Non-Clan Discipline','Clan Discipline') as GROUPING
 			FROM " . VTM_TABLE_PREFIX . "DISCIPLINE disc
 				LEFT JOIN (
@@ -2010,7 +2019,7 @@ function vtm_get_chargen_disciplines($characterID = 0) {
 			ORDER BY GROUPING, NAME";
 	$sql = $wpdb->prepare($sql, $characterID);
 	//echo "<p>SQL: $sql</p>";
-	$results = $wpdb->get_results($sql);
+	$results = $wpdb->get_results($sql, $output_type);
 	
 	
 	return $results;
@@ -2385,7 +2394,7 @@ function vtm_render_freebie_disciplines($characterID, $pendingSpends, $points) {
 
 	// COSTS OF STATS - if entry doesn't exist then you can't buy it
 	//	$cost['<statname>'] = array( '<from>' => array( '<to>' => <cost>))
-	$freebiecosts = vtm_get_freebie_costs('DISCIPLINE');
+	$freebiecosts = vtm_get_freebie_costs('DISCIPLINE', $characterID);
 
 	// display stats to buy
 	//	hover over radiobutton to show the cost
@@ -2394,7 +2403,7 @@ function vtm_render_freebie_disciplines($characterID, $pendingSpends, $points) {
 	// Current spent
 	$currentpending = vtm_get_pending_freebies('DISCIPLINE', 'freebie_discipline', $characterID);
 	
-	//print_r($items);
+	//print_r($currentpending);
 	
 	if (count($items) > 0) {
 		$id = 0;
@@ -2406,7 +2415,7 @@ function vtm_render_freebie_disciplines($characterID, $pendingSpends, $points) {
 			$tmp_max2display = $max2display;
 			$colspan = 2 + $tmp_max2display;
 			
-			$skillname = ($item->multiple == 'Y') ? $item->name . "_" . $j : $item->name;
+			$levelfrom = isset($item->level_from) ? $item->level_from : 0;
 		
 			// start column / new column
 			if (isset($item->grp)) {
@@ -2436,25 +2445,25 @@ function vtm_render_freebie_disciplines($characterID, $pendingSpends, $points) {
 			$rowoutput .= "<tr><th class='gvthleft'><span>" . stripslashes($item->name) . "</span></th><td>\n";
 			$rowoutput .= "<fieldset class='dotselect'>";
 			for ($i=$tmp_max2display;$i>=1;$i--) {
-				$radioid = "dot_{$item->name}_{$j}_{$item->itemid}_{$i}";
+				$radioid = "dot_{$item->name}_{$item->itemid}_{$i}";
 				$current = isset($currentpending[$item->name]) ? $currentpending[$item->name] : 0;
 				
-				if ($item->level_from >= $i)
+				if ($levelfrom >= $i)
 					$rowoutput .= "<img src='$fulldoturl' alt='*' id='$radioid' />";
-				elseif (isset($freebiecosts[$item->name][$item->level_from][$i])) {
-					$cost = $freebiecosts[$item->name][$item->level_from][$i];
-					$rowoutput .= "<input type='radio' id='$radioid' name='freebie_skill[" . $item->name . "]' value='$i' ";
+				elseif (isset($freebiecosts[$item->name][$levelfrom][$i])) {
+					$cost = $freebiecosts[$item->name][$levelfrom][$i];
+					$rowoutput .= "<input type='radio' id='$radioid' name='freebie_discipline[" . $item->name . "]' value='$i' ";
 					$rowoutput .= checked($current, $i, false);
 					$rowoutput .= " /><label for='$radioid' title='Level $i ($cost freebies)'";
 					$rowoutput .= ">&nbsp;</label>\n";
 				}
 				else {
 					$rowoutput .= "<img src='$emptydoturl' alt='X' id='$radioid' />";
-					//$rowoutput .= "itemname: {$item->name}, name: $item->name, levelfrom: {$item->level_from} i: $i";
+					$rowoutput .= "itemname: {$item->name}, name: $item->name, levelfrom: {$item->level_from} i: $i";
 				}
 			}
 			$radioid = "dot_{$item->name}_{$item->itemid}_clear";
-			$rowoutput .= "<input type='radio' id='$radioid' name='freebie_skill[" . $item->name . "]' value='0' ";
+			$rowoutput .= "<input type='radio' id='$radioid' name='freebie_discipline[" . $item->name . "]' value='0' ";
 			//$rowoutput .= checked($current, 0, false);
 			$rowoutput .= " /><label for='$radioid' title='Clear' class='cleardot'>&nbsp;</label>\n";
 			$rowoutput .= "</fieldset></td></tr>\n";
@@ -2469,33 +2478,57 @@ function vtm_render_freebie_disciplines($characterID, $pendingSpends, $points) {
 
 }
 
-function vtm_get_freebie_costs($type) {
+function vtm_get_freebie_costs($type, $characterID = 0) {
 	global $wpdb;
 
 	$outdata = array();
 	//	$cost['<statname>'] = array( '<from>' => array( '<to>' => <cost>))
 	
-	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . $type . " ORDER BY ID";
-	$items = $wpdb->get_results($sql, OBJECT_K);
+	if ($type == 'DISCIPLINE') {
 	
-	foreach ($items as $item) {
-	
+		// Get list of disciplines
+		$sql = "SELECT ID, NAME, NOT(ISNULL(clandisc.DISCIPLINE_ID)) as ISCLAN					
+				FROM 
+					" . VTM_TABLE_PREFIX . "DISCIPLINE disc
+					LEFT JOIN
+						(SELECT DISCIPLINE_ID, CLAN_ID
+						FROM
+							" . VTM_TABLE_PREFIX . "CLAN clans,
+							" . VTM_TABLE_PREFIX . "CLAN_DISCIPLINE cd,
+							" . VTM_TABLE_PREFIX . "CHARACTER chars
+						WHERE
+							chars.ID = %s
+							AND chars.PRIVATE_CLAN_ID = clans.ID
+							AND cd.CLAN_ID = clans.ID
+						) as clandisc
+					ON
+						clandisc.DISCIPLINE_ID = disc.id";
+		$sql = $wpdb->prepare($sql, $characterID);
+		$items = $wpdb->get_results($sql, OBJECT_K);
+		
+		// Get clan and non-clan cost model IDs
+		$sql = "SELECT CLAN_COST_MODEL_ID, NONCLAN_COST_MODEL_ID
+				FROM
+					" . VTM_TABLE_PREFIX . "CLAN clans,
+					" . VTM_TABLE_PREFIX . "CHARACTER cha
+				WHERE
+					cha.PRIVATE_CLAN_ID = clans.ID
+					AND cha.ID = %s";
+		$costmodels = $wpdb->get_row($wpdb->prepare($sql, $characterID));
+
+		// Get clan and non-clan costs
 		$sql = "SELECT 
 					steps.CURRENT_VALUE, steps.NEXT_VALUE, steps.FREEBIE_COST
 				FROM
-					" . VTM_TABLE_PREFIX . $type . " itemtable,
 					" . VTM_TABLE_PREFIX . "COST_MODEL_STEP steps,
 					" . VTM_TABLE_PREFIX . "COST_MODEL models
 				WHERE
-					itemtable.COST_MODEL_ID = models.ID
-					AND steps.COST_MODEL_ID = models.ID
-					AND itemtable.ID = %s
+					steps.COST_MODEL_ID = models.ID
+					AND models.ID = %s
 				ORDER BY
-					itemtable.ID, steps.CURRENT_VALUE";
-		$sql = $wpdb->prepare($sql, $item->ID);
-		$data    = $wpdb->get_results($sql, ARRAY_A);
-		
-		
+					steps.CURRENT_VALUE";
+		$data    = $wpdb->get_results($wpdb->prepare($sql, $costmodels->CLAN_COST_MODEL_ID), ARRAY_A);
+		$clancost = array();
 		for ($i = 0 ; $i < 10 ; $i++) {
 			$from = $data[$i]['CURRENT_VALUE'];
 			$to   = $data[$i]['NEXT_VALUE'];
@@ -2504,25 +2537,94 @@ function vtm_get_freebie_costs($type) {
 			while ($from != $to && $to <= 10) {
 				if ($data[$from]['FREEBIE_COST'] != 0) {
 					$cost += $data[$from]['FREEBIE_COST'];
-					$outdata[$item->NAME][$i][$to] = $cost;
+					$clancost[$i][$to] = $cost;
 				}
 				$from = $to;
 				$to   = $data[$from]['NEXT_VALUE'];
 				
-				//echo "<li>name:{$item->NAME}, i: $i, from: $from, to: $to</li>";
+			}
+		
+		}
+		$data = $wpdb->get_results($wpdb->prepare($sql, $costmodels->NONCLAN_COST_MODEL_ID), ARRAY_A);
+		$nonclancost = array();
+		for ($i = 0 ; $i < 10 ; $i++) {
+			$from = $data[$i]['CURRENT_VALUE'];
+			$to   = $data[$i]['NEXT_VALUE'];
+			$cost = 0;
+			
+			while ($from != $to && $to <= 10) {
+				if ($data[$from]['FREEBIE_COST'] != 0) {
+					$cost += $data[$from]['FREEBIE_COST'];
+					$nonclancost[$i][$to] = $cost;
+				}
+				$from = $to;
+				$to   = $data[$from]['NEXT_VALUE'];
+				
+			}
+		}
+		//echo "<pre>";
+		//print_r($nonclancost);
+		//echo "</pre>";
+		
+		foreach ($items as $item) {
+			if ($item->ISCLAN) {
+				$outdata[$item->NAME] = $clancost;
+			} else {
+				$outdata[$item->NAME] = $nonclancost;
+			}
+		}
+	} else {
+	
+		$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . $type . " ORDER BY ID";
+		$items = $wpdb->get_results($sql, OBJECT_K);
+		
+		foreach ($items as $item) {
+		
+			$sql = "SELECT 
+						steps.CURRENT_VALUE, steps.NEXT_VALUE, steps.FREEBIE_COST
+					FROM
+						" . VTM_TABLE_PREFIX . $type . " itemtable,
+						" . VTM_TABLE_PREFIX . "COST_MODEL_STEP steps,
+						" . VTM_TABLE_PREFIX . "COST_MODEL models
+					WHERE
+						itemtable.COST_MODEL_ID = models.ID
+						AND steps.COST_MODEL_ID = models.ID
+						AND itemtable.ID = %s
+					ORDER BY
+						itemtable.ID, steps.CURRENT_VALUE";
+			$sql = $wpdb->prepare($sql, $item->ID);
+			$data    = $wpdb->get_results($sql, ARRAY_A);
+			
+			
+			for ($i = 0 ; $i < 10 ; $i++) {
+				$from = $data[$i]['CURRENT_VALUE'];
+				$to   = $data[$i]['NEXT_VALUE'];
+				$cost = 0;
+				
+				while ($from != $to && $to <= 10) {
+					if ($data[$from]['FREEBIE_COST'] != 0) {
+						$cost += $data[$from]['FREEBIE_COST'];
+						$outdata[$item->NAME][$i][$to] = $cost;
+					}
+					$from = $to;
+					$to   = $data[$from]['NEXT_VALUE'];
+					
+					//echo "<li>name:{$item->NAME}, i: $i, from: $from, to: $to</li>";
+				}
+			
 			}
 		
 		}
 	
 	}
 	
-	if ($type == "DISCIPLINE") {
-		print_r($data);
-		echo "<p>SQL: $sql</p>";
-		echo "<pre>";
-		print_r($outdata);
-		echo "</pre>";
-	}
+	// if ($type == "DISCIPLINE") {
+		// //print_r($data);
+		// //echo "<p>SQL: $sql</p>";
+		// echo "<pre>";
+		// print_r($outdata);
+		// echo "</pre>";
+	// }
 
 	return $outdata;
 }
@@ -2622,8 +2724,8 @@ function vtm_get_current_disciplines($characterID, $output_type = OBJECT) {
 	$sql   = $wpdb->prepare($sql, $characterID, $characterID);
 	$items = $wpdb->get_results($sql, $output_type);
 	
-	echo "<p>SQL: $sql</p>";
-	print_r($items);
+	//echo "<p>SQL: $sql</p>";
+	//print_r($items);
 	
 	return $items;
 }
@@ -2631,7 +2733,7 @@ function vtm_get_freebies_spent($table, $postvariable, $characterID) {
 	global $wpdb;
 
 	$spent = 0;
-	$freebiecosts = vtm_get_freebie_costs($table);
+	$freebiecosts = vtm_get_freebie_costs($table, $characterID);
 	if (isset($_POST[$postvariable])) {
 		switch ($table) {
 			case 'STAT':
@@ -2639,15 +2741,17 @@ function vtm_get_freebies_spent($table, $postvariable, $characterID) {
 				break;
 			case 'SKILL':
 				$current = vtm_get_current_skills($characterID, OBJECT_K);
-				//print_r($current);
-				//echo "<br /><br />";
-				//print_r($freebiecosts);
+				break;
+			case 'DISCIPLINE':
+				$current = vtm_get_current_disciplines($characterID, OBJECT_K);
 				break;
 			default:
 				$current = array();
 		}
 		$bought = $_POST[$postvariable];
 		foreach ($bought as $name => $level_to) {
+			$levelfrom = isset($current[$name]->level_from) ? $current[$name]->level_from : 0;
+		
 			if (!isset($current[$name])) {
 				$actualname = preg_replace("/_\d+$/", "", $name);
 				//echo "$name becomes $actualname, <br />";
@@ -2656,13 +2760,14 @@ function vtm_get_freebies_spent($table, $postvariable, $characterID) {
 					$spent += isset($freebiecosts[$actualname][$current[$actualname]->level_from][$level_to]) ? $freebiecosts[$actualname][$current[$actualname]->level_from][$level_to] : 0;
 				}
 			} else {
-				$spent += isset($freebiecosts[$name][$current[$name]->level_from][$level_to]) ? $freebiecosts[$name][$current[$name]->level_from][$level_to] : 0;
+				$spent += isset($freebiecosts[$name][$levelfrom][$level_to]) ? $freebiecosts[$name][$levelfrom][$level_to] : 0;
 			}
 			//echo "<li>Running total is $spent. Bought $name to $level_to</li>";
 		}
 	} else {
 		$sql = "SELECT SUM(AMOUNT) FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
 				WHERE CHARACTER_ID = %s AND ITEMTABLE = %s";
+		$sql = $wpdb->prepare($sql, $characterID, $table);
 		$sql = $wpdb->prepare($sql, $characterID, $table);
 		$spent = $wpdb->get_var($sql);
 	}
