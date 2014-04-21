@@ -513,6 +513,7 @@ function vtm_render_chargen_freebies($step, $characterID, $templateID) {
 	$spent += vtm_get_freebies_spent('STAT', 'freebie_stat', $characterID);
 	$spent += vtm_get_freebies_spent('SKILL', 'freebie_skill', $characterID);
 	$spent += vtm_get_freebies_spent('DISCIPLINE', 'freebie_discipline', $characterID);
+	$spent += vtm_get_freebies_spent('BACKGROUND', 'freebie_background', $characterID);
 	$remaining = $points - $spent;
 	
 	$output .= "<h3>Step $step: Freebie Points</h3>";
@@ -529,7 +530,7 @@ function vtm_render_chargen_freebies($step, $characterID, $templateID) {
 						'skill'      => "Abilities",
 						'disc'       => "Disciplines",
 						'background' => "Backgrounds",
-						'merit'      => "Merits and Flaws"
+						'merit'      => "Merits and Flaws",
 						'path'       => "Paths",
 					);
 	$sectionorder   = array('stat', 'skill', 'background', 'disc', 'path', 'merit');
@@ -538,6 +539,7 @@ function vtm_render_chargen_freebies($step, $characterID, $templateID) {
 	$sectioncontent['stat']  = vtm_render_freebie_stats($characterID, $pendingSpends, $points);
 	$sectioncontent['skill'] = vtm_render_freebie_skills($characterID, $pendingSpends, $points);
 	$sectioncontent['disc']  = vtm_render_freebie_disciplines($characterID, $pendingSpends, $points);
+	$sectioncontent['background'] = vtm_render_freebie_backgrounds($characterID, $pendingSpends, $points);
 	
 	/* DISPLAY TABLES 
 	-------------------------------*/
@@ -551,7 +553,7 @@ function vtm_render_chargen_freebies($step, $characterID, $templateID) {
 	
 	foreach ($sectionorder as $section) {
 	
-		if (isset($sectioncontent[$section])) {
+		if (isset($sectioncontent[$section]) && $sectioncontent[$section] != "" ) {
 			$output .= "<h4 class='gvfb_head' id='gvid_fb_$section'>" . $sectiontitle[$section] . "</h4>\n";
 			$output .= "$outputJump\n";
 			$output .= $sectioncontent[$section];
@@ -688,6 +690,7 @@ function vtm_render_chargen_backgrounds($step, $characterID, $templateID) {
 	$output = "";
 	$settings    = vtm_get_chargen_settings($templateID);
 	$backgrounds = vtm_get_chargen_backgrounds($characterID);
+	$pending     = vtm_get_pending_freebies('BACKGROUND', 'freebie_background', $characterID);  // name => value
 	
 	$output .= "<h3>Step $step: Backgrounds</h3>";
 	$output .= "<p>You have {$settings['backgrounds-points']} dots to spend on your Backgrounds</p>";
@@ -711,7 +714,10 @@ function vtm_render_chargen_backgrounds($step, $characterID, $templateID) {
 		$output .= "<tr><td class=\"gvcol_key\">" . $background->NAME . "</td>";
 		$output .= "<td>";
 		
-		$output .= vtm_render_dot_select("background_value", $background->ID, isset($mybg[$background->ID]) ? $mybg[$background->ID] : -1, 0);
+		$output .= vtm_render_dot_select("background_value", 
+						$background->ID, 
+						isset($mybg[$background->ID]) ? $mybg[$background->ID] : -1,
+						0, 5, isset($pending[$background->NAME]) ? $pending[$background->NAME] : 0);
 		$output .= "</td><td>";
 		$output .= stripslashes($background->DESCRIPTION);
 		$output .= "</td></tr>\n";
@@ -1055,6 +1061,7 @@ function vtm_validate_chargen($laststep, $templateID, $characterID) {
 			$spent += vtm_get_freebies_spent('STAT', 'freebie_stat', $characterID);
 			$spent += vtm_get_freebies_spent('SKILL', 'freebie_skill', $characterID);
 			$spent += vtm_get_freebies_spent('DISCIPLINE', 'freebie_discipline', $characterID);
+			$spent += vtm_get_freebies_spent('BACKGROUND', 'freebie_background', $characterID);
 			
 			if ($spent == 0) {
 				$errormessages .= "<li>WARNING: You have not spent any dots</li>";
@@ -1084,7 +1091,6 @@ function vtm_validate_chargen($laststep, $templateID, $characterID) {
 }
 
 function vtm_save_progress($laststep, $characterID, $templateID) {
-	
 	
 	switch ($laststep) {
 		case 1:
@@ -1199,6 +1205,11 @@ function vtm_save_freebies($characterID, $templateID) {
 	$freebiecosts['DISCIPLINE'] = vtm_get_freebie_costs('DISCIPLINE', $characterID);
 	$current['DISCIPLINE']      = vtm_get_current_disciplines($characterID, OBJECT_K);
 	$items['DISCIPLINE']        = vtm_get_chargen_disciplines($characterID, OBJECT_K);
+
+	$new['BACKGROUND']          = isset($_POST['freebie_background']) ? $_POST['freebie_background'] : array();
+	$freebiecosts['BACKGROUND'] = vtm_get_freebie_costs('BACKGROUND', $characterID);
+	$current['BACKGROUND']      = vtm_get_current_backgrounds($characterID, OBJECT_K);
+	$items['BACKGROUND']        = vtm_get_chargen_backgrounds($characterID, OBJECT_K);
 	
 	foreach ($new as $type => $row) {
 		foreach ($row as $name => $value) {
@@ -1409,27 +1420,29 @@ function vtm_save_backgrounds($characterID) {
 	//print_r($current);
 
 	foreach ($new as $id => $value) {
-		$data = array(
-			'CHARACTER_ID' => $characterID,
-			'BACKGROUND_ID'      => $id,
-			'LEVEL'        => $value
-		);
-		if (isset($current[$id])) {
-			//echo "<li>Updated $id at $value</li>";
-			// update
-			$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND",
-				$data,
-				array (
-					'ID' => $current[$id]
-				)
+		if ($value > 0) {
+			$data = array(
+				'CHARACTER_ID' => $characterID,
+				'BACKGROUND_ID'      => $id,
+				'LEVEL'        => $value
 			);
-		} else {
-			//echo "<li>Added $id at $value</li>";
-			// insert
-			$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND",
-						$data,
-						array ('%d', '%d', '%d')
-					);
+			if (isset($current[$id])) {
+				//echo "<li>Updated $id at $value</li>";
+				// update
+				$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND",
+					$data,
+					array (
+						'ID' => $current[$id]
+					)
+				);
+			} else {
+				//echo "<li>Added $id at $value</li>";
+				// insert
+				$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND",
+							$data,
+							array ('%d', '%d', '%d')
+						);
+			}
 		}
 	}
 		
@@ -2025,18 +2038,18 @@ function vtm_get_chargen_disciplines($characterID = 0, $output_type = OBJECT) {
 	return $results;
 
 }
-function vtm_get_chargen_backgrounds($characterID = 0) {
+function vtm_get_chargen_backgrounds($characterID = 0, $output_type = OBJECT) {
 	global $wpdb;
 	
 	
-	$sql = "SELECT bg.ID, bg.NAME, bg.DESCRIPTION
+	$sql = "SELECT bg.NAME, bg.ID, bg.DESCRIPTION
 			FROM " . VTM_TABLE_PREFIX . "BACKGROUND bg
 			WHERE
 				bg.VISIBLE = 'Y'
 			ORDER BY NAME";
 	//$sql = $wpdb->prepare($sql, $characterID);
 	//echo "<p>SQL: $sql</p>";
-	$results = $wpdb->get_results($sql);
+	$results = $wpdb->get_results($sql, $output_type);
 	
 	
 	return $results;
@@ -2459,7 +2472,7 @@ function vtm_render_freebie_disciplines($characterID, $pendingSpends, $points) {
 				}
 				else {
 					$rowoutput .= "<img src='$emptydoturl' alt='X' id='$radioid' />";
-					$rowoutput .= "itemname: {$item->name}, name: $item->name, levelfrom: {$item->level_from} i: $i";
+					//$rowoutput .= "itemname: {$item->name}, name: $item->name, levelfrom: {$item->level_from} i: $i";
 				}
 			}
 			$radioid = "dot_{$item->name}_{$item->itemid}_clear";
@@ -2477,7 +2490,103 @@ function vtm_render_freebie_disciplines($characterID, $pendingSpends, $points) {
 	return $output;
 
 }
+function vtm_render_freebie_backgrounds($characterID, $pendingSpends, $points) {
+	global $wpdb;
+	
+	$output      = "";
+	$rowoutput   = "";
+	$max2display = 5;
+	$columns     = 3;
+	$fulldoturl  = plugins_url( 'gvlarp-character/images/cg_freedot.jpg' );
+	$emptydoturl = plugins_url( 'gvlarp-character/images/cg_emptydot.jpg' );
+	$dotstobuy   = 0;
 
+	// COSTS OF STATS - if entry doesn't exist then you can't buy it
+	//	$cost['<statname>'] = array( '<from>' => array( '<to>' => <cost>))
+	$freebiecosts = vtm_get_freebie_costs('BACKGROUND', $characterID);
+
+	// display stats to buy
+	//	hover over radiobutton to show the cost
+	$items = vtm_get_current_backgrounds($characterID);
+	
+	// Current spent
+	$currentpending = vtm_get_pending_freebies('BACKGROUND', 'freebie_background', $characterID);
+	
+	//print_r($currentpending);
+	
+	if (count($items) > 0) {
+		$id = 0;
+		$grp = "";
+		$grpcount = 0;
+		$col = 0;
+		foreach ($items as $item) {
+					
+			$tmp_max2display = $max2display;
+			$colspan = 2 + $tmp_max2display;
+			
+			$levelfrom = isset($item->level_from) ? $item->level_from : 0;
+		
+			// start column / new column
+			if (isset($item->grp)) {
+				if ($grp != $item->grp) {
+					$grpcount++;
+					if (empty($grp)) {
+						$rowoutput .= "<tr><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
+						$col++;
+					} 
+					elseif ($col == $columns) {
+						$rowoutput .= "</table>\n</td></tr>\n<tr><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
+						$col = 1;
+					}
+					else {
+						$rowoutput .= "</table>\n</td><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
+						$col++;
+					}
+					$grp = $item->grp;
+				}
+			}
+
+			// Hidden fields
+			$rowoutput .= "<tr style='display:none'><td colspan=$colspan>\n";
+			$rowoutput .= "</td></tr>\n";
+			
+			//dots row
+			$rowoutput .= "<tr><th class='gvthleft'><span>" . stripslashes($item->name) . "</span></th><td>\n";
+			$rowoutput .= "<fieldset class='dotselect'>";
+			for ($i=$tmp_max2display;$i>=1;$i--) {
+				$radioid = "dot_{$item->name}_{$item->itemid}_{$i}";
+				$current = isset($currentpending[$item->name]) ? $currentpending[$item->name] : 0;
+				
+				if ($levelfrom >= $i)
+					$rowoutput .= "<img src='$fulldoturl' alt='*' id='$radioid' />";
+				elseif (isset($freebiecosts[$item->name][$levelfrom][$i])) {
+					$cost = $freebiecosts[$item->name][$levelfrom][$i];
+					$rowoutput .= "<input type='radio' id='$radioid' name='freebie_background[" . $item->name . "]' value='$i' ";
+					$rowoutput .= checked($current, $i, false);
+					$rowoutput .= " /><label for='$radioid' title='Level $i ($cost freebies)'";
+					$rowoutput .= ">&nbsp;</label>\n";
+					$dotstobuy++;
+				}
+				else {
+					$rowoutput .= "<img src='$emptydoturl' alt='X' id='$radioid' />";
+					$rowoutput .= "itemname: {$item->name}, name: $item->name, levelfrom: {$item->level_from} i: $i";
+				}
+			}
+			$radioid = "dot_{$item->name}_{$item->itemid}_clear";
+			$rowoutput .= "<input type='radio' id='$radioid' name='freebie_background[" . $item->name . "]' value='0' ";
+			//$rowoutput .= checked($current, 0, false);
+			$rowoutput .= " /><label for='$radioid' title='Clear' class='cleardot'>&nbsp;</label>\n";
+			$rowoutput .= "</fieldset></td></tr>\n";
+		}
+	
+	}
+	
+	if ($rowoutput != "" & $dotstobuy > 0)
+		$output .= "<table>$rowoutput</table></td></tr></table>\n";
+
+	return $output;
+
+}
 function vtm_get_freebie_costs($type, $characterID = 0) {
 	global $wpdb;
 
@@ -2595,32 +2704,34 @@ function vtm_get_freebie_costs($type, $characterID = 0) {
 			$sql = $wpdb->prepare($sql, $item->ID);
 			$data    = $wpdb->get_results($sql, ARRAY_A);
 			
-			
-			for ($i = 0 ; $i < 10 ; $i++) {
-				$from = $data[$i]['CURRENT_VALUE'];
-				$to   = $data[$i]['NEXT_VALUE'];
-				$cost = 0;
-				
-				while ($from != $to && $to <= 10) {
-					if ($data[$from]['FREEBIE_COST'] != 0) {
-						$cost += $data[$from]['FREEBIE_COST'];
-						$outdata[$item->NAME][$i][$to] = $cost;
-					}
-					$from = $to;
-					$to   = $data[$from]['NEXT_VALUE'];
+			if (count($data) > 0) {
+				for ($i = 0 ; $i < 10 ; $i++) {
+					$from = $data[$i]['CURRENT_VALUE'];
+					$to   = $data[$i]['NEXT_VALUE'];
+					$cost = 0;
 					
-					//echo "<li>name:{$item->NAME}, i: $i, from: $from, to: $to</li>";
+					while ($from != $to && $to <= 10) {
+						if ($data[$from]['FREEBIE_COST'] != 0) {
+							$cost += $data[$from]['FREEBIE_COST'];
+							$outdata[$item->NAME][$i][$to] = $cost;
+						}
+						$from = $to;
+						$to   = $data[$from]['NEXT_VALUE'];
+						
+						//echo "<li>name:{$item->NAME}, i: $i, from: $from, to: $to</li>";
+					}
+				
 				}
-			
+			} else {
+				echo "<li>ERROR: Issue with cost model for {$item->NAME}. Please ask the admin to check and resave the cost model</li>";
 			}
-		
 		}
 	
 	}
 	
-	// if ($type == "DISCIPLINE") {
-		// //print_r($data);
-		// //echo "<p>SQL: $sql</p>";
+	// if ($type == "BACKGROUND") {
+		// print_r($data);
+		// echo "<p>($type / $characterID) SQL: $sql</p>";
 		// echo "<pre>";
 		// print_r($outdata);
 		// echo "</pre>";
@@ -2675,6 +2786,37 @@ function vtm_get_current_skills($characterID, $output_type = OBJECT) {
 			WHERE 
 				skill.VISIBLE = 'Y'
 		    ORDER BY ordering DESC, skill.name";
+	$sql   = $wpdb->prepare($sql, $characterID);
+	$items = $wpdb->get_results($sql, $output_type);
+	
+	//echo "<p>SQL: $sql</p>";
+	//print_r($items);
+	
+	return $items;
+}
+function vtm_get_current_backgrounds($characterID, $output_type = OBJECT) {
+	global $wpdb;
+
+	$sql = "SELECT 
+				item.name, 
+				IFNULL(cha_bg.LEVEL,0) 	as level_from,
+				IFNULL(cha_bg.ID,0) 	as chartableid, 
+				item.ID 				as itemid, 
+				item.GROUPING 			as grp
+			FROM 
+				" . VTM_TABLE_PREFIX . "BACKGROUND item
+				LEFT JOIN
+					(SELECT ID, BACKGROUND_ID, LEVEL
+					FROM
+						" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND cha_bg
+					WHERE
+						CHARACTER_ID = %s
+					) as cha_bg
+				ON
+					cha_bg.BACKGROUND_ID = item.ID
+			WHERE 
+				item.VISIBLE = 'Y'
+		    ORDER BY item.GROUPING, item.name";
 	$sql   = $wpdb->prepare($sql, $characterID);
 	$items = $wpdb->get_results($sql, $output_type);
 	
@@ -2745,6 +2887,9 @@ function vtm_get_freebies_spent($table, $postvariable, $characterID) {
 			case 'DISCIPLINE':
 				$current = vtm_get_current_disciplines($characterID, OBJECT_K);
 				break;
+			case 'BACKGROUND':
+				$current = vtm_get_current_backgrounds($characterID, OBJECT_K);
+				break;
 			default:
 				$current = array();
 		}
@@ -2767,7 +2912,6 @@ function vtm_get_freebies_spent($table, $postvariable, $characterID) {
 	} else {
 		$sql = "SELECT SUM(AMOUNT) FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
 				WHERE CHARACTER_ID = %s AND ITEMTABLE = %s";
-		$sql = $wpdb->prepare($sql, $characterID, $table);
 		$sql = $wpdb->prepare($sql, $characterID, $table);
 		$spent = $wpdb->get_var($sql);
 	}
