@@ -514,6 +514,7 @@ function vtm_render_chargen_freebies($step, $characterID, $templateID) {
 	$spent += vtm_get_freebies_spent('SKILL', 'freebie_skill', $characterID);
 	$spent += vtm_get_freebies_spent('DISCIPLINE', 'freebie_discipline', $characterID);
 	$spent += vtm_get_freebies_spent('BACKGROUND', 'freebie_background', $characterID);
+	$spent += vtm_get_freebies_spent('MERIT', 'freebie_merit', $characterID);
 	$remaining = $points - $spent;
 	
 	$output .= "<h3>Step $step: Freebie Points</h3>";
@@ -540,6 +541,7 @@ function vtm_render_chargen_freebies($step, $characterID, $templateID) {
 	$sectioncontent['skill'] = vtm_render_freebie_skills($characterID, $pendingSpends, $points);
 	$sectioncontent['disc']  = vtm_render_freebie_disciplines($characterID, $pendingSpends, $points);
 	$sectioncontent['background'] = vtm_render_freebie_backgrounds($characterID, $pendingSpends, $points);
+	$sectioncontent['merit'] = vtm_render_freebie_merits($characterID, $pendingSpends, $points);
 	
 	/* DISPLAY TABLES 
 	-------------------------------*/
@@ -963,7 +965,7 @@ function vtm_validate_chargen($laststep, $templateID, $characterID) {
 				
 				$total = 0;
 				foreach  ($values as $id => $val) {
-					$total += $val;
+					$total += max(0,$val);
 				}
 				
 				if ($total > $settings['disciplines-points']) {
@@ -2587,6 +2589,85 @@ function vtm_render_freebie_backgrounds($characterID, $pendingSpends, $points) {
 	return $output;
 
 }
+function vtm_render_freebie_merits($characterID, $pendingSpends, $points) {
+	global $wpdb;
+	
+	$output      = "";
+	$rowoutput   = "";
+	$max2display = 5;
+	$columns     = 3;
+	//$fulldoturl  = plugins_url( 'gvlarp-character/images/cg_freedot.jpg' );
+	//$emptydoturl = plugins_url( 'gvlarp-character/images/cg_emptydot.jpg' );
+	$dotstobuy   = 0;
+
+	// COSTS OF STATS - if entry doesn't exist then you can't buy it
+	//	$cost['<statname>'] = array( '<from>' => array( '<to>' => <cost>))
+	$freebiecosts = vtm_get_freebie_costs('MERIT', $characterID);
+
+	// display stats to buy
+	//	hover over radiobutton to show the cost
+	$items = vtm_get_current_merits($characterID);
+	
+	// Current spent
+	$currentpending = vtm_get_pending_freebies('MERIT', 'freebie_merit', $characterID);
+	
+	//print_r($currentpending);
+	
+	if (count($items) > 0) {
+ 		$id = 0;
+		$grp = "";
+		$grpcount = 0;
+		$col = 0;
+		foreach ($items as $item) {
+					
+			$tmp_max2display = $max2display;
+			$colspan = 2 + $tmp_max2display;
+			
+			$current = isset($currentpending[$item->name]) ? $currentpending[$item->name] : 0;
+			$levelfrom = isset($item->level_from) ? $item->level_from : 0;
+			$cost      = $freebiecosts[$item->name][0][1];
+		
+			// start column / new column
+			if (isset($item->grp)) {
+				if ($grp != $item->grp) {
+					$grpcount++;
+					if (empty($grp)) {
+						$rowoutput .= "<tr><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
+						$col++;
+					} 
+					elseif ($col == $columns) {
+						$rowoutput .= "</table>\n</td></tr>\n<tr><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
+						$col = 1;
+					}
+					else {
+						$rowoutput .= "</table>\n</td><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
+						$col++;
+					}
+					$grp = $item->grp;
+				}
+			}
+
+			// Hidden fields
+			//$rowoutput .= "<tr style='display:none'><td colspan=$colspan>\n";
+			//$rowoutput .= "</td></tr>\n";
+			
+			//dots row
+			$cbid = "cb_{$item->itemid}";
+			$rowoutput .= "<tr><th class='gvthleft'><label for='$cbid'>" . stripslashes($item->name) . " ($cost)</label></th><td class='gvxp_checkbox'>\n";
+			$rowoutput .= "<input type='checkbox' name='freebie_merit[" . $item->name . "]' id='$cbid' value='$cost' ";
+			$rowoutput .= checked($current, $cost, false);
+			$rowoutput .= "/>\n";
+			$rowoutput .= "</td></tr>\n";
+		}
+
+	} 
+	
+	if ($rowoutput != "")
+		$output .= "<table>$rowoutput</table></td></tr></table>\n";
+
+	return $output;
+
+}
 function vtm_get_freebie_costs($type, $characterID = 0) {
 	global $wpdb;
 
@@ -2682,7 +2763,18 @@ function vtm_get_freebie_costs($type, $characterID = 0) {
 				$outdata[$item->NAME] = $nonclancost;
 			}
 		}
-	} else {
+	} 
+	elseif ($type == "MERIT") {
+		$sql = "SELECT ID, NAME, COST FROM " . VTM_TABLE_PREFIX . "MERIT ORDER BY ID";
+		$items = $wpdb->get_results($sql);
+		
+		foreach ($items as $item) {
+			$outdata[$item->NAME][0][1] = $item->COST;
+		
+		}
+	
+	}
+	else {
 	
 		$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . $type . " ORDER BY ID";
 		$items = $wpdb->get_results($sql, OBJECT_K);
@@ -2729,7 +2821,7 @@ function vtm_get_freebie_costs($type, $characterID = 0) {
 	
 	}
 	
-	// if ($type == "BACKGROUND") {
+	// if ($type == "MERIT") {
 		// print_r($data);
 		// echo "<p>($type / $characterID) SQL: $sql</p>";
 		// echo "<pre>";
@@ -2817,6 +2909,38 @@ function vtm_get_current_backgrounds($characterID, $output_type = OBJECT) {
 			WHERE 
 				item.VISIBLE = 'Y'
 		    ORDER BY item.GROUPING, item.name";
+	$sql   = $wpdb->prepare($sql, $characterID);
+	$items = $wpdb->get_results($sql, $output_type);
+	
+	//echo "<p>SQL: $sql</p>";
+	//print_r($items);
+	
+	return $items;
+}
+function vtm_get_current_merits($characterID, $output_type = OBJECT) {
+	global $wpdb;
+
+	$sql = "SELECT 
+				item.name, 
+				0 						as level_from,
+				IFNULL(cha_merit.ID,0) 	as chartableid, 
+				item.ID 				as itemid, 
+				item.GROUPING 			as grp,
+				item.MULTIPLE			as MULTIPLE
+			FROM 
+				" . VTM_TABLE_PREFIX . "MERIT item
+				LEFT JOIN
+					(SELECT ID, MERIT_ID, LEVEL
+					FROM
+						" . VTM_TABLE_PREFIX . "CHARACTER_MERIT cha_merit
+					WHERE
+						CHARACTER_ID = %s
+					) as cha_merit
+				ON
+					cha_merit.MERIT_ID = item.ID
+			WHERE 
+				item.VISIBLE = 'Y'
+		    ORDER BY item.GROUPING, item.COST DESC, item.name";
 	$sql   = $wpdb->prepare($sql, $characterID);
 	$items = $wpdb->get_results($sql, $output_type);
 	

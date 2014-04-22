@@ -999,7 +999,7 @@ class vtmclass_admin_meritsflaws_table extends vtmclass_MultiPage_ListTable {
 			);
 			
 		$sql = "SELECT DISTINCT GROUPING FROM " . VTM_TABLE_PREFIX . "MERIT merit;";
-		$groups =$wpdb->get_results($wpdb->prepare($sql, ''));
+		$groups =$wpdb->get_results($sql);
 		$this->filter_group = vtm_make_filter($groups);
 			
 		if ( isset( $_REQUEST[$type . '_filter'] ) && array_key_exists( $_REQUEST[$type . '_filter'], $this->filter_visible ) ) {

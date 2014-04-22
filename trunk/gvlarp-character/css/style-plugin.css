@@ -573,3 +573,7 @@ table.feedingmapkey {width:auto;}
 .dotselect > label:active {
     content: url('/wp-content/plugins/gvlarp-character/images/cg_selectdot.jpg');
 }
+
+.gvxp_checkbox > input[type="checkbox"]:checked ~ label {
+	background-color: #00ff00;
+}
