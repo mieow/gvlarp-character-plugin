@@ -145,13 +145,13 @@ function vtm_render_flow($step, $characterID, $progress, $templateID) {
 	$buttons = array (
 		'1'  => array('title' => "Basic Information", 'dependency' => 0),
 		'2'  => array('title' => "Attributes", 'dependency' => 1),
-		'3'  => array('title' => "Abilities", 'dependency' => 2),
-		'4'  => array('title' => "Disciplines", 'dependency' => 3),
-		'5'  => array('title' => "Backgrounds", 'dependency' => 4),
-		'6'  => array('title' => "Virtues", 'dependency' => 5),
-		'7'  => array('title' => "Freebie Points", 'dependency' => 6),
+		'3'  => array('title' => "Abilities", 'dependency' => 1),
+		'4'  => array('title' => "Disciplines", 'dependency' => 1),
+		'5'  => array('title' => "Backgrounds", 'dependency' => 1),
+		'6'  => array('title' => "Virtues", 'dependency' => 1),
+		'7'  => array('title' => "Freebie Points", 'dependency' => 1),
 		'8'  => array('title' => "Spend Experience", 'dependency' => 7),			// WILL BE OPTIONAL
-		'9'  => array('title' => "Specialities", 'dependency' => 8),
+		'9'  => array('title' => "Specialities", 'dependency' => 7),
 		'10' => array('title' => "Extended Backgrounds", 'dependency' => 1)
 	);
 	
@@ -506,9 +506,7 @@ function vtm_render_chargen_freebies($step, $characterID, $templateID) {
 	$settings = vtm_get_chargen_settings($templateID);
 	
 	// Work out how much points are currently available
-	$meritsspent = 0;
-	$flawsgained = 0;
-	$points = $settings['freebies-points'] - $meritsspent + $flawsgained;
+	$points = $settings['freebies-points'];
 	$spent = 0;
 	$spent += vtm_get_freebies_spent('STAT', 'freebie_stat', $characterID);
 	$spent += vtm_get_freebies_spent('SKILL', 'freebie_skill', $characterID);
@@ -1054,16 +1052,35 @@ function vtm_validate_chargen($laststep, $templateID, $characterID) {
 		case 7:
 			// VALIDATE FREEBIE POINTS
 			//		Right number of points spent
+			//		Not too many merits bought
+			//		Not too many flaws bought
+			$bought = $_POST['freebie_merit'];
 			$meritsspent = 0;
 			$flawsgained = 0;
+			foreach ($bought as $name => $level_to) {
+				if ($level_to > 0)
+					$meritsspent += $level_to;
+				else
+					$flawsgained += -$level_to;
+			}
+			if ($settings['merits-max'] > 0 && $meritsspent > $settings['merits-max']) {
+				$errormessages .= "<li>ERROR: You have bought too many points of Merits</li>";
+				$ok = 0;
+			}
+			if ($settings['flaws-max'] > 0 && $flawsgained > $settings['flaws-max']) {
+				$errormessages .= "<li>ERROR: You have gained too many points from Flaws</li>";
+				$ok = 0;
+			}
+			
 			$points = $settings['freebies-points'] - $meritsspent + $flawsgained;
 			
 			$spent = 0;
 			
-			$spent += vtm_get_freebies_spent('STAT', 'freebie_stat', $characterID);
-			$spent += vtm_get_freebies_spent('SKILL', 'freebie_skill', $characterID);
+			$spent += vtm_get_freebies_spent('STAT',       'freebie_stat', $characterID);
+			$spent += vtm_get_freebies_spent('SKILL',      'freebie_skill', $characterID);
 			$spent += vtm_get_freebies_spent('DISCIPLINE', 'freebie_discipline', $characterID);
 			$spent += vtm_get_freebies_spent('BACKGROUND', 'freebie_background', $characterID);
+			$spent += vtm_get_freebies_spent('MERIT',      'freebie_merit', $characterID);
 			
 			if ($spent == 0) {
 				$errormessages .= "<li>WARNING: You have not spent any dots</li>";
@@ -2619,42 +2636,47 @@ function vtm_render_freebie_merits($characterID, $pendingSpends, $points) {
 		$col = 0;
 		foreach ($items as $item) {
 								
-			$current = isset($currentpending[$item->name]) ? $currentpending[$item->name] : 0;
+			$loop      = ($item->multiple == 'Y') ? 4 : 1;
 			$levelfrom = isset($item->level_from) ? $item->level_from : 0;
 			$cost      = $freebiecosts[$item->name][0][1];
 		
-			// start column / new column
-			if (isset($item->grp)) {
-				if ($grp != $item->grp) {
-					$grpcount++;
-					if (empty($grp)) {
-						$rowoutput .= "<tr><td class='gvxp_col'>\n<table>\n<tr><th>{$item->grp}</th></tr>\n";
-						$col++;
-					} 
-					elseif ($col == $columns) {
-						$rowoutput .= "</table>\n</td></tr>\n<tr><td class='gvxp_col'>\n<table>\n<tr><th>{$item->grp}</th></tr>\n";
-						$col = 1;
-					}
-					else {
-						$rowoutput .= "</table>\n</td><td class='gvxp_col'>\n<table>\n<tr><th>{$item->grp}</th></tr>\n";
-						$col++;
-					}
-					$grp = $item->grp;
-				}
-			}
-
-			// Hidden fields
-			//$rowoutput .= "<tr style='display:none'><td colspan=$colspan>\n";
-			//$rowoutput .= "</td></tr>\n";
+			for ($j = 1 ; $j <= $loop ; $j++) {
+				$meritname = ($item->multiple == 'Y') ? $item->name . "_" . $j : $item->name;
+				$current   = isset($currentpending[$meritname]) ? $currentpending[$meritname] : 0;
 			
-			//dots row
-			$cbid = "cb_{$item->itemid}";
-			$rowoutput .= "<tr><td><span>";
-			$rowoutput .= "<input type='checkbox' name='freebie_merit[" . $item->name . "]' id='$cbid' value='$cost' ";
-			$rowoutput .= checked($current, $cost, false);
-			$rowoutput .= "/>\n";
-			$rowoutput .= "<label for='$cbid'>" . stripslashes($item->name) . " ($cost)</label>\n";
-			$rowoutput .= "</span></td></tr>\n";
+				// start column / new column
+				if (isset($item->grp)) {
+					if ($grp != $item->grp) {
+						$grpcount++;
+						if (empty($grp)) {
+							$rowoutput .= "<tr><td class='gvxp_col'>\n<table>\n<tr><th>{$item->grp}</th></tr>\n";
+							$col++;
+						} 
+						elseif ($col == $columns) {
+							$rowoutput .= "</table>\n</td></tr>\n<tr><td class='gvxp_col'>\n<table>\n<tr><th>{$item->grp}</th></tr>\n";
+							$col = 1;
+						}
+						else {
+							$rowoutput .= "</table>\n</td><td class='gvxp_col'>\n<table>\n<tr><th>{$item->grp}</th></tr>\n";
+							$col++;
+						}
+						$grp = $item->grp;
+					}
+				}
+
+				// Hidden fields
+				//$rowoutput .= "<tr style='display:none'><td colspan=$colspan>\n";
+				//$rowoutput .= "</td></tr>\n";
+				
+				//dots row
+				$cbid = "cb_{$j}_{$item->itemid}";
+				$rowoutput .= "<tr><td><span>";
+				$rowoutput .= "<input type='checkbox' name='freebie_merit[" . $meritname . "]' id='$cbid' value='$cost' ";
+				$rowoutput .= checked($current, $cost, false);
+				$rowoutput .= "/>\n";
+				$rowoutput .= "<label for='$cbid'>" . stripslashes($item->name) . " ($cost)</label>\n";
+				$rowoutput .= "</span></td></tr>\n";
+			}
 		}
 
 	} 
@@ -2923,7 +2945,7 @@ function vtm_get_current_merits($characterID, $output_type = OBJECT) {
 				IFNULL(cha_merit.ID,0) 	as chartableid, 
 				item.ID 				as itemid, 
 				item.GROUPING 			as grp,
-				item.MULTIPLE			as MULTIPLE
+				item.MULTIPLE			as multiple
 			FROM 
 				" . VTM_TABLE_PREFIX . "MERIT item
 				LEFT JOIN
@@ -2997,6 +3019,7 @@ function vtm_get_freebies_spent($table, $postvariable, $characterID) {
 
 	$spent = 0;
 	$freebiecosts = vtm_get_freebie_costs($table, $characterID);
+		
 	if (isset($_POST[$postvariable])) {
 		switch ($table) {
 			case 'STAT':
@@ -3014,21 +3037,26 @@ function vtm_get_freebies_spent($table, $postvariable, $characterID) {
 			default:
 				$current = array();
 		}
+		
 		$bought = $_POST[$postvariable];
 		foreach ($bought as $name => $level_to) {
 			$levelfrom = isset($current[$name]->level_from) ? $current[$name]->level_from : 0;
 		
-			if (!isset($current[$name])) {
+			if ($table == 'MERIT') {
+				$spent += isset($freebiecosts[$name][0][1]) ? $freebiecosts[$name][0][1] : 0;
+			}
+			elseif (!isset($current[$name])) {
 				$actualname = preg_replace("/_\d+$/", "", $name);
 				//echo "$name becomes $actualname, <br />";
 				if (isset($current[$actualname]->multiple) && $current[$actualname]->multiple == 'Y') {
 					//echo "$name - from: {$current[$actualname]->level_from}, to: {$level_to}, cost: {$freebiecosts[$actualname][$current[$actualname]->level_from][$level_to]}<br />";
 					$spent += isset($freebiecosts[$actualname][$current[$actualname]->level_from][$level_to]) ? $freebiecosts[$actualname][$current[$actualname]->level_from][$level_to] : 0;
+					echo "<li>Running total is $spent. Bought $actualname to $level_to ({$freebiecosts[$actualname][$current[$actualname]->level_from][$level_to]})</li>";
 				}
 			} else {
 				$spent += isset($freebiecosts[$name][$levelfrom][$level_to]) ? $freebiecosts[$name][$levelfrom][$level_to] : 0;
+				echo "<li>Running total is $spent. Bought $name to $level_to ({$freebiecosts[$name][$levelfrom][$level_to]})</li>";
 			}
-			//echo "<li>Running total is $spent. Bought $name to $level_to</li>";
 		}
 	} else {
 		$sql = "SELECT SUM(AMOUNT) FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
