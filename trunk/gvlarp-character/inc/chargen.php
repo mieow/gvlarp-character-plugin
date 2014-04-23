@@ -2594,7 +2594,6 @@ function vtm_render_freebie_merits($characterID, $pendingSpends, $points) {
 	
 	$output      = "";
 	$rowoutput   = "";
-	$max2display = 5;
 	$columns     = 3;
 	//$fulldoturl  = plugins_url( 'gvlarp-character/images/cg_freedot.jpg' );
 	//$emptydoturl = plugins_url( 'gvlarp-character/images/cg_emptydot.jpg' );
@@ -2619,10 +2618,7 @@ function vtm_render_freebie_merits($characterID, $pendingSpends, $points) {
 		$grpcount = 0;
 		$col = 0;
 		foreach ($items as $item) {
-					
-			$tmp_max2display = $max2display;
-			$colspan = 2 + $tmp_max2display;
-			
+								
 			$current = isset($currentpending[$item->name]) ? $currentpending[$item->name] : 0;
 			$levelfrom = isset($item->level_from) ? $item->level_from : 0;
 			$cost      = $freebiecosts[$item->name][0][1];
@@ -2632,15 +2628,15 @@ function vtm_render_freebie_merits($characterID, $pendingSpends, $points) {
 				if ($grp != $item->grp) {
 					$grpcount++;
 					if (empty($grp)) {
-						$rowoutput .= "<tr><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
+						$rowoutput .= "<tr><td class='gvxp_col'>\n<table>\n<tr><th>{$item->grp}</th></tr>\n";
 						$col++;
 					} 
 					elseif ($col == $columns) {
-						$rowoutput .= "</table>\n</td></tr>\n<tr><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
+						$rowoutput .= "</table>\n</td></tr>\n<tr><td class='gvxp_col'>\n<table>\n<tr><th>{$item->grp}</th></tr>\n";
 						$col = 1;
 					}
 					else {
-						$rowoutput .= "</table>\n</td><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
+						$rowoutput .= "</table>\n</td><td class='gvxp_col'>\n<table>\n<tr><th>{$item->grp}</th></tr>\n";
 						$col++;
 					}
 					$grp = $item->grp;
@@ -2653,17 +2649,18 @@ function vtm_render_freebie_merits($characterID, $pendingSpends, $points) {
 			
 			//dots row
 			$cbid = "cb_{$item->itemid}";
-			$rowoutput .= "<tr><th class='gvthleft'><label for='$cbid'>" . stripslashes($item->name) . " ($cost)</label></th><td class='gvxp_checkbox'>\n";
+			$rowoutput .= "<tr><td><span>";
 			$rowoutput .= "<input type='checkbox' name='freebie_merit[" . $item->name . "]' id='$cbid' value='$cost' ";
 			$rowoutput .= checked($current, $cost, false);
 			$rowoutput .= "/>\n";
-			$rowoutput .= "</td></tr>\n";
+			$rowoutput .= "<label for='$cbid'>" . stripslashes($item->name) . " ($cost)</label>\n";
+			$rowoutput .= "</span></td></tr>\n";
 		}
 
 	} 
 	
 	if ($rowoutput != "")
-		$output .= "<table>$rowoutput</table></td></tr></table>\n";
+		$output .= "<table id='merit_freebie_table'>$rowoutput</table></td></tr></table>\n";
 
 	return $output;
 
