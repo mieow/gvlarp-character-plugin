@@ -151,7 +151,7 @@ function vtm_render_flow($step, $characterID, $progress, $templateID) {
 		'6'  => array('title' => "Virtues", 'dependency' => 1),
 		'7'  => array('title' => "Freebie Points", 'dependency' => 1),
 		'8'  => array('title' => "Spend Experience", 'dependency' => 7),			// WILL BE OPTIONAL
-		'9'  => array('title' => "Specialities", 'dependency' => 7),
+		'9'  => array('title' => "Finishing Touches", 'dependency' => 7),
 		'10' => array('title' => "Extended Backgrounds", 'dependency' => 1)
 	);
 	
@@ -1072,7 +1072,7 @@ function vtm_validate_chargen($laststep, $templateID, $characterID) {
 				$ok = 0;
 			}
 			
-			$points = $settings['freebies-points'] - $meritsspent + $flawsgained;
+			$points = $settings['freebies-points'];
 			
 			$spent = 0;
 			
@@ -1086,7 +1086,7 @@ function vtm_validate_chargen($laststep, $templateID, $characterID) {
 				$errormessages .= "<li>WARNING: You have not spent any dots</li>";
 			}
 			elseif ($spent > $points) {
-				$errormessages .= "<li>ERROR: You have spent too many dots</li>";
+				$errormessages .= "<li>ERROR: You have spent too many dots ($spent / $points)</li>";
 				$ok = 0;
 			}
 			elseif ($spent < $points) {
@@ -1760,7 +1760,7 @@ function vtm_get_chargen_characterID() {
 			
 			if (is_user_logged_in()) {
 				get_currentuserinfo();
-				if ($current_user->ID != $wpid)
+				if ($current_user->ID != $wpid && !vtm_isST())
 					$id = -1;
 			}
 			elseif ($wpid != 0)
