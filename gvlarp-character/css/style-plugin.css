@@ -451,32 +451,35 @@ table.feedingmapkey {width:auto;}
 	clear: both;
 	display: block;
 }
-#chargen_form #vtm-chargen-flow .step-button {
-	border-radius: 0;
-	width: 65px;
-	padding: 5px;
-	margin: 0;
+#chargen_form #vtm-chargen-flow li.step-button {
+	width: 75px;
 	font-size: 10px;
 	color: black;
-	min-height: 50px
+	min-height: 60px;
+	float: left;
+	border: none;
+}
+#chargen_form #vtm-chargen-flow .step-button input[type="submit"] {
+	padding: 5px;
+	min-height: 60px;
+}
+#chargen_form #vtm-chargen-flow .step-button span {
+	display: block;
+	padding: 5px;
+	background: darkgrey;
+	border: 1px solid grey;
+	min-height: 48px; /* 60 - padding - border */
 }
 #chargen_form #vtm-chargen-flow  li{
-	float: left;
-	position: relative;
 }
 
 #chargen_form #vtm-chargen-flow li.step-selected {
-	background: darkgrey;
-	border: 1px solid grey;
 }
 #chargen_form #vtm-chargen-flow li.step-disable {
-	background: darkgrey;
-	border: 1px solid grey;
 	color: grey;
 }
 #chargen_form #vtm-chargen-flow li.step-enable {
-	padding: 0px;
-	width: 75px;
+	/* width: 75px; */
 }
 #chargen_form #vtm-chargen-flow input.button-chargen-step  {
 	background: grey;
