@@ -501,34 +501,45 @@ table.feedingmapkey {width:auto;}
 	padding-top: 10px;
 }
 
-/* =Character Generation
--------------------------------------------------------------- */
-.dotselect {
+#chargen-main th {
+    font-weight: bold;
+    background-color: #222;
+    padding: 3px;
+	margin: 5px 1px 0px 0px;
+}
+#chargen-main .gvthleft {
+    text-align: left;
+    background-color: inherit;
+    padding: 0px 3px 0px 3px;
+	width: auto;
+	font-size:0.9em;
+}
+#chargen-main .dotselect {
     float:left;
 }
 
-.dotselect label.freedot {
+#chargen-main .dotselect label.freedot {
     background-image: url('/wp-content/plugins/gvlarp-character/images/xpdot.jpg') !important;
 }
-.dotselect label.cleardot {
+#chargen-main .dotselect label.cleardot {
     background-image: url('/wp-content/plugins/gvlarp-character/images/crossclear.jpg') !important;
 }
 
-.dotselect img {
+#chargen-main .dotselect img {
 	width:12px;
 }
 
 /* :not(:checked) is a filter, so that browsers that don’t support :checked don’t 
    follow these rules. Every browser that supports :checked also supports :not(), so
    it doesn’t make the test unnecessarily selective */
-.dotselect:not(:checked) > input {
+#chargen-main .dotselect:not(:checked) > input {
     /*position:absolute;
     top:-9999px;
     clip:rect(0,0,0,0); */
 	display: none;
 }
 
-.dotselect:not(:checked) > label {
+#chargen-main .dotselect:not(:checked) > label {
     float:right;
     width:12px;
     padding:0 .1em;
@@ -541,24 +552,24 @@ table.feedingmapkey {width:auto;}
     background-position:center; 
 	background-size: 12px;
 }
-.dotselect:not(:checked) > img {
+#chargen-main .dotselect:not(:checked) > img {
     float:right;
     width:12px;
     padding:0 .1em;
     line-height:1.2;
 }
 
-.dotselect:not(:checked) > label {
+#chargen-main .dotselect:not(:checked) > label {
     background-image: url('/wp-content/plugins/gvlarp-character/images/cg_emptydot.jpg');
 }
 
-.dotselect > input:checked ~ label {
+#chargen-main .dotselect > input:checked ~ label {
     /*background-image: url('/wp-content/plugins/gvlarp-character/images/viewfulldot.jpg'); */
     background-image: url('/wp-content/plugins/gvlarp-character/images/cg_selectdot.jpg');
 }
 
-.dotselect:not(:checked) > label:hover,
-.dotselect:not(:checked) > label:hover ~ label {
+#chargen-main .dotselect:not(:checked) > label:hover,
+#chargen-main .dotselect:not(:checked) > label:hover ~ label {
     background-image: url('/wp-content/plugins/gvlarp-character/images/cg_selectdot.jpg');
 }
 
@@ -570,10 +581,26 @@ table.feedingmapkey {width:auto;}
     background-image: url('/wp-content/plugins/gvlarp-character/images/pendingdot.jpg');
 } */
 
-.dotselect > label:active {
+#chargen-main .dotselect > label:active {
     content: url('/wp-content/plugins/gvlarp-character/images/cg_selectdot.jpg');
 }
 
-.gvxp_checkbox > input[type="checkbox"]:checked ~ label {
-	background-color: #00ff00;
+#chargen-main #merit_freebie_table label {
+	display: block;
+	padding-left: 20px;
+}
+
+#chargen-main #merit_freebie_table td {
+	padding-bottom: 0;
+	padding-top: 0;
+}
+
+#chargen-main #merit_freebie_table input[type="checkbox"] { 
+	float: left;
+	margin-top: 5px;
+}
+
+#chargen-main #merit_freebie_table input[type="checkbox"]:checked + label { 
+	font-style: italic;
+	background-color: #333333;
 }
