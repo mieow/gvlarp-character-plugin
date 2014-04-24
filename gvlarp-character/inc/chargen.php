@@ -579,7 +579,9 @@ function vtm_render_chargen_xp($step, $characterID, $templateID) {
 	$settings = vtm_get_chargen_settings($templateID);
 	
 	// Work out how much points are currently available
-	$points = 0;
+	$sql = $wpdb->prepare("SELECT PLAYER_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID);
+	$playerID = $wpdb->get_var($sql);
+	$points = vtm_get_total_xp($playerID, $characterID);
 	$spent = 0;
 /*
 	$points = $settings['freebies-points'];
@@ -589,6 +591,7 @@ function vtm_render_chargen_xp($step, $characterID, $templateID) {
 	$spent += vtm_get_freebies_spent('BACKGROUND', 'freebie_background', $characterID);
 	$spent += vtm_get_freebies_spent('MERIT', 'freebie_merit', $characterID);
 	$spent += vtm_get_freebies_spent('PATH', 'freebie_path', $characterID);*/
+	$spent += vtm_get_chargen_xp_spent('STAT', 'xp_stat', $characterID);
 	$remaining = $points - $spent;
 
 	$output .= "<h3>Step $step: Experience Points</h3>";
@@ -1187,6 +1190,25 @@ function vtm_validate_chargen($laststep, $templateID, $characterID) {
 			// VALIDATE XP POINTS
 			//		Right number of points spent
 			//		Level of paths bought do not exceed level of discipline
+			$sql = $wpdb->prepare("SELECT PLAYER_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID);
+			$playerID = $wpdb->get_var($sql);
+			$points = vtm_get_total_xp($playerID, $characterID);
+			$spent = 0;
+			$spent += vtm_get_chargen_xp_spent('STAT', 'xp_stat', $characterID);
+			
+			if ($spent == 0) {
+				$errormessages .= "<li>WARNING: You have not spent any dots</li>";
+			}
+			elseif ($spent > $points) {
+				$errormessages .= "<li>ERROR: You have spent too many dots</li>";
+				$ok = 0;
+			}
+			elseif ($spent < $points) {
+				$errormessages .= "<li>WARNING: You haven't spent enough dots</li>";
+			}
+
+
+			break;
 		default:
 			$ok = 0;
 	}
@@ -3540,7 +3562,71 @@ function vtm_get_freebies_spent($table, $postvariable, $characterID) {
 
 	return $spent;
 }
+function vtm_get_chargen_xp_spent($table, $postvariable, $characterID) {
+	global $wpdb;
 
+	$spent = 0;
+	
+	if (isset($_POST[$postvariable])) {
+		$xpcosts  = vtm_get_chargen_xp_costs($table, $characterID);
+		$bought   = $_POST[$postvariable];
+
+		switch ($table) {
+			case 'STAT':
+				$freebies = vtm_get_pending_freebies($table, 'freebie_stat', $characterID);
+				$current  = vtm_get_current_stats($characterID, OBJECT_K);
+				break;
+			default:
+				$current = array();
+		}
+		$current = vtm_sanitize_array($current);
+				
+		//print_r($freebies);
+		
+		foreach ($bought as $key => $level_to) {
+		
+			$levelfrom = isset($current[$key]->level_from) ? $current[$key]->level_from : 0;
+			$levelfrom = isset($freebies[$key]) ? $freebies[$key] : $levelfrom;
+			//echo "<li>$key - to:$level_to, from:$levelfrom</li>";
+			
+			$spent += isset($xpcosts[$key][$levelfrom][$level_to]) ? $xpcosts[$key][$levelfrom][$level_to] : 0;
+			
+	/* 		
+			$actualname = preg_replace("/_\d+$/", "", $name);
+		
+			if ($table == 'MERIT') {
+				if (!isset($current[$name])) {
+					if (isset($current[$actualname]->multiple) && $current[$actualname]->multiple == 'Y') {
+						$spent += isset($freebiecosts[$actualname][0][1]) ? $freebiecosts[$actualname][0][1] : 0;
+						//echo "<li>Running total is $spent. Bought $actualname ({$freebiecosts[$actualname][0][1]})</li>";
+					}
+				} else {
+					$spent += isset($freebiecosts[$name][0][1]) ? $freebiecosts[$name][0][1] : 0;
+					//echo "<li>Running total is $spent. Bought $name ({$freebiecosts[$name][0][1]})</li>";
+				}
+			}
+			elseif (!isset($current[$name])) {
+				//echo "$name becomes $actualname, <br />";
+				if (isset($current[$actualname]->multiple) && $current[$actualname]->multiple == 'Y') {
+					//echo "$name - from: {$current[$actualname]->level_from}, to: {$level_to}, cost: {$freebiecosts[$actualname][$current[$actualname]->level_from][$level_to]}<br />";
+					$spent += isset($freebiecosts[$actualname][$current[$actualname]->level_from][$level_to]) ? $freebiecosts[$actualname][$current[$actualname]->level_from][$level_to] : 0;
+					//echo "<li>Running total is $spent. Bought $actualname to $level_to ({$freebiecosts[$actualname][$current[$actualname]->level_from][$level_to]})</li>";
+				}
+			} else {
+				$spent += isset($freebiecosts[$name][$levelfrom][$level_to]) ? $freebiecosts[$name][$levelfrom][$level_to] : 0;
+				//echo "<li>Running total is $spent. Bought $name to $level_to ({$freebiecosts[$name][$levelfrom][$level_to]})</li>";
+			}
+	*/
+		}
+	} else {
+		$sql = "SELECT SUM(AMOUNT) FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
+				WHERE CHARACTER_ID = %s AND ITEMTABLE = %s";
+		$sql = $wpdb->prepare($sql, $characterID, $table);
+		$spent = $wpdb->get_var($sql);
+	}
+
+	return $spent;
+}
 function vtm_get_pending_freebies($table, $postvariable, $characterID) {
 	global $wpdb;
 
@@ -3588,11 +3674,14 @@ function vtm_render_chargen_xp_stats($characterID, $pendingSpends, $points) {
 	$max2display = 5;
 	$columns = 3;
 	$fulldoturl = plugins_url( 'gvlarp-character/images/cg_freedot.jpg' );
+	$freebiedoturl = plugins_url( 'gvlarp-character/images/cg_freebiedot.jpg' );
 	$emptydoturl   = plugins_url( 'gvlarp-character/images/cg_emptydot.jpg' );
+
+	$current_post = isset($_POST['xp_stat']) ? $_POST['xp_stat'] : array();
 
 	// Get costs
 	$xpcosts = vtm_get_chargen_xp_costs('STAT', $characterID);
-	
+
 	// Get current stats in database
 	$current_stat = vtm_sanitize_array(vtm_get_current_stats($characterID, OBJECT_K));
 	
@@ -3637,22 +3726,22 @@ function vtm_render_chargen_xp_stats($characterID, $pendingSpends, $points) {
 		$rowoutput .= "<fieldset class='dotselect'>";
 		for ($i=$max2display;$i>=1;$i--) {
 			$radioid = "dot_{$key}_{$item->itemid}_{$i}";
-			$current = isset($current_stat[$key]) ? $current_stat[$key] : 0;
-			$levelfrom = $item->level_from + (isset($freebies[$key]) ? $freebies[$key] : 0);
+			$current = isset($current_post[$key]) ? $current_post[$key] : 0;
+			$levelfrom = isset($freebies[$key]) ? $freebies[$key] : $item->level_from;
 			
 			if ($item->level_from >= $i)
 				$rowoutput .= "<img src='$fulldoturl' alt='*' id='$radioid' />";
 			elseif (isset($freebies[$key]) && $freebies[$key] >= $i)
-				$rowoutput .= "<img src='$fulldoturl' alt='*' id='$radioid' />";
-			elseif (isset($xpcosts[$item->name][$levelfrom][$i])) {
-				$cost = $xpcosts[$item->name][$levelfrom][$i];
+				$rowoutput .= "<img src='$freebiedoturl' alt='*' id='$radioid' />";
+			elseif (isset($xpcosts[$key][$levelfrom][$i])) {
+				$cost = $xpcosts[$key][$levelfrom][$i];
 				$rowoutput .= "<input type='radio' id='$radioid' name='xp_stat[$key]' value='$i' ";
 				$rowoutput .= checked($current, $i, false);
 				$rowoutput .= " /><label for='$radioid' title='Level $i ($cost freebies)'";
 				$rowoutput .= ">&nbsp;</label>\n";
 			}
 			else {
-				$rowoutput .= "<img src='$emptydoturl' alt='X' id='$radioid' />";
+				$rowoutput .= "<img src='$emptydoturl' alt='X' id='$radioid' />($levelfrom/$i)";
 			}
 		}
 		$radioid = "dot_{$key}_{$item->itemid}_clear";
