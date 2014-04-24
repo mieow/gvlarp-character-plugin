@@ -451,7 +451,8 @@ class vtmclass_admin_path_table extends vtmclass_MultiPage_ListTable {
 		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']))
 			$sql .= " ORDER BY {$_REQUEST['orderby']} {$_REQUEST['order']}";
 		
-		$sql = $wpdb->prepare($sql,$this->active_filter_discipline);
+		if ( "all" !== $this->active_filter_discipline)
+			$sql = $wpdb->prepare($sql,$this->active_filter_discipline);
 		
 		//echo "<p>SQL: $sql</p>";
 		
