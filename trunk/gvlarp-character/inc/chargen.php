@@ -666,6 +666,7 @@ function vtm_render_chargen_xp($step, $characterID, $templateID) {
 	
 	$pendingSpends = array();
 	$sectioncontent['stat']  = vtm_render_chargen_xp_stats($characterID, $pendingSpends, $points);
+	$sectioncontent['skill'] = vtm_render_chargen_xp_skills($characterID, $pendingSpends, $points);
 	
 	/* DISPLAY TABLES 
 	-------------------------------*/
@@ -894,383 +895,6 @@ function vtm_validate_chargen($laststep, $templateID, $characterID) {
 		$ok = $status[0];
 		$errormessages = $status[1];
 	}
-/* 	switch ($laststep) {
-		case 0:
-			break;
-		case 1:
-			// VALIDATE BASIC INFO
-			//		- error: character name is not blank
-			//		- error: new player? player name is not duplicated
-			//		- error: old player? player name is found
-			//		- error: login name doesn't already exist (except if it's the currently logged in acct)
-			//		- error: email address is not blank and looks valid
-			//		- error: concept is not blank
-			
-			if (!isset($_POST['character']) || empty($_POST['character'])) {
-				$errormessages .= "<li>ERROR: Please enter a character name</li>";
-				$ok = 0;
-			}
-			
-			$playername = isset($_POST['player']) ? $_POST['player'] : '';
-			if (empty($playername)) {
-				$errormessages .= "<li>ERROR: Please enter a player name</li>";
-				$ok = 0;
-			} else {
-				$playeridguess = isset($_POST['playerID']) ? $_POST['playerID'] : -1;
-				$playerid = vtm_get_player_id($playername);
-				
-				if (!isset($_POST['newplayer']) || (isset($_POST['newplayer']) && !$_POST['newplayer']) ) {
-					// old player
-					if (!isset($playerid)) {
-						$ok = 0;
-						// can't find playername.  make a guess
-						$playerid = vtm_get_player_id($playername, true);
-						if (isset($playerid)) {
-							$errormessages .= "<li>ERROR: Could not find a player with the name '$playername'. Did you mean '" . vtm_get_player_name($playerid) . "'?</li>";
-						}
-						else
-							$errormessages .= "<li>ERROR: Could not find a player with the name '$playername'. Are you a new player?</li>";
-					}
-				} else {
-					// new player
-					if (isset($playerid)) {
-						$ok = 0;
-						$errormessages .= "<li>ERROR: A player already exists with the name '$playername'. Are you a returning player?</li>";
-					}
-				}
-			}
-			
-			if (isset($_POST['wordpress_id'])) {
-				$login = $_POST['wordpress_id'];
-				get_currentuserinfo();
-				if (username_exists( $login ) && $login != $current_user->user_login) {
-					$ok = 0;
-					$errormessages .= "<li>ERROR: An account already exists with the login name '$login'. Please choose another.</li>";
-				}
-				elseif (!validate_username( $login )) {
-					$ok = 0;
-					$errormessages .= "<li>ERROR: Login name '$login' is invalid. Please choose another.</li>";
-				}
-			}
-			
-			if (!isset($_POST['email']) || empty($_POST['email'])) {
-					$ok = 0;
-					$errormessages .= "<li>ERROR: Email address is missing.</li>";
-			} else {
-				$email = $_POST['email'];
-				if (!is_email($email)) {
-					$ok = 0;
-					$errormessages .= "<li>ERROR: Email address '$email' does not seem to be a valid email address.</li>";
-				}
-			}
-			
-			if (!isset($_POST['concept']) || empty($_POST['concept'])) {
-				$errormessages .= "<li>ERROR: Please enter your character concept.</li>";
-				$ok = 0;
-			}
-			
-			break;
-		case 2:
-			// VALIDATE ATTRIBUTES
-			// P/S/T
-			//		- ERROR: P / S / T options only picked once
-			//		- WARN/ERROR: correct number of points spent in each group
-			// Point Spent
-			//		- WARN/ERROR: point total correct
-			if (isset($_POST['attribute_value'])) {
-				$values = $_POST['attribute_value'];
-				
-				if ($settings['attributes-method'] == 'PST') {
-								
-					$groups = $_POST['group'];
-					$attributes = vtm_get_chargen_attributes();
-					$target = array($settings['attributes-primary'], $settings['attributes-secondary'], $settings['attributes-tertiary']);
-					$check = 0;
-					
-					foreach ($_POST['group'] as $group) {
-						$sectiontype = $_POST[$group];
-						if ($sectiontype == -1) {
-							$errormessages .= "<li>ERROR: You have not selected if $group is Primary, Secondary or Tertiary</li>";
-							$ok = 0;
-						} else {
-							$check += $sectiontype;
-							$sectiontotal = 0;
-							foreach  ($attributes as $attribute) {
-								if ($attribute->GROUPING == $group) {
-									$sectiontotal += isset($values[$attribute->ID]) ? $values[$attribute->ID] - 1 : 0;
-								}
-							}
-							//echo "<p>group $group: target = " . $target[$sectiontype-1] . ", total = $sectiontotal</li>";
-							if ($sectiontotal > $target[$sectiontype-1]) {
-								$errormessages .= "<li>ERROR: You have spent too many dots in $group</li>";
-								$ok = 0;
-							}
-							elseif ($sectiontotal < $target[$sectiontype-1])  {
-								$errormessages .= "<li>WARNING: You haven't spent enough dots in $group</li>";
-								//$ok = 0;
-							}
-						}
-					}
-					if ($ok && $check != 6) {
-						$errormessages .= "<li>ERROR: Check that you have chosen Primary, Secondary and Tertiary once only for each type of Attribute</li>";
-						$ok = 0;
-					}
-					
-					
-				} else {
-					$target = $settings['attributes-points'];
-					$total = 0;
-					foreach ($values as $att => $val)
-						$total += $val - 1;
-					
-					if ($total > $target) {
-						$errormessages .= "<li>ERROR: You have spent too many points</li>";
-						$ok = 0;
-					}
-					elseif ($total < $target)  {
-						$errormessages .= "<li>WARNING: You haven't spent enough points</li>";
-						//$ok = 0;
-					}
-				}
-			} else {
-				$errormessages .= "<li>WARNING: You have not spent any dots</li>";
-				//$ok = 0;
-			}
-			
-			break;
-		case 3:
-			// VALIDATE ABILITIES
-			// P/S/T
-			//		- ERROR: P / S / T options only picked once
-			//		- WARN/ERROR: correct number of points spent in each group
-			// 		- ERROR: check that nothing is over the max
-			if (isset($_POST['ability_value'])) {
-				$values = $_POST['ability_value'];
-				
-				$groups = $_POST['group'];
-				$abilities = vtm_get_chargen_abilities();
-				$target = array($settings['abilities-primary'], $settings['abilities-secondary'], $settings['abilities-tertiary']);
-				$check = 0;
-				
-				foreach ($_POST['group'] as $group) {
-					$sectiontype = $_POST[$group];
-					if ($sectiontype == -1) {
-						$errormessages .= "<li>ERROR: You have not selected if $group is Primary, Secondary or Tertiary</li>";
-						$ok = 0;
-					} else {
-						$check += $sectiontype;
-						$sectiontotal = 0;
-						foreach  ($abilities as $skill) {
-							if ($skill->GROUPING == $group) {
-								$sectiontotal += isset($values[$skill->ID]) ? max(0,$values[$skill->ID]) : 0;
-								if (isset($values[$skill->ID]) && $values[$skill->ID] > $settings['abilities-max']) {
-									$errormessages .= "<li>ERROR: Abilities should not go higher than level {$settings['abilities-max']}. Please reduce the dots spend in {$skill->NAME}</li>";
-									$ok = 0;
-								}
-							}
-						}
-						//echo "<p>group $group: target = " . $target[$sectiontype-1] . ", total = $sectiontotal</li>";
-						if ($sectiontotal > $target[$sectiontype-1]) {
-							$errormessages .= "<li>ERROR: You have spent too many dots in $group</li>";
-							$ok = 0;
-						}
-						elseif ($sectiontotal < $target[$sectiontype-1])  {
-							$errormessages .= "<li>WARNING: You haven't spent enough dots in $group</li>";
-							//$ok = 0;
-						}
-					}
-				}
-				if ($ok && $check != 6) {
-					$errormessages .= "<li>ERROR: Check that you have chosen Primary, Secondary and Tertiary once only for each type of Ability</li>";
-					$ok = 0;
-				}
-					
-			} else {
-				$errormessages .= "<li>WARNING: You have not spent any dots</li>";
-				//$ok = 0;
-			}
-			break;
-		case 4:
-			// VALIDATE DISCIPLINES
-			//		- spend the right amount of points
-			if (isset($_POST['discipline_value'])) {
-				$values = $_POST['discipline_value'];
-				
-				$total = 0;
-				foreach  ($values as $id => $val) {
-					$total += max(0,$val);
-				}
-				
-				if ($total > $settings['disciplines-points']) {
-					$errormessages .= "<li>ERROR: You have spent too many dots</li>";
-					$ok = 0;
-				}
-				elseif ($total < $settings['disciplines-points'])  {
-					$errormessages .= "<li>WARNING: You haven't spent enough dots</li>";
-					//$ok = 0;
-				}
-					
-			} else {
-				$errormessages .= "<li>WARNING: You have not spent any dots</li>";
-				//$ok = 0;
-			}
-			break;
-		case 5:
-	// VALIDATE BACKGROUNDS
-	//		- all points spent
-	if (isset($_POST['background_value'])) {
-		$values = $_POST['background_value'];
-						
-		$total = 0;
-		foreach  ($values as $id => $val) {
-			$total += $val;
-		}
-		
-		if ($total > $settings['backgrounds-points']) {
-			$errormessages .= "<li>ERROR: You have spent too many dots</li>";
-			$ok = 0;
-		}
-		elseif ($total < $settings['backgrounds-points'])  {
-			$errormessages .= "<li>WARNING: You haven't spent enough dots</li>";
-			//$ok = 0;
-		}
-							
-	} else {
-		$errormessages .= "<li>WARNING: You have not spent any dots</li>";
-		//$ok = 0;
-	}
-			
-			break;
-		case 6:
-	// VALIDATE VIRTUES
-	//		- all points spent
-	//		- point spent on the correct virtues
-	if (isset($_POST['virtue_value'])) {
-		$values = $_POST['virtue_value'];
-		
-		$selectedpath = $_POST['path'];
-		$statid1 = $wpdb->get_var($wpdb->prepare("SELECT STAT1_ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $selectedpath));
-		$statid2 = $wpdb->get_var($wpdb->prepare("SELECT STAT2_ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $selectedpath));
-		$courage = $wpdb->get_var("SELECT ID FROM " . VTM_TABLE_PREFIX . "STAT WHERE NAME = 'Courage'");
-		
-		$total = 0;
-		$statfail = 0;
-		foreach  ($values as $id => $val) {
-			$total += $val - 1;
-			
-			if ($id != $statid1 && $id != $statid2 && $id != $courage) {
-				$statfail = 1;
-			}
-			
-		}
-		
-		if ($total > $settings['virtues-points']) {
-			$errormessages .= "<li>ERROR: You have spent too many dots</li>";
-			$ok = 0;
-		}
-		elseif ($total < $settings['virtues-points'])  {
-			$errormessages .= "<li>WARNING: You haven't spent enough dots</li>";
-			//$ok = 0;
-		}
-		if ($statfail) {
-			$errormessages .= "<li>ERROR: Please update Virtues for the selected path</li>";
-			$ok = 0;
-		}
-		
-							
-	} else {
-		$errormessages .= "<li>WARNING: You have not spent any dots</li>";
-		//$ok = 0;
-	}
-			
-			break;
-		case 7:
-	// VALIDATE FREEBIE POINTS
-	//		Right number of points spent
-	//		Not too many merits bought
-	//		Not too many flaws bought
-	//		Level of paths bought do not exceed level of discipline
-	$meritsspent = 0;
-	$flawsgained = 0;
-	if (isset( $_POST['freebie_merit'])) {
-		$bought = $_POST['freebie_merit'];
-		foreach ($bought as $name => $level_to) {
-			if ($level_to > 0)
-				$meritsspent += $level_to;
-			else
-				$flawsgained += -$level_to;
-		}
-		if ($settings['merits-max'] > 0 && $meritsspent > $settings['merits-max']) {
-			$errormessages .= "<li>ERROR: You have bought too many points of Merits</li>";
-			$ok = 0;
-		}
-		if ($settings['flaws-max'] > 0 && $flawsgained > $settings['flaws-max']) {
-			$errormessages .= "<li>ERROR: You have gained too many points from Flaws</li>";
-			$ok = 0;
-		}
-	}
-	
-	$points = $settings['freebies-points'];
-	
-	$spent = 0;
-	
-	$spent += vtm_get_freebies_spent('STAT',       'freebie_stat', $characterID);
-	$spent += vtm_get_freebies_spent('SKILL',      'freebie_skill', $characterID);
-	$spent += vtm_get_freebies_spent('DISCIPLINE', 'freebie_discipline', $characterID);
-	$spent += vtm_get_freebies_spent('BACKGROUND', 'freebie_background', $characterID);
-	$spent += vtm_get_freebies_spent('MERIT',      'freebie_merit', $characterID);
-	$spent += vtm_get_freebies_spent('PATH',       'freebie_path', $characterID);
-	
-	if ($spent == 0) {
-		$errormessages .= "<li>WARNING: You have not spent any dots</li>";
-	}
-	elseif ($spent > $points) {
-		$errormessages .= "<li>ERROR: You have spent too many dots ($spent / $points)</li>";
-		$ok = 0;
-	}
-	elseif ($spent < $points) {
-		$errormessages .= "<li>WARNING: You haven't spent enough dots</li>";
-	}
-	
-	if (isset($_POST['freebie_path'])) {
-		$pathinfo = vtm_sanitize_array(vtm_get_current_paths($characterID, OBJECT_K));
-		$bought = $_POST['freebie_path'];
-		foreach ($bought as $path => $level) {
-			$disciplinekey = sanitize_key($pathinfo[$path]->grp);
-			$max = isset($_POST['freebie_discipline'][$disciplinekey]) ? $_POST['freebie_discipline'][$disciplinekey] : $pathinfo[$path]->maximum;
-		
-			if ($level > $max) {
-				$errormessages .= "<li>ERROR: The level in " . stripslashes($pathinfo[$path]->name) . " cannot be greater than the {$pathinfo[$path]->grp} rating</li>";
-				$ok = 0;
-			}
-		}
-	}
-			
-			break;
-		case 8:
-	// VALIDATE XP POINTS
-	//		Right number of points spent
-	//		Level of paths bought do not exceed level of discipline
-	$points = vtm_get_total_xp(0, $characterID);
-	$spent = 0;
-	$spent += vtm_get_chargen_xp_spent('STAT', 'xp_stat', $characterID);
-	
-	if ($spent == 0) {
-		$errormessages .= "<li>WARNING: You have not spent any dots</li>";
-	}
-	elseif ($spent > $points) {
-		$errormessages .= "<li>ERROR: You have spent too many dots</li>";
-		$ok = 0;
-	}
-	elseif ($spent < $points) {
-		$errormessages .= "<li>WARNING: You haven't spent enough dots</li>";
-	}
-
-
-			break;
-		default:
-			$ok = 0;
-	} */
 	
 	if (!$ok)
 		$errormessages .= "<li>Please correct the errors before continuing</li>\n";
@@ -1290,32 +914,7 @@ function vtm_save_progress($laststep, $characterID, $templateID) {
 		$characterID = call_user_func($flow[$laststep-1]['save'], $characterID, $templateID);
 		//echo "<li>CharacterID: $characterID</li>";
 	}
-	
-/* 	switch ($laststep) {
-		case 1:
-			$characterID = vtm_save_basic_info($characterID, $templateID);
-			break;
-		case 2:
-			vtm_save_attributes($characterID);
-			break;
-		case 3:
-			vtm_save_abilities($characterID);
-			break;
-		case 4:
-			vtm_save_disciplines($characterID);
-			break;
-		case 5:
-			vtm_save_backgrounds($characterID);
-			break;
-		case 6:
-			vtm_save_virtues($characterID, $templateID);
-			break;
-		case 7:
-			vtm_save_freebies($characterID, $templateID);
-			break;
-	
-	}
- */
+
 	return $characterID;
 }
 
@@ -3933,7 +3532,7 @@ function vtm_render_chargen_xp_stats($characterID, $pendingSpends, $points) {
 				$cost = $xpcosts[$key][$levelfrom][$i];
 				$rowoutput .= "<input type='radio' id='$radioid' name='xp_stat[$key]' value='$i' ";
 				$rowoutput .= checked($current, $i, false);
-				$rowoutput .= " /><label for='$radioid' title='Level $i ($cost freebies)'";
+				$rowoutput .= " /><label for='$radioid' title='Level $i ($cost xp)'";
 				$rowoutput .= ">&nbsp;</label>\n";
 			}
 			else {
@@ -3942,7 +3541,6 @@ function vtm_render_chargen_xp_stats($characterID, $pendingSpends, $points) {
 		}
 		$radioid = "dot_{$key}_{$item->itemid}_clear";
 		$rowoutput .= "<input type='radio' id='$radioid' name='xp_stat[$key]' value='0' ";
-		//$rowoutput .= checked($current, 0, false);
 		$rowoutput .= " /><label for='$radioid' title='Clear' class='cleardot'>&nbsp;</label>\n";
 		$rowoutput .= "</fieldset></td></tr>\n";
 		
@@ -3951,6 +3549,109 @@ function vtm_render_chargen_xp_stats($characterID, $pendingSpends, $points) {
 		$output .= "<table>$rowoutput</table></td></tr></table>\n";
 	
 	return $output;
+}
+function vtm_render_chargen_xp_skills($characterID, $pendingSpends, $points) {
+	global $wpdb;
+	
+	$output      = "";
+	$rowoutput   = "";
+	$max2display = 5;
+	$columns     = 3;
+	$fulldoturl  = plugins_url( 'gvlarp-character/images/cg_freedot.jpg' );
+	$emptydoturl = plugins_url( 'gvlarp-character/images/cg_emptydot.jpg' );
+	$freebiedoturl = plugins_url( 'gvlarp-character/images/cg_freebiedot.jpg' );
+
+	// Get costs
+	$xpcosts = vtm_get_chargen_xp_costs('SKILL', $characterID);
+
+	// Get skills in database
+	$items = vtm_sanitize_array(vtm_get_current_skills($characterID, OBJECT_K));
+	
+	// Get Freebie points spent on stats
+	$freebies = vtm_get_pending_freebies('SKILL', 'freebie_skill', $characterID);
+	
+	// Get currently selected
+	$pending = vtm_get_pending_chargen_xp('SKILL', 'xp_skill', $characterID);
+	
+	//echo "<pre>";
+	//print_r($xpcosts);
+	//echo "</pre>";
+	
+	if (count($items) > 0) {
+		$grp = "";
+		$grpcount = 0;
+		$col = 0;
+		foreach ($items as $key => $item) {
+		
+			$loop = ($item->multiple == 'Y') ? 5 : 1;
+			
+			$max2display;
+			$colspan = 2;
+			
+			for ($j = 1 ; $j <= $loop ; $j++) {
+				$actualkey = ($item->multiple == 'Y') ? $key . "_" . $j : $key;
+			
+				// start column / new column
+				if (isset($item->grp)) {
+					if ($grp != $item->grp) {
+						$grpcount++;
+						if (empty($grp)) {
+							$rowoutput .= "<tr><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
+							$col++;
+						} 
+						elseif ($col == $columns) {
+							$rowoutput .= "</table>\n</td></tr>\n<tr><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
+							$col = 1;
+						}
+						else {
+							$rowoutput .= "</table>\n</td><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
+							$col++;
+						}
+						$grp = $item->grp;
+					}
+				}
+
+				// Hidden fields
+				$rowoutput .= "<tr style='display:none'><td colspan=$colspan>\n";
+				$rowoutput .= "</td></tr>\n";
+				
+				//dots row
+				$rowoutput .= "<tr><th class='gvthleft'><span>" . stripslashes($item->name) . "</span></th><td>\n";
+				$rowoutput .= "<fieldset class='dotselect'>";
+				for ($i=$max2display;$i>=1;$i--) {
+					$radioid = "dot_{$actualkey}_{$j}_{$item->itemid}_{$i}";
+					$current = isset($pending[$actualkey]) ? $pending[$actualkey] : 0;
+					$levelfrom = isset($freebies[$actualkey]) ? $freebies[$actualkey] : $item->level_from;
+
+					if ($item->level_from >= $i)
+						$rowoutput .= "<img src='$fulldoturl' alt='*' id='$radioid' />";
+					elseif (isset($freebies[$actualkey]) && $freebies[$actualkey] >= $i)
+						$rowoutput .= "<img src='$freebiedoturl' alt='*' id='$radioid' />";
+					elseif (isset($xpcosts[$key][$levelfrom][$i])) {
+						$cost = $xpcosts[$key][$levelfrom][$i];
+						$rowoutput .= "<input type='radio' id='$radioid' name='xp_skill[$actualkey]' value='$i' ";
+						$rowoutput .= checked($current, $i, false);
+						$rowoutput .= " /><label for='$radioid' title='Level $i ($cost xp)'";
+						$rowoutput .= ">&nbsp;</label>\n";
+					}
+					else {
+						$rowoutput .= "<img src='$emptydoturl' alt='X' id='$radioid' />";
+					}
+				}
+				$radioid = "dot_{$key}_{$item->itemid}_clear";
+				$rowoutput .= "<input type='radio' id='$radioid' name='xp_skill[$key]' value='0' ";
+				$rowoutput .= " /><label for='$radioid' title='Clear' class='cleardot'>&nbsp;</label>\n";
+				$rowoutput .= "</fieldset></td></tr>\n";
+			}
+		}
+	
+	}
+	
+	if ($rowoutput != "")
+		$output .= "<table>$rowoutput</table></td></tr></table>\n";
+
+	return $output;
+
 }
 function vtm_validate_basic_info($settings, $characterID) {
 	global $current_user;
