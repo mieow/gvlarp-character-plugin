@@ -708,10 +708,13 @@ class vtmclass_admin_xpapproval_table extends vtmclass_MultiPage_ListTable {
 				FROM
 					" . VTM_TABLE_PREFIX . "PLAYER players,
 					" . VTM_TABLE_PREFIX . "CHARACTER characters,
-					" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND pending
+					" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND pending,
+					" . VTM_TABLE_PREFIX . "CHARGEN_STATUS cgstatus
 				WHERE
 					players.ID = pending.PLAYER_ID
-					AND characters.ID = pending.CHARACTER_ID";
+					AND characters.ID = pending.CHARACTER_ID
+					AND cgstatus.ID = characters.CHARGEN_STATUS_ID
+					AND cgstatus.NAME = 'Approved'";
 		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']))
 			$sql .= " ORDER BY {$_REQUEST['orderby']} {$_REQUEST['order']}";
 		
