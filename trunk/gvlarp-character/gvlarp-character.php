@@ -264,6 +264,13 @@ function vtm_get_total_xp($playerID = 0, $characterID = 0) {
 	global $wpdb;
 	
 	$config = vtm_getConfig();
+	
+	if ($config->ASSIGN_XP_BY_PLAYER == 'Y' && $playerID == 0 & $characterID != 0) {
+		$sql = $wpdb->prepare("SELECT PLAYER_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID);
+		$playerID = $wpdb->get_var($sql);
+		//echo "<li>Working out playerID = $playerID</li>";
+	}
+	
 	$filteron = $config->ASSIGN_XP_BY_PLAYER == 'Y' ? "PLAYER_ID" : "CHARACTER_ID";
 	$filterid = $config->ASSIGN_XP_BY_PLAYER == 'Y' ? $playerID   : $characterID;
 	
