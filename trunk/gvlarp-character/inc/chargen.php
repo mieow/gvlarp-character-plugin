@@ -1545,7 +1545,7 @@ function vtm_save_xp($characterID, $templateID) {
 						
 						'CHARTABLE_LEVEL' => $value,
 						'AWARDED'         => Date('Y-m-d'),
-						'AMOUNT'          => $amount,
+						'AMOUNT'          => -$amount,
 						'COMMENT'         => "Character Generation: $name $levelfrom > $value",
 						
 						'SPECIALISATION'  => '',
