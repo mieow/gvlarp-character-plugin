@@ -109,7 +109,7 @@ function vtm_get_chargen_content() {
 		$step = vtm_get_step($characterID);
 	}
 	
-	$output .= "<form id='chargen_form' method='post'>($characterID)";
+	$output .= "<form id='chargen_form' method='post'>";
 	
 	//$output .= "<p>Last at step $laststep</p>";
 	print_r($_POST);
@@ -639,15 +639,8 @@ function vtm_render_chargen_xp($step, $characterID, $templateID) {
 	// Work out how much points are currently available
 	$points = vtm_get_total_xp(0, $characterID);
 	$spent = 0;
-/*
-	$points = $settings['freebies-points'];
-	$spent += vtm_get_freebies_spent('STAT', 'freebie_stat', $characterID);
-	$spent += vtm_get_freebies_spent('SKILL', 'freebie_skill', $characterID);
-	$spent += vtm_get_freebies_spent('DISCIPLINE', 'freebie_discipline', $characterID);
-	$spent += vtm_get_freebies_spent('BACKGROUND', 'freebie_background', $characterID);
-	$spent += vtm_get_freebies_spent('MERIT', 'freebie_merit', $characterID);
-	$spent += vtm_get_freebies_spent('PATH', 'freebie_path', $characterID);*/
 	$spent += vtm_get_chargen_xp_spent('STAT', 'xp_stat', $characterID);
+	$spent += vtm_get_chargen_xp_spent('SKILL', 'xp_skill', $characterID);
 	$remaining = $points - $spent;
 
 	$output .= "<h3>Step $step: Experience Points</h3>";
@@ -697,6 +690,7 @@ function vtm_render_abilities($step, $characterID, $templateID) {
 	$settings   = vtm_get_chargen_settings($templateID);
 	$abilities  = vtm_get_chargen_abilities($characterID);
 	$pending    = vtm_get_pending_freebies('SKILL', 'freebie_skill', $characterID);  // name => value
+	$pendingxp  = vtm_get_pending_chargen_xp('SKILL', 'xp_skill', $characterID);  // name => value
 		
 	$output .= "<h3>Step $step: Abilities</h3>";
 	$output .= "<p>You have {$settings['abilities-primary']} dots to spend on your Primary abilities, {$settings['abilities-secondary']} to spend on Secondary and {$settings['abilities-tertiary']} to spend on Tertiary.</p>";
@@ -750,10 +744,12 @@ function vtm_render_abilities($step, $characterID, $templateID) {
 		$output .= "<tr><td class=\"gvcol_key\">" . $skill->NAME . "</td>";
 		$output .= "<td>";
 		$key = sanitize_key($skill->NAME);
+		$freebiexplevel = isset($pendingxp[$key]) ? $pendingxp[$key] :
+							(isset($pending[$key]) ? $pending[$key] : 0);
 		$output .= vtm_render_dot_select("ability_value", 
 						$skill->ID, 
 						isset($skills[$skill->ID]) ? $skills[$skill->ID] : -1, 
-						0, 5, isset($pending[$key]) ? $pending[$key] : 0);
+						0, 5, $freebiexplevel);
 		$output .= "</td><td>";
 		$output .= stripslashes($skill->DESCRIPTION);
 		$output .= "</td></tr>\n";
@@ -1112,6 +1108,12 @@ function vtm_save_xp($characterID, $templateID) {
 	$freebies['STAT']  = vtm_get_pending_freebies('STAT', 'freebie_stat', $characterID);
 	$current['STAT']   = vtm_sanitize_array(vtm_get_current_stats($characterID, OBJECT_K));
 	$items['STAT']     = vtm_sanitize_array(vtm_get_chargen_stats($characterID, OBJECT_K));
+
+	$new['SKILL']       = isset($_POST['xp_skill']) ? $_POST['xp_skill'] : array();
+	$xpcosts['SKILL']   = vtm_get_chargen_xp_costs('SKILL', $characterID);
+	$freebies['SKILL']  = vtm_get_pending_freebies('SKILL', 'freebie_skill', $characterID);
+	$current['SKILL']   = vtm_sanitize_array(vtm_get_current_skills($characterID, OBJECT_K));
+	$items['SKILL']     = vtm_sanitize_array(vtm_get_chargen_abilities($characterID, 1, OBJECT_K));
 	
 //print_r($freebiecosts['PATH']);
 	
@@ -1126,7 +1128,7 @@ function vtm_save_xp($characterID, $templateID) {
 					$key  = preg_replace("/_\d+$/", "", $key);
 					$name = $items[$type][$key]->NAME;
 				}
-				//echo "<li>key: $key, value:$value, name: $name</li>";
+				//echo "<li>origkey: $itemname, key: $key, value:$value, name: $name</li>";
 	
 				$chartableid = isset($current[$type][$key]->chartableid) ? $current[$type][$key]->chartableid : 0;
 				$levelfrom   = isset($current[$type][$key]->level_from)  ? $current[$type][$key]->level_from  : 0;
@@ -2260,6 +2262,8 @@ function vtm_render_freebie_skills($characterID, $pendingSpends, $points) {
 	$columns     = 3;
 	$fulldoturl  = plugins_url( 'gvlarp-character/images/cg_freedot.jpg' );
 	$emptydoturl = plugins_url( 'gvlarp-character/images/cg_emptydot.jpg' );
+	$freebiedoturl   = plugins_url( 'gvlarp-character/images/cg_freebiedot.jpg' );
+	$doturl = plugins_url( 'gvlarp-character/images/cg_selectdot.jpg' );
 	
 	// PENDING_FREEBIE_SPEND
 	//	characterID
@@ -2283,6 +2287,9 @@ function vtm_render_freebie_skills($characterID, $pendingSpends, $points) {
 	// Current spent
 	$currentpending = vtm_get_pending_freebies('SKILL', 'freebie_skill', $characterID);
 	
+	// Current bought with XP
+	$pendingxp  = vtm_get_pending_chargen_xp('SKILL', 'xp_skill', $characterID);  // name => value
+
 	print_r($currentpending);
 	
 	if (count($items) > 0) {
@@ -2334,16 +2341,28 @@ function vtm_render_freebie_skills($characterID, $pendingSpends, $points) {
 					
 					if ($item->level_from >= $i)
 						$rowoutput .= "<img src='$fulldoturl' alt='*' id='$radioid' />";
-					elseif (isset($freebiecosts[$item->name][$item->level_from][$i])) {
-						$cost = $freebiecosts[$item->name][$item->level_from][$i];
-						$rowoutput .= "<input type='radio' id='$radioid' name='freebie_skill[$key]' value='$i' ";
-						$rowoutput .= checked($current, $i, false);
-						$rowoutput .= " /><label for='$radioid' title='Level $i ($cost freebies)'";
-						$rowoutput .= ">&nbsp;</label>\n";
-					}
-					else {
-						$rowoutput .= "<img src='$emptydoturl' alt='X' id='$radioid' />";
-						//$rowoutput .= "itemname: {$item->name}, skillname: $skillname, levelfrom: {$item->level_from} i: $i";
+					
+					elseif (isset($pendingxp[$key])) {
+						if ($current >= $i)
+							$rowoutput .= "<img src='$doturl' alt='*' id='$radioid' />";
+						elseif ($pendingxp[$key] >= $i)
+							$rowoutput .= "<img src='$freebiedoturl' alt='*' id='$radioid' />";
+						else
+							$rowoutput .= "<img src='$emptydoturl' alt='*' id='$radioid' />";
+					} else {
+						if (isset($freebiecosts[$item->name][$item->level_from][$i])) {
+							$cost = $freebiecosts[$item->name][$item->level_from][$i];
+							$rowoutput .= "<input type='radio' id='$radioid' name='freebie_skill[$key]' value='$i' ";
+							$rowoutput .= checked($current, $i, false);
+							$rowoutput .= " /><label for='$radioid' title='Level $i ($cost freebies)'";
+							$rowoutput .= ">&nbsp;</label>\n";
+						}
+						elseif ($current >= $i)
+							$rowoutput .= "<img src='$fulldoturl' alt='*' id='$radioid' />";
+						else {
+							$rowoutput .= "<img src='$emptydoturl' alt='X' id='$radioid' />";
+							//$rowoutput .= "itemname: {$item->name}, skillname: $skillname, levelfrom: {$item->level_from} i: $i";
+						}
 					}
 				}
 				$radioid = "dot_{$key}_{$item->itemid}_clear";
@@ -3343,6 +3362,10 @@ function vtm_get_chargen_xp_spent($table, $postvariable, $characterID) {
 				$freebies = vtm_get_pending_freebies($table, 'freebie_stat', $characterID);
 				$current  = vtm_get_current_stats($characterID, OBJECT_K);
 				break;
+			case 'SKILL':
+				$freebies = vtm_get_pending_freebies($table, 'freebie_skill', $characterID);
+				$current  = vtm_get_current_skills($characterID, OBJECT_K);
+				break;
 			default:
 				$current = array();
 		}
@@ -3354,7 +3377,7 @@ function vtm_get_chargen_xp_spent($table, $postvariable, $characterID) {
 		
 			$levelfrom = isset($current[$key]->level_from) ? $current[$key]->level_from : 0;
 			$levelfrom = isset($freebies[$key]) ? $freebies[$key] : $levelfrom;
-			//echo "<li>$key - to:$level_to, from:$levelfrom</li>";
+			//echo "<li>$key - from:$levelfrom, to:$level_to, cost: {$xpcosts[$key][$levelfrom][$level_to]}</li>";
 			
 			$spent += isset($xpcosts[$key][$levelfrom][$level_to]) ? $xpcosts[$key][$levelfrom][$level_to] : 0;
 			
@@ -3391,7 +3414,7 @@ function vtm_get_chargen_xp_spent($table, $postvariable, $characterID) {
 		$sql = $wpdb->prepare($sql, $characterID, $table);
 		$spent = $wpdb->get_var($sql);
 	}
-
+	//echo "<li>spent on $table, $postvariable: $spent</li>";
 	return $spent;
 }
 function vtm_get_pending_freebies($table, $postvariable, $characterID) {
@@ -4053,6 +4076,7 @@ function vtm_validate_xp($settings, $characterID) {
 	$points = vtm_get_total_xp(0, $characterID);
 	$spent = 0;
 	$spent += vtm_get_chargen_xp_spent('STAT', 'xp_stat', $characterID);
+	$spent += vtm_get_chargen_xp_spent('SKILL', 'xp_skill', $characterID);
 	
 	if ($spent == 0) {
 		$errormessages .= "<li>WARNING: You have not spent any dots</li>";
