@@ -844,7 +844,7 @@ function vtm_render_disciplines($characterID, $maxRating, $pendingSpends, $xp_av
 				)
 			ORDER BY grp, disc.name";
 	$sql = $wpdb->prepare($sql, $characterID,$characterID,$characterID,$characterID);
-    echo "<p>SQL: $sql</p>";
+    //echo "<p>SQL: $sql</p>";
 	$character_data = $wpdb->get_results($sql);
 	
 	$rowoutput = vtm_render_spend_table('disc', $character_data, $maxRating, 3, $xp_avail);
