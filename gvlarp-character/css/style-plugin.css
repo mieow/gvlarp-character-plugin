@@ -450,6 +450,8 @@ table.feedingmapkey {width:auto;}
 #vtm-chargen-flow {
 	clear: both;
 	display: block;
+	margin-top: 10px;
+	margin-bottom: 10px;
 }
 #chargen_form #vtm-chargen-flow li.step-button {
 	width: 75px;
