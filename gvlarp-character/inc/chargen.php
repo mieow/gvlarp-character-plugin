@@ -68,10 +68,14 @@ function vtm_chargen_flow_steps($characterID) {
 	
 	array_push($buttons,array(
 				'title' => "Finishing Touches", 
-				'function'   => ''));
+				'function'   => 'vtm_render_finishing',
+				'validate'   => '',
+				'save'       => ''));
 	array_push($buttons,array(
 				'title' => "Extended Backgrounds", 
-				'function'   => ''));
+				'function'   => '',
+				'validate'   => '',
+				'save'       => ''));
 
 	return $buttons;
 }
@@ -686,6 +690,72 @@ function vtm_render_chargen_xp($step, $characterID, $templateID) {
 		} 
 		
 	}
+	
+	return $output;
+}
+function vtm_render_finishing($step, $characterID, $templateID) {
+	global $wpdb;
+
+	$output = "";
+	$settings = vtm_get_chargen_settings($templateID);
+	$options  = vtm_getConfig();
+	
+	$output .= "<h3>Step $step: Finishing Touches</h3>";
+	$output .= "<p>Please fill in more information on your character.</p>";
+	
+	// Calculate Generation
+	$defaultgen = $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "GENERATION WHERE ID = %s", $options->DEFAULT_GENERATION_ID));
+	$sql = "SELECT charbg.LEVEL 
+			FROM 
+				" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND charbg,
+				" . VTM_TABLE_PREFIX . "BACKGROUND bg
+			WHERE
+				charbg.CHARACTER_ID = %s
+				AND charbg.BACKGROUND_ID = bg.ID
+				AND bg.NAME = 'Generation'";
+	$genfromgb  = $wpdb->get_var($wpdb->prepare($sql, $characterID));
+	$sql = "SELECT LEVEL_TO 
+			FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
+			WHERE 
+				ITEMTABLE = 'BACKGROUND'
+				AND ITEMNAME = 'generation'
+				AND CHARACTER_ID = %s";
+	$genfromfreebie = $wpdb->get_var($wpdb->prepare($sql, $characterID));
+	$generation = $defaultgen - (isset($genfromfreebie) ? $genfromfreebie : $genfromgb);
+
+	// Calculate Path
+	$pathid    = $wpdb->get_var($wpdb->prepare("SELECT ROAD_OR_PATH_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
+	$pathname  = $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $pathid));
+	$statid1   = $wpdb->get_var($wpdb->prepare("SELECT STAT1_ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $pathid));
+	$statid2   = $wpdb->get_var($wpdb->prepare("SELECT STAT2_ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $pathid));
+	$sql = "SELECT LEVEL 
+			FROM " . VTM_TABLE_PREFIX . "CHARACTER_STAT 
+			WHERE STAT_ID = %s AND CHARACTER_ID = %s";
+	$stat1      = $wpdb->get_var($wpdb->prepare($sql, $statid1, $characterID));
+	$stat2      = $wpdb->get_var($wpdb->prepare($sql, $statid2, $characterID));
+	$pathrating = ($stat1 + $stat2) * $settings['road-multiplier'];
+	
+	$output .= "<h4>Calculated Values</h4>\n";
+	$output .= "<table>\n";
+	$output .= "<tr><td>Generation:</td><td>$generation";
+	$output .= "<input type='hidden' name='generation' value='$generation' />";
+	$output .= "</td></tr>";
+	$output .= "<tr><td>$pathname:</td><td>$pathrating";
+	$output .= "<input type='hidden' name='pathrating' value='$pathrating' />";
+	$output .= "</td></tr>";
+	$output .= "</table>\n";
+
+	$output .= "<h4>Important Dates</h4>\n";
+	$output .= "<table>\n";
+	$output .= "<tr><td>Date of Birth:</td><td>";
+	$output .= render_date_entry("dob");
+	$output .= "</td></tr>";
+	$output .= "<tr><td>Date of Embrace:</th><td>";
+	$output .= render_date_entry("doe");
+	$output .= "</td></tr>";
+	$output .= "</table>\n";
+
+	$output .= "<h4>Specialties</h4>\n";
 	
 	return $output;
 }
@@ -4467,5 +4537,39 @@ function vtm_validate_xp($settings, $characterID) {
 	}
 
 	return array($ok, $errormessages);
+}
+
+function render_date_entry($fieldname) {
+
+	// ADD IN _POST/DB VALUES - SELECTED
+
+	$output ="
+	<fieldset>
+	<label for='month_$fieldname'>Month</label>
+	<select id='month_$fieldname' name='month_$fieldname' />
+		<option value='01'>January</option>      
+		<option value='02'>February</option>      
+		<option value='03'>March</option>      
+		<option value='04'>April</option>      
+		<option value='05'>May</option>      
+		<option value='06'>June</option>      
+		<option value='07'>July</option>      
+		<option value='08'>August</option>      
+		<option value='09'>September</option>      
+		<option value='10'>October</option>      
+		<option value='11'>November</option>      
+		<option value='12'>December</option>      
+	</select> -
+	<label for='day_$fieldname'>Day</label>
+	<select id='day_$fieldname'  name='day_$fieldname' />";
+	for ($i = 1; $i <= 31 ; $i++)
+		$output .= "<option  value=''>$i</option>\n";
+  
+	$output .= "</select> -
+	<label for='year_$fieldname'>Year</label>
+	<input type='text' name='year_$fieldname' size=5 />
+	</fieldset>\n";
+
+	return $output;
 }
 ?>
