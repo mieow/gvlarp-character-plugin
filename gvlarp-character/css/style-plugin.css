@@ -609,3 +609,22 @@ table.feedingmapkey {width:auto;}
 	font-style: italic;
 	background-color: #770506;
 }
+#chargen-main #merit_xp_table label {
+	display: block;
+	padding-left: 20px;
+}
+
+#chargen-main #merit_xp_table td {
+	padding-bottom: 0;
+	padding-top: 0;
+}
+
+#chargen-main #merit_xp_table input[type="checkbox"] { 
+	float: left;
+	margin-top: 5px;
+}
+
+#chargen-main #merit_xp_table input[type="checkbox"]:checked + label { 
+	font-style: italic;
+	background-color: #770506;
+}
