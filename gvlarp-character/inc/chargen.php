@@ -734,6 +734,25 @@ function vtm_render_finishing($step, $characterID, $templateID) {
 	$stat1      = $wpdb->get_var($wpdb->prepare($sql, $statid1, $characterID));
 	$stat2      = $wpdb->get_var($wpdb->prepare($sql, $statid2, $characterID));
 	$pathrating = ($stat1 + $stat2) * $settings['road-multiplier'];
+
+	// Date of Birth
+	$dob = $wpdb->get_var($wpdb->prepare("SELECT DATE_OF_BIRTH FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
+	$dob_day   = isset($_POST['day_dob'])   ? $_POST['day_dob']   : strftime("%d", strtotime($dob));
+	$dob_month = isset($_POST['month_dob']) ? $_POST['month_dob'] : strftime("%m", strtotime($dob));
+	$dob_year  = isset($_POST['year_dob'])  ? $_POST['year_dob']  : strftime("%Y", strtotime($dob));
+	
+	// Date of Embrace
+	$doe = $wpdb->get_var($wpdb->prepare("SELECT DATE_OF_EMBRACE FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
+	$doe_day   = isset($_POST['day_doe'])   ? $_POST['day_doe']   : strftime("%d", strtotime($doe));
+	$doe_month = isset($_POST['month_doe']) ? $_POST['month_doe'] : strftime("%m", strtotime($doe));
+	$doe_year  = isset($_POST['year_doe'])  ? $_POST['year_doe']  : strftime("%Y", strtotime($doe));
+	
+	// Date of Embrace
+	$sire = $wpdb->get_var($wpdb->prepare("SELECT SIRE FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
+	$sire = isset($_POST['sire']) ? $_POST['sire'] : $sire;
+	
+	// Specialities Data
+	$specialities = vtm_get_chargen_specialties($characterID);
 	
 	$output .= "<h4>Calculated Values</h4>\n";
 	$output .= "<table>\n";
@@ -748,14 +767,42 @@ function vtm_render_finishing($step, $characterID, $templateID) {
 	$output .= "<h4>Important Dates</h4>\n";
 	$output .= "<table>\n";
 	$output .= "<tr><td>Date of Birth:</td><td>";
-	$output .= render_date_entry("dob");
+	$output .= render_date_entry("dob", $dob_day, $dob_month, $dob_year);
 	$output .= "</td></tr>";
 	$output .= "<tr><td>Date of Embrace:</th><td>";
-	$output .= render_date_entry("doe");
+	$output .= render_date_entry("doe", $doe_day, $doe_month, $doe_year);
 	$output .= "</td></tr>";
 	$output .= "</table>\n";
 
-	$output .= "<h4>Specialties</h4>\n";
+	$output .= "<h4>Specialities</h4>\n";
+	$output .= "<table>\n";
+	$i = 0;
+	$title = "";
+	foreach ($specialities as $item) {
+		if ($title != $item['title']) {
+			$title = $item['title'];
+			$output .= "<tr><th colspan=4>$title</th></tr>";
+		}
+	
+		// have a hidden row with the tablename and tableid info
+		$output .= "<tr><td>" . stripslashes($item['name']) . "</td>
+					<td>{$item['level']}</td>
+					<td>{$item['updatetable']}</td>
+					<td>[textbox]</td></tr>";
+					
+		$i++;
+	}
+	$output .= "</table>\n";
+	
+	$output .= "<h4>Miscellaneous</h4>\n";
+	$output .= "<table>\n";
+	$output .= "<tr><td>Sire:</td><td>";
+	$output .= "<input type='text' name='sire' value='$sire' />";
+	$output .= "</td></tr>";
+	$output .= "<tr><td>Notes for Storyteller:</th><td>";
+	$output .= "[textarea]";
+	$output .= "</td></tr>";
+	$output .= "</table>\n";
 	
 	return $output;
 }
@@ -4539,37 +4586,159 @@ function vtm_validate_xp($settings, $characterID) {
 	return array($ok, $errormessages);
 }
 
-function render_date_entry($fieldname) {
-
-	// ADD IN _POST/DB VALUES - SELECTED
+function render_date_entry($fieldname, $day, $month, $year) {
 
 	$output ="
 	<fieldset>
 	<label for='month_$fieldname'>Month</label>
 	<select id='month_$fieldname' name='month_$fieldname' />
-		<option value='01'>January</option>      
-		<option value='02'>February</option>      
-		<option value='03'>March</option>      
-		<option value='04'>April</option>      
-		<option value='05'>May</option>      
-		<option value='06'>June</option>      
-		<option value='07'>July</option>      
-		<option value='08'>August</option>      
-		<option value='09'>September</option>      
-		<option value='10'>October</option>      
-		<option value='11'>November</option>      
-		<option value='12'>December</option>      
+		<option value='1' " . selected(1, $month, false) . ">January</option>      
+		<option value='2' " . selected(2, $month, false) . ">February</option>      
+		<option value='3' " . selected(3, $month, false) . ">March</option>      
+		<option value='4' " . selected(4, $month, false) . ">April</option>      
+		<option value='5' " . selected(5, $month, false) . ">May</option>      
+		<option value='6' " . selected(6, $month, false) . ">June</option>      
+		<option value='7' " . selected(7, $month, false) . ">July</option>      
+		<option value='8' " . selected(8, $month, false) . ">August</option>      
+		<option value='9' " . selected(9, $month, false) . ">September</option>      
+		<option value='10' " . selected(10, $month, false) . ">October</option>      
+		<option value='11' " . selected(11, $month, false) . ">November</option>      
+		<option value='12' " . selected(12, $month, false) . ">December</option>      
 	</select> -
 	<label for='day_$fieldname'>Day</label>
 	<select id='day_$fieldname'  name='day_$fieldname' />";
 	for ($i = 1; $i <= 31 ; $i++)
-		$output .= "<option  value=''>$i</option>\n";
+		$output .= "<option value='$i' " . selected($i, $day, false) . ">$i</option>\n";
   
 	$output .= "</select> -
 	<label for='year_$fieldname'>Year</label>
-	<input type='text' name='year_$fieldname' size=5 />
+	<input type='text' name='year_$fieldname' size=5 value='$year' />
 	</fieldset>\n";
 
 	return $output;
+}
+function vtm_get_chargen_specialties($characterID) {
+	global $wpdb;
+
+	// array ( 0 => array (
+	//			'updatetable'  => 'CHARACTER_STAT|PENDING_XP_SPEND|PENDING_FREEBIE_SPEND',
+	//			'tableid'      => <id of entry of table>
+	//			'name'         => <name of stat>
+	//		)
+	// )
+	$specialities = array();
+
+	// 
+	
+	// MERITS
+	
+	// STATS & SKILLS
+	$sql = "(SELECT 
+				'STAT'					as type,
+				'Attributes' 			as typename,
+				stat.NAME 				as itemname, 
+				stat.GROUPING 			as grp, 
+				cs.LEVEL 					as level,
+				cs.id						as id,
+				pendingfreebie.LEVEL_TO 	as freebielevel,
+				pendingfreebie.ID 			as freebieid,
+				pendingxp.CHARTABLE_LEVEL 	as xplevel,
+				pendingxp.ID 				as xpid,
+				stat.SPECIALISATION_AT 		as specialisation_at,
+				stat.ORDERING
+			FROM
+				" . VTM_TABLE_PREFIX . "STAT stat,
+				" . VTM_TABLE_PREFIX . "CHARACTER_STAT cs
+				LEFT JOIN (
+					SELECT ID, CHARTABLE_LEVEL, ITEMTABLE_ID
+					FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
+					WHERE CHARACTER_ID = %s
+						AND ITEMTABLE = 'STAT'
+				) pendingxp
+				ON 
+					pendingxp.ITEMTABLE_ID = cs.STAT_ID
+				LEFT JOIN (
+					SELECT ID, LEVEL_TO, ITEMTABLE_ID
+					FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
+					WHERE CHARACTER_ID = %s
+						AND ITEMTABLE = 'STAT'
+				) pendingfreebie
+				ON
+					pendingfreebie.ITEMTABLE_ID = cs.STAT_ID
+			WHERE
+				cs.CHARACTER_ID = %s
+				AND stat.ID = cs.STAT_ID
+			ORDER BY
+				stat.ORDERING)
+			UNION
+			(SELECT 
+				'SKILL'					as type,
+				'Abilities' 			as typename,
+				skill.NAME 				as itemname, 
+				skill.GROUPING 			as grp, 
+				cs.LEVEL 					as level,
+				cs.id						as id,
+				pendingfreebie.LEVEL_TO 	as freebielevel,
+				pendingfreebie.ID 			as freebieid,
+				pendingxp.CHARTABLE_LEVEL 	as xplevel,
+				pendingxp.ID 				as xpid,
+				skill.SPECIALISATION_AT 		as specialisation_at,
+				CASE skill.GROUPING WHEN 'Talents' THEN 3 WHEN 'Skills' THEN 2 WHEN 'Knowledges' THEN 1 ELSE 0 END as ORDERING
+			FROM
+				" . VTM_TABLE_PREFIX . "SKILL skill,
+				" . VTM_TABLE_PREFIX . "CHARACTER_SKILL cs
+				LEFT JOIN (
+					SELECT ID, CHARTABLE_LEVEL, ITEMTABLE_ID
+					FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
+					WHERE CHARACTER_ID = %s
+						AND ITEMTABLE = 'SKILL'
+				) pendingxp
+				ON 
+					pendingxp.ITEMTABLE_ID = cs.SKILL_ID
+				LEFT JOIN (
+					SELECT ID, LEVEL_TO, ITEMTABLE_ID
+					FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
+					WHERE CHARACTER_ID = %s
+						AND ITEMTABLE = 'SKILL'
+				) pendingfreebie
+				ON
+					pendingfreebie.ITEMTABLE_ID = cs.SKILL_ID
+			WHERE
+				cs.CHARACTER_ID = %s
+				AND skill.ID = cs.SKILL_ID
+			ORDER BY
+				skill.ORDERING DESC, skill.NAME)";
+	$sql = $wpdb->prepare($sql, $characterID, $characterID, $characterID, $characterID, $characterID, $characterID);
+	$results = $wpdb->get_results($sql);
+	
+	foreach ($results as $row) {
+		$level = max($row->level, $row->freebielevel, $row->xplevel);
+		if ($level >= $row->specialisation_at && $row->specialisation_at > 0) {
+			if (isset($row->xplevel)) {
+				$updatetable = 'PENDING_XP_SPEND';
+				$tableid     = $row->xpid;
+			}
+			elseif (isset($row->freebielevel)) {
+				$updatetable = 'PENDING_FREEBIE_SPEND';
+				$tableid     = $row->freebieid;
+			}
+			else {
+				$updatetable = 'CHARACTER_' . $row->type;
+				$tableid     = $row->id;
+			}
+			array_push($specialities, array(
+					'name'    => $row->itemname,
+					'title'    => $row->typename,
+					'updatetable' => $updatetable,
+					'tableid' => $tableid,
+					'level'   => $level,
+					'grp'     => $row->grp,
+					'spec_at' => $row->specialisation_at));
+		}
+	}
+	
+	echo "<p>SQL: $sql</p>";
+	print_r($specialities);
+	return $specialities;
 }
 ?>
