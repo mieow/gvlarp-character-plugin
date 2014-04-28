@@ -4685,8 +4685,15 @@ function vtm_get_chargen_specialties($characterID) {
 				skill.SPECIALISATION_AT 		as specialisation_at,
 				CASE skill.GROUPING WHEN 'Talents' THEN 3 WHEN 'Skills' THEN 2 WHEN 'Knowledges' THEN 1 ELSE 0 END as ORDERING
 			FROM
-				" . VTM_TABLE_PREFIX . "SKILL skill,
-				" . VTM_TABLE_PREFIX . "CHARACTER_SKILL cs
+				" . VTM_TABLE_PREFIX . "SKILL skill
+				LEFT JOIN (
+					SELECT ID, LEVEL, SKILL_ID
+					FROM " . VTM_TABLE_PREFIX . "CHARACTER_SKILL
+					WHERE
+						CHARACTER_ID = %s
+				) cs
+				ON
+					cs.SKILL_ID = skill.ID
 				LEFT JOIN (
 					SELECT ID, CHARTABLE_LEVEL, ITEMTABLE_ID
 					FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
@@ -4694,7 +4701,7 @@ function vtm_get_chargen_specialties($characterID) {
 						AND ITEMTABLE = 'SKILL'
 				) pendingxp
 				ON 
-					pendingxp.ITEMTABLE_ID = cs.SKILL_ID
+					pendingxp.ITEMTABLE_ID = skill.ID
 				LEFT JOIN (
 					SELECT ID, LEVEL_TO, ITEMTABLE_ID
 					FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
@@ -4702,10 +4709,7 @@ function vtm_get_chargen_specialties($characterID) {
 						AND ITEMTABLE = 'SKILL'
 				) pendingfreebie
 				ON
-					pendingfreebie.ITEMTABLE_ID = cs.SKILL_ID
-			WHERE
-				cs.CHARACTER_ID = %s
-				AND skill.ID = cs.SKILL_ID
+					pendingfreebie.ITEMTABLE_ID = skill.ID
 			ORDER BY
 				skill.ORDERING DESC, skill.NAME)";
 	$sql = $wpdb->prepare($sql, $characterID, $characterID, $characterID, $characterID, $characterID, $characterID);
@@ -4736,6 +4740,73 @@ function vtm_get_chargen_specialties($characterID) {
 					'spec_at' => $row->specialisation_at));
 		}
 	}
+	
+	$sql = "SELECT
+				'MERIT'					as type,
+				'Merits and Flaws'		as typename,
+				merit.NAME 				as itemname, 
+				merit.GROUPING 			as grp, 
+				merit.VALUE 			as level,
+				cm.id					as id,
+				pendingfreebie.ID 		as freebieid,
+				pendingxp.ID 			as xpid,
+				merit.HAS_SPECIALISATION    as has_specialisation
+			FROM
+				" . VTM_TABLE_PREFIX . "MERIT merit
+				LEFT JOIN (
+					SELECT ID, LEVEL, MERIT_ID
+					FROM " . VTM_TABLE_PREFIX . "CHARACTER_MERIT
+					WHERE
+						CHARACTER_ID = %s
+				) cm
+				ON
+					cm.MERIT_ID = merit.ID
+				LEFT JOIN (
+					SELECT ID, CHARTABLE_LEVEL, ITEMTABLE_ID
+					FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
+					WHERE CHARACTER_ID = %s
+						AND ITEMTABLE = 'MERIT'
+				) pendingxp
+				ON 
+					pendingxp.ITEMTABLE_ID = merit.ID
+				LEFT JOIN (
+					SELECT ID, LEVEL_TO, ITEMTABLE_ID
+					FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
+					WHERE CHARACTER_ID = %s
+						AND ITEMTABLE = 'MERIT'
+				) pendingfreebie
+				ON
+					pendingfreebie.ITEMTABLE_ID = merit.ID
+			ORDER BY
+				merit.VALUE DESC, merit.NAME";
+	$sql = $wpdb->prepare($sql, $characterID, $characterID, $characterID);
+	$results = $wpdb->get_results($sql);
+	
+	foreach ($results as $row) {
+		if ($row->has_specialisation == 'Y') {
+			if (isset($row->xplevel)) {
+				$updatetable = 'PENDING_XP_SPEND';
+				$tableid     = $row->xpid;
+			}
+			elseif (isset($row->freebielevel)) {
+				$updatetable = 'PENDING_FREEBIE_SPEND';
+				$tableid     = $row->freebieid;
+			}
+			else {
+				$updatetable = 'CHARACTER_' . $row->type;
+				$tableid     = $row->id;
+			}
+			array_push($specialities, array(
+					'name'    => $row->itemname,
+					'title'    => $row->typename,
+					'updatetable' => $updatetable,
+					'tableid' => $tableid,
+					'level'   => $row->level,
+					'grp'     => $row->grp,
+					'spec_at' => 1));
+		}
+	}
+			
 	
 	echo "<p>SQL: $sql</p>";
 	print_r($specialities);
