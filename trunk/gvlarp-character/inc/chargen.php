@@ -69,8 +69,8 @@ function vtm_chargen_flow_steps($characterID) {
 	array_push($buttons,array(
 				'title' => "Finishing Touches", 
 				'function'   => 'vtm_render_finishing',
-				'validate'   => '',
-				'save'       => ''));
+				'validate'   => 'vtm_validate_finishing',
+				'save'       => 'vtm_save_finish'));
 	array_push($buttons,array(
 				'title' => "Extended Backgrounds", 
 				'function'   => '',
@@ -737,15 +737,15 @@ function vtm_render_finishing($step, $characterID, $templateID) {
 
 	// Date of Birth
 	$dob = $wpdb->get_var($wpdb->prepare("SELECT DATE_OF_BIRTH FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
-	$dob_day   = isset($_POST['day_dob'])   ? $_POST['day_dob']   : strftime("%d", strtotime($dob));
-	$dob_month = isset($_POST['month_dob']) ? $_POST['month_dob'] : strftime("%m", strtotime($dob));
-	$dob_year  = isset($_POST['year_dob'])  ? $_POST['year_dob']  : strftime("%Y", strtotime($dob));
+	$dob_day   = isset($_POST['day_dob'])   ? $_POST['day_dob']   : (isset($dob) ? strftime("%d", strtotime($dob)) : '');
+	$dob_month = isset($_POST['month_dob']) ? $_POST['month_dob'] : (isset($dob) ? strftime("%m", strtotime($dob)) : '');
+	$dob_year  = isset($_POST['year_dob'])  ? $_POST['year_dob']  : (isset($dob) ? strftime("%Y", strtotime($dob)) : '');
 	
 	// Date of Embrace
 	$doe = $wpdb->get_var($wpdb->prepare("SELECT DATE_OF_EMBRACE FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
-	$doe_day   = isset($_POST['day_doe'])   ? $_POST['day_doe']   : strftime("%d", strtotime($doe));
-	$doe_month = isset($_POST['month_doe']) ? $_POST['month_doe'] : strftime("%m", strtotime($doe));
-	$doe_year  = isset($_POST['year_doe'])  ? $_POST['year_doe']  : strftime("%Y", strtotime($doe));
+	$doe_day   = isset($_POST['day_doe'])   ? $_POST['day_doe']   : (isset($doe) ? strftime("%d", strtotime($doe)) : '');
+	$doe_month = isset($_POST['month_doe']) ? $_POST['month_doe'] : (isset($doe) ? strftime("%m", strtotime($doe)) : '');
+	$doe_year  = isset($_POST['year_doe'])  ? $_POST['year_doe']  : (isset($doe) ? strftime("%Y", strtotime($doe)) : '');
 	
 	// Date of Embrace
 	$sire = $wpdb->get_var($wpdb->prepare("SELECT SIRE FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
@@ -775,20 +775,37 @@ function vtm_render_finishing($step, $characterID, $templateID) {
 	$output .= "</table>\n";
 
 	$output .= "<h4>Specialities</h4>\n";
+	$output .= "<p>Please enter specialities for the indicated Attributes and Abilities and provide
+				a note on what any Merits and Flaws refer to.</p>
+				
+				<p>An example speciality for Stamina is 'tough'. An example note for the Merit 'Acute Sense'
+				would be 'sight.'</p>";
 	$output .= "<table>\n";
 	$i = 0;
 	$title = "";
+	
+	// Notes to ST
+	$stnotes = $wpdb->get_var($wpdb->prepare("SELECT CHARGEN_NOTE_TO_ST FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
+	$stnotes = isset($_POST['noteforST']) ? $_POST['noteforST'] : $stnotes;
+	
+
 	foreach ($specialities as $item) {
 		if ($title != $item['title']) {
 			$title = $item['title'];
-			$output .= "<tr><th colspan=4>$title</th></tr>";
+			$output .= "<tr><th colspan=3>$title</th></tr>";
 		}
 	
 		// have a hidden row with the tablename and tableid info
+		$output .= "<tr style='display:none'><td colspan=3>
+					<input type='hidden' name='tablename[]' value='{$item['updatetable']}' />
+					<input type='hidden' name='tableid[]' value='{$item['tableid']}' />
+					<input type='hidden' name='itemname[]' value='{$item['name']}' />
+					</td></tr>";
+		
+		$spec = isset($_POST['comment'][$i]) ? $_POST['comment'][$i] : '';
 		$output .= "<tr><td>" . stripslashes($item['name']) . "</td>
 					<td>{$item['level']}</td>
-					<td>{$item['updatetable']}</td>
-					<td>[textbox]</td></tr>";
+					<td><input type='text' name='comment[]' value='$spec' /></td></tr>";
 					
 		$i++;
 	}
@@ -796,11 +813,11 @@ function vtm_render_finishing($step, $characterID, $templateID) {
 	
 	$output .= "<h4>Miscellaneous</h4>\n";
 	$output .= "<table>\n";
-	$output .= "<tr><td>Sire:</td><td>";
+	$output .= "<tr><td>Name of your Sire:</td><td>";
 	$output .= "<input type='text' name='sire' value='$sire' />";
 	$output .= "</td></tr>";
 	$output .= "<tr><td>Notes for Storyteller:</th><td>";
-	$output .= "[textarea]";
+	$output .= "<textarea name='noteforST' rows='5' cols='80'>$stnotes</textarea>"; // ADD COLUMN TO CHARACTER
 	$output .= "</td></tr>";
 	$output .= "</table>\n";
 	
@@ -1033,7 +1050,7 @@ function vtm_save_progress($laststep, $characterID, $templateID) {
 	
 	$flow = vtm_chargen_flow_steps($characterID);
 	if ($laststep != 0) {
-		//echo "<li>laststep: $laststep, function: {$flow[$laststep-1]['save']}</li>";
+		echo "<li>laststep: $laststep, function: {$flow[$laststep-1]['save']}</li>";
 		$characterID = call_user_func($flow[$laststep-1]['save'], $characterID, $templateID);
 		//echo "<li>CharacterID: $characterID</li>";
 	}
@@ -1214,6 +1231,16 @@ function vtm_save_freebies($characterID, $templateID) {
 			}
 		}
 	}
+
+	return $characterID;
+}
+function vtm_save_finish($characterID, $templateID) {
+	global $wpdb;
+
+	// Save CHARACTER information
+	
+	
+	// Save Specialities
 
 	return $characterID;
 }
@@ -4536,6 +4563,36 @@ function vtm_validate_freebies($settings, $characterID) {
 
 	return array($ok, $errormessages);
 }
+function vtm_validate_finishing($settings, $characterID) {
+
+	$ok = 1;
+	$errormessages = "";
+	
+	// All specialities are entered
+	// Sire name is entered
+	// Dates are not the default dates
+	
+	foreach ($_POST['itemname'] as $index => $name) {
+		if (!isset($_POST['comment'][$index]) || $_POST['comment'][$index] == '') {
+			$errormessages .= "<li>ERROR: Please specify a speciality for $name</li>";
+			$ok = 0;
+		}
+	}
+	if (!isset($_POST['sire']) || $_POST['sire'] == '') {
+		$errormessages .= "<li>ERROR: Please the name of your sire, or enter 'unknown' if your character does not know.</li>";
+		$ok = 0;
+}
+	if ($_POST['day_dob'] == 0 || $_POST['month_dob'] == 0) {
+		$errormessages .= "<li>ERROR: Please your character's Date of Birth.</li>";
+		$ok = 0;
+	}
+	if ($_POST['day_doe'] == 0 || $_POST['month_doe'] == 0) {
+		$errormessages .= "<li>ERROR: Please your character's Date of Embrace.</li>";
+		$ok = 0;
+	}
+
+	return array($ok, $errormessages);
+}
 function vtm_validate_xp($settings, $characterID) {
 
 	$ok = 1;
@@ -4592,6 +4649,7 @@ function render_date_entry($fieldname, $day, $month, $year) {
 	<fieldset>
 	<label for='month_$fieldname'>Month</label>
 	<select id='month_$fieldname' name='month_$fieldname' />
+		<option value='0'>[Select]</option>      
 		<option value='1' " . selected(1, $month, false) . ">January</option>      
 		<option value='2' " . selected(2, $month, false) . ">February</option>      
 		<option value='3' " . selected(3, $month, false) . ">March</option>      
@@ -4606,7 +4664,8 @@ function render_date_entry($fieldname, $day, $month, $year) {
 		<option value='12' " . selected(12, $month, false) . ">December</option>      
 	</select> -
 	<label for='day_$fieldname'>Day</label>
-	<select id='day_$fieldname'  name='day_$fieldname' />";
+	<select id='day_$fieldname'  name='day_$fieldname' />
+		<option value='0'>[Select]</option>";
 	for ($i = 1; $i <= 31 ; $i++)
 		$output .= "<option value='$i' " . selected($i, $day, false) . ">$i</option>\n";
   
@@ -4808,8 +4867,8 @@ function vtm_get_chargen_specialties($characterID) {
 	}
 			
 	
-	echo "<p>SQL: $sql</p>";
-	print_r($specialities);
+	//echo "<p>SQL: $sql</p>";
+	//print_r($specialities);
 	return $specialities;
 }
 ?>
