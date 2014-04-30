@@ -510,7 +510,7 @@ class vtmclass_admin_skills_table extends vtmclass_MultiPage_ListTable {
 		}
 	}
 
- 	function vtm_edit_skill() {
+ 	function edit_skill() {
 		global $wpdb;
 		
 		$wpdb->show_errors();
