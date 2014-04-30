@@ -6,7 +6,7 @@ register_activation_hook( __FILE__, 'vtm_character_install_data' );
 global $vtm_character_version;
 global $vtm_character_db_version;
 $vtm_character_version = "1.10"; 
-$vtm_character_db_version = "18"; 
+$vtm_character_db_version = "19"; 
 
 function vtm_update_db_check() {
     global $vtm_character_version;
@@ -685,6 +685,7 @@ function vtm_character_install() {
 					ITEMTABLE      TINYTEXT      NOT NULL,
 					ITEMNAME       TINYTEXT      NOT NULL,
 					ITEMTABLE_ID   MEDIUMINT(9)  NOT NULL,
+					SPECIALISATION VARCHAR(64)	 NOT NULL,
 					PRIMARY KEY  (ID),
 					CONSTRAINT `" . $table_prefix . "pending_freebie_constraint_1` FOREIGN KEY (CHARACTER_ID) REFERENCES " . $table_prefix . "CHARACTER(ID)
 					) ENGINE=INNODB;";

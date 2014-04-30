@@ -334,7 +334,7 @@ function vtm_get_generations() {
 	
 	return $list;
 }
-	function vtm_get_sects() {
+function vtm_get_sects() {
 
 	global $wpdb;
 
