@@ -499,20 +499,22 @@ function vtm_render_attributes($step, $characterID, $templateID) {
 	
 	return $output;
 }
-/*
+
 function vtm_render_chargen_virtues($step, $characterID, $templateID) {
 	global $wpdb;
 
 	$output = "";
-	$settings = vtm_get_chargen_settings($templateID);
-	$virtues  = vtm_get_chargen_virtues($characterID);
-	$pending  = vtm_get_pending_freebies('STAT', 'freebie_stat', $characterID);  // name => value
+	$config    = vtm_getConfig();
+	$settings  = vtm_get_chargen_settings($templateID);
+	$items     = vtm_get_chargen_virtues($characterID);
+	$pendingfb = vtm_get_pending_freebies('STAT', $characterID);  // name => value
+	$pendingxp = vtm_get_pending_freebies('STAT', $characterID);  // name => value
 	
 	$output .= "<h3>Step $step: Virtues</h3>";
 	$output .= "<p>You have {$settings['virtues-points']} dots to spend on your virtues.</p>";
 	
 	// read initial values
-	$sql = "SELECT cstat.STAT_ID, cstat.LEVEL
+	$sql = "SELECT stats.NAME, cstat.STAT_ID, cstat.LEVEL
 			FROM 
 				" . VTM_TABLE_PREFIX . "CHARACTER_STAT cstat,
 				" . VTM_TABLE_PREFIX . "STAT stats
@@ -521,68 +523,39 @@ function vtm_render_chargen_virtues($step, $characterID, $templateID) {
 				AND stats.GROUPING = 'Virtue'
 				AND CHARACTER_ID = %s ";
 	$sql = $wpdb->prepare($sql, $characterID);
-	$keys = $wpdb->get_col($sql);
-	if (count($keys) > 0) {
-		$vals = $wpdb->get_col($sql,1);
-		$stats = array_combine($keys, $vals);
-	}
-	elseif (isset($_POST['virtue_value'])) {
-		$stats = $_POST['virtue_value'];
-	}
+	$saved = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K));
 	
-	$config = vtm_getConfig();
+	//print_r($saved);
+
+	$virtues = isset($_POST['virtue_value']) ? $_POST['virtue_value'] : array();
 	
+	// Display Path pull-down
 	if (isset($_POST['path'])) {
 		$selectedpath = $_POST['path'];
 	} else {
 		$selectedpath = $wpdb->get_var($wpdb->prepare("SELECT ROAD_OR_PATH_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
 	}
-	$statid1      = $wpdb->get_var($wpdb->prepare("SELECT STAT1_ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $selectedpath));
-	$statid2      = $wpdb->get_var($wpdb->prepare("SELECT STAT2_ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $selectedpath));
-	$courage      = $wpdb->get_var("SELECT ID FROM " . VTM_TABLE_PREFIX . "STAT WHERE NAME = 'Courage'");
 	$output .= "<p><label>Path of Enlightenment:</label><select name='path' autocomplete='off'>\n";
 	foreach (vtm_get_chargen_roads() as $path) {
 		$output .= "<option value='{$path->ID}' " . selected($path->ID, $selectedpath, false) . ">" . stripslashes($path->NAME) . "</option>";
 	}
-	$output .= "</select>\n";
+	$output .= "</select></p>\n";
+
+	$statkey1 = vtm_get_virtue_statkey(1, $selectedpath);
+	$statkey2 = vtm_get_virtue_statkey(2, $selectedpath);
+
+	$pathitems = array (
+		$statkey1 => $items[$statkey1],
+		$statkey2 => $items[$statkey2],
+		'courage' => $items['courage']
+	);
 	
-	$output .= "<table><tr><th>Virtue</th><th>Rating</th><th>Description</th></tr>\n";
-	
-	// Stat1
-	$key = sanitize_key($virtues[$statid1]->NAME);
-	$output .= "<tr><td class=\"gvcol_key\">" . $virtues[$statid1]->NAME . "</td>";
-	$output .= "<td>";
-	$output .= vtm_render_dot_select("virtue_value", $statid1, 
-					isset($stats[$statid1]) ? $stats[$statid1] : -1,
-					1,5,isset($pending[$key]) ? $pending[$key] : 0);
-	$output .= "</td><td>";
-	$output .= stripslashes($virtues[$statid1]->DESCRIPTION);
-	$output .= "</td></tr>\n";
-
-	// Stat2
-	$key = sanitize_key($virtues[$statid2]->NAME);
-	$output .= "<tr><td class=\"gvcol_key\">" . $virtues[$statid2]->NAME . "</td>";
-	$output .= "<td>";
-	$output .= vtm_render_dot_select("virtue_value", $statid2, isset($stats[$statid2]) ? $stats[$statid2] : -1,
-					1,5,isset($pending[$key]) ? $pending[$key] : 0);
-	$output .= "</td><td>";
-	$output .= stripslashes($virtues[$statid2]->DESCRIPTION);
-	$output .= "</td></tr>\n";
-
-	// Courage
-	$key = sanitize_key($virtues[$courage]->NAME);
-	$output .= "<tr><td class=\"gvcol_key\">" . $virtues[$courage]->NAME . "</td>";
-	$output .= "<td>";
-	$output .= vtm_render_dot_select("virtue_value", $courage, isset($stats[$courage]) ? $stats[$courage] : -1, 
-						1,5,isset($pending[$key]) ? $pending[$key] : 0);
-	$output .= "</td><td>";
-	$output .= stripslashes($virtues[$courage]->DESCRIPTION);
-	$output .= "</td></tr>\n";
-
-	$output .= "</table>\n";
+	$output .= vtm_render_chargen_section($saved, false, 0, 0, 0, 
+		1, $pathitems, $virtues, $pendingfb, $pendingxp, 'Virtues', 'virtue_value');
 	
 	return $output;
 }
+/*
 function vtm_render_chargen_freebies($step, $characterID, $templateID) {
 	global $wpdb;
 
@@ -1007,7 +980,7 @@ function vtm_save_attributes($characterID) {
 	global $wpdb;
 	
 	// List of attributes
-	$attributes    = vtm_get_chargen_attributes();
+	$attributes = vtm_get_chargen_attributes();
 	
 	// Get saved into database
 	$sql = "SELECT stats.NAME, cstat.STAT_ID, cstat.ID, cstat.COMMENT
@@ -1439,7 +1412,7 @@ function vtm_save_disciplines($characterID) {
 					//echo "<li>No need to update $key</li>";
 				//}
 			} else {
-				echo "<li>Added $key at $value</li>";
+				//echo "<li>Added $key at $value</li>";
 				// insert
 				$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE",
 							$data,
@@ -1536,59 +1509,39 @@ function vtm_save_backgrounds($characterID) {
 	return $characterID;
 	
 }
-/*
+
 function vtm_save_virtues($characterID, $templateID) {
 	global $wpdb;
-
-	$new      = $_POST['virtue_value'];
-	$settings = vtm_get_chargen_settings($templateID);
-	$virtues  = vtm_get_chargen_virtues();
-	$selectedpath = $_POST['path'];
-	$statid1  = $wpdb->get_var($wpdb->prepare("SELECT STAT1_ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $selectedpath));
-	$statid2  = $wpdb->get_var($wpdb->prepare("SELECT STAT2_ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $selectedpath));
-	$courage = $wpdb->get_var("SELECT ID FROM " . VTM_TABLE_PREFIX . "STAT WHERE NAME = 'Courage'");
-	$wpid    = $wpdb->get_var("SELECT ID FROM " . VTM_TABLE_PREFIX . "STAT WHERE NAME = 'Willpower'");
 	
-	// Update CHARACTER with road/path ID and Rating
-	$statval1 = isset($new[$statid1]) ? $new[$statid1] : 0;
-	$statval2 = isset($new[$statid2]) ? $new[$statid2] : 0;
-	$rating = ($statval1 + $statval2) * $settings['road-multiplier'];
+	$new = $_POST['virtue_value'];
+	$selectedpath = $_POST['path'];
+	
+	// Update CHARACTER with road/path ID
 	$data = array (
-		'ROAD_OR_PATH_ID'     => $selectedpath,
-		'ROAD_OR_PATH_RATING' => $rating
+		'ROAD_OR_PATH_ID'     => $selectedpath
 	);
 	//print_r($data);
 	$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER",
-		$data,
-		array (
-			'ID' => $characterID
-		)
+		array ('ROAD_OR_PATH_ID' => $selectedpath),
+		array ('ID' => $characterID)
 	);
 	
-	// Update CHARACTER_STAT with virtue ratings
-	$sql = "SELECT cstat.STAT_ID, cstat.ID, stats.NAME
-			FROM 
-				" . VTM_TABLE_PREFIX . "CHARACTER_STAT cstat,
-				" . VTM_TABLE_PREFIX . "STAT stats
-			WHERE 
-				stats.ID = cstat.STAT_ID
-				AND stats.GROUPING = 'Willpower'
-				AND CHARACTER_ID = %s";
-	$sql = $wpdb->prepare($sql, $characterID);
-	$willpower = $wpdb->get_row($sql);
-	$value = isset($new[$courage]) ? $new[$courage] : 0;
+	// Update Willpower based on Courage
+	$wpid   = $wpdb->get_var("SELECT ID FROM " . VTM_TABLE_PREFIX . "STAT WHERE NAME = 'Willpower'");
+	$wpcsid = $wpdb->get_var($wpdb->prepare(
+				"SELECT ID 
+				FROM " . VTM_TABLE_PREFIX . "CHARACTER_STAT 
+				WHERE CHARACTER_ID = %s and STAT_ID = %s", $characterID, $wpid));
 	$data = array(
 		'CHARACTER_ID' => $characterID,
 		'STAT_ID'      => $wpid,
-		'LEVEL'        => $value
+		'LEVEL'        => $new['courage']
 	);
-	if (isset($willpower->STAT_ID)) {
+	if (isset($wpcsid)) {
 		// update
 		$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_STAT",
 			$data,
-			array (
-				'ID' => $willpower->STAT_ID
-			)
+			array ('ID' => $wpcsid)
 		);
 	} 
 	else {
@@ -1599,9 +1552,15 @@ function vtm_save_virtues($characterID, $templateID) {
 				);
 	}
 	
-
 	// Update CHARACTER_STAT with virtue ratings
-	$sql = "SELECT cstat.STAT_ID, cstat.ID, stats.NAME
+	$virtues  = vtm_get_chargen_virtues();
+	$statkey1 = vtm_get_virtue_statkey(1, $selectedpath);
+	$statkey2 = vtm_get_virtue_statkey(2, $selectedpath);
+	
+	$statval1 = isset($new[$statkey1]) ? $new[$statkey1] : 0;
+	$statval2 = isset($new[$statkey2]) ? $new[$statkey2] : 0;
+	
+	$sql = "SELECT stats.NAME, cstat.STAT_ID, cstat.ID
 			FROM 
 				" . VTM_TABLE_PREFIX . "CHARACTER_STAT cstat,
 				" . VTM_TABLE_PREFIX . "STAT stats
@@ -1610,34 +1569,30 @@ function vtm_save_virtues($characterID, $templateID) {
 				AND stats.GROUPING = 'Virtue'
 				AND CHARACTER_ID = %s";
 	$sql = $wpdb->prepare($sql, $characterID);
-	$keys = $wpdb->get_col($sql);
-	if (count($keys) > 0) {
-		$vals = $wpdb->get_col($sql,1);
-		$names = $wpdb->get_col($sql,2);
-		$current = array_combine($keys, $vals);
-	} else {
-		$current = array();
-	}
-
+	$saved = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K));
+	
 	foreach ($virtues as $attribute) {
-		$attributeid = $attribute->ID;
-		$value = isset($new[$attributeid]) ? $new[$attributeid] : 0;
-		if ($attributeid == $statid1 || $attributeid == $statid2 || $attributeid == $courage) {
+		$key     = sanitize_key($attribute->NAME);
+		$value   = isset($new[$key]) ? $new[$key] : 0;
+		
+		if ($key == $statkey1 || $key == $statkey2 || $key == 'courage') {
 			$data = array(
 				'CHARACTER_ID' => $characterID,
-				'STAT_ID'      => $attributeid,
+				'STAT_ID'      => $attribute->ID,
 				'LEVEL'        => $value
 			);
-			if (isset($current[$attributeid])) {
+			if (isset($saved[$key])) {
+				//echo "<li>Updated $key at $value</li>";
 				// update
 				$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_STAT",
 					$data,
 					array (
-						'ID' => $current[$attributeid]
+						'ID' => $saved[$key]->ID
 					)
 				);
 			} 
 			else {
+				//echo "<li>Added $key at $value</li>";
 				// insert
 				$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_STAT",
 							$data,
@@ -1647,22 +1602,23 @@ function vtm_save_virtues($characterID, $templateID) {
 		}
 	}
 	
+
 	// Delete anything no longer needed
-	foreach ($current as $id => $value) {
+	foreach ($saved as $id => $value) {
 	
 		if (!isset($new[$id])) {
 			// Delete
 			$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "CHARACTER_STAT
 					WHERE CHARACTER_ID = %s AND STAT_ID = %s";
-			$sql = $wpdb->prepare($sql,$characterID,$id);
+			$sql = $wpdb->prepare($sql,$characterID,$saved[$id]->STAT_ID);
 			//echo "<li>Delete $id ($sql)</li>";
 			$wpdb->get_results($sql);
 		}
 	}
-	
+
 	return $characterID;
 }
-*/
+
 function vtm_save_basic_info($characterID, $templateID) {
 	global $wpdb;
 		
@@ -2083,24 +2039,38 @@ function vtm_get_chargen_stats($characterID = 0, $output_type = OBJECT) {
 	//print_r($results);
 	return $results;
 
-}
+}*/
+
 function vtm_get_chargen_virtues($characterID = 0) {
 	global $wpdb;
 			
-	$sql = "SELECT ID, NAME, DESCRIPTION, GROUPING, SPECIALISATION_AT
+	$sql = "SELECT NAME, ID, DESCRIPTION, GROUPING, SPECIALISATION_AT
 			FROM " . VTM_TABLE_PREFIX . "STAT
 			WHERE
 				GROUPING = 'Virtue'
 			ORDER BY ORDERING";
 	//echo "<p>SQL: $sql</p>";
-	$results = $wpdb->get_results($sql, OBJECT_K);
+	$results = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K));
 	
 	//print_r($results);
 	
 	return $results;
 
 }
-*/
+
+function vtm_get_virtue_statkey($statnum, $selectedpath) {
+	global $wpdb;
+	
+	$statsql = "SELECT stat.NAME, stat.ID 
+				FROM 
+					" . VTM_TABLE_PREFIX . "ROAD_OR_PATH rop,
+					" . VTM_TABLE_PREFIX . "STAT stat
+				WHERE rop.ID = %s AND rop.STAT{$statnum}_ID = stat.ID";
+
+	return sanitize_key($wpdb->get_var($wpdb->prepare($statsql, $selectedpath)));
+	
+}
+
 function vtm_get_chargen_disciplines($characterID = 0, $output_type = OBJECT) {
 	global $wpdb;
 	
@@ -2210,7 +2180,7 @@ function vtm_get_chargen_abilities($characterID = 0, $showsecondary = 0, $output
 	return $results;
 
 }
-/*
+
 function vtm_get_chargen_roads() {
 	global $wpdb;
 
@@ -2222,7 +2192,7 @@ function vtm_get_chargen_roads() {
 	$roadsOrPaths = $wpdb->get_results($sql);
 	return $roadsOrPaths;
 }
-*/
+
 function vtm_render_dot_select($type, $itemid, $current, $pending, $free, $max) {
 
 	$output = "";
@@ -4437,7 +4407,7 @@ function vtm_validate_backgrounds($settings, $characterID) {
 
 	return array($ok, $errormessages);
 }
-/*
+
 function vtm_validate_virtues($settings, $characterID) {
 	global $wpdb;
 
@@ -4451,16 +4421,15 @@ function vtm_validate_virtues($settings, $characterID) {
 		$values = $_POST['virtue_value'];
 		
 		$selectedpath = $_POST['path'];
-		$statid1 = $wpdb->get_var($wpdb->prepare("SELECT STAT1_ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $selectedpath));
-		$statid2 = $wpdb->get_var($wpdb->prepare("SELECT STAT2_ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $selectedpath));
-		$courage = $wpdb->get_var("SELECT ID FROM " . VTM_TABLE_PREFIX . "STAT WHERE NAME = 'Courage'");
+		$statkey1 = vtm_get_virtue_statkey(1, $selectedpath);
+		$statkey2 = vtm_get_virtue_statkey(2, $selectedpath);
 		
 		$total = 0;
 		$statfail = 0;
-		foreach  ($values as $id => $val) {
+		foreach  ($values as $key => $val) {
 			$total += $val - 1;
 			
-			if ($id != $statid1 && $id != $statid2 && $id != $courage) {
+			if ($key != $statkey1 && $key != $statkey2 && $key != 'courage') {
 				$statfail = 1;
 			}
 			
@@ -4487,6 +4456,7 @@ function vtm_validate_virtues($settings, $characterID) {
 
 	return array($ok, $errormessages);
 }
+/*
 function vtm_validate_freebies($settings, $characterID) {
 
 	$ok = 1;
