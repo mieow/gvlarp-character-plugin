@@ -352,6 +352,14 @@ function vtm_character_config() {
 		settings_fields( 'vtm_options_group' );
 		do_settings_sections('vtm_options_group');
 		?>
+		<h4>Report Options</h4>
+		<table>
+			<tr>
+				<td>Extra columns for sign-in report (comma-separated):</td>
+				<td><input type="text" name="vtm_signin_columns" value="<?php echo get_option('vtm_signin_columns'); ?>" /></td>
+			</tr>
+		</table>
+		
 		<h4>View Character Sheet Graphics</h4>
 		<table>
 			<tr>

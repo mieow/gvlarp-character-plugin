@@ -467,7 +467,7 @@ class vtmclass_report_signin extends vtmclass_Report_ListTable {
             case 'SIGNATURE':
                 return $item->$column_name;
             default:
-                return print_r($item,true); 
+                return ''; 
         }
     }
 
@@ -475,32 +475,51 @@ class vtmclass_report_signin extends vtmclass_Report_ListTable {
         $columns = array(
             'PLAYERNAME'    => 'Player',
             'CHARACTERNAME' => 'Character',
-			'BACKGROUND'    => 'Background Complete',
+			'BACKGROUND'    => 'Background',
             'SIGNATURE'     => 'Signature',
         );
+		$customcolstr = get_option('vtm_signin_columns','');
+		if ($customcolstr != "") {
+			$customcols = explode(",",$customcolstr);
+			foreach ($customcols as $col) {
+				$val = trim($col);
+				if ($val != '') {
+					$key = sanitize_key($col);
+					$columns[$key] = $val;
+				}
+			}
+			//print_r($columns);
+		}
         return $columns;
 	}
 	
 	function set_column_widths($columns = "") {
 	
+		$totalwidth = 200;
+		$numcols = count($columns) + 1; // sig is double-width
+		$width = $totalwidth / $numcols;
+	
 		/* total 297-10, avg width 42 */
-		$colwidths = array(
-            'CHARACTERNAME' => 40,
-            'PLAYERNAME'    => 40,
-			'BACKGROUND'    => 40,
-            'SIGNATURE'     => 80
-		);
+		$colwidths = array();
+		
+		foreach ($columns as $key => $name) {
+			if ($key == 'SIGNATURE')
+				$colwidths[$key] = $width * 2;
+			else
+				$colwidths[$key] = $width;
+		}
 
+		//print_r($colwidths);
 		return $colwidths;
 	}		
 	function set_column_alignment($columns = "") {
 	
-		$colwidths = array(
-            'CHARACTERNAME' => 'L',
-            'PLAYERNAME'    => 'L',
-			'BACKGROUND'    => 'C',
-            'SIGNATURE'     => 'L'
-		);
+		foreach ($columns as $key => $name) {
+			if ($key == 'BACKGROUND')
+				$colwidths[$key] = 'C';
+			else
+				$colwidths[$key] = 'L';
+		}
 
 		return $colwidths;
 	}		

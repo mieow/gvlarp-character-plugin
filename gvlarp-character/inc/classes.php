@@ -840,7 +840,8 @@ class vtmclass_Report_ListTable extends WP_List_Table {
 			foreach ($this->items as $datarow) {
 				$rowheight = 0;
 				foreach ($columns as $columnname => $columndesc) {
-					$text = $pdf->PrepareText($datarow->$columnname);
+					$raw = isset($datarow->$columnname) ? $datarow->$columnname : '';
+					$text = $pdf->PrepareText($raw);
 					$cellheight = $pdf->GetCellHeight($text, $colwidths[$columnname], $lineheight);
 					if ($cellheight > $rowheight) $rowheight = $cellheight;
 				}
@@ -865,7 +866,8 @@ class vtmclass_Report_ListTable extends WP_List_Table {
 			while ($this->row <= $tableendrow) {
 				$datarow = $this->items[$this->row];
 				$columnname = $colnames[$pdf->col];
-				$text    = $pdf->PrepareText($datarow->$columnname);
+				$raw = isset($datarow->$columnname) ? $datarow->$columnname : '';
+				$text    = $pdf->PrepareText($raw);
 				
 				if ($pdf->col == 0)
 					$this->ytop_cell = $pdf->GetY();
@@ -949,7 +951,8 @@ class vtmclass_Report_ListTable extends WP_List_Table {
 			foreach ($this->items as $datarow) {
 				$data = array();
 				foreach ($columns as $columnname => $columndesc) {
-					array_push($data, $this->PrepareCSVText($datarow->$columnname));
+					$raw = isset($datarow->$columnname) ? $datarow->$columnname : '';
+					array_push($data, $this->PrepareCSVText($raw));
 				}
 				fputcsv($file, $data);
 			}
