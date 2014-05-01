@@ -384,6 +384,76 @@ function vtm_render_basic_info($step, $characterID, $templateID) {
 	return $output;
 }
 
+function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $freedot,
+	$items, $posted, $pendingfb, $pendingxp, $title, $postvariable) {
+
+	$output = "";
+	
+	// Make a guess from saved levels which is Primary/Secondary/Tertiary
+	if (count($saved) > 0) {
+		if ($isPST) {
+			$grouptotals = array();
+			foreach  ($items as $item) {
+				$key = sanitize_key($item->NAME);
+				$grp = sanitize_key($item->GROUPING);
+				if (isset($saved[$key])) {
+					if (isset($grouptotals[$grp]))
+						$grouptotals[$grp] += $saved[$key]->LEVEL - $freedot;
+					else
+						$grouptotals[$grp] = $saved[$key]->LEVEL - $freedot;
+				}
+			}
+			//print_r($grouptotals);
+			$groupselected = array();
+			foreach ($grouptotals as $grp => $total) {
+				switch($total) {
+					case $pdots: $groupselected[$grp] = 1;break;
+					case $sdots: $groupselected[$grp] = 2;break;
+					case $tdots: $groupselected[$grp] = 3;break;
+					default: $groupselected[$grp] = 0;
+				}
+			}
+			//print_r($groupselected);
+		}
+	}
+
+	$group = "";
+	foreach ($items as $item) {
+	
+		// Heading and Primary/Secondary/Tertiary pull-down
+		if (sanitize_key($item->GROUPING) != $group) {
+			if ($group != "")
+				$output .= "</table>\n";
+			$group = sanitize_key($item->GROUPING);
+			$output .= "<h4>{$item->GROUPING}</h4><p>";
+			$val = isset($_POST[$group]) ? $_POST[$group] : (isset($groupselected[$group]) ? $groupselected[$group] : 0);
+			$output .= vtm_render_pst_select($group, $val);
+			
+			$output .= "</p>
+				<input type='hidden' name='group[]' value='$group' />
+				<table><tr><th>$title</th><th>Rating</th><th>Description</th></tr>\n";
+		}
+				
+		// Display Data
+		$output .= "<tr><td class=\"gvcol_key\">" . $item->NAME . "</td>";
+		$output .= "<td>";
+		
+		$key     = sanitize_key($item->NAME);
+		$level   = isset($posted[$key]) ? $posted[$key] : (isset($saved[$key]->LEVEL) ? $saved[$key]->LEVEL : 0);  // currently selected or saved level
+		$pending = isset($pendingfb[$key]->value) ? $pendingfb[$key]->value : 0 ;         // level bought with freebies
+		$pending = isset($pendingxp[$key]->value) ? $pendingxp[$key]->value : $pending ;  // level bought with xp
+		$output .= vtm_render_dot_select($postvariable, $key, $level, $pending, $freedot, 5);
+		
+		$output .= "</td><td>";
+		$output .= stripslashes($item->DESCRIPTION);
+		$output .= "</td></tr>\n";
+	
+	}
+	$output .= "</table>\n";
+
+	return $output;
+}
+
 function vtm_render_attributes($step, $characterID, $templateID) {
 	global $wpdb;
 
@@ -391,10 +461,10 @@ function vtm_render_attributes($step, $characterID, $templateID) {
 	$settings   = vtm_get_chargen_settings($templateID);
 	$items      = vtm_get_chargen_attributes($characterID);
 	
-	$pendingfb  = vtm_get_pending_freebies('STAT', $characterID);  // name => value
-/*	$pendingxp  = vtm_get_pending_chargen_xp('STAT', 'xp_stat', $characterID);  // name => value
-*/	
-	//print_r($pendingfb);
+	$pendingfb  = vtm_get_pending_freebies('STAT', $characterID);  
+	$pendingxp  = vtm_get_pending_chargen_xp('STAT', $characterID);  
+
+	//print_r($pendingxp);
 	
 	$output .= "<h3>Step $step: Attributes</h3>";
 	
@@ -418,114 +488,13 @@ function vtm_render_attributes($step, $characterID, $templateID) {
 	$saved = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K)); 
 	//print_r($saved);
 	
-	// Make a guess from saved levels which is Primary/Secondary/Tertiary
-	if (count($saved) > 0) {
-		if ($settings['attributes-method'] == "PST") {
-			$grouptotals = array();
-			foreach  ($items as $item) {
-				$key = sanitize_key($item->NAME);
-				$grp = sanitize_key($item->GROUPING);
-				if (isset($saved[$key])) {
-					if (isset($grouptotals[$grp]))
-						$grouptotals[$grp] += $saved[$key]->LEVEL - 1;
-					else
-						$grouptotals[$grp] = $saved[$key]->LEVEL - 1;
-				}
-			}
-			$groupselected = array();
-			foreach ($grouptotals as $grp => $total) {
-				switch($total) {
-					case $settings['attributes-primary']:   $groupselected[$grp] = 1;break;
-					case $settings['attributes-secondary']: $groupselected[$grp] = 2;break;
-					case $settings['attributes-tertiary']:  $groupselected[$grp] = 3;break;
-					default: $groupselected[$grp] = 0;
-				}
-			}
-		}
-	
-	}
-	
 	// Get Posted data
 	$stats = isset($_POST['attribute_value']) ? $_POST['attribute_value'] : array();
 	
-	// Output 
-	$group = "";
-	$i = 0;
-	foreach ($items as $item) {
+	$output .= vtm_render_chargen_section($saved, ($settings['attributes-method'] == "PST"), 
+		$settings['attributes-primary'], $settings['attributes-secondary'], $settings['attributes-tertiary'], 
+		1, $items, $stats, $pendingfb, $pendingxp, 'Attributes', 'attribute_value');
 	
-		// Heading and Primary/Secondary/Tertiary pull-down
-		if (sanitize_key($item->GROUPING) != $group) {
-			if ($group != "")
-				$output .= "</table>\n";
-			$group = sanitize_key($item->GROUPING);
-			$output .= "<h4>{$item->GROUPING}</h4><p>";
-			if ($settings['attributes-method'] == "PST") {
-				$val = isset($_POST[$group]) ? $_POST[$group] : (isset($groupselected[$group]) ? $groupselected[$group] : 0);
-				$output .= vtm_render_pst_select($group, $val);
-			}
-			$output .= "</p>
-				<input type='hidden' name='group[]' value='$group' />
-				<table><tr><th>Attribute</th><th>Rating</th><th>Description</th></tr>\n";
-		}
-		
-		// // Hidden data: Stat ID and Speciality
-		// $output .= "<tr style='display:none'><td colspan=3>\n";
-		// $output .= "<input type='hidden' name='attribute_spec[$i]' value='' />";
-		// $output .= "<input type='hidden' name='attribute_id[$i]' value='' />";
-		// $output .= "</td></tr>";
-		
-		// Display Data
-		$output .= "<tr><td class=\"gvcol_key\">" . $item->NAME . "</td>";
-		$output .= "<td>";
-		
-		$key     = sanitize_key($item->NAME);
-		$level   = isset($stats[$key]) ? $stats[$key] : $saved[$key]->LEVEL;  // currently selected or saved level
-		$pending = isset($pendingfb[$key]->value) ? $pendingfb[$key]->value : 0 ;         // level bought with freebies
-		$pending = isset($pendingxp[$key]->value) ? $pendingxp[$key]->value : $pending ;  // level bought with xp
-		$output .= vtm_render_dot_select("attribute_value", $key, $level, $pending, 1, 5);
-		
-		$output .= "</td><td>";
-		$output .= stripslashes($item->DESCRIPTION);
-		$output .= "</td></tr>\n";
-	
-		$i++;
-	}
-	/*
-	foreach ($attributes as $attribute) {
-		if ($attribute->GROUPING != $group) {
-			if ($group != "")
-				$output .= "</table>\n";
-			$group = $attribute->GROUPING;
-			$output .= "<h4>$group</h4><p>";
-			if ($settings['attributes-method'] == "PST") {
-				$val = isset($_POST[$group]) ? $_POST[$group] : (isset($groupselected[$group]) ? $groupselected[$group] : 0);
-				$output .= vtm_render_pst_select($group, $val);
-			}
-			$output .= "</p>
-				<input type='hidden' name='group[]' value='$group' />
-				<table><tr><th>Attribute</th><th>Rating</th><th>Description</th></tr>\n";
-		}
-		$key = sanitize_key($attribute->NAME);
-		$comment = isset($comments[$attribute->ID]) ? $comments[$attribute->ID] : '';
-		
-		$output .= "<tr style='display:none'><td colspan=3>
-			<input type='hidden' name='attribute_comment[{$attribute->ID}]' value='$comment' /></td></tr>";
-		$output .= "<tr><td class=\"gvcol_key\">" . $attribute->NAME . "</td>";
-		$output .= "<td>";
-		
-		$freebiexplevel = isset($pendingxp[$key]) ? $pendingxp[$key] :
-							(isset($pending[$key]) ? $pending[$key] : 0);
-		
-		$output .= vtm_render_dot_select("attribute_value", 
-						$attribute->ID, 
-						isset($stats[$attribute->ID]) ? $stats[$attribute->ID] : -1, 
-						1,5,$freebiexplevel);
-		$output .= "</td><td>";
-		$output .= stripslashes($attribute->DESCRIPTION);
-		$output .= "</td></tr>\n";
-	}
-	*/
-	$output .= "</table>\n";
 	return $output;
 }
 /*
@@ -870,89 +839,45 @@ function vtm_render_finishing($step, $characterID, $templateID) {
 	
 	return $output;
 }
+*/
 function vtm_render_abilities($step, $characterID, $templateID) {
 	global $wpdb;
 
-	$output = "";
+	$output     = "";
 	$settings   = vtm_get_chargen_settings($templateID);
-	$abilities  = vtm_get_chargen_abilities($characterID);
-	$pending    = vtm_get_pending_freebies('SKILL', 'freebie_skill', $characterID);  // name => value
-	$pendingxp  = vtm_get_pending_chargen_xp('SKILL', 'xp_skill', $characterID);  // name => value
+	$items      = vtm_get_chargen_abilities($characterID);
+	$pendingfb  = vtm_get_pending_freebies('SKILL', $characterID); 
+	$pendingxp  = vtm_get_pending_chargen_xp('SKILL', $characterID); 
 		
 	$output .= "<h3>Step $step: Abilities</h3>";
 	$output .= "<p>You have {$settings['abilities-primary']} dots to spend on your Primary abilities, {$settings['abilities-secondary']} to spend on Secondary and {$settings['abilities-tertiary']} to spend on Tertiary.</p>";
 	
 
 	// read/guess initial values
-	$sql = "SELECT SKILL_ID, LEVEL, COMMENT FROM " . VTM_TABLE_PREFIX . "CHARACTER_SKILL
-			WHERE CHARACTER_ID = %s";
+	$sql = "SELECT 
+				skills.NAME, cs.SKILL_ID, cs.LEVEL, cs.COMMENT 
+			FROM 
+				" . VTM_TABLE_PREFIX . "CHARACTER_SKILL cs,
+				" . VTM_TABLE_PREFIX . "SKILL skills
+			WHERE 
+				skills.ID = cs.SKILL_ID
+				AND CHARACTER_ID = %s";
 	$sql = $wpdb->prepare($sql, $characterID);
-	$keys = $wpdb->get_col($sql);
-	if (count($keys) > 0) {
-		$vals = $wpdb->get_col($sql,1);
-		$skills = array_combine($keys, $vals);
-		$val2 = $wpdb->get_col($sql,2);
-		$comments = array_combine($keys, $val2);
-		
-		$grouptotals = array();
-		foreach  ($abilities as $skill) {
-			if (isset($skills[$skill->ID])) {
-				if (isset($grouptotals[$skill->GROUPING]))
-					$grouptotals[$skill->GROUPING] += $skills[$skill->ID];
-				else
-					$grouptotals[$skill->GROUPING] = $skills[$skill->ID];
-			}
-		}
-		$groupselected = array();
-		foreach ($grouptotals as $grp => $total) {
-			switch($total) {
-				case $settings['abilities-primary']: $groupselected[$grp] = 1;break;
-				case $settings['abilities-secondary']: $groupselected[$grp] = 2;break;
-				case $settings['abilities-tertiary']: $groupselected[$grp] = 3;break;
-				default: $groupselected[$grp] = 0;
-			}
-		}
-		
-	}
-	elseif (isset($_POST['ability_value'])) {
-		$skills = $_POST['ability_value'];
-	}
-	//print_r($comments);
+	$saved = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K)); 
+	//echo "<li>SQL: $sql</li>";
 	
-	$group = "";
-	foreach ($abilities as $skill) {
-		if ($skill->GROUPING != $group) {
-			if ($group != "")
-				$output .= "</table>\n";
-			$group = $skill->GROUPING;
-			$output .= "<h4>$group</h4><p>";
-			$val = isset($_POST[$group]) ? $_POST[$group] : (isset($groupselected[$group]) ? $groupselected[$group] : 0);
-			$output .= vtm_render_pst_select($group, $val);
-			$output .= "</p>
-				<input type='hidden' name='group[]' value='$group' />
-				<table><tr><th>Ability</th><th>Rating</th><th>Description</th></tr>\n";
-		}
-		$key = sanitize_key($skill->NAME);
-		$comment = isset($comments[$skill->ID]) ? $comments[$skill->ID] : '';
-		$output .= "<tr style='display:none'><td colspan=3>
-			<input type='hidden' name='ability_comment[{$skill->ID}]' value='$comment' /></td></tr>";
-		$output .= "<tr><td class=\"gvcol_key\">" . $skill->NAME . "</td>";
-		$output .= "<td>";
-		$freebiexplevel = isset($pendingxp[$key]) ? $pendingxp[$key] :
-							(isset($pending[$key]) ? $pending[$key] : 0);
-		$output .= vtm_render_dot_select("ability_value", 
-						$skill->ID, 
-						isset($skills[$skill->ID]) ? $skills[$skill->ID] : -1, 
-						0, 5, $freebiexplevel);
-		$output .= "</td><td>";
-		$output .= stripslashes($skill->DESCRIPTION);
-		$output .= "</td></tr>\n";
-	}
-	$output .= "</table>\n";
+	//print_r($pendingxp);
 	
+	// abilities Posted data
+	$abilities = isset($_POST['ability_value']) ? $_POST['ability_value'] : array();
+	
+	$output .= vtm_render_chargen_section($saved, true, 
+		$settings['abilities-primary'], $settings['abilities-secondary'], $settings['abilities-tertiary'], 
+		0, $items, $abilities, $pendingfb, $pendingxp, 'Abilities', 'ability_value');
+
 	return $output;
 }
-
+/*
 function vtm_render_chargen_disciplines($step, $characterID, $templateID) {
 	global $wpdb;
 
@@ -1112,8 +1037,6 @@ function vtm_save_progress($laststep, $characterID, $templateID) {
 
 function vtm_save_attributes($characterID) {
 	global $wpdb;
-
-	$newattributes = $_POST['attribute_value'];
 	
 	// List of attributes
 	$attributes    = vtm_get_chargen_attributes();
@@ -1430,14 +1353,15 @@ function vtm_save_xp($characterID, $templateID) {
 
 	return $characterID;
 }
-
+*/
 function vtm_save_abilities($characterID) {
 	global $wpdb;
 
-	$new      = $_POST['ability_value'];
-	$comments = $_POST['ability_comment'];
+	$new       = $_POST['ability_value'];
+	$abilities = vtm_get_chargen_abilities();
 	
-	$sql = "SELECT cskill.SKILL_ID, cskill.ID, skills.NAME
+	// Get saved into database
+	$sql = "SELECT skills.NAME, cskill.SKILL_ID, cskill.ID, cskill.LEVEL, cskill.COMMENT
 			FROM 
 				" . VTM_TABLE_PREFIX . "CHARACTER_SKILL cskill,
 				" . VTM_TABLE_PREFIX . "SKILL skills
@@ -1445,60 +1369,64 @@ function vtm_save_abilities($characterID) {
 				cskill.SKILL_ID = skills.ID
 				AND cskill.CHARACTER_ID = %s";
 	$sql = $wpdb->prepare($sql, $characterID);
-	$keys = $wpdb->get_col($sql);
-	if (count($keys) > 0) {
-		$vals = $wpdb->get_col($sql,1);
-		$names = $wpdb->get_col($sql,2);
-		$current = array_combine($keys, $vals);
-	} else {
-		$current = array();
-	}
+	$saved = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K));
+
 	//print_r($new);
 	//print_r($current);
 
-	foreach ($new as $id => $value) {
+	foreach ($abilities as $ability) {
+		$key     = sanitize_key($ability->NAME);
+		$value   = isset($new[$key]) ? $new[$key] : 0;
+		
 		if ($value > 0) {
+			$comment = isset($saved[$key]->COMMENT) ? $saved[$key]->COMMENT : '';
+			
 			$data = array(
 				'CHARACTER_ID'  => $characterID,
-				'SKILL_ID'      => $id,
+				'SKILL_ID'      => $ability->ID,
 				'LEVEL'         => $value,
-				'COMMENT'		=> $comments[$id]
+				'COMMENT'		=> $comment
 			);
-			if (isset($current[$id])) {
-				//echo "<li>Updated $id at $value</li>";
-				// update
-				$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_SKILL",
-					$data,
-					array (
-						'ID' => $current[$id]
-					)
-				);
+			if (isset($saved[$key])) {
+				if ($saved[$key]->LEVEL != $value) {
+					//echo "<li>Updated $key at $value</li>";
+					// update
+					$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_SKILL",
+						$data,
+						array (
+							'ID' => $saved[$key]->ID
+						)
+					);
+				} else {
+					//echo "<li>No need to update $key</li>";
+				}
 			} else {
-				//echo "<li>Added $id at $value</li>";
+				//echo "<li>Added $key at $value</li>";
 				// insert
 				$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_SKILL",
 							$data,
-							array ('%d', '%d', '%d')
+							array ('%d', '%d', '%d', '%s')
 						);
 			}
 		}
 	}
 		
 	// Delete anything no longer needed
-	foreach ($current as $id => $value) {
+	foreach ($saved as $id => $value) {
 	
 		if (!isset($new[$id]) || $new[$id] <= 0) {
 			// Delete
 			$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "CHARACTER_SKILL
 					WHERE CHARACTER_ID = %s AND SKILL_ID = %s";
-			$sql = $wpdb->prepare($sql,$characterID,$id);
-			echo "<li>Delete $id ($sql)</li>";
+			$sql = $wpdb->prepare($sql,$characterID,$saved[$id]->SKILL_ID);
+			//echo "<li>Delete $id ($sql)</li>";
 			$wpdb->get_results($sql);
 		}
 	}
-	
+
 	return $characterID;
 }
+/*
 function vtm_save_disciplines($characterID) {
 	global $wpdb;
 
@@ -2277,7 +2205,7 @@ function vtm_get_chargen_paths($characterID = 0, $output_type = OBJECT) {
 	return $results;
 
 }
-
+*/
 function vtm_get_chargen_abilities($characterID = 0, $showsecondary = 0, $output_type = OBJECT) {
 	global $wpdb;
 	
@@ -2300,7 +2228,7 @@ function vtm_get_chargen_abilities($characterID = 0, $showsecondary = 0, $output
 	return $results;
 
 }
-
+/*
 function vtm_get_chargen_roads() {
 	global $wpdb;
 
@@ -3835,33 +3763,26 @@ function vtm_get_pending_freebies($table, $characterID) {
 
 	return $pending;
 }
-/*
-function vtm_get_pending_chargen_xp($table, $postvariable, $characterID) {
+
+function vtm_get_pending_chargen_xp($table, $characterID) {
 	global $wpdb;
-
-	$pending = array();
-	if (isset($_POST[$postvariable])) {
-		$pending = $_POST[$postvariable];
-	} 
-	else {
-		$sql = "SELECT ITEMNAME as name, CHARTABLE_LEVEL as value
-			FROM
-				" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
-			WHERE
-				CHARACTER_ID = %s
-				AND ITEMTABLE = '$table'";
-		$sql = $wpdb->prepare($sql, $characterID);
-		//echo "SQL: $sql</p>";
-		$keys = $wpdb->get_col($sql);
-		if (count($keys) > 0) {
-			$vals = $wpdb->get_col($sql,1);
-			$pending = array_combine(array_map("vtm_sanitize_keys",$keys), $vals);
-		} 
-	}
-
+	
+	$sql = "SELECT ITEMNAME as name, CHARTABLE_LEVEL as value, 
+			SPECIALISATION as specialisation
+		FROM
+			" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
+		WHERE
+			CHARACTER_ID = %s
+			AND ITEMTABLE = '$table'";
+	$sql = $wpdb->prepare($sql, $characterID);
+	//echo "SQL: $sql</p>";
+	
+	$pending = $wpdb->get_results($sql, OBJECT_K);
+	$pending = vtm_sanitize_array($pending);
+	
 	return $pending;
 }
-*/
+
 function vtm_sanitize_array($array) {
 
 	if (count($array) == 0) {
@@ -4338,7 +4259,7 @@ function vtm_validate_basic_info($settings, $characterID) {
 
 	return array($ok, $errormessages);
 }
-/*
+
 function vtm_validate_abilities($settings, $characterID) {
 
 	$ok = 1;
@@ -4366,9 +4287,10 @@ function vtm_validate_abilities($settings, $characterID) {
 				$check += $sectiontype;
 				$sectiontotal = 0;
 				foreach  ($abilities as $skill) {
-					if ($skill->GROUPING == $group) {
-						$sectiontotal += isset($values[$skill->ID]) ? max(0,$values[$skill->ID]) : 0;
-						if (isset($values[$skill->ID]) && $values[$skill->ID] > $settings['abilities-max']) {
+					$key = sanitize_key($skill->NAME);
+					if (sanitize_key($skill->GROUPING) == $group) {
+						$sectiontotal += isset($values[$key]) ? max(0,$values[$key]) : 0;
+						if (isset($values[$key]) && $values[$key] > $settings['abilities-max']) {
 							$errormessages .= "<li>ERROR: Abilities should not go higher than level {$settings['abilities-max']}. Please reduce the dots spend in {$skill->NAME}</li>";
 							$ok = 0;
 						}
@@ -4397,7 +4319,7 @@ function vtm_validate_abilities($settings, $characterID) {
 
 	return array($ok, $errormessages);
 }
-*/
+
 function vtm_validate_attributes($settings, $characterID) {
 
 	$ok = 1;
