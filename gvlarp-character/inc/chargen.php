@@ -426,8 +426,10 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 				$output .= "</table>\n";
 			$group = sanitize_key($item->GROUPING);
 			$output .= "<h4>{$item->GROUPING}</h4><p>";
-			$val = isset($_POST[$group]) ? $_POST[$group] : (isset($groupselected[$group]) ? $groupselected[$group] : 0);
-			$output .= vtm_render_pst_select($group, $val);
+			if ($isPST) {
+				$val = isset($_POST[$group]) ? $_POST[$group] : (isset($groupselected[$group]) ? $groupselected[$group] : 0);
+				$output .= vtm_render_pst_select($group, $val);
+			}
 			
 			$output .= "</p>
 				<input type='hidden' name='group[]' value='$group' />
@@ -877,60 +879,40 @@ function vtm_render_abilities($step, $characterID, $templateID) {
 
 	return $output;
 }
-/*
+
 function vtm_render_chargen_disciplines($step, $characterID, $templateID) {
 	global $wpdb;
 
 	$output = "";
-	$settings    = vtm_get_chargen_settings($templateID);
-	$disciplines = vtm_get_chargen_disciplines($characterID);
-	$pending     = vtm_get_pending_freebies('DISCIPLINE', 'freebie_discipline', $characterID);  // name => value
-	$pendingxp   = vtm_get_pending_chargen_xp('DISCIPLINE', 'xp_discipline', $characterID);  // name => value
+	$settings   = vtm_get_chargen_settings($templateID);
+	$items      = vtm_get_chargen_disciplines($characterID);
+	$pendingfb  = vtm_get_pending_freebies('DISCIPLINE', $characterID); 
+	$pendingxp  = vtm_get_pending_chargen_xp('DISCIPLINE', $characterID); 
 		
 	$output .= "<h3>Step $step: Disciplines</h3>";
 	$output .= "<p>You have {$settings['disciplines-points']} dots to spend on your Disciplines</p>";
-	
 
 	// read initial values
-	$sql = "SELECT DISCIPLINE_ID, LEVEL FROM " . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE
-			WHERE CHARACTER_ID = %s";
+	$sql = "SELECT 
+				disc.NAME, cd.DISCIPLINE_ID, cd.LEVEL 
+			FROM 
+				" . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE cd,
+				" . VTM_TABLE_PREFIX . "DISCIPLINE disc
+			WHERE 
+				disc.ID = cd.DISCIPLINE_ID
+				AND CHARACTER_ID = %s";
 	$sql = $wpdb->prepare($sql, $characterID);
-	$keys = $wpdb->get_col($sql);
-	if (count($keys) > 0) {
-		$vals = $wpdb->get_col($sql,1);
-		$mydisc = array_combine($keys, $vals);
-	}
-	elseif (isset($_POST['discipline_value'])) {
-		$mydisc = $_POST['discipline_value'];
-	}
-	$group = "";
-	foreach ($disciplines as $discipline) {
-		if ($discipline->GROUPING != $group) {
-			if ($group != "")
-				$output .= "</table>\n";
-			$group = $discipline->GROUPING;
-			$output .= "<h4>$group</h4>";
-			$output .= "<table><tr><th>Discipline</th><th>Rating</th><th>Description</th></tr>\n";
-		}
-		$output .= "<tr><td class=\"gvcol_key\">" . $discipline->NAME . "</td>";
-		$output .= "<td>";
-		
-		$key = sanitize_key($discipline->NAME);
-		$freebiexplevel = isset($pendingxp[$key]) ? $pendingxp[$key] :
-							(isset($pending[$key]) ? $pending[$key] : 0);
+	$saved = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K)); 
 
-		$output .= vtm_render_dot_select("discipline_value", 
-						$discipline->ID, 
-						isset($mydisc[$discipline->ID]) ? $mydisc[$discipline->ID] : -1,
-						0, 5, $freebiexplevel);
-		$output .= "</td><td>";
-		$output .= stripslashes($discipline->DESCRIPTION);
-		$output .= "</td></tr>\n";
-	}
-	$output .= "</table>\n";
+	$disciplines = isset($_POST['discipline_value']) ? $_POST['discipline_value'] : array();
 	
+	$output .= vtm_render_chargen_section($saved, false, 0, 0, 0, 
+		0, $items, $disciplines, $pendingfb, $pendingxp, 'Disciplines', 'discipline_value');
+
+
 	return $output;
 }
+/*
 function vtm_render_chargen_backgrounds($step, $characterID, $templateID) {
 	global $wpdb;
 
@@ -1397,9 +1379,9 @@ function vtm_save_abilities($characterID) {
 							'ID' => $saved[$key]->ID
 						)
 					);
-				} else {
+				} //else {
 					//echo "<li>No need to update $key</li>";
-				}
+				//}
 			} else {
 				//echo "<li>Added $key at $value</li>";
 				// insert
@@ -1426,14 +1408,14 @@ function vtm_save_abilities($characterID) {
 
 	return $characterID;
 }
-/*
+
 function vtm_save_disciplines($characterID) {
 	global $wpdb;
 
-
 	$new = $_POST['discipline_value'];
+	$disciplines = vtm_get_chargen_disciplines($characterID);
 	
-	$sql = "SELECT cdisc.DISCIPLINE_ID, cdisc.ID, disc.NAME
+	$sql = "SELECT disc.NAME, cdisc.DISCIPLINE_ID, cdisc.ID
 			FROM 
 				" . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE cdisc,
 				" . VTM_TABLE_PREFIX . "DISCIPLINE disc
@@ -1441,33 +1423,37 @@ function vtm_save_disciplines($characterID) {
 				cdisc.DISCIPLINE_ID = disc.ID
 				AND CHARACTER_ID = %s";
 	$sql = $wpdb->prepare($sql, $characterID);
-	$keys = $wpdb->get_col($sql);
-	if (count($keys) > 0) {
-		$vals = $wpdb->get_col($sql,1);
-		$names = $wpdb->get_col($sql,2);
-		$current = array_combine($keys, $vals);
-	} else {
-		$current = array();
-	}
-	//print_r($new);
-	//print_r($current);
+	$saved = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K));
 
-	foreach ($new as $id => $value) {
+	//echo "<li>SQL:$sql</li>";
+	//print_r($new);
+	//print_r($disciplines);
+	//print_r($saved);
+
+	foreach ($disciplines as $discipline) {
+		$key     = sanitize_key($discipline->NAME);
+		$value   = isset($new[$key]) ? $new[$key] : 0;
 		if ($value > 0) {
 			$data = array(
 				'CHARACTER_ID'  => $characterID,
-				'DISCIPLINE_ID' => $id,
+				'DISCIPLINE_ID' => $discipline->ID,
 				'LEVEL'         => $value
 			);
-			if (isset($current[$id])) {
-				// update
-				$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE",
-					$data,
-					array (
-						'ID' => $current[$id]
-					)
-				);
+			if (isset($saved[$key])) {
+				if ($saved[$key]->LEVEL != $value) {
+					echo "<li>Updated $key at $value</li>";
+					// update
+					$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE",
+						$data,
+						array (
+							'ID' => $saved[$key]->ID
+						)
+					);
+				} else {
+					echo "<li>No need to update $key</li>";
+				}
 			} else {
+				echo "<li>Added $key at $value</li>";
 				// insert
 				$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE",
 							$data,
@@ -1478,18 +1464,21 @@ function vtm_save_disciplines($characterID) {
 	}
 		
 	// Delete anything no longer needed
-	foreach ($current as $id => $value) {
-	
+	foreach ($saved as $id => $row) {
 		if (!isset($new[$id]) || $new[$id] == 0) {
 			// Delete
 			$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE
 					WHERE CHARACTER_ID = %s AND DISCIPLINE_ID = %s";
-			$wpdb->get_results($wpdb->prepare($sql,$characterID,$id));
+			$sql = $wpdb->prepare($sql,$characterID,$saved[$id]->DISCIPLINE_ID);
+			echo "<li>Delete $id ($sql)</li>";
+			$wpdb->get_results($sql);
 		}
 	}
+	
 	return $characterID;
 
 }
+/*
 function vtm_save_backgrounds($characterID) {
 	global $wpdb;
 
@@ -2119,6 +2108,7 @@ function vtm_get_chargen_virtues($characterID = 0) {
 	return $results;
 
 }
+*/
 function vtm_get_chargen_disciplines($characterID = 0, $output_type = OBJECT) {
 	global $wpdb;
 	
@@ -2151,6 +2141,7 @@ function vtm_get_chargen_disciplines($characterID = 0, $output_type = OBJECT) {
 	return $results;
 
 }
+/*
 function vtm_get_chargen_backgrounds($characterID = 0, $output_type = OBJECT) {
 	global $wpdb;
 	
@@ -4390,7 +4381,7 @@ function vtm_validate_attributes($settings, $characterID) {
 	}
 	return array($ok, $errormessages);
 }
-/*
+
 function vtm_validate_disciplines($settings, $characterID) {
 
 	$ok = 1;
@@ -4423,6 +4414,7 @@ function vtm_validate_disciplines($settings, $characterID) {
 	
 	return array($ok, $errormessages);
 }
+/*
 function vtm_validate_backgrounds($settings, $characterID) {
 
 	$ok = 1;
