@@ -912,50 +912,36 @@ function vtm_render_chargen_disciplines($step, $characterID, $templateID) {
 
 	return $output;
 }
-/*
+
 function vtm_render_chargen_backgrounds($step, $characterID, $templateID) {
 	global $wpdb;
 
 	$output = "";
-	$settings    = vtm_get_chargen_settings($templateID);
-	$backgrounds = vtm_get_chargen_backgrounds($characterID);
-	$pending     = vtm_get_pending_freebies('BACKGROUND', 'freebie_background', $characterID);  // name => value
+	$settings = vtm_get_chargen_settings($templateID);
+	$items    = vtm_get_chargen_backgrounds($characterID);
+	$pending  = vtm_get_pending_freebies('BACKGROUND', $characterID);  // name => value
 	
 	$output .= "<h3>Step $step: Backgrounds</h3>";
 	$output .= "<p>You have {$settings['backgrounds-points']} dots to spend on your Backgrounds</p>";
 	
-
 	// read initial values
-	$sql = "SELECT BACKGROUND_ID, LEVEL FROM " . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND
-			WHERE CHARACTER_ID = %s";
+	$sql = "SELECT bg.NAME, cbg.BACKGROUND_ID, cbg.LEVEL 
+			FROM 
+				" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND cbg,
+				" . VTM_TABLE_PREFIX . "BACKGROUND bg
+			WHERE 
+				bg.ID = cbg.BACKGROUND_ID
+				AND CHARACTER_ID = %s";
 	$sql = $wpdb->prepare($sql, $characterID);
-	$keys = $wpdb->get_col($sql);
-	if (count($keys) > 0) {
-		$vals = $wpdb->get_col($sql,1);
-		$mybg = array_combine($keys, $vals);
-	}
-	elseif (isset($_POST['background_value'])) {
-		$mybg = $_POST['background_value'];
-	}
+	$saved = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K)); 
 
-	$output .= "<table><tr><th>Background</th><th>Rating</th><th>Description</th></tr>\n";
-	foreach ($backgrounds as $background) {
-		$output .= "<tr><td class=\"gvcol_key\">" . $background->NAME . "</td>";
-		$output .= "<td>";
-		
-		$key = sanitize_key($background->NAME);
-		$output .= vtm_render_dot_select("background_value", 
-						$background->ID, 
-						isset($mybg[$background->ID]) ? $mybg[$background->ID] : -1,
-						0, 5, isset($pending[$key]) ? $pending[$key] : 0);
-		$output .= "</td><td>";
-		$output .= stripslashes($background->DESCRIPTION);
-		$output .= "</td></tr>\n";
-	}
-	$output .= "</table>\n";
+	$backgrounds = isset($_POST['background_value']) ? $_POST['background_value'] : array();
+
+	$output .= vtm_render_chargen_section($saved, false, 0, 0, 0, 
+		0, $items, $backgrounds, $pending, array(), 'Backgrounds', 'background_value');
 	
 	return $output;
-} */
+} 
 function vtm_render_choose_template() {
 	global $wpdb;
 
@@ -1449,9 +1435,9 @@ function vtm_save_disciplines($characterID) {
 							'ID' => $saved[$key]->ID
 						)
 					);
-				} else {
-					echo "<li>No need to update $key</li>";
-				}
+				} //else {
+					//echo "<li>No need to update $key</li>";
+				//}
 			} else {
 				echo "<li>Added $key at $value</li>";
 				// insert
@@ -1478,14 +1464,14 @@ function vtm_save_disciplines($characterID) {
 	return $characterID;
 
 }
-/*
+
 function vtm_save_backgrounds($characterID) {
 	global $wpdb;
 
-
 	$new = $_POST['background_value'];
+	$backgrounds = vtm_get_chargen_backgrounds($characterID);
 	
-	$sql = "SELECT cbg.BACKGROUND_ID, cbg.ID, bg.NAME
+	$sql = "SELECT bg.NAME, cbg.BACKGROUND_ID, cbg.ID, cbg.COMMENT, cbg.LEVEL
 			FROM 
 				" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND cbg,
 				" . VTM_TABLE_PREFIX . "BACKGROUND bg
@@ -1493,58 +1479,64 @@ function vtm_save_backgrounds($characterID) {
 				cbg.BACKGROUND_ID = bg.ID
 				AND cbg.CHARACTER_ID = %s";
 	$sql = $wpdb->prepare($sql, $characterID);
-	$keys = $wpdb->get_col($sql);
-	if (count($keys) > 0) {
-		$vals = $wpdb->get_col($sql,1);
-		$names = $wpdb->get_col($sql,2);
-		$current = array_combine($keys, $vals);
-	} else {
-		$current = array();
-	}
+	$saved = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K));
+
 	//print_r($new);
 	//print_r($current);
 
-	foreach ($new as $id => $value) {
+	foreach ($backgrounds as $background) {
+		$key     = sanitize_key($background->NAME);
+		$value   = isset($new[$key]) ? $new[$key] : 0;
+		
 		if ($value > 0) {
+			$comment = isset($saved[$key]->COMMENT) ? $saved[$key]->COMMENT : '';
+			
 			$data = array(
-				'CHARACTER_ID' => $characterID,
-				'BACKGROUND_ID'      => $id,
-				'LEVEL'        => $value
+				'CHARACTER_ID'  => $characterID,
+				'BACKGROUND_ID' => $background->ID,
+				'LEVEL'         => $value,
+				'COMMENT'       => $comment
 			);
-			if (isset($current[$id])) {
-				//echo "<li>Updated $id at $value</li>";
-				// update
-				$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND",
-					$data,
-					array (
-						'ID' => $current[$id]
-					)
-				);
+			if (isset($saved[$key])) {
+				if ($saved[$key]->LEVEL != $value) {
+					//echo "<li>Updated $key at $value</li>";
+					// update
+					$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND",
+						$data,
+						array (
+							'ID' => $saved[$key]->ID
+						)
+					);
+				} //else {
+					//echo "<li>No need to update $key</li>";
+				//}
 			} else {
-				//echo "<li>Added $id at $value</li>";
+				//echo "<li>Added $key at $value</li>";
 				// insert
 				$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND",
 							$data,
-							array ('%d', '%d', '%d')
+							array ('%d', '%d', '%d', '%s')
 						);
 			}
 		}
 	}
 		
 	// Delete anything no longer needed
-	foreach ($current as $id => $value) {
+	foreach ($saved as $id => $value) {
 	
 		if (!isset($new[$id]) || $new[$id] == 0) {
 			//echo "<li>Deleted $id</li>";
 			// Delete
 			$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND
 					WHERE CHARACTER_ID = %s AND BACKGROUND_ID = %s";
-			$wpdb->get_results($wpdb->prepare($sql,$characterID,$id));
+			$wpdb->get_results($wpdb->prepare($sql,$characterID,$saved[$id]->BACKGROUND_ID));
 		}
 	}
+
 	return $characterID;
 	
 }
+/*
 function vtm_save_virtues($characterID, $templateID) {
 	global $wpdb;
 
@@ -2141,24 +2133,23 @@ function vtm_get_chargen_disciplines($characterID = 0, $output_type = OBJECT) {
 	return $results;
 
 }
-/*
+
 function vtm_get_chargen_backgrounds($characterID = 0, $output_type = OBJECT) {
 	global $wpdb;
 	
 	
-	$sql = "SELECT bg.NAME, bg.ID, bg.DESCRIPTION
+	$sql = "SELECT bg.NAME, bg.ID, bg.DESCRIPTION, bg.GROUPING
 			FROM " . VTM_TABLE_PREFIX . "BACKGROUND bg
 			WHERE
 				bg.VISIBLE = 'Y'
-			ORDER BY NAME";
-	//$sql = $wpdb->prepare($sql, $characterID);
-	//echo "<p>SQL: $sql</p>";
+			ORDER BY GROUPING, NAME";
+
 	$results = $wpdb->get_results($sql, $output_type);
-	
 	
 	return $results;
 
 }
+/*
 function vtm_get_chargen_merits($characterID = 0, $output_type = OBJECT) {
 	global $wpdb;
 	
@@ -4414,7 +4405,7 @@ function vtm_validate_disciplines($settings, $characterID) {
 	
 	return array($ok, $errormessages);
 }
-/*
+
 function vtm_validate_backgrounds($settings, $characterID) {
 
 	$ok = 1;
@@ -4446,6 +4437,7 @@ function vtm_validate_backgrounds($settings, $characterID) {
 
 	return array($ok, $errormessages);
 }
+/*
 function vtm_validate_virtues($settings, $characterID) {
 	global $wpdb;
 
