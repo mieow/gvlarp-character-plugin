@@ -1163,11 +1163,11 @@ function vtm_save_attributes($characterID) {
 	return $characterID;
 
 }
-/*
+
 function vtm_save_freebies($characterID, $templateID) {
 	global $wpdb;
 
-	
+/*	
 	// Delete current pending spends
 	$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
 			WHERE CHARACTER_ID = %s";
@@ -1256,9 +1256,10 @@ function vtm_save_freebies($characterID, $templateID) {
 			}
 		}
 	}
-
+	*/
 	return $characterID;
 }
+/*
 function vtm_save_finish($characterID, $templateID) {
 	global $wpdb;
 
@@ -3418,6 +3419,29 @@ function vtm_get_freebies_spent($characterID) {
 				$actualkey = preg_replace("/_\d+$/", "", $key);
 			
 				echo "<li>Cost of $key ($actualkey) from $levelfrom to $levelto</li>";
+
+				if ($type == 'MERIT') {
+					// if (!isset($current[$name])) {
+						// if (isset($current[$actualname]->multiple) && $current[$actualname]->multiple == 'Y') {
+							// $spent += isset($freebiecosts[$actualname][0][1]) ? $freebiecosts[$actualname][0][1] : 0;
+							// //echo "<li>Running total is $spent. Bought $actualname ({$freebiecosts[$actualname][0][1]})</li>";
+						// }
+					// } else {
+						// $spent += isset($freebiecosts[$name][0][1]) ? $freebiecosts[$name][0][1] : 0;
+						// //echo "<li>Running total is $spent. Bought $name ({$freebiecosts[$name][0][1]})</li>";
+					// }
+				}
+				elseif (!isset($current[$type][$key])) {
+					echo "$key becomes $actualkey, <br />";
+					if (isset($current[$type][$actualkey]->multiple) && $current[$type][$actualkey]->multiple == 'Y') {
+						echo "$name - from: {$current[$actualname]->level_from}, to: {$levelto}, cost: {$freebiecosts[$actualname][$current[$actualname]->level_from][$level_to]}<br />";
+						$spent += isset($freebiecosts[$type][$actualkey][$current[$type][$actualkey]->level_from][$levelto]) ? $freebiecosts[$type][$actualkey][$current[$type][$actualkey]->level_from][$levelto] : 0;
+						echo "<li>Running total is $spent. Bought $actualkey to $levelto ({$freebiecosts[$type][$actualkey][$current[$actualkey]->level_from][$levelto]})</li>";
+					}
+				} else {
+					$spent += isset($freebiecosts[$type][$key][$levelfrom][$levelto]) ? $freebiecosts[$type][$key][$levelfrom][$levelto] : 0;
+					echo "<li>Running total is $spent. Bought $key to $levelto ({$freebiecosts[$type][$key][$levelfrom][$levelto]})</li>";
+				}
 			}
 		
 		}
@@ -4302,7 +4326,7 @@ function vtm_validate_virtues($settings, $characterID) {
 
 	return array($ok, $errormessages);
 }
-/*
+
 function vtm_validate_freebies($settings, $characterID) {
 
 	$ok = 1;
@@ -4337,12 +4361,7 @@ function vtm_validate_freebies($settings, $characterID) {
 	
 	$spent = 0;
 	
-	$spent += vtm_get_freebies_spent('STAT',       'freebie_stat', $characterID);
-	$spent += vtm_get_freebies_spent('SKILL',      'freebie_skill', $characterID);
-	$spent += vtm_get_freebies_spent('DISCIPLINE', 'freebie_discipline', $characterID);
-	$spent += vtm_get_freebies_spent('BACKGROUND', 'freebie_background', $characterID);
-	$spent += vtm_get_freebies_spent('MERIT',      'freebie_merit', $characterID);
-	$spent += vtm_get_freebies_spent('PATH',       'freebie_path', $characterID);
+	$spent += vtm_get_freebies_spent($characterID);
 	
 	if ($spent == 0) {
 		$errormessages .= "<li>WARNING: You have not spent any dots</li>";
@@ -4356,7 +4375,7 @@ function vtm_validate_freebies($settings, $characterID) {
 	}
 	
 	if (isset($_POST['freebie_path'])) {
-		$pathinfo = vtm_sanitize_array(vtm_get_current_paths($characterID, OBJECT_K));
+		$pathinfo = vtm_get_current_paths($characterID);
 		$bought = $_POST['freebie_path'];
 		foreach ($bought as $path => $level) {
 			$disciplinekey = sanitize_key($pathinfo[$path]->grp);
@@ -4371,6 +4390,7 @@ function vtm_validate_freebies($settings, $characterID) {
 
 	return array($ok, $errormessages);
 }
+/*
 function vtm_validate_finishing($settings, $characterID) {
 
 	$ok = 1;
