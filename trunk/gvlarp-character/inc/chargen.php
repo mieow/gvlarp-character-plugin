@@ -403,7 +403,7 @@ function vtm_render_freebie_section ($items, $saved, $pendingfb, $pendingxp, $fr
 		$submitted = 0;
 		$posted = array();
 	}
-	
+	//print_r($posted);
 
 	$output = "";
 	if (count($items) > 0) {
@@ -424,10 +424,10 @@ function vtm_render_freebie_section ($items, $saved, $pendingfb, $pendingxp, $fr
 				// Base level from main table in database
 				$levelfrom = isset($saved[$key]->level_from) ? $saved[$key]->level_from : 0;
 
-				// Over-ridden by freebie point spends submitted
-				$current = $submitted ? (isset($posted[$key]) ? $posted[$key] : 0) : $levelfrom;
 				// Over-ridden by freebie point spends saved
 				$current = isset($pendingfb[$key]) ? $pendingfb[$key]->value : $levelfrom;
+				// Over-ridden by freebie point spends submitted
+				$current = $submitted ? (isset($posted[$key]) ? $posted[$key] : 0) : $current;
 				
 				// xp point spends saved
 				$levelxp = isset($pendingxp[$key]) ? $pendingxp[$key]->value : 0;
@@ -1098,7 +1098,7 @@ function vtm_save_progress($laststep, $characterID, $templateID) {
 	
 	$flow = vtm_chargen_flow_steps($characterID);
 	if ($laststep != 0) {
-		echo "<li>laststep: $laststep, function: {$flow[$laststep-1]['save']}</li>";
+		//echo "<li>laststep: $laststep, function: {$flow[$laststep-1]['save']}</li>";
 		$characterID = call_user_func($flow[$laststep-1]['save'], $characterID, $templateID);
 	}
 
@@ -1530,7 +1530,7 @@ function vtm_save_disciplines($characterID) {
 			);
 			if (isset($saved[$key])) {
 				if ($saved[$key]->LEVEL != $value) {
-					echo "<li>Updated $key at $value</li>";
+					//echo "<li>Updated $key at $value</li>";
 					// update
 					$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE",
 						$data,
@@ -1559,7 +1559,7 @@ function vtm_save_disciplines($characterID) {
 			$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE
 					WHERE CHARACTER_ID = %s AND DISCIPLINE_ID = %s";
 			$sql = $wpdb->prepare($sql,$characterID,$saved[$id]->DISCIPLINE_ID);
-			echo "<li>Delete $id ($sql)</li>";
+			//echo "<li>Delete $id ($sql)</li>";
 			$wpdb->get_results($sql);
 		}
 	}
@@ -2275,11 +2275,21 @@ function vtm_get_chargen_paths($characterID = 0, $output_type = OBJECT) {
 			FROM 
 				" . VTM_TABLE_PREFIX . "PATH path,
 				" . VTM_TABLE_PREFIX . "DISCIPLINE disc
+				LEFT JOIN (
+					SELECT ID, LEVEL, DISCIPLINE_ID
+					FROM
+						" . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE
+					WHERE
+						CHARACTER_ID = %s
+				) as cp
+				ON
+					cp.DISCIPLINE_ID = disc.ID
 			WHERE
 				path.VISIBLE = 'Y'
 				AND path.DISCIPLINE_ID = disc.ID
+				AND NOT(ISNULL(cp.LEVEL))
 			ORDER BY GROUPING, NAME";
-	//$sql = $wpdb->prepare($sql, $characterID);
+	$sql = $wpdb->prepare($sql, $characterID);
 	//echo "<p>SQL: $sql</p>";
 	$results = $wpdb->get_results($sql, $output_type);
 	
@@ -2466,7 +2476,7 @@ function vtm_render_freebie_disciplines($characterID) {
 	$pendingxp  = vtm_get_pending_chargen_xp('DISCIPLINE', $characterID);  // name => value
 
 	$rowoutput = vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp,
-			$freebiecosts, 'freebie_skill', 1);
+			$freebiecosts, 'freebie_discipline', 1);
 	
 	//print_r($freebiecosts);
 	
@@ -2662,7 +2672,7 @@ function vtm_render_freebie_paths($characterID) {
 	$items     = vtm_get_chargen_paths($characterID);
 	$saved     = vtm_get_current_paths($characterID);
 	$pendingfb = vtm_get_pending_freebies('PATH', $characterID);
-	$pendingxp = vtm_get_pending_chargen_xp('PATH', $characterID);  // name => value
+	$pendingxp = vtm_get_pending_chargen_xp('PATH', $characterID);
 
 	//print_r($currentpending);
 	
@@ -3311,7 +3321,7 @@ function vtm_get_current_disciplines($characterID) {
 
 	$sql = "SELECT
 				item.name,
-				chartable.level		as level_from,
+				IFNULL(chartable.level,0)		as level_from,
 				chartable.ID 		as chartableid,
 				item.ID 			as itemid,
 				IF(ISNULL(clandisc.DISCIPLINE_ID),'Non-Clan Discipline','Clan Discipline') as grp
@@ -3405,7 +3415,7 @@ function vtm_get_freebies_spent($characterID) {
 		$current['BACKGROUND'] = vtm_get_current_backgrounds($characterID);
 		$current['MERIT']      = vtm_get_current_merits($characterID);
 		$current['PATH']       = vtm_get_current_paths($characterID);
-		
+				
 		$bought['STAT']       = isset($_POST['freebie_stat']) ? $_POST['freebie_stat'] : array();
 		$bought['SKILL']      = isset($_POST['freebie_skill']) ? $_POST['freebie_skill'] : array();
 		$bought['DISCIPLINE'] = isset($_POST['freebie_discipline']) ? $_POST['freebie_discipline'] : array();
@@ -3418,29 +3428,29 @@ function vtm_get_freebies_spent($characterID) {
 				$levelfrom = isset($current[$type][$key]->level_from) ? $current[$type][$key]->level_from : 0;
 				$actualkey = preg_replace("/_\d+$/", "", $key);
 			
-				echo "<li>Cost of $key ($actualkey) from $levelfrom to $levelto</li>";
+				//echo "<li>Cost of $key ($actualkey) in $type from $levelfrom to $levelto </li>";
 
 				if ($type == 'MERIT') {
-					// if (!isset($current[$name])) {
-						// if (isset($current[$actualname]->multiple) && $current[$actualname]->multiple == 'Y') {
-							// $spent += isset($freebiecosts[$actualname][0][1]) ? $freebiecosts[$actualname][0][1] : 0;
-							// //echo "<li>Running total is $spent. Bought $actualname ({$freebiecosts[$actualname][0][1]})</li>";
-						// }
-					// } else {
-						// $spent += isset($freebiecosts[$name][0][1]) ? $freebiecosts[$name][0][1] : 0;
-						// //echo "<li>Running total is $spent. Bought $name ({$freebiecosts[$name][0][1]})</li>";
-					// }
+					if (!isset($current[$type][$key])) {
+						if (isset($current[$type][$actualkey]->multiple) && $current[$type][$actualkey]->multiple == 'Y') {
+							$spent += isset($freebiecosts[$type][$actualkey][0][1]) ? $freebiecosts[$type][$actualkey][0][1] : 0;
+							//echo "<li>Running total is $spent. Bought $actualkey ({$freebiecosts[$type][$actualkey][0][1]})</li>";
+						}
+					} else {
+						$spent += isset($freebiecosts[$type][$key][0][1]) ? $freebiecosts[$type][$key][0][1] : 0;
+						//echo "<li>Running total is $spent. Bought $key ({$freebiecosts[$type][$key][0][1]})</li>";
+					}
 				}
 				elseif (!isset($current[$type][$key])) {
-					echo "$key becomes $actualkey, <br />";
+					echo "$key becomes $actualkey<br />";
 					if (isset($current[$type][$actualkey]->multiple) && $current[$type][$actualkey]->multiple == 'Y') {
-						echo "$name - from: {$current[$actualname]->level_from}, to: {$levelto}, cost: {$freebiecosts[$actualname][$current[$actualname]->level_from][$level_to]}<br />";
+						//echo "$name - from: {$current[$actualkey]->level_from}, to: {$levelto}, cost: {$freebiecosts[$actualname][$current[$actualname]->level_from][$level_to]}<br />";
 						$spent += isset($freebiecosts[$type][$actualkey][$current[$type][$actualkey]->level_from][$levelto]) ? $freebiecosts[$type][$actualkey][$current[$type][$actualkey]->level_from][$levelto] : 0;
-						echo "<li>Running total is $spent. Bought $actualkey to $levelto ({$freebiecosts[$type][$actualkey][$current[$actualkey]->level_from][$levelto]})</li>";
+						//echo "<li>Running total is $spent. Bought $actualkey to $levelto ({$freebiecosts[$type][$actualkey][$current[$actualkey]->level_from][$levelto]})</li>";
 					}
 				} else {
 					$spent += isset($freebiecosts[$type][$key][$levelfrom][$levelto]) ? $freebiecosts[$type][$key][$levelfrom][$levelto] : 0;
-					echo "<li>Running total is $spent. Bought $key to $levelto ({$freebiecosts[$type][$key][$levelfrom][$levelto]})</li>";
+					//echo "<li>Running total is $spent. Bought $key to $levelto ({$freebiecosts[$type][$key][$levelfrom][$levelto]})</li>";
 				}
 			}
 		
