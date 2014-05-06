@@ -522,7 +522,8 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 	return $rowoutput;
 }
 
-function vtm_render_chargen_xp_section ($items, $saved, $xpcosts, $pendingfb, $pendingxp, $postvariable, $showzeros) {
+function vtm_render_chargen_xp_section ($items, $saved, $xpcosts, $pendingfb, 
+	$pendingxp, $postvariable, $showzeros, $fbcosts = array()) {
 
 	$rowoutput = "";
 	$max2display = 5;
@@ -566,14 +567,25 @@ function vtm_render_chargen_xp_section ($items, $saved, $xpcosts, $pendingfb, $p
 			$levelfb = isset($pendingfb[$key]) ? $pendingfb[$key]->value : $levelfrom;
 
 			// level from xp point spends saved
-			$current = isset($pendingxp[$key]) ? $pendingxp[$key]->value : 0;
+			$current = isset($posted[$key]) ? $posted[$key] : 
+						(isset($pendingxp[$key]) ? $pendingxp[$key]->value : 0);
 			
 			// Specialisation
 			$specialisation = isset($pendingxp[$key]) ? $pendingxp[$key]->specialisation : '';
 			
-			echo "<li>$key/$name - from: $levelfrom, fb: $levelfb, current: $current, spec: $specialisation</li>";
+			// Merit stuff
+			$meritcost  = $postvariable == 'xp_merit' ? $xpcosts[$name][0][1] : 0;
+			$meritlevel = $postvariable == 'xp_merit' ? $fbcosts[$name][0][1] : 0;
 			
-			if ($levelfrom > 0 || $showzeros) {
+			//echo "<li>$key/$name - from: $levelfrom, fb: $levelfb, current: $current, spec: $specialisation</li>";
+			if ($postvariable == 'xp_merit' && $meritcost > 0 && $meritlevel > 0)
+				$dodisplay = 1;
+			elseif ($postvariable != 'xp_merit' && ($levelfrom > 0 || $showzeros))
+				$dodisplay = 1;
+			else
+				$dodisplay = 0;
+			
+			if ($dodisplay) {
 				// start column / new column
 				if (isset($item->GROUPING)) {
 					if ($grp != $item->GROUPING) {
@@ -601,31 +613,43 @@ function vtm_render_chargen_xp_section ($items, $saved, $xpcosts, $pendingfb, $p
 					<td colspan=$colspan>\n";
 				$rowoutput .= "</td></tr>\n";
 
-				//dots row
-				$rowoutput .= "<tr><th class='gvthleft'><span>" . stripslashes($item->NAME) . "</span></th><td>\n";
-				$rowoutput .= "<fieldset class='dotselect'>";
-				for ($i=$max2display;$i>=1;$i--) {
-					$radioid = "dot_{$key}_{$i}_{$j}";
-					
-					if ($levelfrom >= $i)
-						$rowoutput .= "<img src='$fulldoturl' alt='*' id='$radioid' />";
-					elseif (isset($pendingfb[$key]) && $levelfb >= $i)
-						$rowoutput .= "<img src='$freebiedoturl' alt='*' id='$radioid' />";
-					elseif (isset($xpcosts[$name][$levelfrom][$i])) {
-						$cost = $xpcosts[$name][$levelfrom][$i];
-						$rowoutput .= "<input type='radio' id='$radioid' name='{$postvariable}[$key]' value='$i' ";
-						$rowoutput .= checked($current, $i, false);
-						$rowoutput .= " /><label for='$radioid' title='Level $i ($cost xp)'";
-						$rowoutput .= ">&nbsp;</label>\n";
+				if ($postvariable == 'xp_merit') {
+					$cbid = "cb_{$j}_{$key}";
+					$rowoutput .= "<tr><td><span>";
+					$rowoutput .= "<input type='checkbox' name='{$postvariable}[" . $key . "]' id='$cbid' value='$meritlevel' ";
+					if ($current) {
+						$rowoutput .= checked($current, $current, false);
 					}
-					else {
-						$rowoutput .= "<img src='$emptydoturl' alt='X' id='$radioid' />";
+					$rowoutput .= "/>\n";
+					$rowoutput .= "<label for='$cbid'>" . stripslashes($item->NAME) . " ($meritlevel) - $meritcost XP</label>\n";
+					$rowoutput .= "</span></td></tr>\n";
+				} else {
+					//dots row
+					$rowoutput .= "<tr><th class='gvthleft'><span>" . stripslashes($item->NAME) . "</span></th><td>\n";
+					$rowoutput .= "<fieldset class='dotselect'>";
+					for ($i=$max2display;$i>=1;$i--) {
+						$radioid = "dot_{$key}_{$i}_{$j}";
+						
+						if ($levelfrom >= $i)
+							$rowoutput .= "<img src='$fulldoturl' alt='*' id='$radioid' />";
+						elseif (isset($pendingfb[$key]) && $levelfb >= $i)
+							$rowoutput .= "<img src='$freebiedoturl' alt='*' id='$radioid' />";
+						elseif (isset($xpcosts[$name][$levelfrom][$i])) {
+							$cost = $xpcosts[$name][$levelfrom][$i];
+							$rowoutput .= "<input type='radio' id='$radioid' name='{$postvariable}[$key]' value='$i' ";
+							$rowoutput .= checked($current, $i, false);
+							$rowoutput .= " /><label for='$radioid' title='Level $i ($cost xp)'";
+							$rowoutput .= ">&nbsp;</label>\n";
+						}
+						else {
+							$rowoutput .= "<img src='$emptydoturl' alt='X' id='$radioid' />";
+						}
 					}
+					$radioid = "dot_{$key}_{$j}_clear";
+					$rowoutput .= "<input type='radio' id='$radioid' name='{$postvariable}[$key]' value='0' ";
+					$rowoutput .= " /><label for='$radioid' title='Clear' class='cleardot'>&nbsp;</label>\n";
+					$rowoutput .= "</fieldset></td></tr>\n";
 				}
-				$radioid = "dot_{$key}_{$j}_clear";
-				$rowoutput .= "<input type='radio' id='$radioid' name='{$postvariable}[$key]' value='0' ";
-				$rowoutput .= " /><label for='$radioid' title='Clear' class='cleardot'>&nbsp;</label>\n";
-				$rowoutput .= "</fieldset></td></tr>\n";
 			}
 		}
 	}
@@ -893,11 +917,11 @@ function vtm_render_chargen_xp($step, $characterID, $templateID) {
 	$sectionorder   = array('stat', 'skill', 'disc', 'path', 'merit');
 	
 	$pendingSpends = array();
-	$sectioncontent['stat']  = vtm_render_chargen_xp_stats($characterID, $pendingSpends, $points);
-	$sectioncontent['skill'] = vtm_render_chargen_xp_skills($characterID, $pendingSpends, $points);
-	//$sectioncontent['disc']  = vtm_render_xp_disciplines($characterID, $pendingSpends, $points);
-	//$sectioncontent['path']  = vtm_render_chargen_xp_paths($characterID, $pendingSpends, $points);
-	//$sectioncontent['merit'] = vtm_render_chargen_xp_merits($characterID, $pendingSpends, $points);
+	$sectioncontent['stat']  = vtm_render_chargen_xp_stats($characterID);
+	$sectioncontent['skill'] = vtm_render_chargen_xp_skills($characterID);
+	$sectioncontent['disc']  = vtm_render_xp_disciplines($characterID);
+	$sectioncontent['path']  = vtm_render_chargen_xp_paths($characterID);
+	$sectioncontent['merit'] = vtm_render_chargen_xp_merits($characterID);
 	
 	// DISPLAY TABLES 
 	//-------------------------------
@@ -921,7 +945,7 @@ function vtm_render_chargen_xp($step, $characterID, $templateID) {
 	
 	return $output;
 }
-/*
+
 function vtm_render_finishing($step, $characterID, $templateID) {
 	global $wpdb;
 
@@ -1028,7 +1052,9 @@ function vtm_render_finishing($step, $characterID, $templateID) {
 		$spec = isset($_POST['comment'][$i]) ? $_POST['comment'][$i] : $item['comment'];
 		$spec_output .= "<tr><td>" . stripslashes($item['name']) . "</td>
 					<td>{$item['level']}</td>
-					<td><input type='text' name='comment[]' value='$spec' />{$item['updatetable']} / {$item['tableid']}</td></tr>";
+					<td><input type='text' name='comment[]' value='$spec' />";
+		//$spec_output .= "{$item['updatetable']} / {$item['tableid']}";
+		$spec_output .= "</td></tr>\n";
 					
 		$i++;
 	}
@@ -1055,7 +1081,7 @@ function vtm_render_finishing($step, $characterID, $templateID) {
 	
 	return $output;
 }
-*/
+
 function vtm_render_abilities($step, $characterID, $templateID) {
 	global $wpdb;
 
@@ -1347,7 +1373,7 @@ function vtm_save_freebies($characterID, $templateID) {
 	$items['PATH']        = vtm_sanitize_array(vtm_get_chargen_paths($characterID, OBJECT_K));
 	*/
 	
-	//print_r($freebiecosts['PATH']);
+	//print_r($specialisation);
 	
 	foreach ($bought as $type => $items) {
 		foreach ($items as $key => $levelto) {
@@ -1365,8 +1391,8 @@ function vtm_save_freebies($characterID, $templateID) {
 				$chartableid = isset($current[$type][$key]->chartableid) ? $current[$type][$key]->chartableid : 0;
 				$amount      = ($type == 'MERIT') ? $freebiecosts[$type][$key][0][1] : $freebiecosts[$type][$key][$levelfrom][$levelto];
 				$itemid      = $current[$type][$key]->itemid;
-				$spec        = isset($specialisation[$type][$key]) && $specialisation[$type][$key] != '' ?
-								$specialisation[$type][$key] : 
+				$spec        = isset($specialisation[$type][$itemname]) && $specialisation[$type][$itemname] != '' ?
+								$specialisation[$type][$itemname] : 
 								(isset($current[$type][$key]->specialisation) ? $current[$type][$key]->specialisation : '');
 								
 				if ($levelto > $levelfrom || $type == 'MERIT') {
@@ -1403,7 +1429,7 @@ function vtm_save_freebies($characterID, $templateID) {
 
 	return $characterID;
 }
-/*
+
 function vtm_save_finish($characterID, $templateID) {
 	global $wpdb;
 
@@ -1457,8 +1483,10 @@ function vtm_save_finish($characterID, $templateID) {
 
 	return $characterID;
 }
+
 function vtm_save_xp($characterID, $templateID) {
 	global $wpdb;
+
 
 	$playerID = $wpdb->get_var($wpdb->prepare("SELECT PLAYER_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
 	
@@ -1468,45 +1496,47 @@ function vtm_save_xp($characterID, $templateID) {
 	$sql = $wpdb->prepare($sql, $characterID);
 	$result = $wpdb->get_results($sql);
 	
-	// (re)Add pending spends
+	$bought['STAT']       = isset($_POST['xp_stat']) ? $_POST['xp_stat'] : array();
+	$bought['SKILL']      = isset($_POST['xp_skill']) ? $_POST['xp_skill'] : array();
+	$bought['DISCIPLINE'] = isset($_POST['xp_discipline']) ? $_POST['xp_discipline'] : array();
+	$bought['MERIT']      = isset($_POST['xp_merit']) ? $_POST['xp_merit'] : array();
+	$bought['PATH']       = isset($_POST['xp_path']) ? $_POST['xp_path'] : array();
 
-	$new['STAT']       = isset($_POST['xp_stat']) ? $_POST['xp_stat'] : array();
-	$comments['STAT']  = isset($_POST['xp_stat_comment']) ? $_POST['xp_stat_comment'] : array();
-	$xpcosts['STAT']   = vtm_get_chargen_xp_costs('STAT', $characterID);
-	$freebies['STAT']  = vtm_get_pending_freebies('STAT', 'freebie_stat', $characterID);
-	$current['STAT']   = vtm_sanitize_array(vtm_get_current_stats($characterID, OBJECT_K));
-	$items['STAT']     = vtm_sanitize_array(vtm_get_chargen_stats($characterID, OBJECT_K));
-
-	$new['SKILL']       = isset($_POST['xp_skill']) ? $_POST['xp_skill'] : array();
+	$comments['STAT']  = isset($_POST['xp_stat_comment'])   ? $_POST['xp_stat_comment'] : array();
 	$comments['SKILL']  = isset($_POST['xp_skill_comment']) ? $_POST['xp_skill_comment'] : array();
-	$xpcosts['SKILL']   = vtm_get_chargen_xp_costs('SKILL', $characterID);
-	$freebies['SKILL']  = vtm_get_pending_freebies('SKILL', 'freebie_skill', $characterID);
-	$current['SKILL']   = vtm_sanitize_array(vtm_get_current_skills($characterID, OBJECT_K));
-	$items['SKILL']     = vtm_sanitize_array(vtm_get_chargen_abilities($characterID, 1, OBJECT_K));
-	
-	$new['DISCIPLINE']       = isset($_POST['xp_discipline']) ? $_POST['xp_discipline'] : array();
-	$xpcosts['DISCIPLINE']   = vtm_get_chargen_xp_costs('DISCIPLINE', $characterID);
-	$freebies['DISCIPLINE']  = vtm_get_pending_freebies('DISCIPLINE', 'freebie_discipline', $characterID);
-	$current['DISCIPLINE']   = vtm_sanitize_array(vtm_get_current_disciplines($characterID, OBJECT_K));
-	$items['DISCIPLINE']     = vtm_sanitize_array(vtm_get_chargen_disciplines($characterID, OBJECT_K));
-	
-	$new['PATH']       = isset($_POST['xp_path']) ? $_POST['xp_path'] : array();
-	$xpcosts['PATH']   = vtm_get_chargen_xp_costs('PATH', $characterID);
-	$freebies['PATH']  = vtm_get_pending_freebies('PATH', 'freebie_path', $characterID);
-	$current['PATH']   = vtm_sanitize_array(vtm_get_current_paths($characterID, OBJECT_K));
-	$items['PATH']     = vtm_sanitize_array(vtm_get_chargen_paths($characterID, OBJECT_K));
-
-	$new['MERIT']       = isset($_POST['xp_merit']) ? $_POST['xp_merit'] : array();
 	$comments['MERIT']  = isset($_POST['xp_merit_comment']) ? $_POST['xp_merit_comment'] : array();
-	$xpcosts['MERIT']   = vtm_get_chargen_xp_costs('MERIT', $characterID);
-	$freebies['MERIT']  = vtm_get_pending_freebies('MERIT', 'freebie_merit', $characterID);
-	$current['MERIT']   = vtm_sanitize_array(vtm_get_current_merits($characterID, OBJECT_K));
-	$items['MERIT']     = vtm_sanitize_array(vtm_get_chargen_merits($characterID, OBJECT_K));
+	
+	$freebiecosts['STAT']       = vtm_get_freebie_costs('STAT', $characterID);
+	$freebiecosts['SKILL']      = vtm_get_freebie_costs('SKILL', $characterID);
+	$freebiecosts['DISCIPLINE'] = vtm_get_freebie_costs('DISCIPLINE', $characterID);
+	$freebiecosts['MERIT']      = vtm_get_freebie_costs('MERIT', $characterID);
+	$freebiecosts['PATH']       = vtm_get_freebie_costs('PATH', $characterID);
 
+	$current['STAT']       = vtm_get_current_stats($characterID);
+	$current['SKILL']      = vtm_get_current_skills($characterID);
+	$current['DISCIPLINE'] = vtm_get_current_disciplines($characterID);
+	$current['MERIT']      = vtm_get_current_merits($characterID);
+	$current['PATH']       = vtm_get_current_paths($characterID);
 	
-	//print_r($items['STAT']);
+	$freebies['STAT']       = vtm_get_pending_freebies('STAT', $characterID);
+	$freebies['SKILL']      = vtm_get_pending_freebies('SKILL', $characterID);
+	$freebies['DISCIPLINE'] = vtm_get_pending_freebies('DISCIPLINE', $characterID);
+	$freebies['MERIT']      = vtm_get_pending_freebies('MERIT', $characterID);
+	$freebies['PATH']       = vtm_get_pending_freebies('PATH', $characterID);
 	
-	foreach ($new as $type => $row) {
+	$xpcosts['STAT']       = vtm_get_chargen_xp_costs('STAT', $characterID);
+	$xpcosts['SKILL']      = vtm_get_chargen_xp_costs('SKILL', $characterID);
+	$xpcosts['DISCIPLINE'] = vtm_get_chargen_xp_costs('DISCIPLINE', $characterID);
+	$xpcosts['MERIT']      = vtm_get_chargen_xp_costs('MERIT', $characterID);
+	$xpcosts['PATH']       = vtm_get_chargen_xp_costs('PATH', $characterID);
+
+	$items['STAT']       = vtm_sanitize_array(vtm_get_chargen_stats($characterID, OBJECT_K));
+	$items['SKILL']      = vtm_sanitize_array(vtm_get_chargen_abilities($characterID, 1, OBJECT_K));
+	$items['DISCIPLINE'] = vtm_sanitize_array(vtm_get_chargen_disciplines($characterID, OBJECT_K));
+	$items['MERIT']      = vtm_sanitize_array(vtm_get_chargen_merits($characterID, OBJECT_K));
+	$items['PATH']       = vtm_sanitize_array(vtm_get_chargen_paths($characterID, OBJECT_K));
+	
+	foreach ($bought as $type => $row) {
 		foreach ($row as $key => $value) {
 		
 			if ($value != 0) {
@@ -1517,14 +1547,16 @@ function vtm_save_xp($characterID, $templateID) {
 					$key  = preg_replace("/_\d+$/", "", $key);
 					$name = $items[$type][$key]->NAME;
 				}
-				//echo "<li>origkey: $itemname, key: $key, value:$value, name: $name</li>";
+				
+				echo "<li>origkey: $itemname, key: $key, value:$value, name: $name</li>";
 	
+
 				$chartableid = isset($current[$type][$key]->chartableid) ? $current[$type][$key]->chartableid : 0;
 				$levelfrom   = isset($current[$type][$key]->level_from)  ? $current[$type][$key]->level_from  : 0;
-				$levelfrom   = isset($freebies[$type][$key]) ? $freebies[$type][$key] : $levelfrom;
+				$levelfrom   = isset($freebies[$type][$key]->value) ? $freebies[$type][$key]->value : $levelfrom;
 				$amount      = ($type == 'MERIT') ? $xpcosts[$type][$key][0][1] : $xpcosts[$type][$key][$levelfrom][$value];
 				$itemid      = $items[$type][$key]->ID;
-				$spec        = isset($comments[$type][$key]) ? $comments[$type][$key] : '';
+				$spec        = isset($comments[$type][$itemname]) ? $comments[$type][$itemname] : '';
 				
 				if ($value > $levelfrom || $type == 'MERIT') {
 					$data = array (
@@ -1545,9 +1577,9 @@ function vtm_save_xp($characterID, $templateID) {
 						
 						'ITEMTABLE_ID'    => $itemid
 					);
-					//echo "<pre>";
-					//print_r($data);
-					//echo "</pre>";
+					///echo "<pre>";
+					///print_r($data);
+					///echo "</pre>";
 					
 					$wpdb->insert(VTM_TABLE_PREFIX . "PENDING_XP_SPEND",
 								$data,
@@ -1562,13 +1594,14 @@ function vtm_save_xp($characterID, $templateID) {
 						echo "<p style='color:red'><b>Error:</b> $name could not be inserted</p>";
 					}		
 				}
+
 			}
 		}
 	}
 
 	return $characterID;
 }
-*/
+
 function vtm_save_abilities($characterID) {
 	global $wpdb;
 
@@ -2705,101 +2738,21 @@ function vtm_render_freebie_disciplines($characterID) {
 	return $output;
 
 }
-/*
-function vtm_render_xp_disciplines($characterID, $pendingSpends, $points) {
+
+function vtm_render_xp_disciplines($characterID) {
 	global $wpdb;
 	
-	$output      = "";
-	$rowoutput   = "";
-	$max2display = 5;
-	$columns     = 3;
-	$fulldoturl  = plugins_url( 'gvlarp-character/images/cg_freedot.jpg' );
-	$emptydoturl = plugins_url( 'gvlarp-character/images/cg_emptydot.jpg' );
-	$freebiedoturl = plugins_url( 'gvlarp-character/images/cg_freebiedot.jpg' );
+	$output  = "";
 
-
-	// COSTS OF STATS - if entry doesn't exist then you can't buy it
-	//	$cost['<statname>'] = array( '<from>' => array( '<to>' => <cost>))
-	$xpcosts = vtm_get_chargen_xp_costs('DISCIPLINE', $characterID);
+	$xpcosts   = vtm_get_chargen_xp_costs('DISCIPLINE', $characterID);
+	$items     = vtm_get_chargen_disciplines($characterID);
+	$saved     = vtm_get_current_disciplines($characterID);
+	$pendingfb = vtm_get_pending_freebies('DISCIPLINE', $characterID);
+	$pendingxp = vtm_get_pending_chargen_xp('DISCIPLINE', $characterID);
+	
 	//print_r($xpcosts);
-
-	// display stats to buy
-	//	hover over radiobutton to show the cost
-	$items = vtm_sanitize_array(vtm_get_current_disciplines($characterID, OBJECT_K));
 	
-	// Current Freebie spent
-	$freebies = vtm_get_pending_freebies('DISCIPLINE', 'freebie_discipline', $characterID);
-	
-	// Get currently selected
-	$pending = vtm_get_pending_chargen_xp('DISCIPLINE', 'xp_discipline', $characterID);
-	//print_r($currentpending);
-	
-	if (count($items) > 0) {
-		$id = 0;
-		$grp = "";
-		$grpcount = 0;
-		$col = 0;
-		foreach ($items as $key => $item) {
-					
-			$tmp_max2display = $max2display;
-			$colspan = 2 + $tmp_max2display;
-			
-			$item->level_from = isset($item->level_from) ? $item->level_from : 0;
-		
-			// start column / new column
-			if (isset($item->grp)) {
-				if ($grp != $item->grp) {
-					$grpcount++;
-					if (empty($grp)) {
-						$rowoutput .= "<tr><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
-						$col++;
-					} 
-					elseif ($col == $columns) {
-						$rowoutput .= "</table>\n</td></tr>\n<tr><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
-						$col = 1;
-					}
-					else {
-						$rowoutput .= "</table>\n</td><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
-						$col++;
-					}
-					$grp = $item->grp;
-				}
-			}
-
-			// Hidden fields
-			$rowoutput .= "<tr style='display:none'><td colspan=$colspan>\n";
-			$rowoutput .= "</td></tr>\n";
-			
-			//dots row
-			$rowoutput .= "<tr><th class='gvthleft'><span>" . stripslashes($item->name) . "</span></th><td>\n";
-			$rowoutput .= "<fieldset class='dotselect'>";
-			for ($i=$tmp_max2display;$i>=1;$i--) {
-				$radioid = "dot_{$key}_{$item->itemid}_{$i}";
-				$current = isset($pending[$key]) ? $pending[$key] : 0;
-				$levelfrom = isset($freebies[$key]) ? $freebies[$key] : $item->level_from;
-				
-				if ($item->level_from >= $i)
-					$rowoutput .= "<img src='$fulldoturl' alt='*' id='$radioid' />";
-				elseif (isset($freebies[$key]) && $freebies[$key] >= $i)
-					$rowoutput .= "<img src='$freebiedoturl' alt='*' id='$radioid' />";
-				elseif (isset($xpcosts[$key][$levelfrom][$i])) {
-					$cost = $xpcosts[$key][$levelfrom][$i];
-					$rowoutput .= "<input type='radio' id='$radioid' name='xp_discipline[$key]' value='$i' ";
-					$rowoutput .= checked($current, $i, false);
-					$rowoutput .= " /><label for='$radioid' title='Level $i ($cost xp)'";
-					$rowoutput .= ">&nbsp;</label>\n";
-				}
-				else {
-					$rowoutput .= "<img src='$emptydoturl' alt='X' id='$radioid' />";
-				}
-			}
-			$radioid = "dot_{$key}_{$item->itemid}_clear";
-			$rowoutput .= "<input type='radio' id='$radioid' name='xp_discipline[$key]' value='0' ";
-			$rowoutput .= " /><label for='$radioid' title='Clear' class='cleardot'>&nbsp;</label>\n";
-			$rowoutput .= "</fieldset></td></tr>\n";
-		}
-	
-	}
+	$rowoutput = vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, $pendingxp, 'xp_discipline', 1);
 	
 	if ($rowoutput != "")
 		$output .= "<table>$rowoutput</table></td></tr></table>\n";
@@ -2807,7 +2760,7 @@ function vtm_render_xp_disciplines($characterID, $pendingSpends, $points) {
 	return $output;
 
 }
-*/
+
 function vtm_render_freebie_paths($characterID) {
 	
 	$output      = "";
@@ -3178,7 +3131,7 @@ function vtm_get_chargen_xp_costs($type, $characterID = 0) {
 	//	$cost['<statname>'] = array( '<from>' => array( '<to>' => <cost>))
 	
 	if ($type == 'DISCIPLINE') {
-/*
+
 		// Get list of disciplines
 		$sql = "SELECT ID, NAME, NOT(ISNULL(clandisc.DISCIPLINE_ID)) as ISCLAN					
 				FROM 
@@ -3267,7 +3220,7 @@ function vtm_get_chargen_xp_costs($type, $characterID = 0) {
 				$outdata[$name] = $nonclancost;
 			}
 		}
-		*/
+
 	} 
 	elseif ($type == "MERIT") {
 		$sql = "SELECT ID, NAME, XP_COST FROM " . VTM_TABLE_PREFIX . "MERIT ORDER BY ID";
@@ -3657,23 +3610,52 @@ function vtm_get_chargen_xp_spent($characterID) {
 		$xpcosts['SKILL']      = vtm_get_chargen_xp_costs('SKILL', $characterID);
 		$xpcosts['DISCIPLINE'] = vtm_get_chargen_xp_costs('DISCIPLINE', $characterID);
 		$xpcosts['MERIT']      = vtm_get_chargen_xp_costs('MERIT', $characterID);
+		$xpcosts['PATH']       = vtm_get_chargen_xp_costs('PATH', $characterID);
 		
 		$current['STAT']       = vtm_get_current_stats($characterID);
 		$current['SKILL']      = vtm_get_current_skills($characterID);
 		$current['DISCIPLINE'] = vtm_get_current_disciplines($characterID);
 		$current['MERIT']      = vtm_get_current_merits($characterID);
+		$current['PATH']       = vtm_get_current_paths($characterID);
 
 		$pendingfb['STAT']       = vtm_get_pending_freebies('STAT', $characterID);
 		$pendingfb['SKILL']      = vtm_get_pending_freebies('SKILL', $characterID);
 		$pendingfb['DISCIPLINE'] = vtm_get_pending_freebies('DISCIPLINE', $characterID);
 		$pendingfb['MERIT']      = vtm_get_pending_freebies('MERIT', $characterID);
+		$pendingfb['PATH']       = vtm_get_pending_freebies('PATH', $characterID);
 		
 		$bought['STAT']       = isset($_POST['xp_stat']) ? $_POST['xp_stat'] : array();
 		$bought['SKILL']      = isset($_POST['xp_skill']) ? $_POST['xp_skill'] : array();
 		$bought['DISCIPLINE'] = isset($_POST['xp_discipline']) ? $_POST['xp_discipline'] : array();
 		$bought['MERIT']      = isset($_POST['xp_merit']) ? $_POST['xp_merit'] : array();
+		$bought['PATH']       = isset($_POST['xp_path']) ? $_POST['xp_path'] : array();
 
-
+		foreach ($bought as $type => $items) {
+			foreach ($items as $key => $level_to) {
+			
+				$levelfrom = isset($current[$type][$key]->level_from) ? $current[$type][$key]->level_from : 0;
+				$levelfrom = isset($pendingfb[$type][$key]->value) ? $pendingfb[$type][$key]->value : $levelfrom;
+				
+				if ($level_to != 0) {
+					$actualkey = preg_replace("/_\d+$/", "", $key);
+					
+					if ($type == 'MERIT') {
+						if (!isset($current[$type][$key])) {
+							if (isset($current[$type][$actualkey]->multiple) && $current[$type][$actualkey]->multiple == 'Y') {
+								$spent += isset($xpcosts[$type][$actualkey][0][1]) ? $xpcosts[$type][$actualkey][0][1] : 0;
+								//echo "<li>$key / $actualkey, cost: {$xpcosts[$type][$actualkey][0][1]}</li>";
+							}
+						} else {
+							//echo "<li>$key - from:$levelfrom, to:$level_to, cost: {$xpcosts[$type][$key][0][1]}</li>";
+							$spent += isset($xpcosts[$type][$key][0][1]) ? $xpcosts[$type][$key][0][1] : 0;
+						}
+					} else {
+						$spent += isset($xpcosts[$type][$actualkey][$levelfrom][$level_to]) ? $xpcosts[$type][$actualkey][$levelfrom][$level_to] : 0;
+						//echo "<li>$key - $type, from $levelfrom to $level_to, cost: {$xpcosts[$type][$actualkey][$levelfrom][$level_to]}, running total: $spent</li>";
+					}
+				}
+			}
+		}
 	} else {
 	
 		$sql = "SELECT SUM(AMOUNT) FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
@@ -3808,7 +3790,7 @@ function vtm_sanitize_keys($a) {
 	return sanitize_key($a);
 }
 
-function vtm_render_chargen_xp_stats($characterID, $pendingSpends, $points) {
+function vtm_render_chargen_xp_stats($characterID) {
 	$output = "";
 
 	// Get costs
@@ -3834,30 +3816,21 @@ function vtm_render_chargen_xp_stats($characterID, $pendingSpends, $points) {
 	
 	return $output;
 }
-/*
-function vtm_render_chargen_xp_paths($characterID, $pendingSpends, $points) {
+
+function vtm_render_chargen_xp_paths($characterID) {
 	$output = "";
-	$rowoutput = "";
-	$max2display = 5;
-	$columns = 3;
-	$fulldoturl = plugins_url( 'gvlarp-character/images/cg_freedot.jpg' );
-	$freebiedoturl = plugins_url( 'gvlarp-character/images/cg_freebiedot.jpg' );
-	$emptydoturl   = plugins_url( 'gvlarp-character/images/cg_emptydot.jpg' );
 
-	// Get costs
-	$xpcosts = vtm_get_chargen_xp_costs('PATH', $characterID);
-
-	// Get current stats in database
-	$current_path = vtm_sanitize_array(vtm_get_current_paths($characterID, OBJECT_K));
-	
-	// Get Freebie points spent on stats
-	$freebies = vtm_get_pending_freebies('PATH', 'freebie_path', $characterID);
-	
-	// Get currently selected
-	$pending = vtm_get_pending_chargen_xp('PATH', 'xp_path', $characterID);
-	
+	$xpcosts   = vtm_get_chargen_xp_costs('PATH', $characterID);
+	$items     = vtm_get_chargen_paths($characterID);
+	$saved     = vtm_get_current_paths($characterID);
+	$pendingfb = vtm_get_pending_freebies('PATH', $characterID);
+	$pendingxp = vtm_get_pending_chargen_xp('PATH', $characterID);
 	//print_r($current_path);
 	
+	$rowoutput = vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, 
+		$pendingxp, 'xp_path', 1);
+	
+	/*
 	$grp = "";
 	$grpcount = 0;
 	$col = 0;
@@ -3913,204 +3886,49 @@ function vtm_render_chargen_xp_paths($characterID, $pendingSpends, $points) {
 		$rowoutput .= "</fieldset></td></tr>\n";
 		
 	}
+	*/
 	if ($rowoutput != "")
 		$output .= "<table>$rowoutput</table></td></tr></table>\n";
 	
 	return $output;
 }
-*/
-function vtm_render_chargen_xp_skills($characterID, $pendingSpends, $points) {
+
+function vtm_render_chargen_xp_skills($characterID) {
 	global $wpdb;
 	
-	$output      = "";
-	$rowoutput   = "";
-	$max2display = 5;
-	$columns     = 3;
-	$fulldoturl  = plugins_url( 'gvlarp-character/images/cg_freedot.jpg' );
-	$emptydoturl = plugins_url( 'gvlarp-character/images/cg_emptydot.jpg' );
-	$freebiedoturl = plugins_url( 'gvlarp-character/images/cg_freebiedot.jpg' );
+	$output = "";
 
 	// Get costs
-	$xpcosts = vtm_get_chargen_xp_costs('SKILL', $characterID);
-	$items = vtm_get_chargen_abilities($characterID, 1);
-	$saved = vtm_get_current_skills($characterID);
+	$xpcosts   = vtm_get_chargen_xp_costs('SKILL', $characterID);
+	$items     = vtm_get_chargen_abilities($characterID, 1);
+	$saved     = vtm_get_current_skills($characterID);
 	$pendingfb = vtm_get_pending_freebies('SKILL', $characterID);
 	$pendingxp = vtm_get_pending_chargen_xp('SKILL', $characterID);
 	
 	$rowoutput = vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, $pendingxp, 'xp_skill', 1);
 	
-	
-	//echo "<pre>";
-	//print_r($xpcosts);
-	//echo "</pre>";
-	
-	/*
-	if (count($items) > 0) {
-		$grp = "";
-		$grpcount = 0;
-		$col = 0;
-		foreach ($items as $key => $item) {
-		
-			$loop = ($item->multiple == 'Y') ? 5 : 1;
-			
-			$max2display;
-			$colspan = 2;
-			
-			for ($j = 1 ; $j <= $loop ; $j++) {
-				$actualkey = ($item->multiple == 'Y') ? $key . "_" . $j : $key;
-			
-				// start column / new column
-				if (isset($item->grp)) {
-					if ($grp != $item->grp) {
-						$grpcount++;
-						if (empty($grp)) {
-							$rowoutput .= "<tr><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
-							$col++;
-						} 
-						elseif ($col == $columns) {
-							$rowoutput .= "</table>\n</td></tr>\n<tr><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
-							$col = 1;
-						}
-						else {
-							$rowoutput .= "</table>\n</td><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
-							$col++;
-						}
-						$grp = $item->grp;
-					}
-				}
-
-				// Hidden fields
-				$rowoutput .= "<tr style='display:none'><td colspan=$colspan>\n";
-				$rowoutput .= "</td></tr>\n";
-				
-				//dots row
-				$rowoutput .= "<tr><th class='gvthleft'><span>" . stripslashes($item->name) . "</span></th><td>\n";
-				$rowoutput .= "<fieldset class='dotselect'>";
-				for ($i=$max2display;$i>=1;$i--) {
-					$radioid = "dot_{$actualkey}_{$j}_{$item->itemid}_{$i}";
-					$current = isset($pending[$actualkey]) ? $pending[$actualkey] : 0;
-					$levelfrom = isset($freebies[$actualkey]) ? $freebies[$actualkey] : $item->level_from;
-
-					if ($item->level_from >= $i)
-						$rowoutput .= "<img src='$fulldoturl' alt='*' id='$radioid' />";
-					elseif (isset($freebies[$actualkey]) && $freebies[$actualkey] >= $i)
-						$rowoutput .= "<img src='$freebiedoturl' alt='*' id='$radioid' />";
-					elseif (isset($xpcosts[$key][$levelfrom][$i])) {
-						$cost = $xpcosts[$key][$levelfrom][$i];
-						$rowoutput .= "<input type='radio' id='$radioid' name='xp_skill[$actualkey]' value='$i' ";
-						$rowoutput .= checked($current, $i, false);
-						$rowoutput .= " /><label for='$radioid' title='Level $i ($cost xp)'";
-						$rowoutput .= ">&nbsp;</label>\n";
-					}
-					else {
-						$rowoutput .= "<img src='$emptydoturl' alt='X' id='$radioid' />";
-					}
-				}
-				$radioid = "dot_{$actualkey}_{$j}_{$item->itemid}_clear";
-				$rowoutput .= "<input type='radio' id='$radioid' name='xp_skill[$actualkey]' value='0' ";
-				$rowoutput .= " /><label for='$radioid' title='Clear' class='cleardot'>&nbsp;</label>\n";
-				$rowoutput .= "</fieldset></td></tr>\n";
-			}
-		}
-	
-	}
-	*/
-	
 	if ($rowoutput != "")
 		$output .= "<table>$rowoutput</table></td></tr></table>\n";
 
 	return $output;
 
 }
-/*
-function vtm_render_chargen_xp_merits($characterID, $pendingSpends, $points) {
+
+function vtm_render_chargen_xp_merits($characterID) {
 	global $wpdb;
 	
-	$output      = "";
-	$rowoutput   = "";
-	$max2display = 5;
-	$columns     = 3;
-	$fulldoturl  = plugins_url( 'gvlarp-character/images/cg_freedot.jpg' );
-	$emptydoturl = plugins_url( 'gvlarp-character/images/cg_emptydot.jpg' );
-	$freebiedoturl = plugins_url( 'gvlarp-character/images/cg_freebiedot.jpg' );
+	$output = "";
 
 	// Get costs
-	$xpcosts = vtm_get_chargen_xp_costs('MERIT', $characterID);
-	$freebiecosts = vtm_get_freebie_costs('MERIT', $characterID);
-
-	// Get skills in database
-	$items = vtm_sanitize_array(vtm_get_current_merits($characterID, OBJECT_K));
+	$xpcosts   = vtm_get_chargen_xp_costs('MERIT', $characterID);
+	$fbcosts   = vtm_get_freebie_costs('MERIT', $characterID);
+	$items     = vtm_get_chargen_merits($characterID);
+	$saved     = vtm_get_current_merits($characterID);
+	$pendingfb = vtm_get_pending_freebies('MERIT', $characterID);
+	$pendingxp = vtm_get_pending_chargen_xp('MERIT', $characterID);
 	
-	// Get Freebie points spent on stats
-	$freebies = vtm_get_pending_freebies('MERIT', 'freebie_merit', $characterID);
-	
-	// Get currently selected
-	$pending = vtm_get_pending_chargen_xp('MERIT', 'xp_merit', $characterID);
-	
-	//echo "<pre>";
-	//print_r($xpcosts);
-	//echo "</pre>";
-	
-	if (count($items) > 0) {
-		$grp = "";
-		$grpcount = 0;
-		$col = 0;
-		foreach ($items as $key => $item) {
-		
-			$loop = ($item->multiple == 'Y') ? 4 : 1;
-			$cost = $xpcosts[$key][0][1];
-			$meritlevel = $freebiecosts[$item->name][0][1];
-			
-			$max2display;
-			$colspan = 2;
-			
-			if ($cost != 0 && $meritlevel > 0) {
-			
-				for ($j = 1 ; $j <= $loop ; $j++) {
-					$actualkey = ($item->multiple == 'Y') ? $key . "_" . $j : $key;
-					$levelfrom = isset($item->level_from) ? $item->level_from : 0;
-					$levelfrom = isset($freebies[$actualkey]) ? $freebies[$actualkey] : $item->level_from;
-					$current   = isset($pending[$actualkey]) ? $pending[$actualkey] : 0;
-		
-					// start column / new column
-					if (isset($item->grp)) {
-						if ($grp != $item->grp) {
-							$grpcount++;
-							if (empty($grp)) {
-								$rowoutput .= "<tr><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
-								$col++;
-							} 
-							elseif ($col == $columns) {
-								$rowoutput .= "</table>\n</td></tr>\n<tr><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
-								$col = 1;
-							}
-							else {
-								$rowoutput .= "</table>\n</td><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
-								$col++;
-							}
-							$grp = $item->grp;
-						}
-					}
-
-					// Hidden fields
-					$rowoutput .= "<tr style='display:none'><td colspan=$colspan>\n";
-					$rowoutput .= "</td></tr>\n";
-					
-					//dots row
-					$cbid = "cb_{$j}_{$item->itemid}";
-					$rowoutput .= "<tr><td><span>";
-					if (!$levelfrom) {
-						$rowoutput .= "<input type='checkbox' name='xp_merit[" . $actualkey . "]' id='$cbid' value='$meritlevel' ";
-						$rowoutput .= checked($current, $meritlevel, false);
-						$rowoutput .= "/>\n";
-					}
-					$rowoutput .= "<label for='$cbid'>" . stripslashes($item->name) . " ($meritlevel) - $cost XP</label>\n";
-					$rowoutput .= "</span></td></tr>\n";
-				}
-			}
-		}
-	
-	}
+	$rowoutput = vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, 
+		$pendingxp, 'xp_merit', 1, $fbcosts);
 	
 	if ($rowoutput != "")
 		$output .= "<table id='merit_xp_table'>$rowoutput</table></td></tr></table>\n";
@@ -4118,7 +3936,7 @@ function vtm_render_chargen_xp_merits($characterID, $pendingSpends, $points) {
 	return $output;
 
 }
-*/
+
 function vtm_validate_basic_info($settings, $characterID) {
 	global $current_user;
 
@@ -4507,7 +4325,7 @@ function vtm_validate_freebies($settings, $characterID) {
 
 	return array($ok, $errormessages);
 }
-/*
+
 function vtm_validate_finishing($settings, $characterID) {
 
 	$ok = 1;
@@ -4540,6 +4358,7 @@ function vtm_validate_finishing($settings, $characterID) {
 
 	return array($ok, $errormessages);
 }
+
 function vtm_validate_xp($settings, $characterID) {
 
 	$ok = 1;
@@ -4550,11 +4369,7 @@ function vtm_validate_xp($settings, $characterID) {
 	//		Level of paths bought do not exceed level of discipline
 	$points = vtm_get_total_xp(0, $characterID);
 	$spent = 0;
-	$spent += vtm_get_chargen_xp_spent('STAT', 'xp_stat', $characterID);
-	$spent += vtm_get_chargen_xp_spent('SKILL', 'xp_skill', $characterID);
-	$spent += vtm_get_chargen_xp_spent('DISCIPLINE', 'xp_discipline', $characterID);
-	$spent += vtm_get_chargen_xp_spent('PATH', 'xp_path', $characterID);
-	$spent += vtm_get_chargen_xp_spent('MERIT', 'xp_merit', $characterID);
+	$spent += vtm_get_chargen_xp_spent($characterID);
 	
 	if ($spent == 0) {
 		$errormessages .= "<li>WARNING: You have not spent any dots</li>";
@@ -4568,8 +4383,8 @@ function vtm_validate_xp($settings, $characterID) {
 	}
 
 	if (isset($_POST['xp_path'])) {
-		$pathinfo = vtm_sanitize_array(vtm_get_current_paths($characterID, OBJECT_K));
-		$freebies = vtm_get_pending_freebies("DISCIPLINE", "freebie_discipline", $characterID);
+		$pathinfo = vtm_get_current_paths($characterID);
+		$freebies = vtm_get_pending_freebies("DISCIPLINE", $characterID);
 		$bought = $_POST['xp_path'];
 		foreach ($bought as $path => $level) {
 			$disciplinekey = sanitize_key($pathinfo[$path]->grp);
@@ -4625,6 +4440,7 @@ function vtm_render_date_entry($fieldname, $day, $month, $year) {
 
 	return $output;
 }
+
 function vtm_get_chargen_specialties($characterID) {
 	global $wpdb;
 
@@ -4635,8 +4451,6 @@ function vtm_get_chargen_specialties($characterID) {
 	//		)
 	// )
 	$specialities = array();
-
-	// 
 	
 	// MERITS
 	
@@ -4806,12 +4620,12 @@ function vtm_get_chargen_specialties($characterID) {
 	
 	foreach ($results as $row) {
 		if ($row->has_specialisation == 'Y' && (isset($row->id) || isset($row->freebieid) || isset($row->xpid))) {
-			if (isset($row->xplevel)) {
+			if (isset($row->xpid)) {
 				$updatetable = 'PENDING_XP_SPEND';
 				$tableid     = $row->xpid;
-				$comment     = $row->spec;
+				$comment     = $row->xpspec;
 			}
-			elseif (isset($row->freebielevel)) {
+			elseif (isset($row->freebieid)) {
 				$updatetable = 'PENDING_FREEBIE_SPEND';
 				$tableid     = $row->freebieid;
 				$comment     = $row->freebiespec;
@@ -4819,7 +4633,7 @@ function vtm_get_chargen_specialties($characterID) {
 			else {
 				$updatetable = 'CHARACTER_' . $row->type;
 				$tableid     = $row->id;
-				$comment     = $row->xpspec;
+				$comment     = $row->spec;
 			}
 			array_push($specialities, array(
 					'name'    => $row->itemname,
@@ -4835,7 +4649,9 @@ function vtm_get_chargen_specialties($characterID) {
 			
 	
 	//echo "<p>SQL: $sql</p>";
+	//echo "<pre>";
 	//print_r($specialities);
+	//echo "</pre>";
 	return $specialities;
-} */
+} 
 ?>
