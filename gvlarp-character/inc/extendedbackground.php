@@ -130,20 +130,7 @@ function vtm_get_editbackgrounds_tab($characterID) {
 	}
 
 	/* get all the backgrounds for this character that need extra detail */
-	$sql = "select backgrounds.NAME, charbgs.LEVEL, backgrounds.BACKGROUND_QUESTION,
-				charbgs.SECTOR_ID, charbgs.APPROVED_DETAIL, charbgs.PENDING_DETAIL,
-				charbgs.DENIED_DETAIL, charbgs.ID as charbgsID, backgrounds.HAS_SECTOR,
-				charbgs.COMMENT
-			from	" . VTM_TABLE_PREFIX . "BACKGROUND backgrounds,
-					" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND charbgs,
-					" . VTM_TABLE_PREFIX . "CHARACTER characters
-			where	backgrounds.ID = charbgs.BACKGROUND_ID
-				and	characters.ID = %d
-				and characters.ID = charbgs.CHARACTER_ID
-				and	(backgrounds.BACKGROUND_QUESTION != '' OR charbgs.SECTOR_ID > 0);";
-	/* $content = "<p>SQL: $sql</p>";  */
-	
-	$backgrounds = $wpdb->get_results($wpdb->prepare($sql, $characterID));
+	$backgrounds = vtm_get_extbackgrounds_questions($characterID);
 	$i = 0;
 	
 	$content .= "<form name='extbgform' method='post'>\n";
@@ -261,19 +248,7 @@ function vtm_get_editmerits_tab($characterID) {
 	} 
 
 	/* get all the merits and flaws for this character that need extra detail */
-	$sql = "select merits.NAME, charmerits.APPROVED_DETAIL, charmerits.PENDING_DETAIL,
-				charmerits.DENIED_DETAIL, charmerits.ID as meritID, merits.BACKGROUND_QUESTION,
-				charmerits.COMMENT
-			from	" . VTM_TABLE_PREFIX . "MERIT merits,
-					" . VTM_TABLE_PREFIX . "CHARACTER_MERIT charmerits,
-					" . VTM_TABLE_PREFIX . "CHARACTER characters
-			where	merits.ID = charmerits.MERIT_ID
-				and	characters.ID = %d
-				and characters.ID = charmerits.CHARACTER_ID
-				and	merits.BACKGROUND_QUESTION != '';";
-	/* $content = "<p>SQL: $sql</p>"; */
-	
-	$merits = $wpdb->get_results($wpdb->prepare($sql, $characterID));
+	$merits = vtm_get_extmerits_questions($characterID);
 	
 	$i = 0;
 	$content .= "<form name='extmeritform[$i]' method='post'>\n";
@@ -400,26 +375,7 @@ function vtm_get_editmisc_tab($characterID) {
 	} 
 	
 	/* get all the background questions that need extra detail */
-	$sql = "SELECT questions.TITLE, questions.ORDERING, questions.GROUPING, questions.BACKGROUND_QUESTION, 
-				tempcharmisc.APPROVED_DETAIL, tempcharmisc.PENDING_DETAIL, tempcharmisc.DENIED_DETAIL, 
-				tempcharmisc.ID AS miscID, questions.ID as questID
-			FROM " . VTM_TABLE_PREFIX . "CHARACTER characters, 
-				 " . VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND questions
-				LEFT JOIN (
-					SELECT charmisc.APPROVED_DETAIL, charmisc.PENDING_DETAIL, charmisc.DENIED_DETAIL, 
-						charmisc.ID AS ID, charmisc.QUESTION_ID, characters.ID as charID
-					FROM " . VTM_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND charmisc, 
-						 " . VTM_TABLE_PREFIX . "CHARACTER characters
-					WHERE characters.ID = charmisc.CHARACTER_ID
-				) tempcharmisc 
-				ON questions.ID = tempcharmisc.QUESTION_ID AND tempcharmisc.charID = %d
-			WHERE characters.ID = %d
-				AND questions.VISIBLE = 'Y'
-			ORDER BY questions.ORDERING ASC";
-			
-	/* $content = "<p>SQL: $sql</p>"; */
-	
-	$questions = $wpdb->get_results($wpdb->prepare($sql, $characterID, $characterID));
+	$questions = vtm_get_extmisc_questions($characterID);
 	$i = 0;
 	$content .= "<form name='extmiscform' method='post'>\n";
 	$content .= "<input type='hidden' name='tab' value='misc' />\n";
@@ -471,4 +427,70 @@ function vtm_get_editmisc_tab($characterID) {
 	return $content;
 }
 
+function vtm_get_extbackgrounds_questions($characterID) {
+	global $wpdb;
+	
+	$sql = "select backgrounds.NAME, charbgs.LEVEL, backgrounds.BACKGROUND_QUESTION,
+				charbgs.SECTOR_ID, charbgs.APPROVED_DETAIL, charbgs.PENDING_DETAIL,
+				charbgs.DENIED_DETAIL, charbgs.ID as charbgsID, backgrounds.HAS_SECTOR,
+				charbgs.COMMENT
+			from	" . VTM_TABLE_PREFIX . "BACKGROUND backgrounds,
+					" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND charbgs,
+					" . VTM_TABLE_PREFIX . "CHARACTER characters
+			where	backgrounds.ID = charbgs.BACKGROUND_ID
+				and	characters.ID = %d
+				and characters.ID = charbgs.CHARACTER_ID
+				and	(backgrounds.BACKGROUND_QUESTION != '' OR charbgs.SECTOR_ID > 0);";
+	/* $content = "<p>SQL: $sql</p>";  */
+	
+	$backgrounds = $wpdb->get_results($wpdb->prepare($sql, $characterID));
+
+	return $backgrounds;
+}
+
+function vtm_get_extmerits_questions($characterID) {
+	global $wpdb;
+
+	$sql = "select merits.NAME, charmerits.APPROVED_DETAIL, charmerits.PENDING_DETAIL,
+				charmerits.DENIED_DETAIL, charmerits.ID as meritID, merits.BACKGROUND_QUESTION,
+				charmerits.COMMENT
+			from	" . VTM_TABLE_PREFIX . "MERIT merits,
+					" . VTM_TABLE_PREFIX . "CHARACTER_MERIT charmerits,
+					" . VTM_TABLE_PREFIX . "CHARACTER characters
+			where	merits.ID = charmerits.MERIT_ID
+				and	characters.ID = %d
+				and characters.ID = charmerits.CHARACTER_ID
+				and	merits.BACKGROUND_QUESTION != '';";
+	/* $content = "<p>SQL: $sql</p>"; */
+	
+	$merits = $wpdb->get_results($wpdb->prepare($sql, $characterID));
+	
+	return $merits;
+}
+
+function vtm_get_extmisc_questions($characterID) {
+	global $wpdb;
+
+	$sql = "SELECT questions.TITLE, questions.ORDERING, questions.GROUPING, questions.BACKGROUND_QUESTION, 
+				tempcharmisc.APPROVED_DETAIL, tempcharmisc.PENDING_DETAIL, tempcharmisc.DENIED_DETAIL, 
+				tempcharmisc.ID AS miscID, questions.ID as questID
+			FROM " . VTM_TABLE_PREFIX . "CHARACTER characters, 
+				 " . VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND questions
+				LEFT JOIN (
+					SELECT charmisc.APPROVED_DETAIL, charmisc.PENDING_DETAIL, charmisc.DENIED_DETAIL, 
+						charmisc.ID AS ID, charmisc.QUESTION_ID, characters.ID as charID
+					FROM " . VTM_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND charmisc, 
+						 " . VTM_TABLE_PREFIX . "CHARACTER characters
+					WHERE characters.ID = charmisc.CHARACTER_ID
+				) tempcharmisc 
+				ON questions.ID = tempcharmisc.QUESTION_ID AND tempcharmisc.charID = %d
+			WHERE characters.ID = %d
+				AND questions.VISIBLE = 'Y'
+			ORDER BY questions.ORDERING ASC";
+			
+	/* $content = "<p>SQL: $sql</p>"; */
+	
+	$questions = $wpdb->get_results($wpdb->prepare($sql, $characterID, $characterID));
+	return $questions;
+}
 ?>

@@ -72,7 +72,12 @@ function vtm_chargen_flow_steps($characterID) {
 				'validate'   => 'vtm_validate_finishing',
 				'save'       => 'vtm_save_finish'));
 	array_push($buttons,array(
-				'title' => "Extended Backgrounds", 
+				'title' => "History", 
+				'function'   => 'vtm_render_chargen_extbackgrounds',
+				'validate'   => '',
+				'save'       => ''));
+	array_push($buttons,array(
+				'title' => "Submit", 
 				'function'   => '',
 				'validate'   => '',
 				'save'       => ''));
@@ -1081,7 +1086,25 @@ function vtm_render_finishing($step, $characterID, $templateID) {
 	
 	return $output;
 }
+function vtm_render_chargen_extbackgrounds($step, $characterID, $templateID) {
 
+	$output = "";
+	$settings = vtm_get_chargen_settings($templateID);
+	$options  = vtm_getConfig();
+	
+	$output .= "<h3>Step $step: Extended Backgrounds</h3>";
+	$output .= "<p>Please fill in more information on your character.</p>";
+	
+	$questions = vtm_get_chargen_questions($characterID);
+	
+	// dont show in Flow if no questions!
+	
+	foreach ($questions as $question) {
+		$output .= "<li>{$question->TITLE}: {$question->BACKGROUND_QUESTION}</li>";
+	}
+	
+	return $output;
+}
 function vtm_render_abilities($step, $characterID, $templateID) {
 	global $wpdb;
 
@@ -4653,4 +4676,35 @@ function vtm_get_chargen_specialties($characterID) {
 	//echo "</pre>";
 	return $specialities;
 } 
+
+function vtm_get_chargen_questions($characterID) {
+	global $wpdb;
+	
+	$sql = "SELECT questions.TITLE, questions.ORDERING, questions.GROUPING, questions.BACKGROUND_QUESTION, 
+				tempcharmisc.APPROVED_DETAIL, tempcharmisc.PENDING_DETAIL, tempcharmisc.DENIED_DETAIL, 
+				tempcharmisc.ID AS miscID, questions.ID as questID
+			FROM " . VTM_TABLE_PREFIX . "CHARACTER characters, 
+				 " . VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND questions
+				LEFT JOIN (
+					SELECT charmisc.APPROVED_DETAIL, charmisc.PENDING_DETAIL, charmisc.DENIED_DETAIL, 
+						charmisc.ID AS ID, charmisc.QUESTION_ID, characters.ID as charID
+					FROM " . VTM_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND charmisc, 
+						 " . VTM_TABLE_PREFIX . "CHARACTER characters
+					WHERE characters.ID = charmisc.CHARACTER_ID
+				) tempcharmisc 
+				ON questions.ID = tempcharmisc.QUESTION_ID AND tempcharmisc.charID = %d
+			WHERE characters.ID = %d
+				AND questions.VISIBLE = 'Y'
+				AND questions.REQD_AT_CHARGEN = 'Y'
+			ORDER BY questions.ORDERING ASC";
+			
+	/* $content = "<p>SQL: $sql</p>"; */
+	
+	$questions = $wpdb->get_results($wpdb->prepare($sql, $characterID, $characterID));
+	return $questions;
+
+
+	return $backgrounds;
+}
+
 ?>
