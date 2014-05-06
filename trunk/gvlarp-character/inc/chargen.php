@@ -100,7 +100,7 @@ function vtm_get_chargen_content() {
 	global $wpdb;
 
 	$output = "";
-	print_r($_POST);
+	//print_r($_POST);
 	
 	$characterID = vtm_get_chargen_characterID();
 	$laststep    = isset($_POST['step']) ? $_POST['step'] : 0;
@@ -912,7 +912,7 @@ function vtm_render_chargen_xp($step, $characterID, $templateID) {
 						'skill'      => "Abilities",
 						'disc'       => "Disciplines",
 						'path'       => "Paths",
-						'merit'      => "Merits and Flaws",
+						'merit'      => "Merits",
 					);
 	$sectionorder   = array('stat', 'skill', 'disc', 'path', 'merit');
 	
@@ -1472,12 +1472,12 @@ function vtm_save_finish($characterID, $templateID) {
 				$colname => $comment
 			);
 			$result = $wpdb->update(VTM_TABLE_PREFIX . $table, $data, array ('ID' => $id),array('%s'));		
-			if ($result) 			echo "<p style='color:green'>Updated $name speciality with $comment</p>";
-			else if ($result === 0) echo "<p style='color:orange'>No updates made to $name speciality</p>";
-			else {
-				$wpdb->print_error();
-				echo "<p style='color:red'>Could not update $name speciality</p>";
-			}
+			//if ($result) 			echo "<p style='color:green'>Updated $name speciality with $comment</p>";
+			//else if ($result === 0) echo "<p style='color:orange'>No updates made to $name speciality</p>";
+			//else {
+			//	$wpdb->print_error();
+			//	echo "<p style='color:red'>Could not update $name speciality</p>";
+			//}
 		}
 	}
 
@@ -1548,8 +1548,7 @@ function vtm_save_xp($characterID, $templateID) {
 					$name = $items[$type][$key]->NAME;
 				}
 				
-				echo "<li>origkey: $itemname, key: $key, value:$value, name: $name</li>";
-	
+				//echo "<li>origkey: $itemname, key: $key, value:$value, name: $name</li>";
 
 				$chartableid = isset($current[$type][$key]->chartableid) ? $current[$type][$key]->chartableid : 0;
 				$levelfrom   = isset($current[$type][$key]->level_from)  ? $current[$type][$key]->level_from  : 0;
@@ -1681,7 +1680,7 @@ function vtm_save_disciplines($characterID) {
 	$new = $_POST['discipline_value'];
 	$disciplines = vtm_get_chargen_disciplines($characterID);
 	
-	$sql = "SELECT disc.NAME, cdisc.DISCIPLINE_ID, cdisc.ID
+	$sql = "SELECT disc.NAME, cdisc.DISCIPLINE_ID, cdisc.ID, cdisc.LEVEL
 			FROM 
 				" . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE cdisc,
 				" . VTM_TABLE_PREFIX . "DISCIPLINE disc
