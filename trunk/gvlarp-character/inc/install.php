@@ -6,7 +6,7 @@ register_activation_hook( __FILE__, 'vtm_character_install_data' );
 global $vtm_character_version;
 global $vtm_character_db_version;
 $vtm_character_version = "1.10"; 
-$vtm_character_db_version = "19"; 
+$vtm_character_db_version = "20"; 
 
 function vtm_update_db_check() {
     global $vtm_character_version;
@@ -218,6 +218,7 @@ function vtm_character_install() {
 					TITLE                 VARCHAR(90)   NOT NULL,
 					BACKGROUND_QUESTION   TEXT   		NOT NULL,
 					VISIBLE				  VARCHAR(1)    NOT NULL,
+					REQD_AT_CHARGEN		  VARCHAR(1)    NOT NULL,
 					PRIMARY KEY  (ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
