@@ -99,11 +99,13 @@ function vtm_render_question_data(){
 	
  	if ($doaction == "add-question") {
 		$testListTable['question']->add_question($_REQUEST['question_title'], $_REQUEST['question_order'], 
-												$_REQUEST['question_group'], $_REQUEST['question_question'], $_REQUEST['question_visible']);
+												$_REQUEST['question_group'], $_REQUEST['question_question'], 
+												$_REQUEST['question_visible'], $_REQUEST['question_reqdatchargen']);
 	}
 	if ($doaction == "save-question") { 
 		$testListTable['question']->edit_question($_REQUEST['question_id'], $_REQUEST['question_title'], $_REQUEST['question_order'], 
-												$_REQUEST['question_group'], $_REQUEST['question_question'], $_REQUEST['question_visible']);
+												$_REQUEST['question_group'], $_REQUEST['question_question'], 
+												$_REQUEST['question_visible'], $_REQUEST['question_reqdatchargen']);
 	}
 
 	vtm_render_question_add_form($doaction); 
@@ -400,6 +402,7 @@ function vtm_render_question_add_form($addaction) {
 		$group   = $_REQUEST[$type . '_group'];
 		$question = $_REQUEST[$type . '_question'];
 		$visible = $_REQUEST[$type . '_visible'];
+		$chargen = $_REQUEST[$type . '_reqdatchargen'];
 		
 		$nextaction = $_REQUEST['action'];
 		
@@ -420,6 +423,7 @@ function vtm_render_question_add_form($addaction) {
 		$group   = $data[0]->GROUPING;
 		$question = stripslashes($data[0]->BACKGROUND_QUESTION);
 		$visible = $data[0]->VISIBLE;
+		$chargen = $data[0]->REQD_AT_CHARGEN;
 		
 		$nextaction = "save";
 		
@@ -433,6 +437,7 @@ function vtm_render_question_add_form($addaction) {
 		$group   = "";
 		$question = "";
 		$visible  = "Y";
+		$chargen = "N";
 		
 		$nextaction = "add";
 	} 
@@ -460,7 +465,13 @@ function vtm_render_question_add_form($addaction) {
 			<td>Question Order: </td>
 			<td><input type="text" name="<?php print $type; ?>_order" value="<?php print $order; ?>" size=4 /></td>
 			<td>Group: </td>
-			<td colspan=3><input type="text" name="<?php print $type; ?>_group" value="<?php print $group; ?>" size=30 /></td>
+			<td><input type="text" name="<?php print $type; ?>_group" value="<?php print $group; ?>" size=30 /></td>
+			<td>At Char Gen:</td>
+			<td><select name="<?php print $type; ?>_reqdatchargen">
+				<option value="N" <?php selected($chargen, "N"); ?>>No</option>
+				<option value="Y" <?php selected($chargen, "Y"); ?>>Yes</option>
+				</select>
+			</td>
 		</tr>
 		<tr>
 			<td>Question:  </td>
@@ -972,7 +983,7 @@ class vtmclass_admin_questions_table extends vtmclass_MultiPage_ListTable {
 		}
 	}
 	
- 	function add_question($title, $ordering, $grouping, $question, $visible) {
+ 	function add_question($title, $ordering, $grouping, $question, $visible, $reqdatchargen) {
 		global $wpdb;
 		
 		$wpdb->show_errors();
@@ -982,7 +993,8 @@ class vtmclass_admin_questions_table extends vtmclass_MultiPage_ListTable {
 						'ORDERING'       => $ordering,
 						'GROUPING'       => $grouping,
 						'BACKGROUND_QUESTION' => $question,
-						'VISIBLE'        => $visible
+						'VISIBLE'        => $visible,
+						'REQD_AT_CHARGEN' => $reqdatchargen
 					);
 		
 		/* print_r($dataarray); */
@@ -992,6 +1004,7 @@ class vtmclass_admin_questions_table extends vtmclass_MultiPage_ListTable {
 					array (
 						'%s',
 						'%d',
+						'%s',
 						'%s',
 						'%s',
 						'%s'
@@ -1006,7 +1019,7 @@ class vtmclass_admin_questions_table extends vtmclass_MultiPage_ListTable {
 			echo "<p style='color:green'>Added question '$title' (ID: {$wpdb->insert_id})</p>";
 		}
 	}
- 	function edit_question($id, $title, $ordering, $grouping, $question, $visible) {
+ 	function edit_question($id, $title, $ordering, $grouping, $question, $visible, $reqdatchargen) {
 		global $wpdb;
 		
 		$wpdb->show_errors();
@@ -1016,7 +1029,8 @@ class vtmclass_admin_questions_table extends vtmclass_MultiPage_ListTable {
 						'ORDERING'       => $ordering,
 						'GROUPING'       => $grouping,
 						'BACKGROUND_QUESTION' => $question,
-						'VISIBLE'        => $visible
+						'VISIBLE'        => $visible,
+						'REQD_AT_CHARGEN' => $reqdatchargen
 					);
 		
 		/* print_r($dataarray); */
@@ -1051,7 +1065,11 @@ class vtmclass_admin_questions_table extends vtmclass_MultiPage_ListTable {
         }
     }
  
-    function column_title($item){
+    function column_reqd_at_chargen($item){
+		return ($item->REQD_AT_CHARGEN == "Y") ? "Yes" : "No";
+    }
+	
+   function column_title($item){
         
         $actions = array(
             'edit'      => sprintf('<a href="?page=%s&amp;action=%s&amp;question=%s&amp;tab=%s">Edit</a>',$_REQUEST['page'],'edit',$item->ID, $this->type),
@@ -1074,7 +1092,8 @@ class vtmclass_admin_questions_table extends vtmclass_MultiPage_ListTable {
             'ORDERING'      => 'Order',
             'GROUPING'      => 'Group',
  			'VISIBLE'       => 'Question visible to players',
-           'BACKGROUND_QUESTION'  => 'Question'
+ 			'REQD_AT_CHARGEN' => 'Required at Character Generation',
+            'BACKGROUND_QUESTION'  => 'Question'
         );
         return $columns;
 		
@@ -1128,16 +1147,16 @@ class vtmclass_admin_questions_table extends vtmclass_MultiPage_ListTable {
         $this->process_bulk_action();
 		
 		/* Get the data from the database */
-		$sql = "select questions.ID, questions.TITLE, questions.ORDERING, questions.GROUPING, questions.BACKGROUND_QUESTION, questions.VISIBLE
-			from " . VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND questions;";
+		$sql = "select questions.ID, questions.TITLE, questions.ORDERING, 
+					questions.GROUPING, questions.BACKGROUND_QUESTION, 
+					questions.VISIBLE, questions.REQD_AT_CHARGEN
+			from " . VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND questions";
 				
 		/* order the data according to sort columns */
 		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']))
 			$sql .= " ORDER BY questions.{$_REQUEST['orderby']} {$_REQUEST['order']}";
-			
-		$sql .= ";";
-		
-		/* echo "<p>SQL: $sql</p>"; */
+					
+		//echo "<p>SQL: $sql</p>";
 		
 		$data =$wpdb->get_results($sql);
         
