@@ -26,6 +26,7 @@ function vtm_default_chargen_settings() {
 function vtm_chargen_flow_steps($characterID) {
 
 	$xp = vtm_get_total_xp(0, $characterID);
+	$questions = count(vtm_get_chargen_questions($characterID));
 	
 	$buttons = array (
 		array(	'title'      => "Basic Information", 
@@ -60,33 +61,37 @@ function vtm_chargen_flow_steps($characterID) {
 	if ($xp > 0) {
 		//echo "<li>xp = $xp</li>";
 		array_push($buttons, array(
-				'title' => "Spend Experience", 
+				'title'      => "Spend Experience", 
 				'function'   => 'vtm_render_chargen_xp',
 				'validate'   => 'vtm_validate_xp',
 				'save'       => 'vtm_save_xp'));
 	}
 	
 	array_push($buttons,array(
-				'title' => "Finishing Touches", 
+				'title'      => "Finishing Touches", 
 				'function'   => 'vtm_render_finishing',
 				'validate'   => 'vtm_validate_finishing',
 				'save'       => 'vtm_save_finish'));
+	
+	// Only display if there are any background questions
+	if ($questions > 0) {
+		array_push($buttons,array(
+					'title'      => "History", 
+					'function'   => 'vtm_render_chargen_extbackgrounds',
+					'validate'   => 'vtm_validate_history',
+					'save'       => 'vtm_save_history'));
+	}
+	
 	array_push($buttons,array(
-				'title' => "History", 
-				'function'   => 'vtm_render_chargen_extbackgrounds',
-				'validate'   => '',
-				'save'       => ''));
-	array_push($buttons,array(
-				'title' => "Submit", 
-				'function'   => '',
-				'validate'   => '',
-				'save'       => ''));
+				'title'      => "Submit", 
+				'function'   => 'vtm_render_chargen_submit',
+				'validate'   => 'vtm_validate_dummy',
+				'save'       => 'vtm_save_dummy'));
 
 	return $buttons;
 }
 
 function vtm_chargen_content_filter($content) {
-
 
 	if (is_page(vtm_get_stlink_page('viewCharGen'))) {
 		$mustbeloggedin = get_option('vtm_chargen_mustbeloggedin', '1') ? true : false;
@@ -152,13 +157,13 @@ function vtm_get_chargen_content() {
 		$output .= call_user_func($flow[$step-1]['function'], $step, $characterID, $templateID);
 
 	// 3 buttons: Back, Check & Next
-	$output .= vtm_render_submit($step);
+	$output .= vtm_render_submit($step, count($flow));
 	$output .= "</div></form>";
 	
 	return $output;
 }
 
-function vtm_render_submit($step) {
+function vtm_render_submit($step, $finalstep) {
 
 	$output = "";
 	
@@ -166,7 +171,7 @@ function vtm_render_submit($step) {
 		$output .= "<input type='submit' name='chargen-step[" . ($step - 1) . "]' class='button-chargen-step' value='< Step " . ($step - 1) . "' />";
 	if ($step > 1)
 		$output .= "<input type='submit' name='chargen-step[" . $step . "]' class='button-chargen-step' value='Update' />";
-	if ($step + 1 <= 10)
+	if ($step + 1 <= $finalstep)
 		$output .= "<input type='submit' name='chargen-step[" . ($step + 1) . "]' class='button-chargen-step' value='Next >' />";
 	else
 		$output .= "<input type='submit' name='chargen-submit' class='button-chargen-step' value='Submit for Approval' />";
@@ -527,7 +532,7 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 	return $rowoutput;
 }
 
-function vtm_render_chargen_xp_section ($items, $saved, $xpcosts, $pendingfb, 
+function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, 
 	$pendingxp, $postvariable, $showzeros, $fbcosts = array()) {
 
 	$rowoutput = "";
@@ -1092,15 +1097,40 @@ function vtm_render_chargen_extbackgrounds($step, $characterID, $templateID) {
 	$settings = vtm_get_chargen_settings($templateID);
 	$options  = vtm_getConfig();
 	
-	$output .= "<h3>Step $step: Extended Backgrounds</h3>";
+	$output .= "<h3>Step $step: History and Extended Backgrounds</h3>";
 	$output .= "<p>Please fill in more information on your character.</p>";
 	
 	$questions = vtm_get_chargen_questions($characterID);
-	
-	// dont show in Flow if no questions!
-	
+	$posted    = isset($_POST['question']) ? $_POST['question'] : array();
+		
 	foreach ($questions as $question) {
-		$output .= "<li>{$question->TITLE}: {$question->BACKGROUND_QUESTION}</li>";
+		$id = $question->questID;
+		$text = isset($posted[$id]) ? $posted[$id] : (isset($question->PENDING_DETAIL) ? $question->PENDING_DETAIL : '');
+	
+		$output .= "<h4>{$question->TITLE}</h4><p>{$question->BACKGROUND_QUESTION}</p>";
+		$output .= "<input type='hidden' name='question_title[$id]' value='{$question->TITLE}' \>";
+		$output .= "<p><textarea name='question[$id]' rows='4' cols='80'>$text</textarea></p>";
+	}
+	
+	return $output;
+}
+function vtm_render_chargen_submit($step, $characterID, $templateID) {
+
+	$output = "";
+	$settings = vtm_get_chargen_settings($templateID);
+	$options  = vtm_getConfig();
+	
+	$output .= "<h3>Step $step: Summary and Submit</h3>";
+	$output .= "<p>Below is a summary of the character generation status.</p>";
+	
+	// Not suitable to use _POST as it is only updated if all steps have been
+	// gone through this session
+	$progress = $_POST['progress'];
+
+	foreach ($progress as $index => $complete) {
+		if ($index > 0) {
+			$output .= "<li>Step $index: $complete</li>";
+		}
 	}
 	
 	return $output;
@@ -1446,6 +1476,54 @@ function vtm_save_freebies($characterID, $templateID) {
 					}		
 					//print_r($data);
 				}
+			}
+		}
+	}
+
+	return $characterID;
+}
+
+function vtm_save_history($characterID, $templateID) {
+	global $wpdb;
+
+	$sql = "SELECT questions.ID as questID, cq.ID as id, cq.PENDING_DETAIL as detail
+			FROM 
+				" . VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND questions,
+				" . VTM_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND cq
+			WHERE
+				questions.ID = cq.QUESTION_ID
+				AND cq.CHARACTER_ID = %s";
+	$sql = $wpdb->prepare($sql, $characterID);
+	$saved = $wpdb->get_results($sql, OBJECT_K);
+	//echo "<p>SQL: $sql</p>";
+	//print_r($saved);
+	
+	// Save Specialities
+	if (isset($_POST['question'])) {
+		foreach ($_POST['question'] as $index => $text) {
+		
+			$data = array (
+				'CHARACTER_ID'  	=> $characterID,
+				'QUESTION_ID'		=> $index,
+				'APPROVED_DETAIL'	=> '',
+				'PENDING_DETAIL'	=> $text,
+				'DENIED_DETAIL'		=> '',
+			);
+			//print_r($data);
+			
+			if (isset($saved[$index])) {
+				//echo "<li>Updating id {$saved[$index]->id} for question $index</li>";
+				$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND",
+					$data,
+					array ('ID' => $saved[$index]->id)
+				);
+			} else {
+				//echo "<li>Adding question $index</li>";
+				$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND",
+							$data,
+							array ('%d', '%d', '%s', '%s', '%s')
+				);
+				
 			}
 		}
 	}
@@ -4381,6 +4459,25 @@ function vtm_validate_finishing($settings, $characterID) {
 	return array($ok, $errormessages);
 }
 
+function vtm_validate_history($settings, $characterID) {
+
+	$ok = 1;
+	$errormessages = "";
+	
+	// All questions are entered
+	
+	if (isset($_POST['question'])) {
+		foreach ($_POST['question'] as $index => $text) {
+			if (!isset($_POST['question'][$index]) || $_POST['question'][$index] == '') {
+				$errormessages .= "<li>WARNING: Please fill in the '{$_POST['question_title'][$index]}' question.</li>";
+			}
+		}
+	} else {
+		$errormessages .= "<li>WARNING: Please fill in the background questions.</li>";
+	}
+	return array($ok, $errormessages);
+}
+
 function vtm_validate_xp($settings, $characterID) {
 
 	$ok = 1;
@@ -4705,6 +4802,14 @@ function vtm_get_chargen_questions($characterID) {
 
 
 	return $backgrounds;
+}
+
+function vtm_validate_dummy($settings, $characterID) {
+	return array(1, "Dummy Validation OK");
+
+}
+function vtm_save_dummy($characterID, $templateID) {
+	return $characterID;
 }
 
 ?>
