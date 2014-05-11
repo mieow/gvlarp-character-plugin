@@ -1157,7 +1157,9 @@ function vtm_render_chargen_submit($step, $characterID, $templateID) {
 	if ($done == (count($progress) - 1))
 		$output .= "<p>Your character is ready to submit!</p>";
 		
-	$output .= "<p><input name='printable' type='submit' value='Print Character' /></p>";
+	$link = vtm_get_stlink_url('printCharSheet');
+	$link = add_query_arg('characterID', $characterID, $link);
+	$output .= "<p><a href='$link' alt='Print Character'>Print Character</a></p>";
 	
 	return $output;
 }
