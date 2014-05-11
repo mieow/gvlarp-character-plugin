@@ -149,8 +149,8 @@ function vtm_android_redirect () {
 		foreach ($rituals as $majikdiscipline => $rituallist) {
 			foreach ($rituallist as $ritual) {
 				echo "\t\t<RITUAL>\n";
-				echo vtm_output_xlmtag("NAME",       $ritual[name]);
-				echo vtm_output_xlmtag("LEVEL",      $ritual[level]);
+				echo vtm_output_xlmtag("NAME",       $ritual['name']);
+				echo vtm_output_xlmtag("LEVEL",      $ritual['level']);
 				echo vtm_output_xlmtag("DISCIPLINE", $majikdiscipline);
 				echo "\t\t</RITUAL>\n";
 			} 

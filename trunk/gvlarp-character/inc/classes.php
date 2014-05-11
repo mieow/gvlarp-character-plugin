@@ -182,9 +182,18 @@ class vtmclass_character {
 					stat.grouping		grouping,
 					stat.ordering		ordering,
 					charstat.comment	specialty,
-					charstat.level		level
+					IFNULL(freebie.LEVEL_TO,charstat.level) level
 				FROM
-					" . VTM_TABLE_PREFIX . "STAT stat,
+					" . VTM_TABLE_PREFIX . "STAT stat
+					LEFT JOIN (
+						SELECT ITEMTABLE_ID, LEVEL_TO
+						FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
+						WHERE
+							ITEMTABLE = 'STAT'
+							AND CHARACTER_ID = %s
+					) freebie
+					ON
+						freebie.ITEMTABLE_ID = stat.ID,
 					" . VTM_TABLE_PREFIX . "CHARACTER_STAT charstat,
 					" . VTM_TABLE_PREFIX . "CHARACTER chara
 				WHERE
@@ -192,8 +201,10 @@ class vtmclass_character {
 					AND charstat.STAT_ID = stat.ID
 					AND chara.id = '%s'
 				ORDER BY stat.grouping, stat.ordering;";
-		$sql = $wpdb->prepare($sql, $characterID);
+		$sql = $wpdb->prepare($sql, $characterID, $characterID);
 		$result = $wpdb->get_results($sql);
+		//echo "<p>SQL: $sql</p>";
+		//print_r($result);
 		
 		$this->attributes = $result;
 		$this->attributegroups = array();
@@ -208,7 +219,8 @@ class vtmclass_character {
 		$sql = "SELECT skill.name		skillname,
 					skill.grouping		grouping,
 					charskill.comment	specialty,
-					charskill.level		level
+					charskill.level		level,
+					skill.multiple      multiple
 				FROM
 					" . VTM_TABLE_PREFIX . "SKILL skill,
 					" . VTM_TABLE_PREFIX . "CHARACTER_SKILL charskill,
@@ -220,15 +232,26 @@ class vtmclass_character {
 				ORDER BY skill.name ASC;";
 		$sql = $wpdb->prepare($sql, $characterID);
 		$result = $wpdb->get_results($sql);
+		//echo "<p>SQL: $sql</p>";
+		//print_r($result);
+		
+		$freebies = vtm_get_pending_freebies('SKILL', $characterID);
 
 		$this->abilities = $result;
 		$this->abilitygroups = array();
-		for ($i=0;$i<count($result);$i++)
+		for ($i=0;$i<count($result);$i++) {
+			$key = sanitize_key($result[$i]->skillname);
+			if (isset($freebies[$key])) {
+				$this->abilities[$i]->level = $freebies[$key]->value;
+			}
+		
 			if (array_key_exists($result[$i]->grouping, $this->abilitygroups))
 				array_push($this->abilitygroups[$result[$i]->grouping], $this->abilities[$i]);
 			else {
 				$this->abilitygroups[$result[$i]->grouping] = array($this->abilities[$i]);
 			}
+			
+		}
 		
 		/* Backgrounds */
 		$sql = "SELECT bground.name		     background,

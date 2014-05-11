@@ -779,6 +779,7 @@ class vtmclass_admin_extbgapproval_table extends vtmclass_MultiPage_ListTable {
 					backgrounds.HAS_SECTOR, charbgs.COMMENT, charbgs.APPROVED_DETAIL
 				from	" . VTM_TABLE_PREFIX . "BACKGROUND backgrounds,
 						" . VTM_TABLE_PREFIX . "CHARACTER characters,
+						" . VTM_TABLE_PREFIX . "CHARGEN_STATUS cgstatus,
 						" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND charbgs
 				left join
 						" . VTM_TABLE_PREFIX . "SECTOR sectors
@@ -786,8 +787,10 @@ class vtmclass_admin_extbgapproval_table extends vtmclass_MultiPage_ListTable {
 					charbgs.SECTOR_ID = sectors.ID
 				where	backgrounds.ID = charbgs.BACKGROUND_ID
 					and characters.ID = charbgs.CHARACTER_ID
+					and cgstatus.ID = characters.CHARGEN_STATUS_ID
 					and charbgs.PENDING_DETAIL != ''
 					and charbgs.DENIED_DETAIL = ''
+					and cgstatus.NAME = 'Approved'
 					and	(backgrounds.BACKGROUND_QUESTION != '' OR charbgs.SECTOR_ID > 0)
 				order by
 					charbgs.ID;";
@@ -824,12 +827,15 @@ class vtmclass_admin_extbgapproval_table extends vtmclass_MultiPage_ListTable {
 					charmerit.PENDING_DETAIL, charmerit.DENIED_DETAIL, charmerit.APPROVED_DETAIL
 				from	" . VTM_TABLE_PREFIX . "MERIT merits,
 						" . VTM_TABLE_PREFIX . "CHARACTER characters,
+						" . VTM_TABLE_PREFIX . "CHARGEN_STATUS cgstatus,
 						" . VTM_TABLE_PREFIX . "CHARACTER_MERIT charmerit
 				where	merits.ID = charmerit.MERIT_ID
 					and characters.ID = charmerit.CHARACTER_ID
+					and cgstatus.ID = characters.CHARGEN_STATUS_ID
 					and charmerit.PENDING_DETAIL != ''
 					and charmerit.DENIED_DETAIL = ''
 					and	merits.BACKGROUND_QUESTION != ''
+					and cgstatus.NAME = 'Approved'
 				order by charmerit.ID;";
 				
 		
@@ -861,11 +867,14 @@ class vtmclass_admin_extbgapproval_table extends vtmclass_MultiPage_ListTable {
 					answers.PENDING_DETAIL, answers.DENIED_DETAIL, answers.APPROVED_DETAIL
 				from	" . VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND questions,
 						" . VTM_TABLE_PREFIX . "CHARACTER characters,
+						" . VTM_TABLE_PREFIX . "CHARGEN_STATUS cgstatus,
 						" . VTM_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND answers
 				where	questions.ID = answers.QUESTION_ID
 					and characters.ID = answers.CHARACTER_ID
+					and cgstatus.ID = characters.CHARGEN_STATUS_ID
 					and answers.PENDING_DETAIL != ''
 					and answers.DENIED_DETAIL = ''
+					and cgstatus.NAME = 'Approved'
 				order by answers.ID;";
 					
 		$tempdata =$wpdb->get_results($sql);
@@ -1634,7 +1643,9 @@ class vtmclass_admin_backgrounds_table extends vtmclass_MultiPage_ListTable {
 					backgrounds.VISIBLE,
 					backgrounds.HAS_SECTOR,
 					backgrounds.BACKGROUND_QUESTION
-			from " . VTM_TABLE_PREFIX . "BACKGROUND backgrounds, " . VTM_TABLE_PREFIX . "COST_MODEL costmodels
+			from 
+				" . VTM_TABLE_PREFIX . "BACKGROUND backgrounds, 
+				" . VTM_TABLE_PREFIX . "COST_MODEL costmodels
 			where backgrounds.COST_MODEL_ID = costmodels.ID";
 				
 		/* order the data according to sort columns */

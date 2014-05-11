@@ -1761,7 +1761,7 @@ function vtm_setupInitialCharTables($characterID, $playerID, $characterRoadOrPat
 	return $outIDs;
 }
 
-function vtm_wordpressid_used ($wordpressid, $characterID = "") {
+function vtm_wordpressid_used($wordpressid, $characterID = "") {
 	global $wpdb;
 		
 	$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE WORDPRESS_ID = %s";
@@ -1781,7 +1781,7 @@ function vtm_wordpressid_used ($wordpressid, $characterID = "") {
 	}
 }
 
-function vtm_charactername_used ($name, $characterID = "") {
+function vtm_charactername_used($name, $characterID = "") {
 	global $wpdb;
 	
 	$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE NAME = %s AND DELETED = 'N'";

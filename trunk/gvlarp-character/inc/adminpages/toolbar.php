@@ -3,9 +3,15 @@
 function vtm_count_XP4approval() {
 	global $wpdb;
 	
-	$sql = "SELECT COUNT(ID) as count
+	$sql = "SELECT COUNT(pxp.ID) as count
 			FROM 
-				" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND";
+				" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND pxp,
+				" . VTM_TABLE_PREFIX . "CHARACTER ch,
+				" . VTM_TABLE_PREFIX . "CHARGEN_STATUS cs
+			WHERE
+				pxp.CHARACTER_ID = ch.ID
+				AND ch.CHARGEN_STATUS_ID = cs.ID
+				AND cs.NAME = 'Approved'";
 	$result = $wpdb->get_results($sql);
 	
 	return $result[0]->count;
@@ -14,28 +20,43 @@ function vtm_count_BG4approval() {
 	global $wpdb;
 	
 	$count = 0;	
-	$sql = "SELECT COUNT(ID) as count
+	$sql = "SELECT COUNT(cb.ID) as count
 			FROM 
-				" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND
-			WHERE NOT(PENDING_DETAIL = '') AND DENIED_DETAIL = ''";
-	$result = $wpdb->get_results($sql);
-	$count += $result[0]->count;
-	
-	$sql = "SELECT COUNT(ID) as count
-			FROM 
-				" . VTM_TABLE_PREFIX . "CHARACTER_MERIT
-			WHERE NOT(PENDING_DETAIL = '') AND DENIED_DETAIL = ''";
-	$result = $wpdb->get_results($sql);
-	$count += $result[0]->count;
-	
-	$sql = "SELECT COUNT(ID) as count
-			FROM 
-				" . VTM_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND
-			WHERE NOT(PENDING_DETAIL = '') AND DENIED_DETAIL = ''";
+				" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND cb,
+				" . VTM_TABLE_PREFIX . "CHARACTER ch,
+				" . VTM_TABLE_PREFIX . "CHARGEN_STATUS cs
+			WHERE NOT(cb.PENDING_DETAIL = '') AND cb.DENIED_DETAIL = ''
+				AND ch.CHARGEN_STATUS_ID = cs.ID
+				AND ch.ID = cb.CHARACTER_ID
+				AND cs.NAME = 'Approved'";
 	$result = $wpdb->get_results($sql);
 	$count += $result[0]->count;
 	//echo "<p>SQL: $sql</p>";
 	//print_r($result);
+	
+	$sql = "SELECT COUNT(cm.ID) as count
+			FROM 
+				" . VTM_TABLE_PREFIX . "CHARACTER_MERIT cm,
+				" . VTM_TABLE_PREFIX . "CHARACTER ch,
+				" . VTM_TABLE_PREFIX . "CHARGEN_STATUS cs
+			WHERE NOT(cm.PENDING_DETAIL = '') AND cm.DENIED_DETAIL = ''
+				AND ch.ID = cm.CHARACTER_ID
+				AND ch.CHARGEN_STATUS_ID = cs.ID
+				AND cs.NAME = 'Approved'";
+	$result = $wpdb->get_results($sql);
+	$count += $result[0]->count;
+	
+	$sql = "SELECT COUNT(cxb.ID) as count
+			FROM 
+				" . VTM_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND cxb,
+				" . VTM_TABLE_PREFIX . "CHARACTER ch,
+				" . VTM_TABLE_PREFIX . "CHARGEN_STATUS cs
+			WHERE NOT(cxb.PENDING_DETAIL = '') AND cxb.DENIED_DETAIL = ''
+				AND ch.ID = cxb.CHARACTER_ID
+				AND ch.CHARGEN_STATUS_ID = cs.ID
+				AND cs.NAME = 'Approved'";
+	$result = $wpdb->get_results($sql);
+	$count += $result[0]->count;
 	
 	return $count;
 }
