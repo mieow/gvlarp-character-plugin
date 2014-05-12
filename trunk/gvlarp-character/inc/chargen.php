@@ -907,9 +907,9 @@ function vtm_render_chargen_xp($step, $characterID, $templateID) {
 	$settings = vtm_get_chargen_settings($templateID);
 	
 	// Work out how much points are currently available
-	$points = vtm_get_total_xp(0, $characterID);
-	$spent = 0;
 	$spent = vtm_get_chargen_xp_spent($characterID);
+	// points = total overall - all pending + just pending on this character
+	$points = vtm_get_total_xp(0, $characterID) - vtm_get_pending_xp(0, $characterID) + $spent;
 	$remaining = $points - $spent;
 
 	$output .= "<h3>Step $step: Experience Points</h3>";
@@ -2107,12 +2107,14 @@ function vtm_save_basic_info($characterID, $templateID) {
 		$dob  = $wpdb->get_var($wpdb->prepare("SELECT DATE_OF_BIRTH FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
 		$doe  = $wpdb->get_var($wpdb->prepare("SELECT DATE_OF_EMBRACE FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
 		$sire = $wpdb->get_var($wpdb->prepare("SELECT SIRE FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
+		$rating = $wpdb->get_var($wpdb->prepare("SELECT ROAD_OR_PATH_RATING FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
 	} else {
 		$generationid = $config->DEFAULT_GENERATION_ID;
 		$path		  = $wpdb->get_var("SELECT ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE NAME = 'Humanity';");
 		$dob = '';
 		$doe = '';
 		$sire = '';
+		$rating = 0;
 	}
 	
 	$dataarray = array (
@@ -2131,7 +2133,7 @@ function vtm_save_basic_info($characterID, $templateID) {
 		'CHARACTER_STATUS_COMMENT'	=> '',
 		'ROAD_OR_PATH_ID'			=> $path,			// default from config
 
-		'ROAD_OR_PATH_RATING'		=> 0,				// Set later in virtues
+		'ROAD_OR_PATH_RATING'		=> $rating,				// Set later in virtues
 		'DOMAIN_ID'					=> $domain,			// default from config, update later in ext backgrounds
 		'WORDPRESS_ID'				=> isset($_POST['wordpress_id']) ? $_POST['wordpress_id'] : '',
 		'SECT_ID'					=> $_POST['sect'],
@@ -5023,8 +5025,8 @@ function vtm_get_chargen_specialties($characterID) {
 			ORDER BY
 				skill.ORDERING DESC, skill.NAME)";
 	$sql = $wpdb->prepare($sql, $characterID, $characterID, $characterID, $characterID, $characterID, $characterID);
-	//echo "<p>SQL: $sql</p>";
 	$results = $wpdb->get_results($sql);
+	echo "<p>SQL: $sql</p>";
 	
 	foreach ($results as $row) {
 		$level = max($row->level, $row->freebielevel, $row->xplevel);

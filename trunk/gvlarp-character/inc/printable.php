@@ -234,7 +234,7 @@ function vtm_print_redirect()
 				}
 				
 				$xnext = $pdf->SingleColumnHeading('Current Experience');
-				$pdf->SingleColumnCell($mycharacter->current_experience);
+				$pdf->SingleColumnCell($mycharacter->current_experience . " (" . $mycharacter->pending_experience . " points pending)");
 				
 				$ybottom = $pdf->GetY();
 			

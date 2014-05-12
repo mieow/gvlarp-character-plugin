@@ -192,7 +192,7 @@ function vtm_render_select_spends($character) {
 	$playerID    = vtm_establishPlayerID($character);
 	
 	$xp_total      = vtm_get_total_xp($playerID, $characterID);
-	$xp_pending    = vtm_get_pending_xp($characterID);
+	$xp_pending    = vtm_get_pending_xp($playerID, $characterID);
 	$xp_avail      = $xp_total - $xp_pending;
 	$fulldoturl    = plugins_url( 'gvlarp-character/images/viewfulldot.jpg' );
 	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
@@ -2065,13 +2065,35 @@ function vtm_save_merit_to_pending ($type, $table, $itemtable, $itemidname, $pla
 	return $xptotal;
 }
  */
-function vtm_get_pending_xp($characterID) {
+function vtm_get_pending_xp($playerID = 0, $characterID = 0) {
 	global $wpdb;
 	
-	$sql = "SELECT SUM(AMOUNT) as COST FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
-			WHERE CHARACTER_ID = %s";
-	$sql = $wpdb->prepare($sql, $characterID);
-	$result = $wpdb->get_results($sql);
+	$config = vtm_getConfig();
+	
+	if ($config->ASSIGN_XP_BY_PLAYER == 'Y' && $playerID == 0 & $characterID != 0) {
+		$sql = $wpdb->prepare("SELECT PLAYER_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID);
+		$playerID = $wpdb->get_var($sql);
+	}
+
+	if ($config->ASSIGN_XP_BY_PLAYER == 'N') {
+		$sql = "SELECT SUM(AMOUNT) as COST FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
+				WHERE CHARACTER_ID = %s";
+		$sql = $wpdb->prepare($sql, $characterID);
+		$result = $wpdb->get_results($sql);
+		//echo "<p>SQL: $sql</p>";
+		//print_r($result);
+	} else {
+		$sql = "SELECT SUM(pending.AMOUNT) as COST
+				FROM 
+					" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND pending,
+					" . VTM_TABLE_PREFIX . "CHARACTER ch
+				WHERE
+					ch.ID = pending.CHARACTER_ID
+					AND ch.PLAYER_ID = %s";
+		$sql = $wpdb->prepare($sql, $playerID);
+		$result = $wpdb->get_results($sql);
+	}
+	
 	$xp_pending = $result[0]->COST * -1;
 	
 	return $xp_pending;
@@ -2103,7 +2125,7 @@ function vtm_cancel_pending($data) {
 function vtm_validate_spends($playerID, $characterID, $docancel) {
 
 	$xp_total   = vtm_get_total_xp($playerID, $characterID);
-	$xp_pending = vtm_get_pending_xp($characterID);
+	$xp_pending = vtm_get_pending_xp($playerID, $characterID);
 	$xp_spent    = 0;
 	$outputError = "";
 	
