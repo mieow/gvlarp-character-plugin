@@ -40,7 +40,9 @@ class vtmclass_character {
 	var $char_status_comment;
 	var $char_status;
 	var $offices;
+	var $history;
 	var $last_updated;
+	var $concept;
 	
 	function load ($characterID){
 		global $wpdb;
@@ -71,7 +73,8 @@ class vtmclass_character {
 					   priv_clan.clan_flaw,
 					   sects.name                      sect,
 					   pub_clan.icon_link			   public_icon,
-					   priv_clan.icon_link			   private_icon
+					   priv_clan.icon_link			   private_icon,
+					   chara.concept				   concept
                     FROM " . VTM_TABLE_PREFIX . "CHARACTER chara,
                          " . VTM_TABLE_PREFIX . "PLAYER player,
                          " . VTM_TABLE_PREFIX . "DOMAIN domains,
@@ -118,6 +121,7 @@ class vtmclass_character {
 			$this->date_of_embrace = $result[0]->date_of_embrace;
 			$this->char_status_comment   = $result[0]->cstat_comment;
 			$this->path_of_enlightenment = $result[0]->path;
+			$this->concept      = $result[0]->concept;
 		} else {
 			$this->name         = 'No character selected';
 			$this->clan         = '';
@@ -141,6 +145,7 @@ class vtmclass_character {
 			$this->date_of_embrace = '';
 			$this->char_status_comment   = '';
 			$this->path_of_enlightenment = '';
+			$this->concept      = '';
 		}
 		
         $user = get_user_by('login',$this->name);
@@ -429,7 +434,9 @@ class vtmclass_character {
 		$sql = "(SELECT merits.NAME		      name,
 					charmerit.comment	      comment,
 					charmerit.level		      level,
-					charmerit.approved_detail detail
+					IF(charmerit.approved_detail = '',
+						charmerit.pending_detail,
+						charmerit.approved_detail) detail
 				FROM
 					" . VTM_TABLE_PREFIX . "MERIT merits,
 					" . VTM_TABLE_PREFIX . "CHARACTER_MERIT charmerit,
@@ -558,7 +565,21 @@ class vtmclass_character {
 		$sql = $wpdb->prepare($sql, $characterID);
 		$this->offices = $wpdb->get_results($sql);
 		
-		
+		// History
+		$sql = "SELECT 
+					eb.title				as title,
+					eb.BACKGROUND_QUESTION	as question,
+					IF(ceb.APPROVED_DETAIL = '',ceb.PENDING_DETAIL, ceb.APPROVED_DETAIL) as detail
+				FROM
+					" . VTM_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND ceb,
+					" . VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND eb
+				WHERE
+					CHARACTER_ID = %s
+					AND eb.ID = ceb.QUESTION_ID
+					AND eb.VISIBLE = 'Y'
+				ORDER BY eb.ORDERING";
+		$sql = $wpdb->prepare($sql, $characterID);
+		$this->history = $wpdb->get_results($sql);
 		
 	}
 	function getAttributes($group = "") {
@@ -765,7 +786,7 @@ class vtmclass_Report_ListTable extends WP_List_Table {
 	
 	}
 	
-	function get_filter_sql () {
+	function get_filter_sql() {
 	
 		$sql = "";
 		$args = array();
@@ -791,7 +812,7 @@ class vtmclass_Report_ListTable extends WP_List_Table {
 	
 	}
 
-	function filter_tablenav () {
+	function filter_tablenav() {
 			echo "<label>Player Status: </label>";
 			if ( !empty( $this->filter_player_status ) ) {
 				echo "<select name='player_status'>";
@@ -1095,7 +1116,7 @@ class vtmclass_Report_ListTable extends WP_List_Table {
 		
 	}
 	
-	function output_csv () {
+	function output_csv() {
 		
 		/* open file */
 		$file = fopen(VTM_CHARACTER_URL . "tmp/report.csv","w");
@@ -1120,7 +1141,7 @@ class vtmclass_Report_ListTable extends WP_List_Table {
 		fclose($file);
 	}
 	
-	function PrepareCSVText ($text) {
+	function PrepareCSVText($text) {
 		
 		$text = stripslashes($text);
 		$text = str_ireplace("\r", "", $text);
@@ -1165,7 +1186,7 @@ class vtmclass_PDFreport extends FPDF {
 		$this->Cell(0,10,'Report | Page ' . $this->PageNo().' of {nb} | Generated on ' . $footerdate,'T',0,'C');
 	}
 	
-	function GetCellHeight ($text, $cellwidth, $lineheight) {
+	function GetCellHeight($text, $cellwidth, $lineheight) {
 		
 		$lines = ceil( $this->GetStringWidth($text) / ($cellwidth - 1) );
 		
@@ -1177,7 +1198,7 @@ class vtmclass_PDFreport extends FPDF {
 		return $height;
 	}
 
-	function PrepareText ($text) {
+	function PrepareText($text) {
 		
 		$text = stripslashes($text);
 		$text = str_ireplace("<br>", "\n", $text);

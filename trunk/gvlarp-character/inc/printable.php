@@ -275,7 +275,7 @@ function vtm_print_redirect()
 			/* NEXT PAGE */
 			$pdf->AddPage();
 			
-			/* Dates, Sire */
+			/* Dates, Sire, Concept */
 			$pdf->Divider('Character Information');
 			$pdf->BasicInfoTableRow( array(
 					'Date of Birth', date_i18n(get_option('date_format'),strtotime($mycharacter->date_of_birth)),
@@ -290,6 +290,10 @@ function vtm_print_redirect()
 				)
 			);
 			$pdf->Ln();
+			if (!empty($mycharacter->concept)) {
+				$pdf->FullWidthText('Character Concept','B');
+				$pdf->FullWidthText(stripslashes($mycharacter->concept));
+			}
 			
 			/* Rituals */
 			$rituals = $mycharacter->rituals;
@@ -312,8 +316,8 @@ function vtm_print_redirect()
 			}
 			
 			/* Extended backgrounds - backgrounds with full details */
+			$pdf->Divider('Extended Backgrounds');
 			if (count($backgrounds) > 0) {
-				$pdf->Divider('Extended Backgrounds');
 				for ($i=0;$i<count($backgrounds);$i++) {
 					if (!empty($backgrounds[$i]->sector) || !empty($backgrounds[$i]->comment) || !empty($backgrounds[$i]->detail)) {
 						$text = $backgrounds[$i]->background . " " . $backgrounds[$i]->level;
@@ -329,7 +333,7 @@ function vtm_print_redirect()
 			
 			/* Extended backgrounds - merits and flaws with full details */
 			if (count($merits) > 0) {
-				$pdf->Divider('Extended Merits and Flaws');
+				//$pdf->Divider('Extended Merits and Flaws');
 				for ($i=0;$i<count($merits);$i++) {
 					if (!empty($merits[$i]->comment) || !empty($merits[$i]->detail)) {
 						$text = $merits[$i]->name;
@@ -339,6 +343,19 @@ function vtm_print_redirect()
 						if (!empty($merits[$i]->detail))  $pdf->FullWidthText(stripslashes($merits[$i]->detail));
 						$pdf->Ln($textrowheight/2);
 					}
+				}
+			}
+			
+			// Extended backgrounds - history
+			$history = $mycharacter->history;
+			if (count($history) > 0) {
+				//$pdf->Divider('Character History');
+				for ($i=0;$i<count($history);$i++) {
+					$text = stripslashes($history[$i]->title);
+					$pdf->FullWidthText($text, 'B');
+					
+					$pdf->FullWidthText(stripslashes($history[$i]->detail));
+					$pdf->Ln($textrowheight/2);
 				}
 			}
 			
