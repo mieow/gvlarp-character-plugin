@@ -92,17 +92,20 @@ function vtm_print_redirect()
 				$physicalname = isset($physical[$i]->name)      ? $physical[$i]->name                    : '';
 				$physicalspec = isset($physical[$i]->specialty) ? stripslashes($physical[$i]->specialty) : '';
 				$physicallvl  = isset($physical[$i]->level)     ? $physical[$i]->level                   : 0;
+				$physicalpnd  = isset($physical[$i]->pending)   ? $physical[$i]->pending                 : 0;
 				$socialname   = isset($social[$i]->name)        ? $social[$i]->name                    : '';
 				$socialspec   = isset($social[$i]->specialty)   ? stripslashes($social[$i]->specialty) : '';
 				$sociallvl    = isset($social[$i]->level)       ? $social[$i]->level                   : 0;
+				$socialpnd    = isset($social[$i]->pending)     ? $social[$i]->pending                 : 0;
 				$mentalname   = isset($mental[$i]->name)        ? $mental[$i]->name                    : '';
 				$mentalspec   = isset($mental[$i]->specialty)   ? stripslashes($mental[$i]->specialty) : '';
 				$mentallvl    = isset($mental[$i]->level)       ? $mental[$i]->level                   : 0;
+				$mentalpnd    = isset($mental[$i]->pending)     ? $mental[$i]->pending                 : 0;
 			
 				$data = array(
-						$physicalname,$physicalspec,$physicallvl,
-						$socialname,  $socialspec,  $sociallvl,
-						$mentalname,  $mentalspec,  $mentallvl,
+						$physicalname,$physicalspec,$physicallvl,$physicalpnd,
+						$socialname,  $socialspec,  $sociallvl,  $socialpnd,
+						$mentalname,  $mentalspec,  $mentallvl,  $mentalpnd
 						);
 				if ($i==0)
 					array_push($data, "Physical", "Social", "Mental");
@@ -122,19 +125,22 @@ function vtm_print_redirect()
 			if ($abilrows < count($knowledge)) $abilrows = count($knowledge);
 			
 			for ($i=0;$i<$abilrows;$i++) {
-				$talentname    = isset($talent[$i]->skillname)    ? $talent[$i]->skillname                    : '';
+				$talentname    = isset($talent[$i]->skillname)    ? $talent[$i]->skillname               : '';
 				$talentspec    = isset($talent[$i]->specialty)    ? stripslashes($talent[$i]->specialty) : '';
 				$talentlvl     = isset($talent[$i]->level)        ? $talent[$i]->level                   : 0;
-				$skillname     = isset($skill[$i]->skillname)     ? $skill[$i]->skillname                    : '';
+				$talentpnd     = isset($talent[$i]->pending)      ? $talent[$i]->pending                 : 0;
+				$skillname     = isset($skill[$i]->skillname)     ? $skill[$i]->skillname                : '';
 				$skillspec     = isset($skill[$i]->specialty)     ? stripslashes($skill[$i]->specialty) : '';
 				$skilllvl      = isset($skill[$i]->level)         ? $skill[$i]->level                   : 0;
-				$knowledgename = isset($knowledge[$i]->skillname) ? $knowledge[$i]->skillname                    : '';
+				$skillpnd      = isset($skill[$i]->pending)       ? $skill[$i]->pending                 : 0;
+				$knowledgename = isset($knowledge[$i]->skillname) ? $knowledge[$i]->skillname               : '';
 				$knowledgespec = isset($knowledge[$i]->specialty) ? stripslashes($knowledge[$i]->specialty) : '';
 				$knowledgelvl  = isset($knowledge[$i]->level)     ? $knowledge[$i]->level                   : 0;
+				$knowledgepnd  = isset($knowledge[$i]->pending)   ? $knowledge[$i]->pending                 : 0;
 				$data = array(
-						$talentname,   $talentspec,   $talentlvl,
-						$skillname,    $skillspec,    $skilllvl,
-						$knowledgename,$knowledgespec,$knowledgelvl
+						$talentname,   $talentspec,   $talentlvl,   $talentpnd,
+						$skillname,    $skillspec,    $skilllvl,    $skillpnd,
+						$knowledgename,$knowledgespec,$knowledgelvl,$knowledgepnd
 						);
 				if ($i==0)
 					array_push($data, "Talents", "Skills", "Knowledges");
@@ -163,10 +169,10 @@ function vtm_print_redirect()
 			
 			$alldisciplines = array();
 			foreach ($disciplines as $discipline) {
-				array_push($alldisciplines, array( $discipline->name , "", $discipline->level));
+				array_push($alldisciplines, array( $discipline->name , "", $discipline->level, $discipline->pending));
 				if (isset($paths[$discipline->name])) {
 					foreach ($paths[$discipline->name] as $path => $level) {
-						array_push($alldisciplines, array( "", $path , $level));
+						array_push($alldisciplines, array( "", $path , $level, 0));
 					}
 				}
 			}
@@ -198,14 +204,17 @@ function vtm_print_redirect()
 					isset($backgrounds[$i]->background) ? $backgrounds[$i]->background : '',
 					$sector,
 					isset($backgrounds[$i]->level)      ? $backgrounds[$i]->level      : 0,
+					isset($backgrounds[$i]->pending)    ? $backgrounds[$i]->pending    : 0,
 					
 					$is_discipline ? $alldisciplines[$i][0] : '',
 					$is_discipline ? $alldisciplines[$i][1] : '',
 					$is_discipline ? $alldisciplines[$i][2] : 0,
+					$is_discipline ? $alldisciplines[$i][3] : 0,
 					
 					$is_skill ? $secondary[$i]->skillname : '',
 					$is_skill ? stripslashes($secondary[$i]->specialty) : '',
-					$is_skill ? $secondary[$i]->level : 0
+					$is_skill ? $secondary[$i]->level : 0,
+					$is_skill && isset($secondary[$i]->pending) ? $secondary[$i]->pending : 0
 				);
 				if ($i==0)
 					array_push($data, "Backgrounds", "Disciplines", "Secondary Abilities");
@@ -229,6 +238,8 @@ function vtm_print_redirect()
 						if (!empty($merit->comment))
 							$string .= " - " . stripslashes($merit->comment);
 						$string .= " (" . $merit->level . ")";
+						if (isset($merit->pending) && $merit->pending != 0)
+							$string .= " pending";
 						$pdf->SingleColumnText($string);
 					}
 				}
@@ -249,7 +260,7 @@ function vtm_print_redirect()
 				$pdf->SetX($x1);
 				
 				/* Willpower */
-				$xnext = $pdf->Willpower($mycharacter->willpower,$mycharacter->current_willpower);
+				$xnext = $pdf->Willpower($mycharacter->willpower,$mycharacter->pending_willpower,$mycharacter->current_willpower);
 				
 				/* Bloodpool */
 				$pdf->SetX($x1);
@@ -531,18 +542,18 @@ class vtmclass_PDFcsheet extends FPDF
 		
 		$this->SetTextColor($textcolour[0],$textcolour[1],$textcolour[2]);
 		
-		if (count($data) > 9) {
+		if (count($data) > 12) {
 			$this->SetFont($textfont,'B', $headsize);
-			$this->Cell($itemwidth + $specwidth + $dotswidth,$textrowheight,$data[9],0, 0,'C');
-			$this->Cell($itemwidth + $specwidth + $dotswidth,$textrowheight,$data[10],0, 0,'C');
-			$this->Cell($itemwidth + $specwidth + $dotswidth,$textrowheight,$data[11],0, 0,'C');
+			$this->Cell($itemwidth + $specwidth + $dotswidth,$textrowheight,$data[12],0, 0,'C');
+			$this->Cell($itemwidth + $specwidth + $dotswidth,$textrowheight,$data[13],0, 0,'C');
+			$this->Cell($itemwidth + $specwidth + $dotswidth,$textrowheight,$data[14],0, 0,'C');
 			$this->Ln();
 		}
 		
 		$this->SetDrawColor($textcolour[0],$textcolour[1],$textcolour[2]);
 		$this->SetLineWidth(.3);
 		
-		for($i=0;$i<$numcols;$i=$i+3) {
+		for($i=0;$i<$numcols;$i=$i+4) {
 			$this->FitToCell($data[$i+0], $itemwidth, $textfont, '', $textsize); 
 			$this->Cell($itemwidth,$textrowheight,$data[$i+0],0,  0,'L');
 			
@@ -551,7 +562,7 @@ class vtmclass_PDFcsheet extends FPDF
 			
 			$this->FitToCell($data[$i+2], $dotswidth, $textfont, '', $textsize); 
 			/* $this->Cell($dotswidth,$textrowheight,$data[$i+2],0,  0,'L'); */
-			$this->Dots($data[$i+2], $dotswidth, $this->GetX(), $this->GetY(), $dotmaximum, $textrowheight);
+			$this->Dots($data[$i+2], $data[$i+3], $dotswidth, $this->GetX(), $this->GetY(), $dotmaximum, $textrowheight);
 			$this->Cell($dotswidth,$textrowheight,'',0,  0,'L');
 		}
 		
@@ -568,7 +579,7 @@ class vtmclass_PDFcsheet extends FPDF
 		
 	}
 	
-	function Dots ($level, $cellwidth, $xorig, $y, $max = 5, $rowheight, $dotheight = 0) {
+	function Dots($level, $pending, $cellwidth, $xorig, $y, $max = 5, $rowheight, $dotheight = 0) {
 	
 		$padding = 0;
 	
@@ -586,6 +597,8 @@ class vtmclass_PDFcsheet extends FPDF
 			$x = $xorig + $padding + ($i - 1) * ($dotwidth ? $dotwidth : $dotheight);
 			if ($i <= $level)
 				$this->Image(VTM_CHARACTER_URL . "images/fulldot.jpg", $x, $y + $yoffset, $dotwidth, $dotheight);
+			elseif ($pending > 0 && $i <= $pending)
+				$this->Image(VTM_CHARACTER_URL . "images/pdfxpdot.jpg", $x, $y + $yoffset, $dotwidth, $dotheight);
 			else
 				$this->Image(VTM_CHARACTER_URL . "images/emptydot.jpg", $x, $y + $yoffset, $dotwidth, $dotheight);
 		}
@@ -629,7 +642,7 @@ class vtmclass_PDFcsheet extends FPDF
 		return $this->GetY();
 	}
 	
-	function Willpower ($max, $current = 0) {
+	function Willpower ($max, $pending, $current = 0) {
 		global $pagewidth;
 		global $margin;
 		global $headsize;
@@ -651,7 +664,7 @@ class vtmclass_PDFcsheet extends FPDF
 		$this->Ln($headrowheight);
 	
 		/* Max WP - dots */
-		$this->Dots($max, $sectionwidth, $x1, $this->GetY(), 10, $dotheight);
+		$this->Dots($max, $pending, $sectionwidth, $x1, $this->GetY(), 10, $dotheight);
 		
 		$this->SetXY($x1, $this->GetY() + $dotheight + 2);
 		
@@ -772,7 +785,8 @@ class vtmclass_PDFcsheet extends FPDF
 		foreach ($data as $item) {
 			$this->Cell($colwidths[0], $textrowheight, $item->name,  0,   0, 'L');
 			$this->Cell($colwidths[1], $textrowheight, ''         ,  'B', 0, 'L');
-			$this->Dots($item->level, $colwidths[2], $this->GetX(),$this->GetY(),5, $textrowheight);
+			$pending = isset($item->pending) ? $item->pending : 0;
+			$this->Dots($item->level, $pending, $colwidths[2], $this->GetX(),$this->GetY(),5, $textrowheight);
 			$this->Ln();
 			$this->SetX($x1);
 		}

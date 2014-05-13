@@ -21,6 +21,7 @@ class vtmclass_character {
 	var $bloodpool;
 	var $blood_per_round;
 	var $willpower;
+	var $pending_willpower;
 	var $current_willpower;
 	var $path_of_enlightenment;
 	var $path_rating;
@@ -188,7 +189,8 @@ class vtmclass_character {
 					stat.grouping		grouping,
 					stat.ordering		ordering,
 					charstat.comment	specialty,
-					IFNULL(freebie.LEVEL_TO,charstat.level) level
+					IFNULL(freebie.LEVEL_TO,charstat.level) level,
+					xp.CHARTABLE_LEVEL  pending
 				FROM
 					" . VTM_TABLE_PREFIX . "STAT stat
 					LEFT JOIN (
@@ -199,7 +201,16 @@ class vtmclass_character {
 							AND CHARACTER_ID = %s
 					) freebie
 					ON
-						freebie.ITEMTABLE_ID = stat.ID,
+						freebie.ITEMTABLE_ID = stat.ID
+					LEFT JOIN (
+						SELECT ITEMTABLE_ID, CHARTABLE_LEVEL
+						FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
+						WHERE
+							ITEMTABLE = 'STAT'
+							AND CHARACTER_ID = %s
+					) xp
+					ON
+						xp.ITEMTABLE_ID = stat.ID,
 					" . VTM_TABLE_PREFIX . "CHARACTER_STAT charstat,
 					" . VTM_TABLE_PREFIX . "CHARACTER chara
 				WHERE
@@ -207,7 +218,7 @@ class vtmclass_character {
 					AND charstat.STAT_ID = stat.ID
 					AND chara.id = '%s'
 				ORDER BY stat.grouping, stat.ordering;";
-		$sql = $wpdb->prepare($sql, $characterID, $characterID);
+		$sql = $wpdb->prepare($sql, $characterID, $characterID, $characterID);
 		$result = $wpdb->get_results($sql);
 		//echo "<p>SQL: $sql</p>";
 		//print_r($result);
@@ -222,10 +233,12 @@ class vtmclass_character {
 			}
 		
 		/* Abilities */
+		// Abilities from skill table + freebie points with pending XP
 		$sql = "SELECT skill.name		skillname,
 					skill.grouping		grouping,
 					IFNULL(freebie.SPECIALISATION,charskill.comment)	specialty,
 					IFNULL(freebie.LEVEL_TO,charskill.level) level,
+					xp.CHARTABLE_LEVEL  pending,
 					skill.multiple      multiple
 				FROM
 					" . VTM_TABLE_PREFIX . "SKILL skill,
@@ -238,59 +251,89 @@ class vtmclass_character {
 							AND CHARACTER_ID = %s
 					) freebie
 					ON
-						freebie.CHARTABLE_ID = charskill.ID,
+						freebie.CHARTABLE_ID = charskill.ID
+					LEFT JOIN (
+						SELECT CHARTABLE_ID, CHARTABLE_LEVEL, SPECIALISATION
+						FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
+						WHERE
+							CHARTABLE = 'CHARACTER_SKILL'
+							AND CHARACTER_ID = %s
+					) xp
+					ON
+						xp.CHARTABLE_ID = charskill.ID,
 					" . VTM_TABLE_PREFIX . "CHARACTER chara
 				WHERE
 					charskill.CHARACTER_ID = chara.ID
 					AND charskill.SKILL_ID = skill.ID
 					AND chara.id = '%s'
 				ORDER BY skill.name ASC;";
-		$sql = $wpdb->prepare($sql, $characterID, $characterID);
+		$sql = $wpdb->prepare($sql, $characterID, $characterID, $characterID);
 		$result = $wpdb->get_results($sql);
 		//echo "<p>SQL: $sql</p>";
 		//print_r($result);
 		
+		// freebie points spend with pending xp
 		$sql = "SELECT skill.NAME		skillname,
 					skill.grouping			grouping,
 					freebie.SPECIALISATION	specialty,
 					freebie.LEVEL_TO 		level,
+					xp.CHARTABLE_LEVEL      pending,
 					skill.multiple      	multiple,
 					freebie.CHARTABLE_ID	chartableid
 			FROM
-				" . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND freebie,
+				" . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND freebie
+					LEFT JOIN (
+						SELECT CHARTABLE_ID, CHARTABLE_LEVEL, SPECIALISATION
+						FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
+						WHERE
+							CHARTABLE = 'PENDING_FREEBIE_SPEND'
+							AND ITEMTABLE = 'SKILL'
+							AND CHARACTER_ID = %s
+					) xp
+					ON
+						xp.CHARTABLE_ID = freebie.ID,
 				" . VTM_TABLE_PREFIX . "SKILL skill
 			WHERE
 				freebie.CHARACTER_ID = %s
 				AND skill.ID = freebie.ITEMTABLE_ID
-				AND freebie.ITEMTABLE = 'SKILL'";
-		$sql = $wpdb->prepare($sql, $characterID);
+				AND freebie.ITEMTABLE = 'SKILL'
+				AND freebie.CHARTABLE_ID = 0";
+		$sql = $wpdb->prepare($sql, $characterID, $characterID);
 		$freebies = $wpdb->get_results($sql);
 		//echo "SQL: $sql</p>";
 		//print_r($freebies);
+		
+		// pending xp for new skills
+		$sql = "SELECT skill.NAME			skillname,
+					skill.grouping			grouping,
+					xp.SPECIALISATION		specialty,
+					0 						level,
+					xp.CHARTABLE_LEVEL      pending,
+					skill.multiple      	multiple,
+					0						chartableid
+			FROM
+				" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND xp,
+				" . VTM_TABLE_PREFIX . "SKILL skill
+			WHERE
+				xp.CHARACTER_ID = %s
+				AND skill.ID = xp.ITEMTABLE_ID
+				AND xp.ITEMTABLE = 'SKILL'
+				AND xp.CHARTABLE_ID = 0";
+		$sql = $wpdb->prepare($sql, $characterID);
+		$xp = $wpdb->get_results($sql);
+		//echo "SQL: $sql</p>";
+		//print_r($xp);
 
+		$result = array_merge($result, $freebies, $xp);
 		$this->abilities = $result;
 		$this->abilitygroups = array();
 		for ($i=0;$i<count($result);$i++) {
-			$key = sanitize_key($result[$i]->skillname);
-			if (isset($freebies[$key])) {
-				$this->abilities[$i]->level = $freebies[$key]->level;
-			}
-		
 			if (array_key_exists($result[$i]->grouping, $this->abilitygroups))
 				array_push($this->abilitygroups[$result[$i]->grouping], $this->abilities[$i]);
 			else {
 				$this->abilitygroups[$result[$i]->grouping] = array($this->abilities[$i]);
 			}
 			
-		}
-		foreach ($freebies as $row) {
-			if (empty($row->chartableid) || $row->chartableid == 0) {
-				if (array_key_exists($row->grouping, $this->abilitygroups))
-					array_push($this->abilitygroups[$row->grouping], $row);
-				else {
-					$this->abilitygroups[$row->grouping] = array($row);
-				}
-			}
 		}
 		
 		/* Backgrounds */
@@ -341,8 +384,10 @@ class vtmclass_character {
 		$this->backgrounds = array_merge($result, $freebies);
 		
 		/* Disciplines */
+		// Disciplines from table with freebie points and pending xp
 		$sql = "SELECT disciplines.NAME		name,
-					IFNULL(freebie.LEVEL_TO,chardisc.level) level
+					IFNULL(freebie.LEVEL_TO,chardisc.level) level,
+					xp.CHARTABLE_LEVEL      pending
 				FROM
 					" . VTM_TABLE_PREFIX . "DISCIPLINE disciplines,
 					" . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE chardisc
@@ -354,29 +399,65 @@ class vtmclass_character {
 							AND CHARACTER_ID = %s
 					) freebie
 					ON
-						freebie.CHARTABLE_ID = chardisc.ID,
+						freebie.CHARTABLE_ID = chardisc.ID
+					LEFT JOIN (
+						SELECT CHARTABLE_ID, CHARTABLE_LEVEL
+						FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
+						WHERE
+							ITEMTABLE = 'DISCIPLINE'
+							AND CHARTABLE = 'CHARACTER_DISCIPLINE'
+							AND CHARACTER_ID = %s
+					) xp
+					ON
+						xp.CHARTABLE_ID = chardisc.ID,
 					" . VTM_TABLE_PREFIX . "CHARACTER chara
 				WHERE
 					chardisc.DISCIPLINE_ID = disciplines.ID
 					AND chardisc.CHARACTER_ID = chara.ID
 					AND chara.id = '%s'
 				ORDER BY disciplines.name ASC;";
-		$sql = $wpdb->prepare($sql, $characterID, $characterID);
+		$sql = $wpdb->prepare($sql, $characterID, $characterID, $characterID);
 		$result = $wpdb->get_results($sql);
+		// Disciplines from freebie points with pending xp
 		$sql = "SELECT disciplines.NAME		name,
-					freebie.LEVEL_TO 		level
+					freebie.LEVEL_TO 		level,
+					xp.CHARTABLE_LEVEL      pending
 			FROM
-				" . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND freebie,
+				" . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND freebie
+					LEFT JOIN (
+						SELECT CHARTABLE_ID, CHARTABLE_LEVEL, SPECIALISATION
+						FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
+						WHERE
+							CHARTABLE = 'PENDING_FREEBIE_SPEND'
+							AND ITEMTABLE = 'DISCIPLINE'
+							AND CHARACTER_ID = %s
+					) xp
+					ON
+						xp.CHARTABLE_ID = freebie.ID,
 				" . VTM_TABLE_PREFIX . "DISCIPLINE disciplines
 			WHERE
 				freebie.CHARACTER_ID = %s
 				AND disciplines.ID = freebie.ITEMTABLE_ID
 				AND freebie.ITEMTABLE = 'DISCIPLINE'
 				AND freebie.CHARTABLE_ID = ''";
-		$sql = $wpdb->prepare($sql, $characterID);
+		$sql = $wpdb->prepare($sql, $characterID, $characterID);
 		$freebies = $wpdb->get_results($sql);
+		// pending xp for new
+		$sql = "SELECT disciplines.NAME		name,
+					0 						level,
+					xp.CHARTABLE_LEVEL      pending
+			FROM
+				" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND xp,
+				" . VTM_TABLE_PREFIX . "DISCIPLINE disciplines
+			WHERE
+				xp.CHARACTER_ID = %s
+				AND disciplines.ID = xp.ITEMTABLE_ID
+				AND xp.ITEMTABLE = 'DISCIPLINE'
+				AND xp.CHARTABLE_ID = 0";
+		$sql = $wpdb->prepare($sql, $characterID);
+		$xp = $wpdb->get_results($sql);
 
-		$this->disciplines = array_merge($result, $freebies);
+		$this->disciplines = array_merge($result, $freebies, $xp);
 
 		/* Majik Paths */
 		$sql = "SELECT paths.NAME           name,
@@ -434,6 +515,7 @@ class vtmclass_character {
 		$sql = "(SELECT merits.NAME		      name,
 					charmerit.comment	      comment,
 					charmerit.level		      level,
+					0						  pending,
 					IF(charmerit.approved_detail = '',
 						charmerit.pending_detail,
 						charmerit.approved_detail) detail
@@ -450,6 +532,7 @@ class vtmclass_character {
 				(SELECT merits.NAME			name,
 					freebie.SPECIALISATION	comment,
 					freebie.LEVEL_TO		level,
+					0						pending,
 					''						detail
 				FROM
 					" . VTM_TABLE_PREFIX . "MERIT merits,
@@ -457,13 +540,28 @@ class vtmclass_character {
 				WHERE
 					freebie.CHARACTER_ID = %s
 					AND freebie.ITEMTABLE = 'MERIT'
-					AND freebie.ITEMTABLE_ID = merits.ID)";
-		$sql = $wpdb->prepare($sql, $characterID, $characterID);
+					AND freebie.ITEMTABLE_ID = merits.ID)
+				UNION
+				(SELECT merits.NAME			name,
+					xp.SPECIALISATION	    comment,
+					xp.CHARTABLE_LEVEL		level,
+					xp.CHARTABLE_LEVEL		pending,
+					''						detail
+				FROM
+					" . VTM_TABLE_PREFIX . "MERIT merits,
+					" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND xp
+				WHERE
+					xp.CHARACTER_ID = %s
+					AND xp.ITEMTABLE = 'MERIT'
+					AND xp.ITEMTABLE_ID = merits.ID)";
+		$sql = $wpdb->prepare($sql, $characterID, $characterID, $characterID);
 		$result = $wpdb->get_results($sql);
 		$this->meritsandflaws = $result;
 
 		/* Full Willpower */
-		$sql = "SELECT IFNULL(freebie.LEVEL_TO,charstat.level) as level
+		$sql = "SELECT 
+					IFNULL(freebie.LEVEL_TO,charstat.level) as level,
+					xp.CHARTABLE_LEVEL as pending
 				FROM " . VTM_TABLE_PREFIX . "CHARACTER_STAT charstat
 					LEFT JOIN (
 						SELECT CHARTABLE_ID, LEVEL_TO
@@ -473,16 +571,27 @@ class vtmclass_character {
 							AND CHARACTER_ID = %s
 					) freebie
 					ON
-						freebie.CHARTABLE_ID = charstat.ID,
+						freebie.CHARTABLE_ID = charstat.ID
+					LEFT JOIN (
+						SELECT CHARTABLE_ID, CHARTABLE_LEVEL
+						FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
+						WHERE
+							ITEMTABLE = 'STAT'
+							AND CHARTABLE = 'CHARACTER_STAT'
+							AND CHARACTER_ID = %s
+					) xp
+					ON
+						xp.CHARTABLE_ID = charstat.ID,
 					" . VTM_TABLE_PREFIX . "STAT stat
 				WHERE 
 					charstat.CHARACTER_ID = '%s' 
 					AND charstat.STAT_ID = stat.ID
 					AND stat.name = 'Willpower';";
-		$sql = $wpdb->prepare($sql, $characterID, $characterID);
+		$sql = $wpdb->prepare($sql, $characterID, $characterID, $characterID);
 		//echo "<p>SQL: $sql</p>";
-		$result = $wpdb->get_var($sql);
-		$this->willpower = isset($result) ? $result : 0;
+		$result = $wpdb->get_row($sql);
+		$this->willpower         = isset($result->level) ? $result->level : 0;
+		$this->pending_willpower = isset($result->pending) ? $result->pending : 0;
 		
 		/* Current Willpower */
         $sql = "SELECT SUM(char_temp_stat.amount) currentwp
