@@ -104,9 +104,10 @@ function vtm_get_editbackgrounds_tab($characterID) {
 		$namesbg     = $_REQUEST['charbgName'];
 		
 		foreach ($_REQUEST['save_bgform'] as $id => $buttontitle) {
+			$sector = isset($sectors[$id]) ? $sectors[$id] : 0;
 
 			$data = array (
-				'SECTOR_ID' => $sectors[$id],
+				'SECTOR_ID'      => $sector,
 				'PENDING_DETAIL' => $pendingbg[$id],
 				'DENIED_DETAIL'  => ''
 			);

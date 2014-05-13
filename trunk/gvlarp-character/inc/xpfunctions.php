@@ -417,29 +417,32 @@ function vtm_render_details_section($type) {
 	foreach ($levels as $index => $level ) {
 	
 		if ($level != 0) {
+			$specat = isset($specats[$index]) ? $specats[$index] : '';
+			$name    = htmlspecialchars(stripslashes($names[$index]), ENT_QUOTES);
+			$comment = htmlspecialchars(stripslashes($comments[$index]), ENT_QUOTES);
 			
 			// Hidden fields
 			$rowoutput .= "<tr style='display:none'><td colspan=5>";
 			$rowoutput .= "<input type='hidden' name='{$type}_level[" . $index . "]' value='$level' >\n";
-			$rowoutput .= "<input type='hidden' name='{$type}_name[" . $index . "]' value='{$names[$index]}' >\n";
+			$rowoutput .= "<input type='hidden' name='{$type}_name[" . $index . "]' value='$name' >\n";
 			$rowoutput .= "<input type='hidden' name='{$type}_id[" . $index . "]' value='{$ids[$index]}' >\n";
 			$rowoutput .= "<input type='hidden' name='{$type}_cost[" . $index . "]' value='{$xpcosts[$index]}' >\n";
-			$rowoutput .= "<input type='hidden' name='{$type}_comment[" . $index . "]' value='{$comments[$index]}' >\n";
+			$rowoutput .= "<input type='hidden' name='{$type}_comment[" . $index . "]' value='$comment' >\n";
 			$rowoutput .= "<input type='hidden' name='{$type}_itemid[" . $index . "]' value='{$itemids[$index]}' >\n";
-			$rowoutput .= "<input type='hidden' name='{$type}_spec_at[" . $index . "]' value='{$specats[$index]}' >\n";
+			$rowoutput .= "<input type='hidden' name='{$type}_spec_at[" . $index . "]' value='$specat' >\n";
 			
 			$rowoutput .= "</td></tr>";
 		
 			// name
-			$rowoutput .= "<tr><th class='gvthleft'>{$names[$index]}</th>";
+			$rowoutput .= "<tr><th class='gvthleft'>$name</th>";
 			
 			// specialisation
-			if ($specats[$index] == 'Y') {
+			if ($specat == 'Y') {
 				if (empty($specs[$index]))
 					$rowoutput .= "<td><input type='text' name='{$type}_spec[" . $index . "]' value='' size=15 maxlength=60></td>";
 				else
 					$rowoutput .= "<td>{$specs[$index]}<input type='hidden' name='{$type}_spec[" . $index . "]' value='{$specs[$index]}'></td>";
-			} elseif ($specats[$index] > 0) {
+			} elseif ($specat > 0) {
 				if (empty($specs[$index]) && $specats[$index] <= $level)
 					$rowoutput .= "<td><input type='text' name='{$type}_spec[" . $index . "]' value='' size=15 maxlength=60></td>";
 				else
@@ -449,7 +452,7 @@ function vtm_render_details_section($type) {
 			}
 			
 			// Spend information
-			$rowoutput .= "<td>{$comments[$index]}</td>";
+			$rowoutput .= "<td>$comment</td>";
 			
 			// cost
 			$rowoutput .= "<td>{$xpcosts[$index]}</td>";
@@ -1245,8 +1248,9 @@ function vtm_render_spend_table($type, $allxpdata, $maxRating, $columns, $xp_ava
 			}
 			
 			$spec_at   = isset($xpdata->spec_at) ?  $xpdata->spec_at : 0;
-			$xpcomment = isset($xpdata->comment) ?  $xpdata->comment : '';
+			$xpcomment = isset($xpdata->comment) ?  htmlspecialchars($xpdata->comment) : '';
 			$xpid      = isset($xpdata->id)      ?  $xpdata->id : '';
+			$name      = htmlspecialchars($xpdata->name, ENT_QUOTES);
 			
 			// Hidden fields
 			$rowoutput .= "<tr style='display:none'><td colspan=$colspan>\n";
@@ -1255,7 +1259,7 @@ function vtm_render_spend_table($type, $allxpdata, $maxRating, $columns, $xp_ava
 			$rowoutput .= "<input type='hidden' name='{$type}_curr[" . $id . "]'    value='" . $xpdata->level . "' >\n";
 			$rowoutput .= "<input type='hidden' name='{$type}_itemid[" . $id . "]'  value='" . $xpdata->item_id . "' >\n";
 			$rowoutput .= "<input type='hidden' name='{$type}_id[" . $id . "]'      value='" . $xpid . "' >\n";
-			$rowoutput .= "<input type='hidden' name='{$type}_name[" . $id . "]'    value='" . $xpdata->name . "' >\n";
+			$rowoutput .= "<input type='hidden' name='{$type}_name[" . $id . "]'    value='" . $name . "' >\n";
 			$rowoutput .= "</td></tr>\n";
 			
 			
