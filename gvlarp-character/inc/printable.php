@@ -346,7 +346,8 @@ function vtm_print_redirect()
 			if (count($merits) > 0) {
 				//$pdf->Divider('Extended Merits and Flaws');
 				for ($i=0;$i<count($merits);$i++) {
-					if (!empty($merits[$i]->comment) || !empty($merits[$i]->detail)) {
+					//if (!empty($merits[$i]->comment) || !empty($merits[$i]->detail)) {
+					if (!empty($merits[$i]->detail)) {
 						$text = $merits[$i]->name;
 						if (!empty($merits[$i]->comment)) $text .= " (" . stripslashes($merits[$i]->comment) . ")";
 					

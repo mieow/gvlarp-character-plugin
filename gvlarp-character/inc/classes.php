@@ -341,7 +341,7 @@ class vtmclass_character {
 					sectors.name		     sector,
 					charbgnd.comment	     comment,
 					IFNULL(freebie.LEVEL_TO,charbgnd.level) level,
-					charbgnd.approved_detail detail
+					IFNULL(charbgnd.approved_detail,charbgnd.pending_detail) detail
 				FROM
 					" . VTM_TABLE_PREFIX . "BACKGROUND bground,
 					" . VTM_TABLE_PREFIX . "CHARACTER chara,
@@ -516,9 +516,7 @@ class vtmclass_character {
 					charmerit.comment	      comment,
 					charmerit.level		      level,
 					0						  pending,
-					IF(charmerit.approved_detail = '',
-						charmerit.pending_detail,
-						charmerit.approved_detail) detail
+					IFNULL(charmerit.approved_detail,charmerit.pending_detail) detail
 				FROM
 					" . VTM_TABLE_PREFIX . "MERIT merits,
 					" . VTM_TABLE_PREFIX . "CHARACTER_MERIT charmerit,
