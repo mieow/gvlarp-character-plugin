@@ -615,6 +615,17 @@ function vtm_character_config() {
 			$draw->setStrokeColor($drawcolour);
 			$draw->setStrokeWidth($drawborder);
 			$draw->setFillColor($drawbgcolour);
+			$draw->circle( ceil($drawwidth / 2), ceil($drawheight / 2), ceil($drawwidth / 2), $drawborder + $drawmargin);
+			$draw->setFillColor($drawcolour);
+			$draw->circle( ceil($drawwidth / 2), ceil($drawheight / 2), ceil($drawwidth / 2), ceil($drawwidth / 4));
+			$image->drawImage($draw);
+			$image->writeImage(VTM_CHARACTER_URL . 'images/pdfxpdot.' . $imagetype);
+			
+			$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
+			$draw = new ImagickDraw();
+			$draw->setStrokeColor($drawcolour);
+			$draw->setStrokeWidth($drawborder);
+			$draw->setFillColor($drawbgcolour);
 			$draw->rectangle( $drawborder, $drawborder, $drawwidth - $drawborder - 1, $drawheight - $drawborder - 1);
 			$image->drawImage($draw);
 			$image->writeImage(VTM_CHARACTER_URL . 'images/box.' . $imagetype);
