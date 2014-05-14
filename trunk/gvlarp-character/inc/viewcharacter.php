@@ -32,11 +32,11 @@ function vtm_get_viewcharacter_content() {
 	//---- TOP CHARACTER INFO ----
 	$content .= "<table><tbody>
 		<tr>
-			<td>Character</td><td>" . htmlentities($mycharacter->name) . "</td>
-			<td>Clan</td><td>" . htmlentities($mycharacter->private_clan) . "</td>
+			<td>Character</td><td>"  . htmlentities($mycharacter->name) . "</td>
+			<td>Clan</td><td>"       . htmlentities($mycharacter->private_clan) . "</td>
 			<td>Generation</td><td>" . htmlentities($mycharacter->generation) . "</td>
 		</tr><tr>
-			<td>Domain</td><td>" . htmlentities($mycharacter->domain) . "</td>
+			<td>Domain</td><td>"      . htmlentities($mycharacter->domain) . "</td>
 			<td>Public Clan</td><td>" . htmlentities($mycharacter->clan) . "</td>\n";
 	if ($config->USE_NATURE_DEMEANOUR == 'Y')
 		$content .= "<td>Nature</td><td>" . htmlentities($mycharacter->nature) . "</td>";
@@ -117,15 +117,17 @@ function vtm_get_viewcharacter_content() {
 
 	$content .= "<tr><td colspan=2><table>\n";
 	for ($i=0;$i<count($talent);$i++) {
-		$content .= "<tr>
-				<td class='gvcol_key'>" . $talent[$i]->skillname               . "</td>
-				<td class='gvcol_spec'>" . stripslashes($talent[$i]->specialty) . "</td>
-				<td class='gvdot_{$maxrating}_{$talent[$i]->level}'>&nbsp;</td>
-			</tr>";
+		if ($talent[$i]->level > 0)
+			$content .= "<tr>
+					<td class='gvcol_key'>" . $talent[$i]->skillname               . "</td>
+					<td class='gvcol_spec'>" . stripslashes($talent[$i]->specialty) . "</td>
+					<td class='gvdot_{$maxrating}_{$talent[$i]->level}'>&nbsp;</td>
+				</tr>";
 	}
 	$content .= "</table></td><td colspan=2><table>";
 	for ($i=0;$i<count($skill);$i++) {
-		$content .= "<tr>
+		if ($skill[$i]->level > 0)
+			$content .= "<tr>
 				<td class='gvcol_key'>" . $skill[$i]->skillname               . "</td>
 				<td class='gvcol_spec'>" . stripslashes($skill[$i]->specialty) . "</td>
 				<td class='gvdot_{$maxrating}_{$skill[$i]->level}'>&nbsp;</td>
@@ -133,7 +135,8 @@ function vtm_get_viewcharacter_content() {
 	}
 	$content .= "</table></td><td colspan=2><table>";
 	for ($i=0;$i<count($knowledge);$i++) {
-		$content .= "<tr>
+		if ($knowledge[$i]->level > 0)
+			$content .= "<tr>
 				<td class='gvcol_key'>" . $knowledge[$i]->skillname               . "</td>
 				<td class='gvcol_spec'>" . stripslashes($knowledge[$i]->specialty) . "</td>
 				<td class='gvdot_{$maxrating}_{$knowledge[$i]->level}'>&nbsp;</td>
@@ -179,7 +182,8 @@ function vtm_get_viewcharacter_content() {
 	}
 	$content .= "</table></td><td colspan=2><table>";
 	for ($i=0;$i<count($disciplines);$i++) {
-		$content .= "<tr>
+		if ($disciplines[$i]->level > 0)
+			$content .= "<tr>
 				<td class='gvcol_key'>" . $disciplines[$i]->name               . "</td>
 				<td class='gvcol_spec'>&nbsp;</td>
 				<td class='gvdot_{$maxrating}_{$disciplines[$i]->level}'>&nbsp;</td>
@@ -187,12 +191,15 @@ function vtm_get_viewcharacter_content() {
 	}
 	// COMBO DISCIPLINES
 	$combo = $mycharacter->combo_disciplines;
-	foreach ($combo as $id => $disc)
-		$content .= "<tr><td colspan=3>$disc</td></tr>";
+	foreach ($combo as $id => $disc) {
+		if (!strstr($disc,"PENDING"))
+			$content .= "<tr><td colspan=3>$disc</td></tr>";
+	}
 	
 	$content .= "</table></td><td colspan=2><table>";
 	for ($i=0;$i<count($secondary);$i++) {
-		$content .= "<tr>
+		if ($secondary[$i]->level > 0)
+			$content .= "<tr>
 				<td class='gvcol_key'>" . $secondary[$i]->skillname               . "</td>
 				<td class='gvcol_spec'>" . stripslashes($secondary[$i]->specialty) . "</td>
 				<td class='gvdot_{$maxrating}_{$secondary[$i]->level}'>&nbsp;</td>
@@ -211,9 +218,11 @@ function vtm_get_viewcharacter_content() {
 	if (count($merits) > 0) {
 		$content .= "<td colspan=4><table>";
 		foreach ($merits as $merit) {
-			$content .= "<tr><td class='gvcol_key'>" . stripslashes($merit->name) . "</td>";
-			$content .= "<td class='gvcol_spec'>" . (empty($merit->comment) ? "&nbsp;" : stripslashes($merit->comment)) . "</td>";
-			$content .= "<td>" . $merit->level . "</td></tr>\n";
+			if ($merit->pending == 0) {
+				$content .= "<tr><td class='gvcol_key'>" . stripslashes($merit->name) . "</td>";
+				$content .= "<td class='gvcol_spec'>" . (empty($merit->comment) ? "&nbsp;" : stripslashes($merit->comment)) . "</td>";
+				$content .= "<td>" . $merit->level . "</td></tr>\n";
+			}
 		}
 		$content .= "</table></td>";
 	} else {
@@ -254,7 +263,8 @@ function vtm_get_viewcharacter_content() {
 		foreach ($rituals as $majikdiscipline => $rituallist) {
 			$content .= "<tr><td colspan=2><strong>" . $majikdiscipline . " Rituals</strong></td></tr>\n";
 			foreach ($rituallist as $ritual) {
-				$content .= "<tr><td class='gvcol_key'>Level " . $ritual['level'] . "</td><td>" . $ritual['name'] . "</td></tr>\n";
+				if ($ritual['pending'] == 0)
+					$content .= "<tr><td class='gvcol_key'>Level " . $ritual['level'] . "</td><td>" . $ritual['name'] . "</td></tr>\n";
 			} 
 		}
 		$content .= "</table></td>";
@@ -266,8 +276,9 @@ function vtm_get_viewcharacter_content() {
 		$content .= "<table>\n";
 		foreach ($majikpaths as $discipline => $paths) {
 			$content .= "<tr><td colspan=2><strong>$discipline</strong></td></tr>\n";
-			foreach ($paths as $path => $level) {
-				$content .= "<tr><td class='gvcol_key'>$path</td><td class='gvdot_5_$level'>&nbsp;</td></tr>";
+			foreach ($paths as $path => $info) {
+				if ($info[0] > 0)
+					$content .= "<tr><td class='gvcol_key'>$path</td><td class='gvdot_5_{$info[0]}'>&nbsp;</td></tr>";
 			}
 		}
 		$content .= "</table>\n";

@@ -171,8 +171,8 @@ function vtm_print_redirect()
 			foreach ($disciplines as $discipline) {
 				array_push($alldisciplines, array( $discipline->name , "", $discipline->level, $discipline->pending));
 				if (isset($paths[$discipline->name])) {
-					foreach ($paths[$discipline->name] as $path => $level) {
-						array_push($alldisciplines, array( "", $path , $level, 0));
+					foreach ($paths[$discipline->name] as $path => $info) {
+						array_push($alldisciplines, array( "", $path , $info[0], $info[1]));
 					}
 				}
 			}
@@ -312,7 +312,9 @@ function vtm_print_redirect()
 				foreach ($rituals as $majikdiscipline => $rituallist) {
 				$pdf->Divider($majikdiscipline . ' Rituals');
 					foreach ($rituallist as $ritual) {
-						$pdf->FullWidthText("(Level " . $ritual['level'] . ") " . $ritual['name'] . " - " . $ritual['description']);
+						$text = "(Level " . $ritual['level'] . ") " . $ritual['name'] . " - " . $ritual['description'];
+						if ($ritual['pending'] > 0) $text .= " - PENDING";
+						$pdf->FullWidthText($text);
 					} 
 				}
 			}

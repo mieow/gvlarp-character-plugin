@@ -460,9 +460,11 @@ class vtmclass_character {
 		$this->disciplines = array_merge($result, $freebies, $xp);
 
 		/* Majik Paths */
+		// Paths from tabel with freebie points and pending xp
 		$sql = "SELECT paths.NAME           name,
 					disciplines.NAME		discipline,
-					IFNULL(freebie.LEVEL_TO,charpath.level)		level
+					IFNULL(freebie.LEVEL_TO,charpath.level)		level,
+					xp.CHARTABLE_LEVEL      pending
 				FROM
 					" . VTM_TABLE_PREFIX . "DISCIPLINE disciplines,
 					" . VTM_TABLE_PREFIX . "CHARACTER_PATH charpath
@@ -470,11 +472,21 @@ class vtmclass_character {
 						SELECT CHARTABLE_ID, LEVEL_TO
 						FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
 						WHERE
-							ITEMTABLE = 'PATH'
+							CHARTABLE = 'CHARACTER_PATH'
 							AND CHARACTER_ID = %s
 					) freebie
 					ON
-						freebie.CHARTABLE_ID = charpath.ID,
+						freebie.CHARTABLE_ID = charpath.ID
+					LEFT JOIN (
+						SELECT CHARTABLE_ID, CHARTABLE_LEVEL
+						FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
+						WHERE
+							ITEMTABLE = 'PATH'
+							AND CHARTABLE = 'CHARACTER_PATH'
+							AND CHARACTER_ID = %s
+					) xp
+					ON
+						xp.CHARTABLE_ID = charpath.ID,
 					" . VTM_TABLE_PREFIX . "PATH paths,
 					" . VTM_TABLE_PREFIX . "CHARACTER chara
 				WHERE
@@ -483,13 +495,27 @@ class vtmclass_character {
 					AND charpath.CHARACTER_ID = chara.ID
 					AND chara.id = '%s'
 				ORDER BY disciplines.name ASC, paths.NAME;";
-		$sql = $wpdb->prepare($sql, $characterID, $characterID);
+		$sql = $wpdb->prepare($sql, $characterID, $characterID, $characterID);
 		$result = $wpdb->get_results($sql);
+		//echo "<p>SQL: $sql</p>";
+		//print_r($result);
+		// Disciplines from freebie points with pending xp
 		$sql = "SELECT paths.NAME		name,
 					disciplines.NAME	discipline,
-					freebie.LEVEL_TO 	level
+					freebie.LEVEL_TO 	level,
+					xp.CHARTABLE_LEVEL  pending
 			FROM
-				" . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND freebie,
+				" . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND freebie
+					LEFT JOIN (
+						SELECT CHARTABLE_ID, CHARTABLE_LEVEL, SPECIALISATION
+						FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
+						WHERE
+							CHARTABLE = 'PENDING_FREEBIE_SPEND'
+							AND ITEMTABLE = 'PATH'
+							AND CHARACTER_ID = %s
+					) xp
+					ON
+						xp.CHARTABLE_ID = freebie.ID,
 				" . VTM_TABLE_PREFIX . "DISCIPLINE disciplines,
 				" . VTM_TABLE_PREFIX . "PATH paths
 			WHERE
@@ -498,16 +524,35 @@ class vtmclass_character {
 				AND paths.ID = freebie.ITEMTABLE_ID
 				AND freebie.ITEMTABLE = 'PATH'
 				AND freebie.CHARTABLE_ID = ''";
-		$sql = $wpdb->prepare($sql, $characterID);
-		//echo "<p>SQL: $sql</p>";
+		$sql = $wpdb->prepare($sql, $characterID, $characterID);
 		$freebies = $wpdb->get_results($sql);
-		$merged = array_merge($result, $freebies);
+		//echo "<p>SQL: $sql</p>";
+		//print_r($freebies);
+		// pending xp for new
+		$sql = "SELECT paths.NAME		name,
+					disciplines.NAME	discipline,
+					0 						level,
+					xp.CHARTABLE_LEVEL      pending
+			FROM
+				" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND xp,
+				" . VTM_TABLE_PREFIX . "PATH paths,
+				" . VTM_TABLE_PREFIX . "DISCIPLINE disciplines
+			WHERE
+				xp.CHARACTER_ID = %s
+				AND paths.ID = xp.ITEMTABLE_ID
+				AND paths.DISCIPLINE_ID = disciplines.ID
+				AND xp.ITEMTABLE = 'PATH'
+				AND xp.CHARTABLE_ID = 0";
+		$sql = $wpdb->prepare($sql, $characterID);
+		$xp = $wpdb->get_results($sql);
+		
+		$merged = array_merge($result, $freebies, $xp);
 		
 		// Reformat:
-		//	[discipline] = ( [name] = level )
+		//	[discipline] = ( [name] = (level, pending) )
 		$this->paths = array();
 		foreach ($merged as $majikpath) {
-			$this->paths[$majikpath->discipline][$majikpath->name] = $majikpath->level;
+			$this->paths[$majikpath->discipline][$majikpath->name] = array($majikpath->level, $majikpath->pending);
 		}
 		//print_r($this->paths);
 		
@@ -615,8 +660,9 @@ class vtmclass_character {
 		$this->path_rating = isset($result) && $result > 0 ? $result : $default;
 		
 		/* Rituals */
-		$sql = "SELECT disciplines.name as discname, rituals.name as ritualname, rituals.level,
-					rituals.description, rituals.dice_pool, rituals.difficulty
+		$sql = "(SELECT disciplines.name as discname, rituals.name as ritualname, rituals.level,
+					rituals.description, rituals.dice_pool, rituals.difficulty,
+					0 as pending
 				FROM " . VTM_TABLE_PREFIX . "DISCIPLINE disciplines,
                     " . VTM_TABLE_PREFIX . "CHARACTER_RITUAL char_rit,
                     " . VTM_TABLE_PREFIX . "RITUAL rituals
@@ -624,8 +670,20 @@ class vtmclass_character {
 					char_rit.CHARACTER_ID = '%s'
 					AND char_rit.RITUAL_ID = rituals.ID
 					AND rituals.DISCIPLINE_ID = disciplines.ID
-				ORDER BY disciplines.name, rituals.level, rituals.name;";
-		$sql = $wpdb->prepare($sql, $characterID);
+				ORDER BY disciplines.name, rituals.level, rituals.name)
+				UNION
+				(SELECT disciplines.name as discname, rituals.name as ritualname, rituals.level,
+					rituals.description, rituals.dice_pool, rituals.difficulty,
+					rituals.level as pending
+				FROM " . VTM_TABLE_PREFIX . "DISCIPLINE disciplines,
+                    " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND xp,
+                    " . VTM_TABLE_PREFIX . "RITUAL rituals
+				WHERE
+					xp.CHARACTER_ID = %s
+					AND xp.ITEMTABLE = 'RITUAL'
+					AND xp.ITEMTABLE_ID = rituals.id
+					AND rituals.DISCIPLINE_ID = disciplines.ID)";
+		$sql = $wpdb->prepare($sql, $characterID, $characterID);
 		$result = $wpdb->get_results($sql);
 		$i = 0;
 		foreach ($result as $ritual) {
@@ -633,25 +691,39 @@ class vtmclass_character {
 				'name' => $ritual->ritualname, 
 				'level' => $ritual->level,
 				'roll'  => $ritual->dice_pool . ", diff " . $ritual->difficulty,
-				'description' => $ritual->description
+				'description' => $ritual->description,
+				'pending' => $ritual->pending
 			);
 			$i++;
 		}
 		
 		/* Combo disciplines */
-		$sql = "SELECT combo.name
+		$sql = "(SELECT combo.name, 0 as pending
 				FROM
 					" . VTM_TABLE_PREFIX . "CHARACTER_COMBO_DISCIPLINE charcombo,
 					" . VTM_TABLE_PREFIX . "COMBO_DISCIPLINE combo
 				WHERE
 					charcombo.COMBO_DISCIPLINE_ID = combo.ID
 					AND charcombo.CHARACTER_ID = '%s'
-				ORDER BY combo.name;";
-		$sql = $wpdb->prepare($sql, $characterID);
+				ORDER BY combo.name)
+				UNION
+				(SELECT combo.name, 1 as pending
+				FROM
+					" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND xp,
+					" . VTM_TABLE_PREFIX . "COMBO_DISCIPLINE combo
+				WHERE
+					xp.CHARACTER_ID = '%s'
+					AND xp.ITEMTABLE = 'COMBO_DISCIPLINE'
+					AND xp.ITEMTABLE_ID = combo.id
+				ORDER BY combo.name)";
+		$sql = $wpdb->prepare($sql, $characterID, $characterID);
 		$result = $wpdb->get_results($sql);
+		//print_r($result);
+		//echo "<p>SQL: $sql</p>";
 		$this->combo_disciplines = array();
 		for ($i=0;$i<count($result);$i++) {	
-			$this->combo_disciplines[$i] = $result[$i]->name;
+			$name = $result[$i]->pending ? $result[$i]->name . " - PENDING" : $result[$i]->name;
+			$this->combo_disciplines[$i] = $name;
 		}
 		
 		/* Current Experience */
