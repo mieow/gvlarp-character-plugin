@@ -33,14 +33,17 @@ function vtm_android_redirect () {
 		echo vtm_output_xlmtag("PUBLIC_CLAN",  $mycharacter->clan);
 		echo vtm_output_xlmtag("PRIVATE_CLAN", $mycharacter->private_clan);
 		echo vtm_output_xlmtag("CURRENT_XP",   $mycharacter->current_experience);
+		echo vtm_output_xlmtag("PENDING_XP",   $mycharacter->pending_experience);
 		echo vtm_output_xlmtag("CURRENT_WP",   $mycharacter->current_willpower);
 		echo vtm_output_xlmtag("WILLPOWER",    $mycharacter->willpower);
 		echo vtm_output_xlmtag("BLOODPOOL",    $mycharacter->bloodpool);
+		echo vtm_output_xlmtag("BLOOD_PER_ROUND",       $mycharacter->blood_per_round);
 		echo vtm_output_xlmtag("PATH_OF_ENLIGHTENMENT", $mycharacter->path_of_enlightenment);
 		echo vtm_output_xlmtag("PATH_LEVEL",   $mycharacter->path_rating);
 		echo vtm_output_xlmtag("DOB",          $mycharacter->date_of_birth);
 		echo vtm_output_xlmtag("DOE",          $mycharacter->date_of_embrace);
 		echo vtm_output_xlmtag("SIRE",         $mycharacter->sire);
+		echo vtm_output_xlmtag("CONCEPT",      $mycharacter->concept);
 		echo vtm_output_xlmtag("CLAN_FLAW",    $mycharacter->clan_flaw);
 		
 		if (vtm_get_config('USE_NATURE_DEMEANOUR') == 'Y') {
@@ -55,8 +58,9 @@ function vtm_android_redirect () {
 			echo "\t\t\t<ATTRIBUTE>\n";
 			echo vtm_output_xlmtag("NAME",       $attribute->name);
 			echo vtm_output_xlmtag("LEVEL",      $attribute->level);
+			echo vtm_output_xlmtag("PENDINGXP",  $attribute->pending);
 			echo vtm_output_xlmtag("ORDER",      $attribute->ordering);
-			echo vtm_output_xlmtag("SPECIALTY",  $attribute->specialty);
+			echo vtm_output_xlmtag("SPECIALITY",  $attribute->specialty);
 			echo "\t\t\t</ATTRIBUTE>\n";
 		}
 		echo "\t\t</PHYSICAL>\n"; 
@@ -65,8 +69,9 @@ function vtm_android_redirect () {
 			echo "\t\t\t<ATTRIBUTE>\n";
 			echo vtm_output_xlmtag("NAME",       $attribute->name);
 			echo vtm_output_xlmtag("LEVEL",      $attribute->level);
+			echo vtm_output_xlmtag("PENDINGXP",  $attribute->pending);
 			echo vtm_output_xlmtag("ORDER",      $attribute->ordering);
-			echo vtm_output_xlmtag("SPECIALTY",  $attribute->specialty);
+			echo vtm_output_xlmtag("SPECIALITY",  $attribute->specialty);
 			echo "\t\t\t</ATTRIBUTE>\n";
 		}
 		echo "\t\t</SOCIAL>\n"; 
@@ -75,8 +80,9 @@ function vtm_android_redirect () {
 			echo "\t\t\t<ATTRIBUTE>\n";
 			echo vtm_output_xlmtag("NAME",       $attribute->name);
 			echo vtm_output_xlmtag("LEVEL",      $attribute->level);
+			echo vtm_output_xlmtag("PENDINGXP",  $attribute->pending);
 			echo vtm_output_xlmtag("ORDER",      $attribute->ordering);
-			echo vtm_output_xlmtag("SPECIALTY",  $attribute->specialty);
+			echo vtm_output_xlmtag("SPECIALITY",  $attribute->specialty);
 			echo "\t\t\t</ATTRIBUTE>\n";
 		}
 		echo "\t\t</MENTAL>\n"; 
@@ -89,8 +95,9 @@ function vtm_android_redirect () {
 			echo "\t\t<ABILITY>\n";
 			echo vtm_output_xlmtag("NAME",       $ability->skillname);
 			echo vtm_output_xlmtag("LEVEL",      $ability->level);
+			echo vtm_output_xlmtag("PENDINGXP",  $ability->pending);
 			echo vtm_output_xlmtag("GROUPING",   $ability->grouping);
-			echo vtm_output_xlmtag("SPECIALTY",  $ability->specialty);
+			echo vtm_output_xlmtag("SPECIALITY", $ability->specialty);
 			echo "\t\t</ABILITY>\n";
 		}
 		echo "\t</ABILITIES>\n";
@@ -115,6 +122,7 @@ function vtm_android_redirect () {
 			echo "\t\t<DISCIPLINE>\n";
 			echo vtm_output_xlmtag("NAME",       $discipline->name);
 			echo vtm_output_xlmtag("LEVEL",      $discipline->level);
+			echo vtm_output_xlmtag("PENDINGXP",  $discipline->pending);
 			echo "\t\t</DISCIPLINE>\n";
 		}
 		echo "\t</DISCIPLINES>\n";
@@ -126,6 +134,7 @@ function vtm_android_redirect () {
 			echo "\t\t<MERITFLAW>\n";
 			echo vtm_output_xlmtag("NAME",       $merit->name);
 			echo vtm_output_xlmtag("LEVEL",      $merit->level);
+			echo vtm_output_xlmtag("PENDINGXP",  $merit->pending);
 			echo vtm_output_xlmtag("COMMENT",    $merit->comment);
 			echo "\t\t</MERITFLAW>\n";
 		}
@@ -138,6 +147,7 @@ function vtm_android_redirect () {
 			echo "\t\t<VIRTUE>\n";
 			echo vtm_output_xlmtag("NAME",       $virtue->name);
 			echo vtm_output_xlmtag("LEVEL",      $virtue->level);
+			echo vtm_output_xlmtag("PENDINGXP",  $virtue->pending);
 			echo vtm_output_xlmtag("ORDER",      $virtue->ordering);
 			echo "\t\t</VIRTUE>\n";
 		}
@@ -151,6 +161,7 @@ function vtm_android_redirect () {
 				echo "\t\t<RITUAL>\n";
 				echo vtm_output_xlmtag("NAME",       $ritual['name']);
 				echo vtm_output_xlmtag("LEVEL",      $ritual['level']);
+				echo vtm_output_xlmtag("PENDINGXP",  $ritual['pending']);
 				echo vtm_output_xlmtag("DISCIPLINE", $majikdiscipline);
 				echo "\t\t</RITUAL>\n";
 			} 
@@ -168,6 +179,7 @@ function vtm_android_redirect () {
 		}
 		echo "\t</COMBODISCIPLINES>\n";
 		
+		/* NEED TO ADD PATHS */
 		
 		echo "</CHARACTER>\n";
 		

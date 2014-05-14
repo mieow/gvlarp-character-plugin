@@ -488,6 +488,7 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 					
 					} else {
 						//dots row
+						$flag = 0;
 						$rowoutput .= "<tr><th class='gvthleft'><span>" . stripslashes($item->NAME) . "</span></th><td>\n";
 						$rowoutput .= "<fieldset class='dotselect'>";
 						for ($i=$max2display;$i>=1;$i--) {
@@ -512,6 +513,7 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 									$rowoutput .= checked($current, $i, false);
 									$rowoutput .= " /><label for='$radioid' title='Level $i ($cost freebies)'";
 									$rowoutput .= ">&nbsp;</label>\n";
+									$flag = 1;
 								}
 								else {
 									$rowoutput .= "<img src='$emptydoturl' alt='X' id='$radioid' />";
@@ -522,6 +524,16 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 						$rowoutput .= "<input type='radio' id='$radioid' name='{$postvariable}[{$key}]' value='0' ";
 						$rowoutput .= " /><label for='$radioid' title='Clear' class='cleardot'>&nbsp;</label>\n";
 						$rowoutput .= "</fieldset></td></tr>\n";
+						
+						// Ensure that freebie spends don't get lost when an XP
+						// spend has blocked the user from changing the level
+						if (!$flag && $current > 0) {
+						
+							$rowoutput .= "<tr style='display:none'><td colspan=$colspan>\n";
+							$rowoutput .= "<input type='hidden' name='{$postvariable}[{$key}]' value='$current' />";
+							$rowoutput .= "</td></tr>\n";
+						
+						}
 					}
 				}
 			}
@@ -992,10 +1004,9 @@ function vtm_render_finishing($step, $characterID, $templateID) {
 	$pathname  = $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $pathid));
 	$statid1   = $wpdb->get_var($wpdb->prepare("SELECT STAT1_ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $pathid));
 	$statid2   = $wpdb->get_var($wpdb->prepare("SELECT STAT2_ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $pathid));
-	$sql = "SELECT LEVEL 
-			FROM " . VTM_TABLE_PREFIX . "CHARACTER_STAT 
+	$sql = "SELECT cs.LEVEL
+			FROM " . VTM_TABLE_PREFIX . "CHARACTER_STAT cs
 			WHERE STAT_ID = %s AND CHARACTER_ID = %s";
-			// ADD IN POINTS SPENT FROM FREEBIES AND XP!!
 	$stat1      = $wpdb->get_var($wpdb->prepare($sql, $statid1, $characterID));
 	$stat2      = $wpdb->get_var($wpdb->prepare($sql, $statid2, $characterID));
 	$pathrating = ($stat1 + $stat2) * $settings['road-multiplier'];
@@ -1422,7 +1433,7 @@ function vtm_save_freebies($characterID, $templateID) {
 	$specialisation['MERIT']      = isset($_POST['freebie_merit_spec']) ? $_POST['freebie_merit_spec'] : array();
 	$specialisation['PATH']       = isset($_POST['freebie_path_spec']) ? $_POST['freebie_path_spec'] : array();
 	
-	//print_r($specialisation);
+	//print_r($freebiecosts);
 	
 	foreach ($bought as $type => $items) {
 		foreach ($items as $key => $levelto) {
@@ -1443,7 +1454,8 @@ function vtm_save_freebies($characterID, $templateID) {
 				$spec        = isset($specialisation[$type][$itemname]) && $specialisation[$type][$itemname] != '' ?
 								$specialisation[$type][$itemname] : 
 								(isset($current[$type][$key]->specialisation) ? $current[$type][$key]->specialisation : '');
-								
+				//echo "<li>itemname: $itemname, key: $key, levelto: $levelto, from: $levelfrom</li>";
+				
 				if ($levelto > $levelfrom || $type == 'MERIT') {
 					$data = array (
 						'CHARACTER_ID'   => $characterID,
@@ -4829,23 +4841,15 @@ function vtm_validate_xp($settings, $characterID, $usepost = 1) {
 				$dbdisc;
 	
 	// VALIDATE XP POINTS
-	//		Right number of points spent
+	//		Not too many points spent
 	//		Level of paths bought do not exceed level of discipline
 	$points = vtm_get_total_xp(0, $characterID);
 	$spent = 0;
 	$spent += vtm_get_chargen_xp_spent($characterID);
 	
-	if ($spent == 0) {
-		$errormessages .= "<li>WARNING: You have not spent any dots</li>";
-		$complete = 0;
-	}
-	elseif ($spent > $points) {
+	if ($spent > $points) {
 		$errormessages .= "<li>ERROR: You have spent too many dots</li>";
 		$ok = 0;
-		$complete = 0;
-	}
-	elseif ($spent < $points) {
-		$errormessages .= "<li>WARNING: You haven't spent enough dots</li>";
 		$complete = 0;
 	}
 
