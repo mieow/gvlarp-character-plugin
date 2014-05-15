@@ -110,7 +110,7 @@ function vtm_get_chargen_content() {
 	global $wpdb;
 
 	$output = "";
-	print_r($_POST);
+	//print_r($_POST);
 	
 	$characterID = vtm_get_chargen_characterID();
 	$laststep    = isset($_POST['step']) ? $_POST['step'] : 0;
@@ -445,6 +445,8 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 				
 				// Specialisation
 				$specialisation = isset($pendingfb[$key]) ? $pendingfb[$key]->specialisation : '';
+				// Pending Detail
+				$detail = isset($pendingfb[$key]) ? $pendingfb[$key]->pending_detail : '';
 				
 				switch ($key) {
 					case 'willpower': $max2display = 10; break;
@@ -474,6 +476,7 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 					// Hidden fields
 					$rowoutput .= "<tr style='display:none'><td colspan=$colspan>\n";
 					$rowoutput .= "<input type='hidden' name='{$postvariable}_spec[" . $key . "]' value='$specialisation' />";
+					$rowoutput .= "<input type='hidden' name='{$postvariable}_detail[" . $key . "]' value='$detail' />";
 					$rowoutput .= "</td></tr>\n";
 					
 					if ($postvariable == 'freebie_merit') {
@@ -1086,7 +1089,7 @@ function vtm_render_finishing($step, $characterID, $templateID) {
 					a note on what any Merits and Flaws refer to.</p>
 					
 					<p>An example speciality for Stamina is 'tough'. An example note for the Merit 'Acute Sense'
-					would be 'sight.'</p>";
+					might be 'sight' and for 'Clan Friendship' might be 'Ventrue'</p>";
 		$output .= "<table>$spec_output\n";
 		$output .= "</table>\n";
 	}
@@ -1112,6 +1115,41 @@ function vtm_render_chargen_extbackgrounds($step, $characterID, $templateID) {
 	$output .= "<h3>Step $step: History and Extended Backgrounds</h3>";
 	$output .= "<p>Please fill in more information on your character.</p>";
 	
+	// Merits
+	$questions = vtm_get_chargen_merit_questions($characterID);
+	$posted    = isset($_POST['meritquestion']) ? $_POST['meritquestion'] : array();
+	foreach ($questions as $question) {
+		$id = $question->ID;
+		$title = $question->NAME;
+		if (!empty($question->SPECIALISATION)) $title .= " - " . $question->SPECIALISATION;
+		$title .= " (" . $question->VALUE . ")";
+		
+		$text = isset($posted[$id]) ? $posted[$id] : (isset($question->PENDING_DETAIL) ? $question->PENDING_DETAIL : '');
+		
+		$output .= "<h4>$title</h4><p>{$question->BACKGROUND_QUESTION}</p>";
+		$output .= "<input type='hidden' name='meritquestion_title[$id]' value='" . htmlspecialchars($title, ENT_QUOTES) . "' \>";
+		$output .= "<p><textarea name='meritquestion[$id]' rows='4' cols='80'>$text</textarea></p>";
+	}
+
+	// Backgrounds
+	$questions = vtm_get_chargen_background_questions($characterID);
+	$posted    = isset($_POST['bgquestion']) ? $_POST['bgquestion'] : array();
+	foreach ($questions as $question) {
+		/*$id = $question->ID;
+		$title = $question->NAME;
+		$text = isset($posted[$id]) ? $posted[$id] : (isset($question->PENDING_DETAIL) ? $question->PENDING_DETAIL : '');
+
+		if (!empty($question->SPECIALISATION)) $title .= " - " . $question->SPECIALISATION;
+		$title .= " (" . $question->VALUE . ")";
+		
+		
+		$output .= "<h4>$title</h4><p>{$question->BACKGROUND_QUESTION}</p>";
+		$output .= "<input type='hidden' name='bgquestion_title[$id]' value='" . htmlspecialchars($title, ENT_QUOTES) . "' \>";
+		$output .= "<p><textarea name='bgquestion[$id]' rows='4' cols='80'>$text</textarea></p>";
+		*/
+	}
+
+	// Extended
 	$questions = vtm_get_chargen_questions($characterID);
 	$posted    = isset($_POST['question']) ? $_POST['question'] : array();
 		
@@ -1432,6 +1470,8 @@ function vtm_save_freebies($characterID, $templateID) {
 	$specialisation['BACKGROUND'] = isset($_POST['freebie_background_spec']) ? $_POST['freebie_background_spec'] : array();
 	$specialisation['MERIT']      = isset($_POST['freebie_merit_spec']) ? $_POST['freebie_merit_spec'] : array();
 	$specialisation['PATH']       = isset($_POST['freebie_path_spec']) ? $_POST['freebie_path_spec'] : array();
+
+	$pending_detail['MERIT']      = isset($_POST['freebie_merit_detail']) ? $_POST['freebie_merit_detail'] : array();
 	
 	//print_r($freebiecosts);
 	
@@ -1449,11 +1489,15 @@ function vtm_save_freebies($characterID, $templateID) {
 				}
 							
 				$chartableid = isset($current[$type][$key]->chartableid) ? $current[$type][$key]->chartableid : 0;
-				$amount      = ($type == 'MERIT') ? $freebiecosts[$type][$key][0][1] : $freebiecosts[$type][$key][$levelfrom][$levelto];
+				if ($type == 'MERIT')
+					$amount = isset($freebiecosts[$type][$key][0][1]) ? $freebiecosts[$type][$key][0][1] : 0;
+				else
+					$amount = isset($freebiecosts[$type][$key][$levelfrom][$levelto]) ? $freebiecosts[$type][$key][$levelfrom][$levelto] : 0;
 				$itemid      = $current[$type][$key]->itemid;
 				$spec        = isset($specialisation[$type][$itemname]) && $specialisation[$type][$itemname] != '' ?
 								$specialisation[$type][$itemname] : 
 								(isset($current[$type][$key]->specialisation) ? $current[$type][$key]->specialisation : '');
+				$detail     = isset($pending_detail[$type][$itemname]) ? $pending_detail[$type][$itemname] : '';
 				//echo "<li>itemname: $itemname, key: $key, levelto: $levelto, from: $levelfrom</li>";
 				
 				if ($levelto > $levelfrom || $type == 'MERIT') {
@@ -1469,14 +1513,15 @@ function vtm_save_freebies($characterID, $templateID) {
 						'ITEMNAME'       => $itemname,
 						
 						'ITEMTABLE_ID'   => $itemid,
-						'SPECIALISATION' => $spec
+						'SPECIALISATION' => $spec,
+						'PENDING_DETAIL' => $detail
 					);
 					$wpdb->insert(VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND",
 								$data,
 								array (
 									'%d', '%s', '%d', '%d',
 									'%d', '%d', '%s', '%s',
-									'%d', '%s'
+									'%d', '%s', '%s'
 								)
 							);
 					if ($wpdb->insert_id == 0) {
@@ -1533,6 +1578,20 @@ function vtm_save_history($characterID, $templateID) {
 				);
 				
 			}
+		}
+	}
+	// Save Merit/Flaw Specialities
+	if (isset($_POST['meritquestion'])) {
+		foreach ($_POST['meritquestion'] as $index => $text) {
+		
+			$data = array (
+				'PENDING_DETAIL'	=> $text
+			);
+			
+			$wpdb->update(VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND",
+				$data,
+				array ('ID' => $index)
+			);
 		}
 	}
 
@@ -3016,62 +3075,6 @@ function vtm_render_freebie_merits($characterID) {
 	$rowoutput = vtm_render_freebie_section($items, $saved, $pendingfb, array(),
 			$freebiecosts, 'freebie_merit', 1);
 	
-	//print_r($currentpending);
-	/*
-	if (count($items) > 0) {
- 		$id = 0;
-		$grp = "";
-		$grpcount = 0;
-		$col = 0;
-		foreach ($items as $item) {
-								
-			$loop      = ($item->multiple == 'Y') ? 4 : 1;
-			$levelfrom = isset($item->level_from) ? $item->level_from : 0;
-			$cost      = $freebiecosts[$item->name][0][1];
-		
-			for ($j = 1 ; $j <= $loop ; $j++) {
-				$meritname = ($item->multiple == 'Y') ? $item->name . "_" . $j : $item->name;
-				$key = sanitize_key($meritname);
-				$current   = isset($currentpending[$key]) ? $currentpending[$key] : 0;
-			
-				// start column / new column
-				if (isset($item->grp)) {
-					if ($grp != $item->grp) {
-						$grpcount++;
-						if (empty($grp)) {
-							$rowoutput .= "<tr><td class='gvxp_col'>\n<table>\n<tr><th>{$item->grp}</th></tr>\n";
-							$col++;
-						} 
-						elseif ($col == $columns) {
-							$rowoutput .= "</table>\n</td></tr>\n<tr><td class='gvxp_col'>\n<table>\n<tr><th>{$item->grp}</th></tr>\n";
-							$col = 1;
-						}
-						else {
-							$rowoutput .= "</table>\n</td><td class='gvxp_col'>\n<table>\n<tr><th>{$item->grp}</th></tr>\n";
-							$col++;
-						}
-						$grp = $item->grp;
-					}
-				}
-
-				// Hidden fields
-				//$rowoutput .= "<tr style='display:none'><td colspan=$colspan>\n";
-				//$rowoutput .= "</td></tr>\n";
-				
-				//dots row
-				$cbid = "cb_{$j}_{$item->itemid}";
-				$rowoutput .= "<tr><td><span>";
-				$rowoutput .= "<input type='checkbox' name='freebie_merit[" . $key . "]' id='$cbid' value='$cost' ";
-				$rowoutput .= checked($current, $cost, false);
-				$rowoutput .= "/>\n";
-				$rowoutput .= "<label for='$cbid'>" . stripslashes($item->name) . " ($cost)</label>\n";
-				$rowoutput .= "</span></td></tr>\n";
-			}
-		}
-
-	} 
-	*/
-	
 	if ($rowoutput != "")
 		$output .= "<table id='merit_freebie_table'>$rowoutput</table></td></tr></table>\n";
 
@@ -3865,7 +3868,8 @@ function vtm_get_pending_freebies($table, $characterID) {
 	global $wpdb;
 
 	$sql = "SELECT freebie.ITEMNAME as name, freebie.LEVEL_TO as value,
-			freebie.SPECIALISATION as specialisation, freebie.ID as id
+			freebie.SPECIALISATION as specialisation, freebie.ID as id,
+			freebie.PENDING_DETAIL as pending_detail
 		FROM
 			" . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND freebie
 		WHERE
@@ -4783,12 +4787,23 @@ function vtm_validate_history($settings, $characterID, $usepost = 1) {
 	$complete = 1;
 	
 	if (!$usepost) {
-		$questions = vtm_get_chargen_questions($characterID);
 		$dbvalues = array();
 		$dbtitles = array();
+		$questions = vtm_get_chargen_questions($characterID);
 		foreach ($questions as $question) {
 			$dbvalues[] = $question->PENDING_DETAIL;
 			$dbtitles[] = $question->TITLE;
+		}
+		$meritdbvalues = array();
+		$meritdbtitles = array();
+		$meritquestions = vtm_get_chargen_merit_questions($characterID);
+		foreach ($questions as $question) {
+			$meritdbvalues[] = $question->PENDING_DETAIL;
+			
+			$title = $question->NAME;
+			if (!empty($question->SPECIALISATION)) $title .= $question->SPECIALISATION;
+			$title .= " (" . $question->VALUE . ")";
+			$meritdbtitles[] = $title;
 		}
 	}
 	
@@ -4797,7 +4812,13 @@ function vtm_validate_history($settings, $characterID, $usepost = 1) {
 				$dbvalues;
 	$posttitles = $usepost ? 
 				(isset($_POST['question_title']) ? $_POST['question_title'] : array()) :
-				$dbvalues;
+				$dbtitles;
+	$meritpostvalues = $usepost ? 
+				(isset($_POST['meritquestion']) ? $_POST['meritquestion'] : array()) :
+				$meritdbvalues;
+	$meritposttitles = $usepost ? 
+				(isset($_POST['meritquestion_title']) ? $_POST['meritquestion_title'] : array()) :
+				$meritdbtitles;
 	// All questions are entered
 	
 	if (count($postvalues) > 0) {
@@ -4809,6 +4830,17 @@ function vtm_validate_history($settings, $characterID, $usepost = 1) {
 		}
 	} else {
 		$errormessages .= "<li>WARNING: Please fill in the background questions.</li>";
+		$complete = 0;
+	}
+	if (count($meritpostvalues) > 0) {
+		foreach ($meritpostvalues as $index => $text) {
+			if (!isset($meritpostvalues[$index]) || $meritpostvalues[$index] == '') {
+				$errormessages .= "<li>WARNING: Please fill in the '{$meritposttitles[$index]}' Merit/Flaw question.</li>";
+				$complete = 0;
+			}
+		}
+	} else {
+		$errormessages .= "<li>WARNING: Please fill in the Merit/Flaw questions.</li>";
 		$complete = 0;
 	}
 	return array($ok, $errormessages, $complete);
@@ -4924,7 +4956,7 @@ function vtm_get_chargen_specialties($characterID) {
 	// )
 	$specialities = array();
 		
-	// STATS & SKILLS
+	// STATS & SKILLS - stats & skills from table, with freebies and XP
 	$sql = "(SELECT 
 				'STAT'					as type,
 				'Attributes' 			as typename,
@@ -4945,21 +4977,21 @@ function vtm_get_chargen_specialties($characterID) {
 				" . VTM_TABLE_PREFIX . "STAT stat,
 				" . VTM_TABLE_PREFIX . "CHARACTER_STAT cs
 				LEFT JOIN (
-					SELECT ID, CHARTABLE_LEVEL, ITEMTABLE_ID, SPECIALISATION
+					SELECT ID, CHARTABLE_LEVEL, CHARTABLE_ID, SPECIALISATION
 					FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
 					WHERE CHARACTER_ID = %s
-						AND ITEMTABLE = 'STAT'
+						AND CHARTABLE = 'CHARACTER_STAT'
 				) pendingxp
 				ON 
-					pendingxp.ITEMTABLE_ID = cs.STAT_ID
+					pendingxp.CHARTABLE_ID = cs.ID
 				LEFT JOIN (
-					SELECT ID, LEVEL_TO, ITEMTABLE_ID, SPECIALISATION
+					SELECT ID, LEVEL_TO, CHARTABLE_ID, SPECIALISATION
 					FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
 					WHERE CHARACTER_ID = %s
-						AND ITEMTABLE = 'STAT'
+						AND CHARTABLE = 'CHARACTER_STAT'
 				) pendingfreebie
 				ON
-					pendingfreebie.ITEMTABLE_ID = cs.STAT_ID
+					pendingfreebie.CHARTABLE_ID = cs.ID
 			WHERE
 				cs.CHARACTER_ID = %s
 				AND stat.ID = cs.STAT_ID
@@ -4983,36 +5015,101 @@ function vtm_get_chargen_specialties($characterID) {
 				skill.SPECIALISATION_AT 	as specialisation_at,
 				CASE skill.GROUPING WHEN 'Talents' THEN 3 WHEN 'Skills' THEN 2 WHEN 'Knowledges' THEN 1 ELSE 0 END as ORDERING
 			FROM
-				" . VTM_TABLE_PREFIX . "SKILL skill
+				" . VTM_TABLE_PREFIX . "SKILL skill,
+				" . VTM_TABLE_PREFIX . "CHARACTER_SKILL cs
 				LEFT JOIN (
-					SELECT ID, LEVEL, SKILL_ID, COMMENT
-					FROM " . VTM_TABLE_PREFIX . "CHARACTER_SKILL
-					WHERE
-						CHARACTER_ID = %s
-				) cs
-				ON
-					cs.SKILL_ID = skill.ID
-				LEFT JOIN (
-					SELECT ID, CHARTABLE_LEVEL, ITEMTABLE_ID, SPECIALISATION
+					SELECT ID, CHARTABLE_LEVEL, CHARTABLE_ID, SPECIALISATION
 					FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
 					WHERE CHARACTER_ID = %s
-						AND ITEMTABLE = 'SKILL'
+						AND CHARTABLE = 'CHARACTER_SKILL'
 				) pendingxp
 				ON 
-					pendingxp.ITEMTABLE_ID = skill.ID
+					pendingxp.CHARTABLE_ID = cs.ID
 				LEFT JOIN (
-					SELECT ID, LEVEL_TO, ITEMTABLE_ID, SPECIALISATION
+					SELECT ID, LEVEL_TO, CHARTABLE_ID, SPECIALISATION
 					FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
 					WHERE CHARACTER_ID = %s
-						AND ITEMTABLE = 'SKILL'
+						AND CHARTABLE = 'CHARACTER_SKILL'
 				) pendingfreebie
 				ON
-					pendingfreebie.ITEMTABLE_ID = skill.ID
+					pendingfreebie.CHARTABLE_ID = cs.ID
+			WHERE
+				cs.SKILL_ID = skill.ID
+				AND cs.CHARACTER_ID = %s
 			ORDER BY
 				skill.ORDERING DESC, skill.NAME)";
-	$sql = $wpdb->prepare($sql, $characterID, $characterID, $characterID, $characterID, $characterID, $characterID);
-	$results = $wpdb->get_results($sql);
+	$sql = $wpdb->prepare($sql, $characterID, $characterID, $characterID, $characterID, $characterID, $characterID, $characterID);
+	$results1 = $wpdb->get_results($sql);
+	
+	// SKILLS from freebie spends with pending XP
+	$sql = "SELECT 				
+				'SKILL'					as type,
+				'Abilities' 			as typename,
+				skill.NAME 				as itemname, 
+				skill.GROUPING 			as grp, 
+				0 					    as level,
+				0						as id,
+				''					    as spec,
+				freebie.LEVEL_TO 	    as freebielevel,
+				freebie.ID 			    as freebieid,
+				freebie.SPECIALISATION  as freebiespec,
+				pendingxp.CHARTABLE_LEVEL 	as xplevel,
+				pendingxp.ID 				as xpid,
+				pendingxp.SPECIALISATION 	as xpspec,
+				skill.SPECIALISATION_AT 	as specialisation_at,
+				CASE skill.GROUPING WHEN 'Talents' THEN 3 WHEN 'Skills' THEN 2 WHEN 'Knowledges' THEN 1 ELSE 0 END as ORDERING
+			FROM
+				" . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND freebie
+					LEFT JOIN (
+						SELECT ID, CHARTABLE_ID, CHARTABLE_LEVEL, SPECIALISATION
+						FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
+						WHERE
+							CHARTABLE = 'PENDING_FREEBIE_SPEND'
+							AND ITEMTABLE = 'SKILL'
+							AND CHARACTER_ID = %s
+					) pendingxp
+					ON
+						pendingxp.CHARTABLE_ID = freebie.ID,
+				" . VTM_TABLE_PREFIX . "SKILL skill
+			WHERE
+				freebie.CHARACTER_ID = %s
+				AND skill.ID = freebie.ITEMTABLE_ID
+				AND freebie.ITEMTABLE = 'SKILL'
+				AND freebie.CHARTABLE_ID = 0";
+	$sql = $wpdb->prepare($sql, $characterID, $characterID);
+	$results2 = $wpdb->get_results($sql);
+	
+	// SKILLS from pending XP
+	$sql = "SELECT 				
+				'SKILL'					as type,
+				'Abilities' 			as typename,
+				skill.NAME 				as itemname, 
+				skill.GROUPING 			as grp, 
+				0 					    as level,
+				0						as id,
+				''					    as spec,
+				0 	    			    as freebielevel,
+				0 			            as freebieid,
+				''  			        as freebiespec,
+				pendingxp.CHARTABLE_LEVEL 	as xplevel,
+				pendingxp.ID 				as xpid,
+				pendingxp.SPECIALISATION 	as xpspec,
+				skill.SPECIALISATION_AT 	as specialisation_at,
+				CASE skill.GROUPING WHEN 'Talents' THEN 3 WHEN 'Skills' THEN 2 WHEN 'Knowledges' THEN 1 ELSE 0 END as ORDERING
+			FROM
+				" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND pendingxp,
+				" . VTM_TABLE_PREFIX . "SKILL skill
+			WHERE
+				pendingxp.CHARACTER_ID = %s
+				AND skill.ID = pendingxp.ITEMTABLE_ID
+				AND pendingxp.ITEMTABLE = 'SKILL'
+				AND pendingxp.CHARTABLE_ID = 0";
+	$sql = $wpdb->prepare($sql, $characterID, $characterID);
+	$results3 = $wpdb->get_results($sql);
+	
 	//echo "<p>SQL: $sql</p>";
+	
+	$results = array_merge($results1, $results2, $results3);
 	
 	foreach ($results as $row) {
 		$level = max($row->level, $row->freebielevel, $row->xplevel);
@@ -5051,23 +5148,16 @@ function vtm_get_chargen_specialties($characterID) {
 				merit.NAME 				as itemname, 
 				merit.GROUPING 			as grp, 
 				merit.VALUE 			as level,
-				cm.id					as id,
-				cm.COMMENT				as spec,
+				0					    as id,
+				''				        as spec,
 				pendingfreebie.ID 		as freebieid,
 				pendingfreebie.SPECIALISATION as freebiespec,
 				pendingxp.ID 			as xpid,
 				pendingxp.SPECIALISATION as xpspec,
-				merit.HAS_SPECIALISATION    as has_specialisation
+				merit.HAS_SPECIALISATION as has_specialisation
 			FROM
-				" . VTM_TABLE_PREFIX . "MERIT merit
-				LEFT JOIN (
-					SELECT ID, LEVEL, MERIT_ID, COMMENT
-					FROM " . VTM_TABLE_PREFIX . "CHARACTER_MERIT
-					WHERE
-						CHARACTER_ID = %s
-				) cm
-				ON
-					cm.MERIT_ID = merit.ID
+				" . VTM_TABLE_PREFIX . "MERIT merit,
+				" . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND pendingfreebie
 				LEFT JOIN (
 					SELECT ID, CHARTABLE_LEVEL, ITEMTABLE_ID, SPECIALISATION
 					FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
@@ -5075,19 +5165,17 @@ function vtm_get_chargen_specialties($characterID) {
 						AND ITEMTABLE = 'MERIT'
 				) pendingxp
 				ON 
-					pendingxp.ITEMTABLE_ID = merit.ID
-				LEFT JOIN (
-					SELECT ID, LEVEL_TO, ITEMTABLE_ID, SPECIALISATION
-					FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
-					WHERE CHARACTER_ID = %s
-						AND ITEMTABLE = 'MERIT'
-				) pendingfreebie
-				ON
-					pendingfreebie.ITEMTABLE_ID = merit.ID
+					pendingxp.ITEMTABLE_ID = pendingfreebie.ITEMTABLE_ID
+			WHERE
+				merit.ID = pendingfreebie.ITEMTABLE_ID
+				AND pendingfreebie.CHARACTER_ID = %s
 			ORDER BY
 				merit.VALUE DESC, merit.NAME";
-	$sql = $wpdb->prepare($sql, $characterID, $characterID, $characterID);
+	$sql = $wpdb->prepare($sql, $characterID, $characterID);
+	//echo "<p>SQL: $sql</p>";
 	$results = $wpdb->get_results($sql);
+	
+	//print_r($results);
 	
 	foreach ($results as $row) {
 		if ($row->has_specialisation == 'Y' && (isset($row->id) || isset($row->freebieid) || isset($row->xpid))) {
@@ -5152,6 +5240,71 @@ function vtm_get_chargen_questions($characterID) {
 	$questions = $wpdb->get_results($wpdb->prepare($sql, $characterID, $characterID));
 	return $questions;
 
+}
+
+function vtm_get_chargen_merit_questions($characterID) {
+	global $wpdb;
+	
+	$sql = "SELECT fb.ID,
+				merits.NAME, merits.BACKGROUND_QUESTION, fb.SPECIALISATION,
+				fb.PENDING_DETAIL, merits.VALUE
+			FROM
+				" . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND fb,
+				" . VTM_TABLE_PREFIX . "MERIT merits
+			WHERE
+				fb.CHARACTER_ID = %s
+				AND fb.ITEMTABLE = 'MERIT'
+				AND fb.ITEMTABLE_ID = merits.ID
+				AND merits.BACKGROUND_QUESTION != ''";
+	$sql = $wpdb->prepare($sql, $characterID);
+	$questions = $wpdb->get_results($sql);
+	
+	return $questions;
+}
+function vtm_get_chargen_background_questions($characterID) {
+	global $wpdb;
+	
+	
+	$sql = "(SELECT cbg.ID, 'CHARACTER_BACKGROUND' as source,
+				bg.NAME, bg.BACKGROUND_QUESTION, cbg.COMMENT,
+				cbg.PENDING_DETAIL, 
+				cbg.LEVEL
+			FROM
+				" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND cbg
+				LEFT JOIN (
+					SELECT ID, CHARTABLE_ID, LEVEL_TO
+					FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
+					WHERE CHARACTER_ID = %s 
+						AND CHARTABLE = 'CHARACTER_BACKGROUND'
+				) fb
+				ON
+					fb.CHARTABLE_ID = cbg.ID,
+				" . VTM_TABLE_PREFIX . "BACKGROUND bg
+			WHERE
+				cbg.CHARACTER_ID = %s
+				AND cbg.BACKGROUND_ID = bg.ID
+				AND bg.BACKGROUND_QUESTION != ''
+				AND ISNULL(fb.ID))
+			UNION
+			(SELECT fb.ID, 'PENDING_FREEBIE_SPEND' as source,
+				bg.NAME, bg.BACKGROUND_QUESTION, fb.SPECIALISATION as COMMENT,
+				fb.PENDING_DETAIL, fb.LEVEL_TO as LEVEL
+			FROM
+				" . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND fb,
+				" . VTM_TABLE_PREFIX . "BACKGROUND bg
+			WHERE
+				fb.CHARACTER_ID = %s
+				AND fb.ITEMTABLE_ID = bg.ID
+				AND fb.ITEMTABLE = 'BACKGROUND'
+				AND bg.BACKGROUND_QUESTION != ''
+			)";
+	$sql = $wpdb->prepare($sql, $characterID, $characterID, $characterID);
+	$questions = $wpdb->get_results($sql);
+	
+	//echo "<p>SQL: $sql</p>";
+	//print_r($questions);
+	
+	return $questions;
 }
 
 function vtm_validate_dummy($settings, $characterID, $usepost = 1) {

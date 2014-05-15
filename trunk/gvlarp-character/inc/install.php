@@ -687,6 +687,7 @@ function vtm_character_install() {
 					ITEMNAME       TINYTEXT      NOT NULL,
 					ITEMTABLE_ID   MEDIUMINT(9)  NOT NULL,
 					SPECIALISATION VARCHAR(64)	 NOT NULL,
+					PENDING_DETAIL TEXT          NOT NULL,
 					PRIMARY KEY  (ID),
 					CONSTRAINT `" . $table_prefix . "pending_freebie_constraint_1` FOREIGN KEY (CHARACTER_ID) REFERENCES " . $table_prefix . "CHARACTER(ID)
 					) ENGINE=INNODB;";
