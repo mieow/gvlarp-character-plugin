@@ -180,18 +180,20 @@ function vtm_render_template_data(){
 	
 	
 ?>
-	<h4>Add/Edit Character Generation Template</h4>
+	<h3>Add/Edit Character Generation Template</h3>
 	
-	<p>/Description text/</p>
+	<p>Select a template to edit or create a new template.</p>
 
+	<h4>Character Generation Template</h4>
+	
 	<form id="new-<?php print $type; ?>" method="post" action='<?php print htmlentities($current_url); ?>'>
 	<input type="hidden" name="tab" value="<?php print $type; ?>" />
 	<input type="hidden" name="template" value="<?php print $_REQUEST['template']; ?>" />
 	<input type="hidden" name="action" value="save" />
 	<p>Template Name:
-	<input type="text"   name="template_name" value="<?php print $name; ?>"></p>
+	<input type="text"   name="template_name" value="<?php print $name; ?>" size=30 /></p>
 	<p>Description:
-	<input type="text"   name="template_desc" value="<?php print $description; ?>" size=50 ></p>
+	<input type="text"   name="template_desc" value="<?php print $description; ?>" size=70 /></p>
 	<p>Visible:
 		<select name="template_visible">
 			<option value="N" <?php selected($visible, "N"); ?>>No</option>
@@ -235,6 +237,14 @@ function vtm_render_template_data(){
 		<td colspan=2>
 			<table>
 			<tr><th>Number of Discipline Dots</th> <td><input type="text" name="disciplines-points"  value="<?php print $settings['disciplines-points']; ?>"></td></tr>
+			</table>
+		</td>
+	</tr>
+	<tr>
+		<td rowspan=1>Assigning Backgrounds</td>
+		<td colspan=2>
+			<table>
+			<tr><th>Number of Background Dots</th> <td><input type="text" name="backgrounds-points"  value="<?php print $settings['backgrounds-points']; ?>"></td></tr>
 			</table>
 		</td>
 	</tr>
@@ -289,7 +299,7 @@ function vtm_render_template_data(){
 }
 
 
-function vtm_render_select_template () {
+function vtm_render_select_template() {
 
 	$selected = isset($_REQUEST['template']) ? $_REQUEST['template'] : '';
 
