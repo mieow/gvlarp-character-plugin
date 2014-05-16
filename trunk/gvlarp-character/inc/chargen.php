@@ -140,27 +140,36 @@ function vtm_get_chargen_content() {
 	if ($characterID == -1) {
 		$output .= "<p>Invalid Reference</p>";
 		$step = 0;
+		$chargenstatus = '';
 	} else {
 		$step = vtm_get_step($characterID, $templateID);
+		$sql = $wpdb->prepare("SELECT cgs.NAME FROM " . VTM_TABLE_PREFIX . "CHARACTER c, " . VTM_TABLE_PREFIX . "CHARGEN_STATUS cgs WHERE c.ID = %s AND c.CHARGEN_STATUS_ID = cgs.ID",$characterID);
+		//echo "<p>SQL: $sql</p>";
+		$chargenstatus = $wpdb->get_var($sql);
 	}
 	
+	$output .= "<p>Character Generation Status: $chargenstatus</p>";
 	$output .= "<form id='chargen_form' method='post'>";
 	
 	// validate & save data from last step
-	$dataok = vtm_validate_chargen($laststep, $templateID, $characterID);
-	if ($dataok) {
-		$characterID = vtm_save_progress($laststep, $characterID, $templateID);
+	if ($chargenstatus == "Submitted") {
 		$progress[$laststep] = 1;
-		
 	} else {
-		$step = $laststep;
-		$progress[$laststep] = 0;
-	}
+		$dataok = vtm_validate_chargen($laststep, $templateID, $characterID);
+		if ($dataok) {
+			$characterID = vtm_save_progress($laststep, $characterID, $templateID);
+			$progress[$laststep] = 1;
+			
+		} else {
+			$step = $laststep;
+			$progress[$laststep] = 0;
+		}
 
-	// setup progress
-	for ($i = 0 ; $i <= 10 ; $i++) {
-		$val = isset($progress[$i]) ? $progress[$i] : 0;
-		$output .= "<input type='hidden' name='progress[$i]' value='$val' />\n";
+		// setup progress
+		for ($i = 0 ; $i <= 10 ; $i++) {
+			$val = isset($progress[$i]) ? $progress[$i] : 0;
+			$output .= "<input type='hidden' name='progress[$i]' value='$val' />\n";
+		}
 	}
 	
 	// output flow buttons
@@ -174,26 +183,26 @@ function vtm_get_chargen_content() {
 	if ($step == 0)
 		$output .= vtm_render_choose_template();
 	else
-		$output .= call_user_func($flow[$step-1]['function'], $step, $characterID, $templateID);
+		$output .= call_user_func($flow[$step-1]['function'], $step, $characterID, $templateID, $chargenstatus);
 
 	// 3 buttons: Back, Check & Next
-	$output .= vtm_render_submit($step, count($flow));
+	$output .= vtm_render_submit($step, count($flow), $chargenstatus);
 	$output .= "</div></form>";
 	
 	return $output;
 }
 
-function vtm_render_submit($step, $finalstep) {
+function vtm_render_submit($step, $finalstep, $chargenstatus) {
 
 	$output = "";
 	
 	if ($step - 1 > 0)
 		$output .= "<input type='submit' name='chargen-step[" . ($step - 1) . "]' class='button-chargen-step' value='< Step " . ($step - 1) . "' />";
-	if ($step > 1 && $step < $finalstep)
+	if ($step > 1 && $step < $finalstep && $chargenstatus != 'Submitted')
 		$output .= "<input type='submit' name='chargen-step[" . $step . "]' class='button-chargen-step' value='Update' />";
 	if ($step + 1 <= $finalstep)
 		$output .= "<input type='submit' name='chargen-step[" . ($step + 1) . "]' class='button-chargen-step' value='Next >' />";
-	else
+	elseif ($chargenstatus != 'Submitted')
 		$output .= "<input type='submit' name='chargen-submit' class='button-chargen-step' value='Submit for Approval' />";
 
 	return $output;
@@ -2515,7 +2524,7 @@ Your new character has been created:
 	
 You can return to character generation by following this link: $url";
 	
-	echo "<pre>$userbody</pre>";
+	//echo "<pre>$userbody</pre>";
 	
 	$result = wp_mail($email, $subject, $userbody, $headers);
 	
@@ -5379,10 +5388,73 @@ function vtm_validate_submit($settings, $characterID, $usepost = 1) {
 	
 }
 function vtm_save_submit($characterID, $templateID) {
-
+	global $wpdb;
+	global $current_user;
+	
 	// Update Character Generation Status
+	$submittedid = $wpdb->get_var("SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARGEN_STATUS WHERE NAME = 'Submitted'");
+	
+	$result = $wpdb->update(VTM_TABLE_PREFIX . "CHARACTER",
+				array ('CHARGEN_STATUS_ID' => $submittedid),
+				array ('ID' => $characterID)
+			);
 	
 	// Send Email to storytellers
+	if (!$result && $result !== 0) {
+		echo "<p>ERROR: Submission of character failed. Contact the webadmin with your character name</p>";
+	} else {
+		if (is_user_logged_in()) {
+			get_currentuserinfo();
+			$userid       = $current_user->ID;
+		} else {
+			$userid = 0;
+		}
+		
+		$sql = "SELECT c.NAME as name, c.EMAIL as email, c.CONCEPT as concept,
+					p.NAME as player, p.ID as playerID, c.PRIVATE_CLAN_ID as clanid
+				FROM " . VTM_TABLE_PREFIX . "CHARACTER c,
+					" . VTM_TABLE_PREFIX . "PLAYER p
+				WHERE c.ID = %s
+					AND c.PLAYER_ID = p.ID";
+		$results = $wpdb->get_row($wpdb->prepare($sql, $characterID));
+		
+		$playerid = $results->playerID;
+		$ref    = $characterID . '-' . $userid . '-' . $playerid;
+		$tag    = get_option( 'vtm_chargen_emailtag' );
+		$toname = get_option( 'vtm_chargen_email_from_name', 'The Storytellers');
+		$toaddr = get_option( 'vtm_chargen_email_from_address', get_bloginfo('admin_email') );
+		$fromname = $results->player;
+		$fromemail = $results->email;
+		$character = $results->name;
+		$concept = $results->concept;
+		$clan = vtm_get_clan_name($results->clanid);
+		$url    = add_query_arg('reference', $ref, vtm_get_stlink_url('viewCharGen', true));
+		
+		$subject = "$tag Character Submitted";
+		$headers[] = "From: \"$fromname\" <$fromemail>";
+		
+		$body = "Hello Storytellers,
+		
+A new character has been submitted:
+
+	* Reference: $ref
+	* Character Name: $character
+	* Player: $fromname
+	* Clan: $clan
+	* Concept: 
+	
+" . stripslashes($concept) . "
+	
+You can view this character by following this link: $url";
+	
+		//echo "<pre>$body</pre>";
+
+		$result = wp_mail($toaddr, $subject, $body, $headers);
+		
+		if (!$result)
+			echo "<p>Failed to send email. Character Ref: $ref</p>";
+
+	}
 
 	return $characterID;
 }
