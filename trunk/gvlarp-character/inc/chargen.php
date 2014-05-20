@@ -226,7 +226,12 @@ function vtm_get_step($characterID, $templateID) {
 		$buttons = vtm_chargen_flow_steps($characterID, $templateID);
 		$step = count($buttons);
 	}
-		
+	elseif (vtm_isST() && $characterID > 0) {
+		$step = 1;
+	}
+	
+	//echo "<li>Step $step ($characterID, $templateID)</li>";
+	
 	return $step;
 }
 
@@ -2494,19 +2499,24 @@ function vtm_get_chargen_characterID() {
 	}
 	elseif (isset($_POST['characterID']) && $_POST['characterID'] > 0) {
 		$id = $_POST['characterID'];
-		if (is_user_logged_in()) {
-			get_currentuserinfo();
-			$wpid = $current_user->ID;
-		} else {
-			$wpid = 0;
-		}
-		$pid = vtm_get_player_id_from_characterID($id);
-		//echo "<p>REF: $id-$wpid-$pid</p>";
+		// if (is_user_logged_in()) {
+			// get_currentuserinfo();
+			// $wpid = $current_user->ID;
+		// } else {
+			// $wpid = 0;
+		// }
+		// $pid = vtm_get_player_id_from_characterID($id);
+		// echo "<p>REF: $id-$wpid-$pid</p>";
 	}
+	elseif (isset($_GET['characterID']) && $_GET['characterID'] > 0 && vtm_isST()) {
+		$id = $_GET['characterID'];
+	} 
 	else {
 		$id = 0;
 	}
 
+	//echo "<li>ID: $id</li>";
+	
 	return $id;
 }
 
