@@ -24,10 +24,12 @@ function vtm_default_chargen_settings() {
 }
 
 function vtm_chargen_flow_steps($characterID, $templateID) {
+	global $wpdb;
 
 	$xp = vtm_get_total_xp(0, $characterID);
 	$questions = count(vtm_get_chargen_questions($characterID));
 	$settings = vtm_get_chargen_settings($templateID);
+	$chargenstatus = $wpdb->get_var($wpdb->prepare("SELECT cgs.NAME FROM " . VTM_TABLE_PREFIX . "CHARACTER c, " . VTM_TABLE_PREFIX . "CHARGEN_STATUS cgs WHERE c.ID = %s AND c.CHARGEN_STATUS_ID = cgs.ID",$characterID));
 	//print_r($settings);
 	
 	$buttons = array (
@@ -102,8 +104,9 @@ function vtm_chargen_flow_steps($characterID, $templateID) {
 					'save'       => 'vtm_save_history'));
 	}
 	
+	$title = $chargenstatus == 'Submitted' ? 'Review' : 'Submit';
 	array_push($buttons,array(
-				'title'      => "Submit", 
+				'title'      => $title, 
 				'function'   => 'vtm_render_chargen_submit',
 				'validate'   => 'vtm_validate_submit',
 				'save'       => 'vtm_save_submit'));
@@ -148,7 +151,8 @@ function vtm_get_chargen_content() {
 		$chargenstatus = $wpdb->get_var($sql);
 	}
 	
-	$output .= "<p>Character Generation Status: $chargenstatus</p>";
+	if ($step > 0) $output .= "<p>Character Generation Status: $chargenstatus</p>";
+	
 	$output .= "<form id='chargen_form' method='post'>";
 	
 	// validate & save data from last step
@@ -183,7 +187,7 @@ function vtm_get_chargen_content() {
 	if ($step == 0)
 		$output .= vtm_render_choose_template();
 	else
-		$output .= call_user_func($flow[$step-1]['function'], $step, $characterID, $templateID, $chargenstatus);
+		$output .= call_user_func($flow[$step-1]['function'], $step, $characterID, $templateID, $chargenstatus == 'Submitted');
 
 	// 3 buttons: Back, Check & Next
 	$output .= vtm_render_submit($step, count($flow), $chargenstatus);
@@ -265,7 +269,7 @@ function vtm_render_flow($step, $characterID, $progress, $templateID) {
 
 }
 
-function vtm_render_basic_info($step, $characterID, $templateID) {
+function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 	global $current_user;
 	global $wpdb;
 
@@ -364,7 +368,12 @@ function vtm_render_basic_info($step, $characterID, $templateID) {
 	$output .= "<table>
 		<tr>
 			<th class='gvthleft'>Character Name*:</th>
-			<td><input type='text' name='character' value='$character'> (ID: $characterID)</td>
+			<td>";
+	if ($submitted)
+		$output .= $character;
+	else
+		$output .= "<input type='text' name='character' value='$character'>";
+	$output .= " (ID: $characterID)</td>
 		</tr>
 		<tr>
 			<th class='gvthleft'>Player Name*:</th>";
@@ -380,54 +389,100 @@ function vtm_render_basic_info($step, $characterID, $templateID) {
 		</tr>
 		<tr>
 			<th class='gvthleft'>Actual Clan*:</th>
-			<td><select name='priv_clan' autocomplete='off'>";
-	foreach ($clans as $clan) {
-		$output .= "<option value='{$clan->ID}' " . selected( $clan->ID, $priv_clan, false) . ">{$clan->NAME}</option>";
+			<td>";
+	if ($submitted) {
+		$output .= $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "CLAN WHERE ID = %s", $priv_clan));
+	} else {
+		$output .= "<select name='priv_clan' autocomplete='off'>";
+		foreach ($clans as $clan) {
+			$output .= "<option value='{$clan->ID}' " . selected( $clan->ID, $priv_clan, false) . ">{$clan->NAME}</option>";
+		}
+		$output .= "</select>";
 	}
-	$output .= "</select></td>
+	$output .= "</td>
 		</tr>
 		<tr>
 			<th class='gvthleft'>Public Clan:</th>
-			<td><select name='pub_clan' autocomplete='off'><option value='-1'>[Same as Actual]</option>";
-	foreach ($clans as $clan) {
-		$output .= "<option value='{$clan->ID}' " . selected( $clan->ID, $pub_clan, false) . ">{$clan->NAME}</option>";
+			<td>";
+	if ($submitted) {
+		$output .= $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "CLAN WHERE ID = %s", $pub_clan));
+	} else {
+		$output .= "<select name='pub_clan' autocomplete='off'><option value='-1'>[Same as Actual]</option>";
+		foreach ($clans as $clan) {
+			$output .= "<option value='{$clan->ID}' " . selected( $clan->ID, $pub_clan, false) . ">{$clan->NAME}</option>";
+		}
+		$output .= "</select>";
 	}
-	$output .= "</select></td></tr><tr>
+	$output .= "</td></tr><tr>
 			<th class='gvthleft'>Sect:</th>
-			<td><select name='sect' autocomplete='off'>";
-	foreach (vtm_get_sects() as $sect) {
-		$output .= "<option value='{$sect->ID}' " . selected( $sect->ID, $sectid, false) . ">{$sect->NAME}</option>";		
+			<td>";
+	if ($submitted) {
+		$output .= $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "SECT WHERE ID = %s", $sectid));
+	} else {
+		$output .= "<select name='sect' autocomplete='off'>";
+		foreach (vtm_get_sects() as $sect) {
+			$output .= "<option value='{$sect->ID}' " . selected( $sect->ID, $sectid, false) . ">{$sect->NAME}</option>";		
+		}
+		$output .= "</select>";
 	}
-	$output .= "</select></td></tr>";
+	$output .= "</td></tr>";
 	
 	if ($config->USE_NATURE_DEMEANOUR == 'Y') {
-		$output .= "<tr><th class='gvthleft'>Nature*:</th><td><select name='nature' autocomplete='off'>";
-		foreach ($natures as $nature) {
-			$output .= "<option value='" . $nature->ID . "' " . selected( $nature->ID, $natureid, false) . ">" . $nature->NAME . "</option>";
+		$output .= "<tr><th class='gvthleft'>Nature*:</th><td>";
+		if ($submitted) {
+			$output .= $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "NATURE WHERE ID = %s", $natureid));
+		} else {
+			$output .= "<select name='nature' autocomplete='off'>";
+			foreach ($natures as $nature) {
+				$output .= "<option value='" . $nature->ID . "' " . selected( $nature->ID, $natureid, false) . ">" . $nature->NAME . "</option>";
+			}
+			$output .= "</select>";
 		}
-		$output .= "</select></td></tr>
-		<tr><th class='gvthleft'>Demeanour*:</th><td><select name='demeanour' autocomplete='off'>";
-		foreach ($natures as $nature) {
-			$output .= "<option value='" . $nature->ID . "' " . selected( $nature->ID, $demeanourid, false) . ">" . $nature->NAME . "</option>";
+		$output .= "</td></tr>
+		<tr><th class='gvthleft'>Demeanour*:</th><td>";
+		if ($submitted) {
+			$output .= $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "NATURE WHERE ID = %s", $demeanourid));
+		} else {
+			$output .= "<select name='demeanour' autocomplete='off'>";
+			foreach ($natures as $nature) {
+				$output .= "<option value='" . $nature->ID . "' " . selected( $nature->ID, $demeanourid, false) . ">" . $nature->NAME . "</option>";
+			}
+			$output .= "</select>";
 		}
-		$output .= "</select></td></tr>";
+		$output .= "</td></tr>";
 	}	
 	$output .= "<tr>
 			<th class='gvthleft'>Preferred login name:</th>
-			<td><input type='text' name='wordpress_id' value='$login'></td>
+			<td>";
+	if ($submitted)
+		$output .= $login;
+	else
+		$output .= "<input type='text' name='wordpress_id' value='$login'>";
+	$output .= "</td>
 		</tr>
 		<tr>
 			<th class='gvthleft'>Email Address*:</th>
-			<td><input type='text' name='email' value='$email'></td></tr>
+			<td>";
+	if ($submitted)
+		$output .= $email;
+	else
+		$output .= "<input type='text' name='email' value='$email'>";
+	$output .= "</td></tr>
 		<tr>
 			<th class='gvthleft'>Concept*:</th>
-			<td><textarea name='concept' rows='3' cols='50'>$concept</textarea></td></tr>
+			<td>";
+	if ($submitted)
+		$output .= $concept;
+	else
+		$output .= "<textarea name='concept' rows='3' cols='50'>$concept</textarea>";
+	$output .= "</td></tr>
 		</table>";
 
 	return $output;
 }
 
-function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $freebiecosts, $postvariable, $showzeros) {
+function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $freebiecosts, 
+		$postvariable, $showzeros, $issubmitted) {
 	
 	$fulldoturl    = plugins_url( 'gvlarp-character/images/cg_freedot.jpg' );
 	$emptydoturl   = plugins_url( 'gvlarp-character/images/cg_emptydot.jpg' );
@@ -515,11 +570,20 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 					if ($postvariable == 'freebie_merit') {
 						$cost = $freebiecosts[$name][0][1];
 						$cbid = "cb_{$key}_{$j}";
-						$rowoutput .= "<tr><td><span>";
-						$rowoutput .= "<input type='checkbox' name='{$postvariable}[" . $key . "]' id='$cbid' value='$cost' ";
-						$rowoutput .= checked($current, $cost, false);
-						$rowoutput .= "/>\n";
-						$rowoutput .= "<label for='$cbid'>" . stripslashes($item->NAME) . " ($cost)</label>\n";
+						$rowoutput .= "<tr><td><span class='mfdotselect'>";
+						if ($issubmitted) {
+							if ($current == $cost) {
+								$rowoutput .= "<img src='$doturl' alt='X' /> ";
+							} else {
+								$rowoutput .= "<img src='$emptydoturl' alt='O' /> ";
+							}
+							$rowoutput .=  stripslashes($item->NAME) . " ($cost)";
+						} else {
+							$rowoutput .= "<input type='checkbox' name='{$postvariable}[" . $key . "]' id='$cbid' value='$cost' ";
+							$rowoutput .= checked($current, $cost, false);
+							$rowoutput .= "/>\n";
+							$rowoutput .= "<label for='$cbid'>" . stripslashes($item->NAME) . " ($cost)</label>\n";
+						}
 						$rowoutput .= "</span></td></tr>\n";
 					
 					} else {
@@ -533,7 +597,7 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 							if ($levelfrom >= $i)
 								// Base level from main table in database
 								$rowoutput .= "<img src='$fulldoturl' alt='*' id='$radioid' />";
-							elseif (isset($pendingxp[$key]) && $pendingxp[$key]->value != 0) {
+							elseif ($issubmitted || (isset($pendingxp[$key]) && $pendingxp[$key]->value != 0) ) {
 								// Lock if there are any xp spends for this item
 								if ($current >= $i)
 									$rowoutput .= "<img src='$doturl' alt='*' id='$radioid' />";
@@ -556,9 +620,11 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 								}
 							}
 						}
-						$radioid = "dot_{$key}_{$j}_clear";
-						$rowoutput .= "<input type='radio' id='$radioid' name='{$postvariable}[{$key}]' value='0' ";
-						$rowoutput .= " /><label for='$radioid' title='Clear' class='cleardot'>&nbsp;</label>\n";
+						if (!$issubmitted) {
+							$radioid = "dot_{$key}_{$j}_clear";
+							$rowoutput .= "<input type='radio' id='$radioid' name='{$postvariable}[{$key}]' value='0' ";
+							$rowoutput .= " /><label for='$radioid' title='Clear' class='cleardot'>&nbsp;</label>\n";
+						}
 						$rowoutput .= "</fieldset></td></tr>\n";
 						
 						// Ensure that freebie spends don't get lost when an XP
@@ -581,7 +647,7 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 }
 
 function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, 
-	$pendingxp, $postvariable, $showzeros, $fbcosts = array()) {
+	$pendingxp, $postvariable, $showzeros, $issubmitted, $fbcosts = array()) {
 
 	$rowoutput = "";
 	$max2display = 5;
@@ -589,6 +655,7 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 	$fulldoturl = plugins_url( 'gvlarp-character/images/cg_freedot.jpg' );
 	$freebiedoturl = plugins_url( 'gvlarp-character/images/cg_freebiedot.jpg' );
 	$emptydoturl   = plugins_url( 'gvlarp-character/images/cg_emptydot.jpg' );
+	$doturl        = plugins_url( 'gvlarp-character/images/cg_selectdot.jpg' );
 	
 	// Get Posted data
 	if (isset($_POST[$postvariable])) {
@@ -673,13 +740,22 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 
 				if ($postvariable == 'xp_merit') {
 					$cbid = "cb_{$j}_{$key}";
-					$rowoutput .= "<tr><td><span>";
-					$rowoutput .= "<input type='checkbox' name='{$postvariable}[" . $key . "]' id='$cbid' value='$meritlevel' ";
-					if ($current) {
-						$rowoutput .= checked($current, $current, false);
+					$rowoutput .= "<tr><td><span class='mfdotselect'>";
+					if ($issubmitted) {
+						if ($current) {
+							$rowoutput .= "<img src='$doturl' alt='X' /> ";
+						} else {
+							$rowoutput .= "<img src='$emptydoturl' alt='O' /> ";
+						}
+						$rowoutput .=  stripslashes($item->NAME) . " ($meritlevel) - $meritcost XP";
+					} else {
+						$rowoutput .= "<input type='checkbox' name='{$postvariable}[" . $key . "]' id='$cbid' value='$meritlevel' ";
+						if ($current) {
+							$rowoutput .= checked($current, $current, false);
+						}
+						$rowoutput .= "/>\n";
+						$rowoutput .= "<label for='$cbid'>" . stripslashes($item->NAME) . " ($meritlevel) - $meritcost XP</label>\n";
 					}
-					$rowoutput .= "/>\n";
-					$rowoutput .= "<label for='$cbid'>" . stripslashes($item->NAME) . " ($meritlevel) - $meritcost XP</label>\n";
 					$rowoutput .= "</span></td></tr>\n";
 				} else {
 					//dots row
@@ -692,6 +768,12 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 							$rowoutput .= "<img src='$fulldoturl' alt='*' id='$radioid' />";
 						elseif (isset($pendingfb[$key]) && $levelfb >= $i)
 							$rowoutput .= "<img src='$freebiedoturl' alt='*' id='$radioid' />";
+						elseif ($issubmitted) {
+							if ($current >= $i)
+								$rowoutput .= "<img src='$doturl' alt='*' id='$radioid' />";
+							else
+								$rowoutput .= "<img src='$emptydoturl' alt='*' id='$radioid' />";
+						}
 						elseif (isset($xpcosts[$name][$levelfrom][$i])) {
 							$cost = $xpcosts[$name][$levelfrom][$i];
 							$rowoutput .= "<input type='radio' id='$radioid' name='{$postvariable}[$key]' value='$i' ";
@@ -703,9 +785,11 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 							$rowoutput .= "<img src='$emptydoturl' alt='X' id='$radioid' />";
 						}
 					}
-					$radioid = "dot_{$key}_{$j}_clear";
-					$rowoutput .= "<input type='radio' id='$radioid' name='{$postvariable}[$key]' value='0' ";
-					$rowoutput .= " /><label for='$radioid' title='Clear' class='cleardot'>&nbsp;</label>\n";
+					if (!$issubmitted) {
+						$radioid = "dot_{$key}_{$j}_clear";
+						$rowoutput .= "<input type='radio' id='$radioid' name='{$postvariable}[$key]' value='0' ";
+						$rowoutput .= " /><label for='$radioid' title='Clear' class='cleardot'>&nbsp;</label>\n";
+					}
 					$rowoutput .= "</fieldset></td></tr>\n";
 				}
 			}
@@ -716,7 +800,7 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 }
 
 function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $freedot,
-	$items, $posted, $pendingfb, $pendingxp, $title, $postvariable) {
+	$items, $posted, $pendingfb, $pendingxp, $title, $postvariable, $submitted) {
 
 	$output = "";
 	
@@ -759,7 +843,7 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 			$output .= "<h4>{$item->GROUPING}</h4><p>";
 			if ($isPST) {
 				$val = isset($_POST[$group]) ? $_POST[$group] : (isset($groupselected[$group]) ? $groupselected[$group] : 0);
-				$output .= vtm_render_pst_select($group, $val);
+				$output .= vtm_render_pst_select($group, $val, $submitted);
 			}
 			
 			$output .= "</p>
@@ -775,7 +859,7 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 		$level   = isset($posted[$key]) ? $posted[$key] : (isset($saved[$key]->LEVEL) ? $saved[$key]->LEVEL : 0);  // currently selected or saved level
 		$pending = isset($pendingfb[$key]->value) ? $pendingfb[$key]->value : 0 ;         // level bought with freebies
 		$pending = isset($pendingxp[$key]->value) ? $pendingxp[$key]->value : $pending ;  // level bought with xp
-		$output .= vtm_render_dot_select($postvariable, $key, $level, $pending, $freedot, 5);
+		$output .= vtm_render_dot_select($postvariable, $key, $level, $pending, $freedot, 5, $submitted);
 		
 		$output .= "</td><td>";
 		$output .= stripslashes($item->DESCRIPTION);
@@ -787,7 +871,7 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 	return $output;
 }
 
-function vtm_render_attributes($step, $characterID, $templateID) {
+function vtm_render_attributes($step, $characterID, $templateID, $submitted) {
 	global $wpdb;
 
 	$output = "";
@@ -826,12 +910,12 @@ function vtm_render_attributes($step, $characterID, $templateID) {
 	
 	$output .= vtm_render_chargen_section($saved, ($settings['attributes-method'] == "PST"), 
 		$settings['attributes-primary'], $settings['attributes-secondary'], $settings['attributes-tertiary'], 
-		1, $items, $stats, $pendingfb, $pendingxp, 'Attributes', 'attribute_value');
+		1, $items, $stats, $pendingfb, $pendingxp, 'Attributes', 'attribute_value', $submitted);
 	
 	return $output;
 }
 
-function vtm_render_chargen_virtues($step, $characterID, $templateID) {
+function vtm_render_chargen_virtues($step, $characterID, $templateID, $submitted) {
 	global $wpdb;
 
 	$output = "";
@@ -866,11 +950,18 @@ function vtm_render_chargen_virtues($step, $characterID, $templateID) {
 	} else {
 		$selectedpath = $wpdb->get_var($wpdb->prepare("SELECT ROAD_OR_PATH_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
 	}
-	$output .= "<p><label>Path of Enlightenment:</label><select name='path' autocomplete='off'>\n";
-	foreach (vtm_get_chargen_roads() as $path) {
-		$output .= "<option value='{$path->ID}' " . selected($path->ID, $selectedpath, false) . ">" . stripslashes($path->NAME) . "</option>";
+	$output .= "<p><label><strong>Path of Enlightenment:</strong></label> ";
+	if ($submitted) {
+		$pathname = $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $selectedpath));
+		$output .= "<span>$pathname</span>\n";
+	} else {
+		$output .= "<select name='path' autocomplete='off'>\n";
+		foreach (vtm_get_chargen_roads() as $path) {
+			$output .= "<option value='{$path->ID}' " . selected($path->ID, $selectedpath, false) . ">" . stripslashes($path->NAME) . "</option>";
+		}
+		$output .= "</select>";
 	}
-	$output .= "</select></p>\n";
+	$output .= "</p>\n";
 
 	$statkey1 = vtm_get_virtue_statkey(1, $selectedpath);
 	$statkey2 = vtm_get_virtue_statkey(2, $selectedpath);
@@ -882,12 +973,12 @@ function vtm_render_chargen_virtues($step, $characterID, $templateID) {
 	);
 	
 	$output .= vtm_render_chargen_section($saved, false, 0, 0, 0, 
-		1, $pathitems, $virtues, $pendingfb, $pendingxp, 'Virtues', 'virtue_value');
+		1, $pathitems, $virtues, $pendingfb, $pendingxp, 'Virtues', 'virtue_value', $submitted);
 	
 	return $output;
 }
 
-function vtm_render_chargen_freebies($step, $characterID, $templateID) {
+function vtm_render_chargen_freebies($step, $characterID, $templateID, $submitted) {
 	global $wpdb;
 
 	$output = "";
@@ -917,13 +1008,12 @@ function vtm_render_chargen_freebies($step, $characterID, $templateID) {
 					);
 	$sectionorder   = array('stat', 'skill', 'background', 'disc', 'path', 'merit');
 	
-	$pendingSpends = array();
-	$sectioncontent['stat']  = vtm_render_freebie_stats($characterID);
-	$sectioncontent['skill'] = vtm_render_freebie_skills($characterID);
-	$sectioncontent['disc']  = vtm_render_freebie_disciplines($characterID);
-	$sectioncontent['path']  = vtm_render_freebie_paths($characterID);
-	$sectioncontent['background'] = vtm_render_freebie_backgrounds($characterID);
-	$sectioncontent['merit'] = vtm_render_freebie_merits($characterID, $pendingSpends, $points);
+	$sectioncontent['stat']  = vtm_render_freebie_stats($characterID, $submitted);
+	$sectioncontent['skill'] = vtm_render_freebie_skills($characterID, $submitted);
+	$sectioncontent['disc']  = vtm_render_freebie_disciplines($characterID, $submitted);
+	$sectioncontent['path']  = vtm_render_freebie_paths($characterID, $submitted);
+	$sectioncontent['background'] = vtm_render_freebie_backgrounds($characterID, $submitted);
+	$sectioncontent['merit'] = vtm_render_freebie_merits($characterID, $submitted);
 	
 	// DISPLAY TABLES 
 	//-------------------------------
@@ -948,7 +1038,7 @@ function vtm_render_chargen_freebies($step, $characterID, $templateID) {
 	return $output;
 }
 
-function vtm_render_chargen_xp($step, $characterID, $templateID) {
+function vtm_render_chargen_xp($step, $characterID, $templateID, $submitted) {
 	global $wpdb;
 
 	$output = "";
@@ -975,11 +1065,11 @@ function vtm_render_chargen_xp($step, $characterID, $templateID) {
 	$sectionorder   = array('stat', 'skill', 'disc', 'path', 'merit');
 	
 	$pendingSpends = array();
-	$sectioncontent['stat']  = vtm_render_chargen_xp_stats($characterID);
-	$sectioncontent['skill'] = vtm_render_chargen_xp_skills($characterID);
-	$sectioncontent['disc']  = vtm_render_xp_disciplines($characterID);
-	$sectioncontent['path']  = vtm_render_chargen_xp_paths($characterID);
-	$sectioncontent['merit'] = vtm_render_chargen_xp_merits($characterID);
+	$sectioncontent['stat']  = vtm_render_chargen_xp_stats($characterID, $submitted);
+	$sectioncontent['skill'] = vtm_render_chargen_xp_skills($characterID, $submitted);
+	$sectioncontent['disc']  = vtm_render_xp_disciplines($characterID, $submitted);
+	$sectioncontent['path']  = vtm_render_chargen_xp_paths($characterID, $submitted);
+	$sectioncontent['merit'] = vtm_render_chargen_xp_merits($characterID, $submitted);
 	
 	// DISPLAY TABLES 
 	//-------------------------------
@@ -1004,7 +1094,7 @@ function vtm_render_chargen_xp($step, $characterID, $templateID) {
 	return $output;
 }
 
-function vtm_render_finishing($step, $characterID, $templateID) {
+function vtm_render_finishing($step, $characterID, $templateID, $submitted) {
 	global $wpdb;
 
 	$output = "";
@@ -1081,10 +1171,10 @@ function vtm_render_finishing($step, $characterID, $templateID) {
 	$output .= "<h4>Important Dates</h4>\n";
 	$output .= "<table>\n";
 	$output .= "<tr><td>Date of Birth:</td><td>";
-	$output .= vtm_render_date_entry("dob", $dob_day, $dob_month, $dob_year);
+	$output .= vtm_render_date_entry("dob", $dob_day, $dob_month, $dob_year, $submitted);
 	$output .= "</td></tr>";
 	$output .= "<tr><td>Date of Embrace:</th><td>";
-	$output .= vtm_render_date_entry("doe", $doe_day, $doe_month, $doe_year);
+	$output .= vtm_render_date_entry("doe", $doe_day, $doe_month, $doe_year, $submitted);
 	$output .= "</td></tr>";
 	$output .= "</table>\n";
 
@@ -1112,7 +1202,11 @@ function vtm_render_finishing($step, $characterID, $templateID) {
 		$spec = isset($_POST['comment'][$i]) ? $_POST['comment'][$i] : $item['comment'];
 		$spec_output .= "<tr><td>" . stripslashes($item['name']) . "</td>
 					<td>{$item['level']}</td>
-					<td><input type='text' name='comment[]' value='$spec' />";
+					<td>";
+		if ($submitted)
+			$spec_output .= $spec;
+		else
+			$spec_output .= "<input type='text' name='comment[]' value='$spec' />";
 		//$spec_output .= "{$item['updatetable']} / {$item['tableid']}";
 		$spec_output .= "</td></tr>\n";
 					
@@ -1132,16 +1226,22 @@ function vtm_render_finishing($step, $characterID, $templateID) {
 	$output .= "<h4>Miscellaneous</h4>\n";
 	$output .= "<table>\n";
 	$output .= "<tr><td>Name of your Sire:</td><td>";
-	$output .= "<input type='text' name='sire' value='$sire' />";
+	if ($submitted)
+		$output .= $sire;
+	else
+		$output .= "<input type='text' name='sire' value='$sire' />";
 	$output .= "</td></tr>";
 	$output .= "<tr><td>Notes for Storyteller:</th><td>";
-	$output .= "<textarea name='noteforST' rows='5' cols='80'>$stnotes</textarea>"; // ADD COLUMN TO CHARACTER
+	if ($submitted)
+		$output .= $stnotes;
+	else
+		$output .= "<textarea name='noteforST' rows='5' cols='80'>$stnotes</textarea>"; // ADD COLUMN TO CHARACTER
 	$output .= "</td></tr>";
 	$output .= "</table>\n";
 	
 	return $output;
 }
-function vtm_render_chargen_extbackgrounds($step, $characterID, $templateID) {
+function vtm_render_chargen_extbackgrounds($step, $characterID, $templateID, $submitted) {
 
 	$output = "";
 	$settings = vtm_get_chargen_settings($templateID);
@@ -1161,9 +1261,12 @@ function vtm_render_chargen_extbackgrounds($step, $characterID, $templateID) {
 		
 		$text = isset($posted[$id]) ? $posted[$id] : (isset($question->PENDING_DETAIL) ? $question->PENDING_DETAIL : '');
 		
-		$output .= "<h4>$title</h4><p>{$question->BACKGROUND_QUESTION}</p>";
+		$output .= "<h4>$title</h4><p class='gvext_ques'>{$question->BACKGROUND_QUESTION}</p>";
 		$output .= "<input type='hidden' name='meritquestion_title[$id]' value='" . htmlspecialchars($title, ENT_QUOTES) . "' \>";
-		$output .= "<p><textarea name='meritquestion[$id]' rows='4' cols='80'>$text</textarea></p>";
+		if ($submitted)
+			$output .= "<p class='gvext_section'>$text</p>";
+		else
+			$output .= "<p><textarea name='meritquestion[$id]' rows='4' cols='80'>$text</textarea></p>";
 	}
 
 	// Backgrounds
@@ -1176,10 +1279,13 @@ function vtm_render_chargen_extbackgrounds($step, $characterID, $templateID) {
 
 		if (!empty($question->COMMENT)) $title .= " (" . $question->COMMENT . ")";		
 		
-		$output .= "<h4>$title</h4><p>{$question->BACKGROUND_QUESTION}</p>";
+		$output .= "<h4>$title</h4><p class='gvext_ques'>{$question->BACKGROUND_QUESTION}</p>";
 		$output .= "<input type='hidden' name='bgquestion_title[$id]' value='" . htmlspecialchars($title, ENT_QUOTES) . "' \>";
 		$output .= "<input type='hidden' name='bgquestion_source[$id]' value='" . htmlspecialchars($question->source, ENT_QUOTES) . "' \>";
-		$output .= "<p><textarea name='bgquestion[$id]' rows='4' cols='80'>$text</textarea></p>";
+		if ($submitted)
+			$output .= "<p class='gvext_section'>$text</p>";
+		else
+			$output .= "<p><textarea name='bgquestion[$id]' rows='4' cols='80'>$text</textarea></p>";
 		
 	}
 
@@ -1191,14 +1297,17 @@ function vtm_render_chargen_extbackgrounds($step, $characterID, $templateID) {
 		$id = $question->questID;
 		$text = isset($posted[$id]) ? $posted[$id] : (isset($question->PENDING_DETAIL) ? $question->PENDING_DETAIL : '');
 	
-		$output .= "<h4>{$question->TITLE}</h4><p>{$question->BACKGROUND_QUESTION}</p>";
+		$output .= "<h4>{$question->TITLE}</h4><p class='gvext_ques'>{$question->BACKGROUND_QUESTION}</p>";
 		$output .= "<input type='hidden' name='question_title[$id]' value='{$question->TITLE}' \>";
-		$output .= "<p><textarea name='question[$id]' rows='4' cols='80'>$text</textarea></p>";
+		if ($submitted)
+			$output .= "<p class='gvext_section'>$text</p>";
+		else
+			$output .= "<p><textarea name='question[$id]' rows='4' cols='80'>$text</textarea></p>";
 	}
 	
 	return $output;
 }
-function vtm_render_chargen_submit($step, $characterID, $templateID) {
+function vtm_render_chargen_submit($step, $characterID, $templateID, $submitted) {
 
 	$output = "";
 	$settings = vtm_get_chargen_settings($templateID);
@@ -1241,7 +1350,10 @@ function vtm_render_chargen_submit($step, $characterID, $templateID) {
 	$alldone = 0;
 	if ($done == (count($progress) - 1)) {
 		$alldone = 1;
-		$output .= "<p><strong>Your character is ready to submit!</strong></p>";
+		if ($submitted)
+			$output .= "<p><strong>Your character has been submitted!</strong></p>";
+		else
+			$output .= "<p><strong>Your character is ready to submit!</strong></p>";
 	}
 	$output .= "<input type='hidden' name='status' value='$alldone' />";
 	
@@ -1251,7 +1363,7 @@ function vtm_render_chargen_submit($step, $characterID, $templateID) {
 	
 	return $output;
 }
-function vtm_render_abilities($step, $characterID, $templateID) {
+function vtm_render_abilities($step, $characterID, $templateID, $submitted) {
 	global $wpdb;
 
 	$output     = "";
@@ -1284,12 +1396,12 @@ function vtm_render_abilities($step, $characterID, $templateID) {
 	
 	$output .= vtm_render_chargen_section($saved, true, 
 		$settings['abilities-primary'], $settings['abilities-secondary'], $settings['abilities-tertiary'], 
-		0, $items, $abilities, $pendingfb, $pendingxp, 'Abilities', 'ability_value');
+		0, $items, $abilities, $pendingfb, $pendingxp, 'Abilities', 'ability_value', $submitted);
 
 	return $output;
 }
 
-function vtm_render_chargen_disciplines($step, $characterID, $templateID) {
+function vtm_render_chargen_disciplines($step, $characterID, $templateID, $submitted) {
 	global $wpdb;
 
 	$output = "";
@@ -1316,13 +1428,13 @@ function vtm_render_chargen_disciplines($step, $characterID, $templateID) {
 	$disciplines = isset($_POST['discipline_value']) ? $_POST['discipline_value'] : array();
 	
 	$output .= vtm_render_chargen_section($saved, false, 0, 0, 0, 
-		0, $items, $disciplines, $pendingfb, $pendingxp, 'Disciplines', 'discipline_value');
+		0, $items, $disciplines, $pendingfb, $pendingxp, 'Disciplines', 'discipline_value', $submitted);
 
 
 	return $output;
 }
 
-function vtm_render_chargen_backgrounds($step, $characterID, $templateID) {
+function vtm_render_chargen_backgrounds($step, $characterID, $templateID, $submitted) {
 	global $wpdb;
 
 	$output = "";
@@ -1347,7 +1459,7 @@ function vtm_render_chargen_backgrounds($step, $characterID, $templateID) {
 	$backgrounds = isset($_POST['background_value']) ? $_POST['background_value'] : array();
 
 	$output .= vtm_render_chargen_section($saved, false, 0, 0, 0, 
-		0, $items, $backgrounds, $pending, array(), 'Backgrounds', 'background_value');
+		0, $items, $backgrounds, $pending, array(), 'Backgrounds', 'background_value', $submitted);
 	
 	return $output;
 } 
@@ -2777,7 +2889,7 @@ function vtm_get_chargen_roads() {
 	return $roadsOrPaths;
 }
 
-function vtm_render_dot_select($type, $itemid, $current, $pending, $free, $max) {
+function vtm_render_dot_select($type, $itemid, $current, $pending, $free, $max, $submitted) {
 
 	$output = "";
 	$fulldoturl = plugins_url( 'gvlarp-character/images/cg_freedot.jpg' );
@@ -2793,7 +2905,7 @@ function vtm_render_dot_select($type, $itemid, $current, $pending, $free, $max) 
 	for ($index = $max ; $index > 0 ; $index--) {
 		$radioid = "dot_{$type}_{$itemid}_{$index}";
 		//echo "<li>$radioid: current:$current / index:$index / free:$free (" . ($index - $free) . ")</li>";
-		if ($pending) {
+		if ($pending || $submitted) {
 			if ($index <= $free)
 				$output .= "<img src='$fulldoturl' alt='*' id='$radioid' />";
 			elseif ($index <= $current )
@@ -2814,7 +2926,7 @@ function vtm_render_dot_select($type, $itemid, $current, $pending, $free, $max) 
 		}
 	}
 	
-	if ($free == 0 && $pending == 0) {
+	if ($free == 0 && $pending == 0 && !$submitted) {
 		$radioid = "dot_{$type}_{$itemid}_clear";
 		$output .= "<input type='radio' id='$radioid' name='" . $type . "[" . $itemid . "]' value='0' ";
 		$output .= checked($current, 0, false);
@@ -2828,19 +2940,28 @@ function vtm_render_dot_select($type, $itemid, $current, $pending, $free, $max) 
 
 }
 
-function vtm_render_pst_select($name, $selected) {
+function vtm_render_pst_select($name, $selected, $submitted) {
 
-	$output = "<select name='$name' autocomplete='off'>\n";
-	$output .= "<option value='-1'>[Select]</option>\n";
-	$output .= "<option value='1' " . selected($selected, 1, false) . ">Primary</option>\n";
-	$output .= "<option value='2' " . selected($selected, 2, false) . ">Secondary</option>\n";
-	$output .= "<option value='3' " . selected($selected, 3, false) . ">Tertiary</option>\n";
-	$output .= "</select>\n";
+	if ($submitted) {
+		switch ($selected) {
+			case 1: $output = "<span>Primary</span>\n"; break;
+			case 2: $output = "<span>Secondary</span>\n"; break;
+			case 3: $output = "<span>Tertiary</span>\n"; break;
+			default: $output = "<span>Unselected</span>\n";
+		}
+	} else {
+		$output = "<select name='$name' autocomplete='off'>\n";
+		$output .= "<option value='-1'>[Select]</option>\n";
+		$output .= "<option value='1' " . selected($selected, 1, false) . ">Primary</option>\n";
+		$output .= "<option value='2' " . selected($selected, 2, false) . ">Secondary</option>\n";
+		$output .= "<option value='3' " . selected($selected, 3, false) . ">Tertiary</option>\n";
+		$output .= "</select>\n";
+	}
 	
 	return $output;
 }
 
-function vtm_render_freebie_stats($characterID) {
+function vtm_render_freebie_stats($characterID, $submitted) {
 	global $wpdb;
 	
 	$output      = "";
@@ -2861,7 +2982,7 @@ function vtm_render_freebie_stats($characterID) {
 	$pendingxp  = vtm_get_pending_chargen_xp('STAT', $characterID);  // name => value
 		
 	$rowoutput = vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp,
-			$freebiecosts, 'freebie_stat', 0);
+			$freebiecosts, 'freebie_stat', 0, $submitted);
 	
 	if ($rowoutput != "")
 		$output .= "<table>$rowoutput</table></td></tr></table>\n";
@@ -2870,7 +2991,7 @@ function vtm_render_freebie_stats($characterID) {
 
 }
 
-function vtm_render_freebie_skills($characterID) {
+function vtm_render_freebie_skills($characterID, $submitted) {
 	global $wpdb;
 	
 	$output      = "";
@@ -2892,7 +3013,7 @@ function vtm_render_freebie_skills($characterID) {
 	$pendingxp  = vtm_get_pending_chargen_xp('SKILL', $characterID);  // name => value
 
 	$rowoutput = vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp,
-			$freebiecosts, 'freebie_skill', 1);
+			$freebiecosts, 'freebie_skill', 1, $submitted);
 	
 	if ($rowoutput != "")
 		$output .= "<table>$rowoutput</table></td></tr></table>\n";
@@ -2901,7 +3022,7 @@ function vtm_render_freebie_skills($characterID) {
 
 }
 
-function vtm_render_freebie_disciplines($characterID) {	
+function vtm_render_freebie_disciplines($characterID, $submitted) {	
 	$output      = "";
 
 	// COSTS OF STATS - if entry doesn't exist then you can't buy it
@@ -2921,85 +3042,8 @@ function vtm_render_freebie_disciplines($characterID) {
 	$pendingxp  = vtm_get_pending_chargen_xp('DISCIPLINE', $characterID);  // name => value
 
 	$rowoutput = vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp,
-			$freebiecosts, 'freebie_discipline', 1);
+			$freebiecosts, 'freebie_discipline', 1, $submitted);
 	
-	//print_r($freebiecosts);
-	
-	/*
-	if (count($items) > 0) {
-		$id = 0;
-		$grp = "";
-		$grpcount = 0;
-		$col = 0;
-		foreach ($items as $item) {
-					
-			$tmp_max2display = $max2display;
-			$colspan = 2 + $tmp_max2display;
-			
-			$levelfrom = isset($item->level_from) ? $item->level_from : 0;
-		
-			// start column / new column
-			if (isset($item->grp)) {
-				if ($grp != $item->grp) {
-					$grpcount++;
-					if (empty($grp)) {
-						$rowoutput .= "<tr><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
-						$col++;
-					} 
-					elseif ($col == $columns) {
-						$rowoutput .= "</table>\n</td></tr>\n<tr><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
-						$col = 1;
-					}
-					else {
-						$rowoutput .= "</table>\n</td><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
-						$col++;
-					}
-					$grp = $item->grp;
-				}
-			}
-
-			// Hidden fields
-			$rowoutput .= "<tr style='display:none'><td colspan=$colspan>\n";
-			$rowoutput .= "</td></tr>\n";
-			
-			//dots row
-			$key = sanitize_key($item->name);
-			$rowoutput .= "<tr><th class='gvthleft'><span>" . stripslashes($item->name) . "</span></th><td>\n";
-			$rowoutput .= "<fieldset class='dotselect'>";
-			for ($i=$tmp_max2display;$i>=1;$i--) {
-				$radioid = "dot_{$key}_{$item->itemid}_{$i}";
-				$current = isset($currentpending[$key]) ? $currentpending[$key] : 0;
-				
-				if ($levelfrom >= $i)
-					$rowoutput .= "<img src='$fulldoturl' alt='*' id='$radioid' />";
-				elseif (isset($pendingxp[$key]) && $pendingxp[$key] != 0) {
-					if ($current >= $i)
-						$rowoutput .= "<img src='$doturl' alt='*' id='$radioid' />";
-					elseif ($pendingxp[$key] >= $i)
-						$rowoutput .= "<img src='$freebiedoturl' alt='*' id='$radioid' />";
-					else
-						$rowoutput .= "<img src='$emptydoturl' alt='X' id='$radioid' />";
-				} else {
-					if (isset($freebiecosts[$key][$levelfrom][$i])) {
-						$cost = $freebiecosts[$key][$levelfrom][$i];
-						$rowoutput .= "<input type='radio' id='$radioid' name='freebie_discipline[$key]' value='$i' ";
-						$rowoutput .= checked($current, $i, false);
-						$rowoutput .= " /><label for='$radioid' title='Level $i ($cost freebies)'";
-						$rowoutput .= ">&nbsp;</label>\n";
-					}
-					else {
-						$rowoutput .= "<img src='$emptydoturl' alt='X' id='$radioid' />";
-					}
-				}
-			}
-			$radioid = "dot_{$key}_{$item->itemid}_clear";
-			$rowoutput .= "<input type='radio' id='$radioid' name='freebie_discipline[$key]' value='0' ";
-			$rowoutput .= " /><label for='$radioid' title='Clear' class='cleardot'>&nbsp;</label>\n";
-			$rowoutput .= "</fieldset></td></tr>\n";
-		}
-	
-	}
-	*/
 	if ($rowoutput != "")
 		$output .= "<table>$rowoutput</table></td></tr></table>\n";
 
@@ -3007,7 +3051,7 @@ function vtm_render_freebie_disciplines($characterID) {
 
 }
 
-function vtm_render_xp_disciplines($characterID) {
+function vtm_render_xp_disciplines($characterID, $submitted) {
 	global $wpdb;
 	
 	$output  = "";
@@ -3020,7 +3064,7 @@ function vtm_render_xp_disciplines($characterID) {
 	
 	//print_r($xpcosts);
 	
-	$rowoutput = vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, $pendingxp, 'xp_discipline', 1);
+	$rowoutput = vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, $pendingxp, 'xp_discipline', 1, $submitted);
 	
 	if ($rowoutput != "")
 		$output .= "<table>$rowoutput</table></td></tr></table>\n";
@@ -3029,7 +3073,7 @@ function vtm_render_xp_disciplines($characterID) {
 
 }
 
-function vtm_render_freebie_paths($characterID) {
+function vtm_render_freebie_paths($characterID, $submitted) {
 	
 	$output      = "";
 
@@ -3042,7 +3086,7 @@ function vtm_render_freebie_paths($characterID) {
 	//print_r($currentpending);
 	
 	$rowoutput = vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp,
-			$freebiecosts, 'freebie_path', 1);
+			$freebiecosts, 'freebie_path', 1, $submitted);
 
 	if ($rowoutput != "")
 		$output .= "<table>$rowoutput</table></td></tr></table>\n";
@@ -3051,7 +3095,7 @@ function vtm_render_freebie_paths($characterID) {
 
 } 
 
-function vtm_render_freebie_backgrounds($characterID) {
+function vtm_render_freebie_backgrounds($characterID, $submitted) {
 	global $wpdb;
 	
 	$output      = "";
@@ -3067,7 +3111,7 @@ function vtm_render_freebie_backgrounds($characterID) {
 	$pendingfb = vtm_get_pending_freebies('BACKGROUND', $characterID);
 		
 	$rowoutput = vtm_render_freebie_section($items, $saved, $pendingfb, array(),
-			$freebiecosts, 'freebie_background', 1);
+			$freebiecosts, 'freebie_background', 1, $submitted);
 
 	if ($rowoutput != "")
 		$output .= "<table>$rowoutput</table></td></tr></table>\n";
@@ -3076,7 +3120,7 @@ function vtm_render_freebie_backgrounds($characterID) {
 
 }
 
-function vtm_render_freebie_merits($characterID) {
+function vtm_render_freebie_merits($characterID, $submitted) {
 	global $wpdb;
 	
 	$output      = "";
@@ -3087,7 +3131,7 @@ function vtm_render_freebie_merits($characterID) {
 	$pendingfb = vtm_get_pending_freebies('MERIT', $characterID);
 
 	$rowoutput = vtm_render_freebie_section($items, $saved, $pendingfb, array(),
-			$freebiecosts, 'freebie_merit', 1);
+			$freebiecosts, 'freebie_merit', 1, $submitted);
 	
 	if ($rowoutput != "")
 		$output .= "<table id='merit_freebie_table'>$rowoutput</table></td></tr></table>\n";
@@ -3933,7 +3977,7 @@ function vtm_sanitize_keys($a) {
 	return sanitize_key($a);
 }
 
-function vtm_render_chargen_xp_stats($characterID) {
+function vtm_render_chargen_xp_stats($characterID, $submitted) {
 	$output = "";
 
 	// Get costs
@@ -3952,7 +3996,7 @@ function vtm_render_chargen_xp_stats($characterID) {
 	// Currently bought with XP
 	$pendingxp  = vtm_get_pending_chargen_xp('STAT', $characterID);  // name => value
 	
-	$rowoutput = vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, $pendingxp, 'xp_stat', 0);
+	$rowoutput = vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, $pendingxp, 'xp_stat', 0, $submitted);
 
 	if ($rowoutput != "")
 		$output .= "<table>$rowoutput</table></td></tr></table>\n";
@@ -3960,7 +4004,7 @@ function vtm_render_chargen_xp_stats($characterID) {
 	return $output;
 }
 
-function vtm_render_chargen_xp_paths($characterID) {
+function vtm_render_chargen_xp_paths($characterID, $submitted) {
 	$output = "";
 
 	$xpcosts   = vtm_get_chargen_xp_costs('PATH', $characterID);
@@ -3971,7 +4015,7 @@ function vtm_render_chargen_xp_paths($characterID) {
 	//print_r($current_path);
 	
 	$rowoutput = vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, 
-		$pendingxp, 'xp_path', 1);
+		$pendingxp, 'xp_path', 1, $submitted);
 	
 	/*
 	$grp = "";
@@ -4036,7 +4080,7 @@ function vtm_render_chargen_xp_paths($characterID) {
 	return $output;
 }
 
-function vtm_render_chargen_xp_skills($characterID) {
+function vtm_render_chargen_xp_skills($characterID, $submitted) {
 	global $wpdb;
 	
 	$output = "";
@@ -4048,7 +4092,7 @@ function vtm_render_chargen_xp_skills($characterID) {
 	$pendingfb = vtm_get_pending_freebies('SKILL', $characterID);
 	$pendingxp = vtm_get_pending_chargen_xp('SKILL', $characterID);
 	
-	$rowoutput = vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, $pendingxp, 'xp_skill', 1);
+	$rowoutput = vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, $pendingxp, 'xp_skill', 1, $submitted);
 	
 	if ($rowoutput != "")
 		$output .= "<table>$rowoutput</table></td></tr></table>\n";
@@ -4057,7 +4101,7 @@ function vtm_render_chargen_xp_skills($characterID) {
 
 }
 
-function vtm_render_chargen_xp_merits($characterID) {
+function vtm_render_chargen_xp_merits($characterID, $submitted) {
 	global $wpdb;
 	
 	$output = "";
@@ -4071,7 +4115,7 @@ function vtm_render_chargen_xp_merits($characterID) {
 	$pendingxp = vtm_get_pending_chargen_xp('MERIT', $characterID);
 	
 	$rowoutput = vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, 
-		$pendingxp, 'xp_merit', 1, $fbcosts);
+		$pendingxp, 'xp_merit', 1, $submitted, $fbcosts);
 	
 	if ($rowoutput != "")
 		$output .= "<table id='merit_xp_table'>$rowoutput</table></td></tr></table>\n";
@@ -4977,38 +5021,42 @@ function vtm_validate_xp($settings, $characterID, $usepost = 1) {
 	return array($ok, $errormessages, $complete);
 }
 
-function vtm_render_date_entry($fieldname, $day, $month, $year) {
+function vtm_render_date_entry($fieldname, $day, $month, $year, $submitted) {
 
-	$output ="
-	<fieldset>
-	<label for='month_$fieldname'>Month</label>
-	<select id='month_$fieldname' name='month_$fieldname' autocomplete='off' />
-		<option value='0'>[Select]</option>      
-		<option value='01' " . selected('01', $month, false) . ">January</option>      
-		<option value='02' " . selected('02', $month, false) . ">February</option>      
-		<option value='03' " . selected('03', $month, false) . ">March</option>      
-		<option value='04' " . selected('04', $month, false) . ">April</option>      
-		<option value='05' " . selected('05', $month, false) . ">May</option>      
-		<option value='06' " . selected('06', $month, false) . ">June</option>      
-		<option value='07' " . selected('07', $month, false) . ">July</option>      
-		<option value='08' " . selected('08', $month, false) . ">August</option>      
-		<option value='09' " . selected('09', $month, false) . ">September</option>      
-		<option value='10' " . selected('10', $month, false) . ">October</option>      
-		<option value='11' " . selected('11', $month, false) . ">November</option>      
-		<option value='12' " . selected('12', $month, false) . ">December</option>      
-	</select> -
-	<label for='day_$fieldname'>Day</label>
-	<select id='day_$fieldname'  name='day_$fieldname' autocomplete='off' />
-		<option value='0'>[Select]</option>";
-	for ($i = 1; $i <= 31 ; $i++) {
-		$val = sprintf("%02d", $i);
-		$output .= "<option value='$val' " . selected($val, $day, false) . ">$i</option>\n";
+	if ($submitted) {
+		$output = date_i18n(get_option('date_format'),strtotime("$year-$month-$day"));
+	} else {
+		$output ="
+		<fieldset>
+		<label for='month_$fieldname'>Month</label>
+		<select id='month_$fieldname' name='month_$fieldname' autocomplete='off' />
+			<option value='0'>[Select]</option>      
+			<option value='01' " . selected('01', $month, false) . ">January</option>      
+			<option value='02' " . selected('02', $month, false) . ">February</option>      
+			<option value='03' " . selected('03', $month, false) . ">March</option>      
+			<option value='04' " . selected('04', $month, false) . ">April</option>      
+			<option value='05' " . selected('05', $month, false) . ">May</option>      
+			<option value='06' " . selected('06', $month, false) . ">June</option>      
+			<option value='07' " . selected('07', $month, false) . ">July</option>      
+			<option value='08' " . selected('08', $month, false) . ">August</option>      
+			<option value='09' " . selected('09', $month, false) . ">September</option>      
+			<option value='10' " . selected('10', $month, false) . ">October</option>      
+			<option value='11' " . selected('11', $month, false) . ">November</option>      
+			<option value='12' " . selected('12', $month, false) . ">December</option>      
+		</select> -
+		<label for='day_$fieldname'>Day</label>
+		<select id='day_$fieldname'  name='day_$fieldname' autocomplete='off' />
+			<option value='0'>[Select]</option>";
+		for ($i = 1; $i <= 31 ; $i++) {
+			$val = sprintf("%02d", $i);
+			$output .= "<option value='$val' " . selected($val, $day, false) . ">$i</option>\n";
+		}
+	  
+		$output .= "</select> -
+		<label for='year_$fieldname'>Year</label>
+		<input type='text' name='year_$fieldname' size=5 value='$year' />
+		</fieldset>\n";
 	}
-  
-	$output .= "</select> -
-	<label for='year_$fieldname'>Year</label>
-	<input type='text' name='year_$fieldname' size=5 value='$year' />
-	</fieldset>\n";
 
 	return $output;
 }

@@ -229,9 +229,12 @@ function vtm_character_options() {
 				if ($i % 2) echo " class=\"alternate\"";
 				echo ">\n";
 				echo "<th>";
-				if (!empty($character->wordpress_id))
+				
+				if ($character->chargen_status != 'Approved')
+					echo $name;
+				elseif (!empty($character->wordpress_id))
 					echo '<a href="' . $stlinks['viewCharSheet']->LINK . '?CHARACTER='. urlencode($character->wordpress_id) . '">' . $name . '</a>';
-				else 
+				else
 					echo '<a href="' . $stlinks['viewCharSheet']->LINK . '?characterID='. urlencode($character->ID) . '">' . $name . '</a>';
 				
 				echo "</th><td>";
@@ -243,9 +246,9 @@ function vtm_character_options() {
 				$delete_url = add_query_arg('characterID', $character->ID, $delete_url);
 				$delete_url = add_query_arg('characterName', urlencode($character->wordpress_id), $delete_url);
 				echo '&nbsp;<a href="' . htmlentities($delete_url) . '"><img src="' . $iconurl . 'delete.png" alt="Delete" title="Delete Character" /></a>';
+				echo '&nbsp;<a href="' . $stlinks['printCharSheet']->LINK  . '?characterID=' . urlencode($character->ID) . '"><img src="' . $iconurl . 'print.png" alt="Print" title="Print Character" /></a>';
 				
 				if (!empty($character->wordpress_id) && $character->chargen_status == 'Approved') {
-					echo '&nbsp;<a href="' . $stlinks['printCharSheet']->LINK  . '?CHARACTER='. urlencode($character->wordpress_id) . '"><img src="' . $iconurl . 'print.png" alt="Print" title="Print Character" /></a>';
 					echo '&nbsp;<a href="' . $stlinks['viewProfile']->LINK     . '?CHARACTER='. urlencode($character->wordpress_id) . '"><img src="' . $iconurl . 'profile.png" alt="Profile" title="View Profile" /></a>';
 					echo '&nbsp;<a href="' . $stlinks['viewXPSpend']->LINK     . '?CHARACTER='. urlencode($character->wordpress_id) . '"><img src="' . $iconurl . 'spendxp.png" alt="XP Spend" title="Spend Experience" /></a>';
 					echo '&nbsp;<a href="' . $stlinks['viewExtBackgrnd']->LINK . '?CHARACTER='. urlencode($character->wordpress_id) . '"><img src="' . $iconurl . 'background.png" alt="Background" title="Extended Background" /></a>';
