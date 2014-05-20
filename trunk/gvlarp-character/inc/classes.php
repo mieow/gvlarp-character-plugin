@@ -365,11 +365,11 @@ class vtmclass_character {
 				ORDER BY bground.name ASC;";
 		$sql = $wpdb->prepare($sql, $characterID, $characterID);
 		$result = $wpdb->get_results($sql);
-		//echo "<p>SQL: $sql</p>";
 		$sql = "SELECT bground.NAME			background,
 					''						sector,
 					freebie.SPECIALISATION	comment,
-					freebie.LEVEL_TO 		level
+					freebie.LEVEL_TO 		level,
+					freebie.PENDING_DETAIL  detail
 			FROM
 				" . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND freebie,
 				" . VTM_TABLE_PREFIX . "BACKGROUND bground
@@ -379,6 +379,7 @@ class vtmclass_character {
 				AND freebie.ITEMTABLE = 'BACKGROUND'
 				AND freebie.CHARTABLE_ID = ''";
 		$sql = $wpdb->prepare($sql, $characterID);
+		//echo "<p>SQL: $sql</p>";
 		$freebies = $wpdb->get_results($sql);
 		
 		$this->backgrounds = array_merge($result, $freebies);
@@ -576,7 +577,7 @@ class vtmclass_character {
 					freebie.SPECIALISATION	comment,
 					freebie.LEVEL_TO		level,
 					0						pending,
-					''						detail
+					freebie.PENDING_DETAIL	detail
 				FROM
 					" . VTM_TABLE_PREFIX . "MERIT merits,
 					" . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND freebie

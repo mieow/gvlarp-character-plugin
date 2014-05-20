@@ -563,6 +563,11 @@ table.feedingmapkey {width:auto;}
     padding:0 .1em;
     line-height:1.2;
 }
+#chargen-main .mfdotselect > img {
+    width:12px;
+    padding:0 .1em;
+    line-height:1.2;
+}
 
 #chargen-main .dotselect:not(:checked) > label {
     background-image: url('/wp-content/plugins/gvlarp-character/images/cg_emptydot.jpg');
