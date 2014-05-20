@@ -241,6 +241,8 @@ function vtm_character_options() {
 				echo '<div>';
 				if ($character->chargen_status == 'Approved')
 					echo '&nbsp;<a href="' . $stlinks['editCharSheet']->LINK . '?characterID=' . urlencode($character->ID) . '"><img src="' . $iconurl . 'edit.png" alt="Edit" title="Edit Character" /></a>';
+				else
+					echo '&nbsp;<a href="' . $stlinks['viewCharGen']->LINK . '?characterID=' . urlencode($character->ID) . '"><img src="' . $iconurl . 'edit.png" alt="Edit" title="Edit Character" /></a>';
 
 				$delete_url = add_query_arg('action', 'delete', $current_url);
 				$delete_url = add_query_arg('characterID', $character->ID, $delete_url);
@@ -1799,6 +1801,160 @@ function vtm_charactername_used($name, $characterID = "") {
 	} else {
 		return 1;
 	}
+
+}
+
+function vtm_character_chargen_approval() {
+	global $wpdb;
+
+	if ( !current_user_can( 'manage_options' ) )  {
+		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
+	}
+	
+    $testListTable = new vtmclass_admin_charapproval_table();
+	//$doaction = vtm_player_input_validation();
+
+	$iconurl = plugins_url('adminpages/icons/',dirname(__FILE__));
+	$testListTable->prepare_items();
+	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+	$noclan_url  = remove_query_arg( 'clan', $current_url );
+	?>
+	<div class="wrap">
+		<h2>Character Approval</h2>
+
+		<form id="chargen-filter" method="get" action='<?php print htmlentities($current_url); ?>'>
+			<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
+			<?php $testListTable->display() ?>
+		</form>
+	
+	</div>
+	<?php
+}
+
+class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
+   
+    function __construct(){
+        global $status, $page;
+                
+        parent::__construct( array(
+            'singular'  => 'character',     
+            'plural'    => 'characters',    
+            'ajax'      => false        
+        ) );
+    }
+	
+
+    function process_bulk_action() {
+ 		global $wpdb;
+
+	}
+
+
+    function column_default($item, $column_name){
+        switch($column_name){
+          case 'NAME':
+                return stripslashes($item->$column_name);
+          case 'CLAN':
+                return stripslashes($item->$column_name);
+          case 'PLAYER':
+                return stripslashes($item->$column_name);
+         case 'CONCEPT':
+                return $item->$column_name;
+         case 'CHARGEN_NOTE_TO_ST':
+                return $item->$column_name;
+         default:
+                return print_r($item,true); 
+        }
+    }
+ 
+    function column_name($item){
+        
+        $actions = array(
+            'view'      => sprintf('<a href="%s?characterID=%s">View</a>',$this->stlinks['viewCharGen']->LINK,$item->ID),
+            'print'     => sprintf('<a href="%s?characterID=%s">Print</a>',$this->stlinks['printCharSheet']->LINK,$item->ID),
+            'approveit' => sprintf('<a href="?page=%s&amp;action=%s&amp;character=%s">Approve</a>',$_REQUEST['page'],'approveit',$item->ID),
+            'denyit'    => sprintf('<a href="?page=%s&amp;action=%s&amp;character=%s">Deny</a>',$_REQUEST['page'],'denyit',$item->ID),
+        );
+        
+        return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
+            $item->NAME,
+            $item->ID,
+            $this->row_actions($actions)
+        );
+    }
+   
+
+    function get_columns(){
+        $columns = array(
+            'cb'         => '<input type="checkbox" />', 
+            'NAME'       => 'Name',
+            'CLAN' 		 => 'Clan',
+            'PLAYER'     => 'Player',
+            'CONCEPT'    => 'Character Concept',
+            'CHARGEN_NOTE_TO_ST' => 'Note to Storytellers'
+       );
+        return $columns;
+		
+    }
+    
+    function get_sortable_columns() {
+        $sortable_columns = array(
+            'NAME'   => array('NAME',true),
+            'CLAN'   => array('CLAN',false),
+            'PLAYER' => array('PLAYER',false)
+       );
+        return $sortable_columns;
+    }
+	
+    function prepare_items() {
+        global $wpdb; 
+        
+        $this->type    = "chargen";
+		$this->stlinks = $wpdb->get_results("SELECT VALUE, LINK FROM " . VTM_TABLE_PREFIX. "ST_LINK ORDER BY ORDERING", OBJECT_K);
+
+        $columns  = $this->get_columns();
+        $hidden   = array();
+        $sortable = $this->get_sortable_columns();
+		
+		$this->_column_headers = array($columns, $hidden, $sortable);
+		
+        $this->process_bulk_action();
+		
+		/* Get the data from the database */
+		$sql = "SELECT ch.ID, ch.NAME, pl.NAME as PLAYER, clan.NAME as CLAN,
+					ch.CONCEPT, ch.CHARGEN_NOTE_TO_ST
+				FROM
+					" . VTM_TABLE_PREFIX . "PLAYER pl,
+					" . VTM_TABLE_PREFIX . "CHARACTER ch,
+					" . VTM_TABLE_PREFIX . "CLAN clan,
+					" . VTM_TABLE_PREFIX . "CHARGEN_STATUS cgs
+				WHERE
+					ch.PLAYER_ID = pl.id
+					AND ch.PRIVATE_CLAN_ID = clan.id
+					AND ch.CHARGEN_STATUS_ID = cgs.ID
+					AND cgs.NAME = 'Submitted'";
+				
+			/* order the data according to sort columns */
+		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']))
+			$sql .= " ORDER BY {$_REQUEST['orderby']} {$_REQUEST['order']}, NAME ASC";
+		else
+			$sql .= " ORDER BY NAME ASC";
+					
+		//echo "<p>SQL: $sql</p>";
+		
+		$data =$wpdb->get_results($sql);
+        
+        $current_page = $this->get_pagenum();
+        $total_items = count($data);
+        
+        $this->items = $data;
+        
+        $this->set_pagination_args( array(
+            'total_items' => $total_items,                  
+            'per_page'    => $total_items,                  
+            'total_pages' => 1
+        ) );
+    }
 
 }
 
