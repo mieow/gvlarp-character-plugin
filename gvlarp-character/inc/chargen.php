@@ -30,14 +30,24 @@ function vtm_chargen_flow_steps($characterID, $templateID) {
 	$questions = count(vtm_get_chargen_questions($characterID));
 	$settings = vtm_get_chargen_settings($templateID);
 	$chargenstatus = $wpdb->get_var($wpdb->prepare("SELECT cgs.NAME FROM " . VTM_TABLE_PREFIX . "CHARACTER c, " . VTM_TABLE_PREFIX . "CHARGEN_STATUS cgs WHERE c.ID = %s AND c.CHARGEN_STATUS_ID = cgs.ID",$characterID));
+	$feedback = $wpdb->get_var( $wpdb->prepare("SELECT CHARGEN_NOTE_FROM_ST FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
+	
 	//print_r($settings);
 	
-	$buttons = array (
-		array(	'title'      => "Basic Information", 
+	$buttons = array ();
+	
+	if (!empty($feedback)) {
+		array_push($buttons,array(	'title'      => "Storyteller Feedback", 
+				'function'   => 'vtm_render_feedback',
+				'validate'   => 'vtm_validate_dummy',
+				'save'       => 'vtm_save_dummy'));
+	}
+	
+	array_push($buttons,array(	'title'      => "Basic Information", 
 				'function'   => 'vtm_render_basic_info',
 				'validate'   => 'vtm_validate_basic_info',
-				'save'       => 'vtm_save_basic_info')
-	);
+				'save'       => 'vtm_save_basic_info'));
+
 	if ( ($settings['attributes-method'] == 'PST' && (
 			$settings['attributes-tertiary'] > 0 || 
 			$settings['attributes-secondary'] > 0 || 
@@ -151,7 +161,9 @@ function vtm_get_chargen_content() {
 		$chargenstatus = $wpdb->get_var($sql);
 	}
 	
-	if ($step > 0) $output .= "<p>Character Generation Status: $chargenstatus</p>";
+	if ($step > 0) {
+		$output .= "<p><strong>Character Generation Status:</strong> $chargenstatus</p>";
+	}
 	
 	$output .= "<form id='chargen_form' method='post'>";
 	
@@ -482,6 +494,21 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 		$output .= "<textarea name='concept' rows='3' cols='50'>$concept</textarea>";
 	$output .= "</td></tr>
 		</table>";
+
+	return $output;
+}
+
+function vtm_render_feedback($step, $characterID, $templateID, $submitted) {
+	global $wpdb;
+
+	$output = "";
+	
+	$output .= "<h3>Step $step: Storyteller Feedback</h3>\n";
+	$feedback = $wpdb->get_var( $wpdb->prepare("SELECT CHARGEN_NOTE_FROM_ST FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
+
+	$output .= "<p>Please review the feedback from the Storytellers and make any
+				appropriate changes before resubmitting.</p>";
+	$output .= "<p class='gvext_section'>" . stripslashes($feedback) . "</p>";
 
 	return $output;
 }
@@ -5453,7 +5480,8 @@ function vtm_save_submit($characterID, $templateID) {
 	$submittedid = $wpdb->get_var("SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARGEN_STATUS WHERE NAME = 'Submitted'");
 	
 	$result = $wpdb->update(VTM_TABLE_PREFIX . "CHARACTER",
-				array ('CHARGEN_STATUS_ID' => $submittedid),
+				array ('CHARGEN_STATUS_ID' => $submittedid,
+						'CHARGEN_NOTE_FROM_ST' => ''),
 				array ('ID' => $characterID)
 			);
 	
@@ -5517,7 +5545,7 @@ You can view this character by following this link: $url";
 	return $characterID;
 }
 function vtm_validate_dummy($settings, $characterID, $usepost = 1) {
-	return array(1, "Dummy Validation OK", 1);
+	return array(1, "", 1);
 
 }
 function vtm_save_dummy($characterID, $templateID) {

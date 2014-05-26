@@ -1812,8 +1812,22 @@ function vtm_character_chargen_approval() {
 	}
 	
     $testListTable = new vtmclass_admin_charapproval_table();
-	//$doaction = vtm_player_input_validation();
-
+	
+	$showform = 0;
+	if (isset($_REQUEST['do_deny'])) {
+		// deny
+		if (empty($_REQUEST['chargen_denied'])) {
+			echo "<p>Please enter why the character has been denied</p>";
+			$showform = 1;
+		} else {
+			$testListTable->deny($_REQUEST['characterID'], $_REQUEST['chargen_denied']);
+		}
+	}
+	elseif (isset($_REQUEST['action']) && 'string' == gettype($_REQUEST['character']) && $_REQUEST['action'] == 'denyit') {
+		// prompt for deny message
+		$showform = 1;
+	}
+	
 	$iconurl = plugins_url('adminpages/icons/',dirname(__FILE__));
 	$testListTable->prepare_items();
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
@@ -1821,6 +1835,8 @@ function vtm_character_chargen_approval() {
 	?>
 	<div class="wrap">
 		<h2>Character Approval</h2>
+		
+		<?php vtm_render_chargen_approve_form($showform, isset($_REQUEST['character']) ? $_REQUEST['character'] : 0); ?>
 
 		<form id="chargen-filter" method="get" action='<?php print htmlentities($current_url); ?>'>
 			<input type="hidden" name="page" value="<?php print $_REQUEST['page'] ?>" />
@@ -1829,6 +1845,37 @@ function vtm_character_chargen_approval() {
 	
 	</div>
 	<?php
+}
+
+function vtm_render_chargen_approve_form($showform, $characterID) {
+	global $wpdb;
+	
+	if ($characterID > 0)
+		$character = $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
+	else
+		$character = "";
+
+	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
+	$current_url = remove_query_arg( 'action', $current_url );
+	
+	if ($showform) {
+	?>
+	<form id="new-<?php print $type; ?>" method="post" action='<?php print htmlentities($current_url); ?>'>
+		<input type="hidden" name="characterID" value="<?php print $characterID; ?>" />
+		<table style='width:500px'>
+		<tr>
+			<td>Character: </td><td><?php print $character; ?></td>
+		</tr>
+		<tr>
+			<td>Denied Reason:  </td>
+			<td><textarea name="chargen_denied" cols=50></textarea></td>
+		</tr>
+		</table>
+		<input type="submit" name="do_deny" class="button-primary" value="Deny" />
+	</form>
+	
+	<?php
+	}
 }
 
 class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
@@ -1843,7 +1890,48 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
         ) );
     }
 	
-
+	function approve($characterID) {
+		global $wpdb;
+		
+		// Update Status and save approval date in ST notes
+		
+		// Create initial tables for WP, Path, etc
+		
+		// Create Wordpress Account with correct role
+		
+		// Email user with the details
+		
+	}
+	
+	function deny($characterID, $denyMessage) {
+		global $wpdb;
+		
+		$statusid = $wpdb->get_var("SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARGEN_STATUS WHERE NAME = 'In Progress'");
+		
+		// Update Status and ST notes
+		$data = array(
+			'CHARGEN_NOTE_FROM_ST'  => $denyMessage,
+			'CHARGEN_STATUS_ID'     => $statusid
+		);
+		$result = $wpdb->update(VTM_TABLE_PREFIX . "CHARACTER",
+			$data,
+			array (
+				'ID' => $characterID
+			)
+		);
+		
+		if ($result) {
+			// Email user with the details
+			$result = vtm_email_chargen_denied($characterID, $denyMessage);
+			
+			echo "<p style='color:green'>Denied message saved</p>";
+		} else {
+			$wpdb->print_error();
+			echo "<p style='color:red'>Could not deny character</p>";
+		}
+		
+	}
+	
     function process_bulk_action() {
  		global $wpdb;
 
@@ -1857,6 +1945,8 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
           case 'CLAN':
                 return stripslashes($item->$column_name);
           case 'PLAYER':
+                return stripslashes($item->$column_name);
+          case 'TEMPLATE':
                 return stripslashes($item->$column_name);
          case 'CONCEPT':
                 return $item->$column_name;
@@ -1890,6 +1980,7 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
             'NAME'       => 'Name',
             'CLAN' 		 => 'Clan',
             'PLAYER'     => 'Player',
+            'TEMPLATE'   => 'Template',
             'CONCEPT'    => 'Character Concept',
             'CHARGEN_NOTE_TO_ST' => 'Note to Storytellers'
        );
@@ -1922,16 +2013,18 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 		
 		/* Get the data from the database */
 		$sql = "SELECT ch.ID, ch.NAME, pl.NAME as PLAYER, clan.NAME as CLAN,
-					ch.CONCEPT, ch.CHARGEN_NOTE_TO_ST
+					ch.CONCEPT, ch.CHARGEN_NOTE_TO_ST, cgt.NAME as TEMPLATE
 				FROM
 					" . VTM_TABLE_PREFIX . "PLAYER pl,
 					" . VTM_TABLE_PREFIX . "CHARACTER ch,
 					" . VTM_TABLE_PREFIX . "CLAN clan,
-					" . VTM_TABLE_PREFIX . "CHARGEN_STATUS cgs
+					" . VTM_TABLE_PREFIX . "CHARGEN_STATUS cgs,
+					" . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE cgt
 				WHERE
 					ch.PLAYER_ID = pl.id
 					AND ch.PRIVATE_CLAN_ID = clan.id
 					AND ch.CHARGEN_STATUS_ID = cgs.ID
+					AND ch.CHARGEN_TEMPLATE_ID = cgt.ID
 					AND cgs.NAME = 'Submitted'";
 				
 			/* order the data according to sort columns */
@@ -1958,4 +2051,45 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 
 }
 
+function vtm_email_chargen_denied($characterID, $denyMessage) {
+	global $current_user;
+	global $wpdb;
+	
+	$sql = "SELECT ch.NAME as name, pl.NAME as player, ch.EMAIL as email
+			FROM " . VTM_TABLE_PREFIX . "CHARACTER ch,
+				" . VTM_TABLE_PREFIX . "PLAYER pl
+			WHERE
+				ch.PLAYER_ID = pl.ID
+				AND ch.ID = %s";
+	$results = $wpdb->get_row($wpdb->prepare($sql, $characterID));
+
+	$name   = $results->name;
+	$player = $results->player;
+	$email  = $results->email;
+	
+	$ref = "XXX";
+	
+	$url = add_query_arg('reference', $ref, vtm_get_stlink_url('viewCharGen', true));
+	$tag = get_option( 'vtm_chargen_emailtag' );
+	$fromname = get_option( 'vtm_chargen_email_from_name', 'The Storytellers');
+	$fromaddr = get_option( 'vtm_chargen_email_from_address', get_bloginfo('admin_email') );
+	
+	$subject   = "$tag Review Character Generation: $name";
+	$headers[] = "From: \"$fromname\" <$fromaddr>";
+	
+	$userbody = "Hello $player,
+	
+The Storytellers have provided feedback on $name. Please review the comments and resubmit your character once any issues have been resolved.
+	
+\"" . stripslashes($denyMessage) . "\"
+	
+You can return to character generation by following this link: $url";
+	
+	$result = wp_mail($email, $subject, $userbody, $headers);
+	
+	if (!$result)
+		echo "<p>Failed to send email. Character Ref: $ref</p>";
+		
+	return $result;
+}
 ?>
