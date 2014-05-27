@@ -2025,7 +2025,8 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 					AND ch.PRIVATE_CLAN_ID = clan.id
 					AND ch.CHARGEN_STATUS_ID = cgs.ID
 					AND ch.CHARGEN_TEMPLATE_ID = cgt.ID
-					AND cgs.NAME = 'Submitted'";
+					AND cgs.NAME = 'Submitted'
+					AND ch.DELETED = 'N'";
 				
 			/* order the data according to sort columns */
 		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']))
@@ -2067,7 +2068,7 @@ function vtm_email_chargen_denied($characterID, $denyMessage) {
 	$player = $results->player;
 	$email  = $results->email;
 	
-	$ref = "XXX";
+	$ref = vtm_get_chargen_reference($characterID);
 	
 	$url = add_query_arg('reference', $ref, vtm_get_stlink_url('viewCharGen', true));
 	$tag = get_option( 'vtm_chargen_emailtag' );
