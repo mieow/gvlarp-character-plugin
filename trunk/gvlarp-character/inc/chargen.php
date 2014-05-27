@@ -164,6 +164,9 @@ function vtm_get_chargen_content() {
 	if ($step > 0) {
 		$output .= "<p><strong>Character Generation Status:</strong> $chargenstatus</p>";
 	}
+	if (vtm_isST()) {
+		$output .= "<p><strong>Character Reference:</strong> " . vtm_get_chargen_reference($characterID) . "</p>";
+	}
 	
 	$output .= "<form id='chargen_form' method='post'>";
 	
@@ -1514,7 +1517,7 @@ function vtm_render_choose_template() {
 	$ref = isset($_GET['reference']) ? $_GET['reference'] : '';
 	
 	$output .= "<p>Or, update a character: 
-		<label>Reference:</label> <input type='text' name='chargen_reference' value='$ref' size=5 ></p>";
+		<label>Reference:</label> <input type='text' name='chargen_reference' value='$ref' size=20 ></p>";
 	
 	return $output;
 }
@@ -2486,25 +2489,29 @@ function vtm_get_chargen_characterID() {
 
 	if (isset($_POST['chargen_reference']) && $_POST['chargen_reference'] != '') {
 		$charref = $_POST['chargen_reference'];
-		if (strpos($charref,'-') && strpos($charref,'-', strpos($charref,'-') + 1)) {
-			$ref = explode('-',$charref);
-			$id   = $ref[0];
-			$wpid = $ref[1];
-			$pid  = $ref[2];
+		if (strpos($charref,'/') && strpos($charref,'/', strpos($charref,'/') + 1)) {
+			$ref = explode('/',$charref);
+			$id   = $ref[0] * 1;
+			$pid  = $ref[1] * 1;
+			$tid  = $ref[2] * 1;
+			//$wpid = $ref[3] * 1;
 		
+			// Check player ID is valid based on character ID
 			$sql = "SELECT PLAYER_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s";
 			$result = $wpdb->get_row($wpdb->prepare($sql, $id));
-			
 			if (count($result) == 0 || $result->PLAYER_ID != $pid)
 				$id = -1;
-			
-			if (is_user_logged_in()) {
+		
+			// Check that wordpress ID is that of the current user
+			//		Or that the current user is an ST 
+			//		Or that the requested wordpress login name doesn't yet exist (ID = 0)
+			/* if (is_user_logged_in()) {
 				get_currentuserinfo();
 				if ($current_user->ID != $wpid && !vtm_isST())
 					$id = -1;
 			}
 			elseif ($wpid != 0)
-				$id = -1;
+				$id = -1; */
 			
 			// ensure character gen is in progress (and not approved)
 			if ($id > 0) {
@@ -2598,24 +2605,43 @@ function vtm_get_player_id_from_characterID($characterID) {
 
 }
 
+function vtm_get_login_from_characterID($characterID) {
+	global $wpdb;
+	
+	$sql = "SELECT WORDPRESS_ID 
+		FROM 
+			" . VTM_TABLE_PREFIX . "CHARACTER
+		WHERE
+			ID = %s";
+	$sql = $wpdb->prepare($sql, $characterID);
+	return $wpdb->get_var($sql);
+
+}
+
 function vtm_get_templateid($characterID) {
 	global $wpdb;
+	
+	$sql = "SELECT CHARGEN_TEMPLATE_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER
+		WHERE ID = %s";
+	$sql = $wpdb->prepare($sql, $characterID);
 	
 	if (isset($_POST['chargen_template'])) {
 		if (isset($_POST['chargen_reference']) && $_POST['chargen_reference'] != "") {
 			// look up what template the character was generated with
-			$sql = "SELECT CHARGEN_TEMPLATE_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER
-				WHERE ID = %s";
-			$sql = $wpdb->prepare($sql, $characterID);
 			$template = $wpdb->get_var($sql);
 			//echo "Looked up template ID from character : $template<br />";
 		} else {
 			$template = $_POST['chargen_template'];
 			//echo "Looked up template ID from Step 0 : $template<br />";
 		}
-	} else {
-		$template = isset($_POST['selected_template']) ? $_POST['selected_template'] : "";
+	} 
+	elseif (isset($_POST['selected_template']) && $_POST['selected_template'] != "") {
+		$template = $_POST['selected_template'] ;
 		//echo "Looked up template ID from last step : $template<br />";
+	}
+	else {
+		$template = $wpdb->get_var($sql);
+		//echo "Looked up template ID from character : $template<br />";
 	}
 	
 	return $template;
@@ -2641,14 +2667,15 @@ function vtm_get_clan_name($clanid) {
 function vtm_email_new_character($email, $characterID, $playerid, $name, $clanid, $player, $concept, $template) {
 	global $current_user;
 
-	if (is_user_logged_in()) {
+	/*if (is_user_logged_in()) {
 		get_currentuserinfo();
 		$userid       = $current_user->ID;
 	} else {
 		$userid = 0;
 	}
 	
-	$ref = $characterID . '-' . $userid . '-' . $playerid;
+	$ref = $characterID . '-' . $userid . '-' . $playerid; */
+	$ref = vtm_get_chargen_reference($characterID);
 	$clan = vtm_get_clan_name($clanid);
 	$tag = get_option( 'vtm_chargen_emailtag' );
 	$toname = get_option( 'vtm_chargen_email_from_name', 'The Storytellers');
@@ -4247,7 +4274,7 @@ function vtm_validate_basic_info($settings, $characterID, $usepost = 1) {
 		}
 	}
 	
-	if (empty($login)) {
+	if (!empty($login)) {
 		get_currentuserinfo();
 		if (username_exists( $login ) && $login != $current_user->user_login) {
 			$ok = 0;
@@ -4258,6 +4285,21 @@ function vtm_validate_basic_info($settings, $characterID, $usepost = 1) {
 			$ok = 0;
 			$complete = 0;
 			$errormessages .= "<li>ERROR: Login name '$login' is invalid. Please choose another.</li>";
+		}
+		else {
+			if ($characterID > 0) {
+				$sql = "SELECT NAME FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE WORDPRESS_ID = %s AND ID != %s";
+				$sql = $wpdb->prepare($sql, $login, $characterID);
+			} else {
+				$sql = "SELECT NAME FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE WORDPRESS_ID = %s";
+				$sql = $wpdb->prepare($sql, $login);
+			}
+			$names = $wpdb->get_col($sql);
+			if (count($names) > 0) {
+				$ok = 0;
+				$complete = 0;
+				$errormessages .= "<li>ERROR: Login name '$login' has already been chosen for another character being generated.</li>";
+			}
 		}
 	}
 	
@@ -5476,7 +5518,12 @@ function vtm_save_submit($characterID, $templateID) {
 	global $wpdb;
 	global $current_user;
 	
-	// Update Character Generation Status
+	// Exit if we aren't actually submitting the character
+	if (!isset($_POST['chargen-submit']) || !isset($_POST['status']) || $_POST['status'] != 1) {
+		return $characterID;
+	}
+
+		// Update Character Generation Status
 	$submittedid = $wpdb->get_var("SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARGEN_STATUS WHERE NAME = 'Submitted'");
 	
 	$result = $wpdb->update(VTM_TABLE_PREFIX . "CHARACTER",
@@ -5505,7 +5552,8 @@ function vtm_save_submit($characterID, $templateID) {
 		$results = $wpdb->get_row($wpdb->prepare($sql, $characterID));
 		
 		$playerid = $results->playerID;
-		$ref    = $characterID . '-' . $userid . '-' . $playerid;
+		//$ref    = $characterID . '-' . $userid . '-' . $playerid;
+		$ref = vtm_get_chargen_reference($characterID);
 		$tag    = get_option( 'vtm_chargen_emailtag' );
 		$toname = get_option( 'vtm_chargen_email_from_name', 'The Storytellers');
 		$toaddr = get_option( 'vtm_chargen_email_from_address', get_bloginfo('admin_email') );
@@ -5552,5 +5600,24 @@ function vtm_save_dummy($characterID, $templateID) {
 	return $characterID;
 }
 
+function vtm_get_chargen_reference($characterID) {
+
+	$cid = sprintf("%04d", $characterID);
+	$pid = sprintf("%04d", vtm_get_player_id_from_characterID($characterID));
+	$tid = sprintf("%04d", vtm_get_templateid($characterID));
+	
+	// $login = vtm_get_login_from_characterID($characterID);
+	// if (isset($login)) {
+		// $bloguser = get_users('search=' . $login . '&number=1');
+		// $wpid = isset($bloguser) ? sprintf("%04d", $bloguser[0]->user_login) : '0000';
+	// } else {
+		// $wpid = '0000';
+	// }
+	
+	$ref = "$cid/$pid/$tid/$wpid";
+	//echo "<li>Reference: $ref</li>";
+	return $ref;
+
+}
 
 ?>
