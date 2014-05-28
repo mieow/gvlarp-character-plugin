@@ -30,23 +30,27 @@ function vtm_chargen_flow_steps($characterID, $templateID) {
 	$questions = count(vtm_get_chargen_questions($characterID));
 	$settings = vtm_get_chargen_settings($templateID);
 	$chargenstatus = $wpdb->get_var($wpdb->prepare("SELECT cgs.NAME FROM " . VTM_TABLE_PREFIX . "CHARACTER c, " . VTM_TABLE_PREFIX . "CHARGEN_STATUS cgs WHERE c.ID = %s AND c.CHARGEN_STATUS_ID = cgs.ID",$characterID));
-	$feedback = $wpdb->get_var( $wpdb->prepare("SELECT CHARGEN_NOTE_FROM_ST FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
+	$feedback = $wpdb->get_var( $wpdb->prepare("SELECT NOTE_FROM_ST FROM " . VTM_TABLE_PREFIX . "CHARACTER_GENERATION WHERE CHARACTER_ID = %s", $characterID));
 	
 	//print_r($settings);
 	
 	$buttons = array ();
 	
 	if (!empty($feedback)) {
-		array_push($buttons,array(	'title'      => "Storyteller Feedback", 
-				'function'   => 'vtm_render_feedback',
-				'validate'   => 'vtm_validate_dummy',
-				'save'       => 'vtm_save_dummy'));
+		array_push($buttons,array(	
+			'title'      => "Storyteller Feedback", 
+			'function'   => 'vtm_render_feedback',
+			'validate'   => 'vtm_validate_dummy',
+			'save'       => 'vtm_save_dummy')
+		);
 	}
 	
-	array_push($buttons,array(	'title'      => "Basic Information", 
-				'function'   => 'vtm_render_basic_info',
-				'validate'   => 'vtm_validate_basic_info',
-				'save'       => 'vtm_save_basic_info'));
+	array_push($buttons,array(	
+		'title'      => "Basic Information", 
+		'function'   => 'vtm_render_basic_info',
+		'validate'   => 'vtm_validate_basic_info',
+		'save'       => 'vtm_save_basic_info')
+	);
 
 	if ( ($settings['attributes-method'] == 'PST' && (
 			$settings['attributes-tertiary'] > 0 || 
@@ -54,10 +58,12 @@ function vtm_chargen_flow_steps($characterID, $templateID) {
 			$settings['attributes-primary'] > 0)) ||
 		 ($settings['attributes-method'] != 'PST' && $settings['attributes-points'] > 0)) {
 		 
-		array_push($buttons,array(	'title' => "Attributes", 
-				'function'   => 'vtm_render_attributes',
-				'validate'   => 'vtm_validate_attributes',
-				'save'       => 'vtm_save_attributes'));
+		array_push($buttons,array(
+			'title' => "Attributes", 
+			'function'   => 'vtm_render_attributes',
+			'validate'   => 'vtm_validate_attributes',
+			'save'       => 'vtm_save_attributes')
+		);
 	}
 	if ( $settings['abilities-tertiary'] > 0 || 
 		 $settings['abilities-secondary'] > 0 || 
@@ -151,7 +157,7 @@ function vtm_get_chargen_content() {
 	$templateID  = vtm_get_templateid($characterID);
 	
 	if ($characterID == -1) {
-		$output .= "<p>Invalid Reference</p>";
+		$output .= "<div class='gvxp_error'><p>Invalid Reference</p></div>";
 		$step = 0;
 		$chargenstatus = '';
 	} else {
@@ -161,11 +167,8 @@ function vtm_get_chargen_content() {
 		$chargenstatus = $wpdb->get_var($sql);
 	}
 	
-	if ($step > 0) {
-		$output .= "<p><strong>Character Generation Status:</strong> $chargenstatus</p>";
-	}
-	if (vtm_isST()) {
-		$output .= "<p><strong>Character Reference:</strong> " . vtm_get_chargen_reference($characterID) . "</p>";
+	if ($step > 0 && isset($chargenstatus)) {
+		$output .= "<p><strong>Character Generation Status:</strong> $chargenstatus, <strong>Character Reference:</strong> " . vtm_get_chargen_reference($characterID) . "</p>";
 	}
 	
 	$output .= "<form id='chargen_form' method='post'>";
@@ -296,7 +299,6 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 	$output = "";
 	
 	$mustbeloggedin = get_option( 'vtm_chargen_mustbeloggedin' );
-	$chargenacct    = get_option( 'vtm_chargen_wpaccount' );
 	$clans          = vtm_get_clans();
 	$natures        = vtm_get_natures();
 	$config         = vtm_getConfig();
@@ -304,6 +306,7 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 	$characterID = $characterID ? $characterID : (isset($_POST['characterID']) ? $_POST['characterID'] : -1);
 	
 	if ($characterID > 0) {
+	
 		// get from database
 		$sql = "SELECT characters.NAME as charactername, 
 					characters.EMAIL, 
@@ -358,30 +361,32 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 		$natureid    = 0;
 		$demeanourid = 0;
 		$playerset   = 0;
-	}
-	
-	if (is_user_logged_in()) {
-		get_currentuserinfo();
-		$userid       = $current_user->ID;
 		
-		if ($userid != $chargenacct) {
+		if (is_user_logged_in()) {
+			get_currentuserinfo();
+			$userid = $current_user->ID;
+			
 			if (empty($email)) $email = $current_user->user_email;
 			if (empty($login)) $login = $current_user->user_login;
 			
-			if (!empty($playername)) {
-				// find another account with that email to guess the player
-				$otherlogins = get_users("search=$email&exclude=$userid&number=1");
-				$player      = vtm_get_player_from_login($otherlogins[0]->user_login);
-				if (isset($player)) {
-					$shownew    = 'off';
-					$playername = $player->NAME;
-					$playerid   = $player->ID;
+			if (empty($playername)) {
+				// find other accounts with that email to guess the player
+				$otherlogins = get_users("search=$email&exclude=$userid");
+				foreach ($otherlogins as $other) {
+					echo "<li>{$other->user_login}</li>";
+					$player      = vtm_get_player_from_login($other->user_login);
+					if (isset($player)) {
+						$shownew    = 'off';
+						$playername = $player->NAME;
+						$playerid   = $player->ID;
+					}
 				}
 			} else {
 				$playerid = vtm_get_player_name($playername);
 			}
-		}
-	} 
+		} 
+	}
+	
 	
 	$output .= "<h3>Step $step: Basic Information</h3>\n";
 	$output .= "<input type='hidden' name='playerID' value='$playerid'>\n";
@@ -507,7 +512,7 @@ function vtm_render_feedback($step, $characterID, $templateID, $submitted) {
 	$output = "";
 	
 	$output .= "<h3>Step $step: Storyteller Feedback</h3>\n";
-	$feedback = $wpdb->get_var( $wpdb->prepare("SELECT CHARGEN_NOTE_FROM_ST FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
+	$feedback = $wpdb->get_var( $wpdb->prepare("SELECT NOTE_FROM_ST FROM " . VTM_TABLE_PREFIX . "CHARACTER_GENERATION WHERE CHARACTER_ID = %s", $characterID));
 
 	$output .= "<p>Please review the feedback from the Storytellers and make any
 				appropriate changes before resubmitting.</p>";
@@ -838,7 +843,7 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 	$items, $posted, $pendingfb, $pendingxp, $title, $postvariable, $submitted) {
 
 	$output = "";
-	
+
 	// Make a guess from saved levels which is Primary/Secondary/Tertiary
 	if (count($saved) > 0) {
 		if ($isPST) {
@@ -848,12 +853,12 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 				$grp = sanitize_key($item->GROUPING);
 				if (isset($saved[$key])) {
 					if (isset($grouptotals[$grp]))
-						$grouptotals[$grp] += $saved[$key]->LEVEL - $freedot;
-					else
-						$grouptotals[$grp] = $saved[$key]->LEVEL - $freedot;
+						$grouptotals[$grp] += max(0,$saved[$key]->LEVEL - $freedot);
+					elseif ($saved[$key]->LEVEL > 0)
+						$grouptotals[$grp] = max(0,$saved[$key]->LEVEL - $freedot);
 				}
 			}
-			//print_r($grouptotals);
+			print_r($grouptotals);
 			$groupselected = array();
 			foreach ($grouptotals as $grp => $total) {
 				switch($total) {
@@ -863,7 +868,7 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 					default: $groupselected[$grp] = 0;
 				}
 			}
-			//print_r($groupselected);
+			print_r($groupselected);
 		}
 	}
 
@@ -1217,7 +1222,7 @@ function vtm_render_finishing($step, $characterID, $templateID, $submitted) {
 	$title = "";
 	
 	// Notes to ST
-	$stnotes = $wpdb->get_var($wpdb->prepare("SELECT CHARGEN_NOTE_TO_ST FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
+	$stnotes = $wpdb->get_var($wpdb->prepare("SELECT NOTE_TO_ST FROM " . VTM_TABLE_PREFIX . "CHARACTER_GENERATION WHERE CHARACTER_ID = %s", $characterID));
 	$stnotes = isset($_POST['noteforST']) ? $_POST['noteforST'] : $stnotes;
 	
 	$spec_output = "";
@@ -1806,7 +1811,6 @@ function vtm_save_finish($characterID, $templateID) {
 	$doe = $_POST['year_doe'] . '-' . $_POST['month_doe'] . '-' . $_POST['day_doe'];
 	
 	$data = array (
-		'CHARGEN_NOTE_TO_ST'  => $_POST['noteforST'],
 		'SIRE'                => $_POST['sire'],
 		'DATE_OF_BIRTH'       => $dob,
 		'DATE_OF_EMBRACE'     => $doe,
@@ -1819,9 +1823,20 @@ function vtm_save_finish($characterID, $templateID) {
 		array (
 			'ID' => $characterID
 		),
-		array('%s', '%s', '%s', '%s', '%d', '%s')
+		array('%s', '%s', '%s', '%d', '%s')
 	);		
 	
+	// Save CHARACTER_GENERATION information
+	$data = array (
+		'NOTE_TO_ST'  => $_POST['noteforST'],
+	);
+	$result = $wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_GENERATION",
+		$data,
+		array (
+			'CHARACTER_ID' => $characterID
+		),
+		array('%s')
+	);		
 	
 	// Save Specialities
 	if (isset($_POST['itemname'])) {
@@ -2223,7 +2238,7 @@ function vtm_save_virtues($characterID, $templateID) {
 	$data = array(
 		'CHARACTER_ID' => $characterID,
 		'STAT_ID'      => $wpid,
-		'LEVEL'        => $new['courage']
+		'LEVEL'        => isset($new['courage']) ? $new['courage'] : 0
 	);
 	if (isset($wpcsid)) {
 		// update
@@ -2309,6 +2324,7 @@ function vtm_save_virtues($characterID, $templateID) {
 
 function vtm_save_basic_info($characterID, $templateID) {
 	global $wpdb;
+	global $current_user;
 		
 	// New Player?
 	if (isset($_POST['newplayer']) && $_POST['newplayer'] == 'on') {
@@ -2414,9 +2430,7 @@ function vtm_save_basic_info($characterID, $templateID) {
 		'EMAIL'						=> $_POST['email'],
 		'LAST_UPDATED'				=> Date('Y-m-d'),	// Today
 		'VISIBLE'					=> 'Y',
-		'DELETED'					=> 'N',
-
-		'CHARGEN_TEMPLATE_ID'		=> $templateID
+		'DELETED'					=> 'N'
 	);
 	//print_r($dataarray);
 	
@@ -2431,12 +2445,42 @@ function vtm_save_basic_info($characterID, $templateID) {
 		
 		if ($result) 
 			echo "<p style='color:green'>Updated Character</p>";
-		else if ($result === 0) 
-			echo "<p style='color:orange'>No changes made to character</p>";
-		else {
+		else if ($result !== 0) {
 			$wpdb->print_error();
 			echo "<p style='color:red'>Could not update character</p>";
 		}
+
+		// Fix if row in CHARACTER_GENERATION table is missing
+		$sql = "SELECT COUNT(ID) FROM " . VTM_TABLE_PREFIX . "CHARACTER_GENERATION WHERE CHARACTER_ID = %s";
+		$count = $wpdb->get_var($wpdb->prepare($sql, $characterID));
+		if (!isset($count) || $count == 0) {
+			echo "<p style='color:red'>Fixing missing CHARACTER_GENERATION row</p>";
+			if (is_user_logged_in()) {
+				get_currentuserinfo();
+				$loggedin = $current_user->user_login;
+			} else {
+				$loggedin = '';
+			}
+			// Add character generation info
+			$dataarray = array (
+				'CHARACTER_ID'     => $characterID,
+				'TEMPLATE_ID'      => $templateID,
+				'NOTE_TO_ST'       => '',
+				'NOTE_FROM_ST'	   => '',
+				
+				'WORDPRESS_ID'     => $loggedin,
+				'DATE_OF_APPROVAL' => ''
+			);
+			$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_GENERATION",
+						$dataarray,
+						array (
+							'%d', 		'%d', 		'%s', 		'%s',
+							'%s', 		'%s'
+						)
+					);
+		
+		}
+		
 	} else {
 		$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER",
 					$dataarray,
@@ -2446,17 +2490,40 @@ function vtm_save_basic_info($characterID, $templateID) {
 						'%d', 		'%d', 		'%s', 		'%d',
 						'%d', 		'%d', 		'%s', 		'%d',
 						'%d', 		'%d', 		'%d', 		'%s',
-						'%s', 		'%s', 		'%s', 		'%s',
-						'%d'
+						'%s', 		'%s', 		'%s', 		'%s'
 					)
 				);
 		$characterID = $wpdb->insert_id;
 		if ($characterID == 0) {
 			echo "<p style='color:red'><b>Error:</b> Character could not be added</p>";
+		} else {
+			if (is_user_logged_in()) {
+				get_currentuserinfo();
+				$loggedin = $current_user->user_login;
+			} else {
+				$loggedin = '';
+			}
+			// Add character generation info
+			$dataarray = array (
+				'CHARACTER_ID'     => $characterID,
+				'TEMPLATE_ID'      => $templateID,
+				'NOTE_TO_ST'       => '',
+				'NOTE_FROM_ST'	   => '',
+				
+				'WORDPRESS_ID'     => $loggedin,
+				'DATE_OF_APPROVAL' => ''
+			);
+			$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_GENERATION",
+						$dataarray,
+						array (
+							'%d', 		'%d', 		'%s', 		'%s',
+							'%s', 		'%s'
+						)
+					);
+			
+			vtm_email_new_character($_POST['email'], $characterID, $playerid, 
+				$_POST['character'], $_POST['priv_clan'], $_POST['player'], $_POST['concept'], $template);
 		}
-		
-		vtm_email_new_character($_POST['email'], $characterID, $playerid, 
-			$_POST['character'], $_POST['priv_clan'], $_POST['player'], $_POST['concept'], $template);
 	}
 	
 	// Delete any spends on Disciplines and paths if the clan has changed
@@ -2494,7 +2561,7 @@ function vtm_get_chargen_characterID() {
 			$id   = $ref[0] * 1;
 			$pid  = $ref[1] * 1;
 			$tid  = $ref[2] * 1;
-			//$wpid = $ref[3] * 1;
+			$wpid = $ref[3] * 1;
 		
 			// Check player ID is valid based on character ID
 			$sql = "SELECT PLAYER_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s";
@@ -2502,16 +2569,26 @@ function vtm_get_chargen_characterID() {
 			if (count($result) == 0 || $result->PLAYER_ID != $pid)
 				$id = -1;
 		
-			// Check that wordpress ID is that of the current user
+			// Check that wordpress ID is that of the user that created the character
 			//		Or that the current user is an ST 
-			//		Or that the requested wordpress login name doesn't yet exist (ID = 0)
-			/* if (is_user_logged_in()) {
-				get_currentuserinfo();
-				if ($current_user->ID != $wpid && !vtm_isST())
-					$id = -1;
+			$mustbeloggedin = get_option('vtm_chargen_mustbeloggedin', '1');
+			$correctlogin = vtm_get_chargenlogin($id);
+			if (empty($correctlogin)) {
+				$correctid = 0;
+			} else {
+				$bloguser = get_users('search=' . $correctlogin . '&number=1');
+				$correctid = isset($bloguser[0]->ID) ? $bloguser[0]->ID : 0;
 			}
-			elseif ($wpid != 0)
-				$id = -1; */
+			if (is_user_logged_in()) {
+				get_currentuserinfo();
+				$currentid = $current_user->ID;
+			} else {
+				$currentid = 0;
+			}
+			//echo "<li>CorrectLogin: $correctlogin, CorrectID: $correctid, current: $currentid, refid: $wpid</li>";
+			
+			if (!vtm_isST() && ($currentid != $wpid || $correctid != $currentid) )
+				$id = -1; 
 			
 			// ensure character gen is in progress (and not approved)
 			if ($id > 0) {
@@ -2605,14 +2682,14 @@ function vtm_get_player_id_from_characterID($characterID) {
 
 }
 
-function vtm_get_login_from_characterID($characterID) {
+function vtm_get_chargenlogin($characterID) {
 	global $wpdb;
 	
 	$sql = "SELECT WORDPRESS_ID 
 		FROM 
-			" . VTM_TABLE_PREFIX . "CHARACTER
+			" . VTM_TABLE_PREFIX . "CHARACTER_GENERATION
 		WHERE
-			ID = %s";
+			CHARACTER_ID = %s";
 	$sql = $wpdb->prepare($sql, $characterID);
 	return $wpdb->get_var($sql);
 
@@ -2621,8 +2698,8 @@ function vtm_get_login_from_characterID($characterID) {
 function vtm_get_templateid($characterID) {
 	global $wpdb;
 	
-	$sql = "SELECT CHARGEN_TEMPLATE_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER
-		WHERE ID = %s";
+	$sql = "SELECT TEMPLATE_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER_GENERATION
+		WHERE CHARACTER_ID = %s";
 	$sql = $wpdb->prepare($sql, $characterID);
 	
 	if (isset($_POST['chargen_template'])) {
@@ -3914,75 +3991,7 @@ function vtm_get_chargen_xp_spent($characterID) {
 		$spent = -$wpdb->get_var($sql);
 	
 	}
-	/*
-	if (isset($_POST[$postvariable])) {
-		$xpcosts  = vtm_get_chargen_xp_costs($table, $characterID);
-		$bought   = $_POST[$postvariable];
-
-		switch ($table) {
-			case 'STAT':
-				$freebies = vtm_get_pending_freebies($table, 'freebie_stat', $characterID);
-				$current  = vtm_get_current_stats($characterID, OBJECT_K);
-				break;
-			case 'SKILL':
-				$freebies = vtm_get_pending_freebies($table, 'freebie_skill', $characterID);
-				$current  = vtm_get_current_skills($characterID, OBJECT_K);
-				break;
-			case 'DISCIPLINE':
-				$freebies = vtm_get_pending_freebies($table, 'freebie_discipline', $characterID);
-				$current  = vtm_get_current_disciplines($characterID, OBJECT_K);
-				break;
-			case 'MERIT':
-				$freebies = vtm_get_pending_freebies($table, 'freebie_merit', $characterID);
-				$current  = vtm_get_current_merits($characterID, OBJECT_K);
-				break;
-			default:
-				$current = array();
-		}
-		$current = vtm_sanitize_array($current);
-				
-		//print_r($freebies);
-		
-		foreach ($bought as $key => $level_to) {
-		
-			$levelfrom = isset($current[$key]->level_from) ? $current[$key]->level_from : 0;
-			$levelfrom = isset($freebies[$key]) ? $freebies[$key] : $levelfrom;
-			
-			if ($level_to != 0) {
-				$actualkey = preg_replace("/_\d+$/", "", $key);
-				
-				if ($table == 'MERIT') {
-					if (!isset($current[$key])) {
-						if (isset($current[$actualkey]->multiple) && $current[$actualkey]->multiple == 'Y') {
-							$spent += isset($xpcosts[$actualkey][0][1]) ? $xpcosts[$actualkey][0][1] : 0;
-							//echo "<li>$key / $actualkey, cost: {$xpcosts[$actualkey][0][1]}</li>";
-						}
-					} else {
-						//echo "<li>$key - from:$levelfrom, to:$level_to, cost: {$xpcosts[$key][0][1]}</li>";
-						$spent += isset($xpcosts[$key][0][1]) ? $xpcosts[$key][0][1] : 0;
-					}
-				} else {
-					//echo "<li>$key - from:$levelfrom, to:$level_to, cost: {$xpcosts[$key][$levelfrom][$level_to]}</li>";
-					$spent += isset($xpcosts[$key][$levelfrom][$level_to]) ? $xpcosts[$key][$levelfrom][$level_to] : 0;
-				}
-			}
-		}
-	} else {
-
-		// Saving status and updating spend? or loading to populate new page?
-		$laststep = $_POST['step'];
-		$thisstep = vtm_get_step();
-		if ($laststep == $thisstep) {
-			//echo "<li>Nothing spent on $table</li>";
-			$spent = 0;
-		} else {
-			$sql = "SELECT SUM(AMOUNT) FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
-					WHERE CHARACTER_ID = %s AND ITEMTABLE = %s";
-			$sql = $wpdb->prepare($sql, $characterID, $table);
-			$spent = -$wpdb->get_var($sql);
-		}
-	}
-	*/
+	
 	//echo "<li>spent on $table, $postvariable: $spent</li>";
 	return $spent;
 } 
@@ -4298,7 +4307,7 @@ function vtm_validate_basic_info($settings, $characterID, $usepost = 1) {
 			if (count($names) > 0) {
 				$ok = 0;
 				$complete = 0;
-				$errormessages .= "<li>ERROR: Login name '$login' has already been chosen for another character being generated.</li>";
+				$errormessages .= "<li>ERROR: Login name '$login' has already been chosen for another character.</li>";
 			}
 		}
 	}
@@ -4486,18 +4495,20 @@ function vtm_validate_attributes($settings, $characterID, $usepost = 1) {
 				}
 			}
 		}
+		//print_r($dbgroups);
+		$grouplist = array_combine($dbgroups,$dbgroups);
 		$grouptotals = array();
 		foreach  ($items as $item) {
 			$key = sanitize_key($item->name);
 			$grp = sanitize_key($item->grp);
-			if ($item->level_from > 0) {
+			if ($item->level_from > 0 && isset($grouplist[$grp])) {
 				if (isset($grouptotals[$grp]))
 					$grouptotals[$grp] += $item->level_from - 1;
 				else
 					$grouptotals[$grp] = $item->level_from - 1;
 			}
 		}
-		//print_r($grouptotals);
+		print_r($grouptotals);
 		$dball = array();
 		foreach ($grouptotals as $grp => $total) {
 			switch($total) {
@@ -5523,12 +5534,11 @@ function vtm_save_submit($characterID, $templateID) {
 		return $characterID;
 	}
 
-		// Update Character Generation Status
+	// Update Character Generation Status
 	$submittedid = $wpdb->get_var("SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARGEN_STATUS WHERE NAME = 'Submitted'");
 	
 	$result = $wpdb->update(VTM_TABLE_PREFIX . "CHARACTER",
-				array ('CHARGEN_STATUS_ID' => $submittedid,
-						'CHARGEN_NOTE_FROM_ST' => ''),
+				array ('CHARGEN_STATUS_ID' => $submittedid),
 				array ('ID' => $characterID)
 			);
 	
@@ -5536,6 +5546,12 @@ function vtm_save_submit($characterID, $templateID) {
 	if (!$result && $result !== 0) {
 		echo "<p>ERROR: Submission of character failed. Contact the webadmin with your character name</p>";
 	} else {
+	
+		$result = $wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_GENERATION",
+				array ('NOTE_FROM_ST' => ''),
+				array ('ID' => $characterID)
+		);
+	
 		if (is_user_logged_in()) {
 			get_currentuserinfo();
 			$userid       = $current_user->ID;
@@ -5552,7 +5568,6 @@ function vtm_save_submit($characterID, $templateID) {
 		$results = $wpdb->get_row($wpdb->prepare($sql, $characterID));
 		
 		$playerid = $results->playerID;
-		//$ref    = $characterID . '-' . $userid . '-' . $playerid;
 		$ref = vtm_get_chargen_reference($characterID);
 		$tag    = get_option( 'vtm_chargen_emailtag' );
 		$toname = get_option( 'vtm_chargen_email_from_name', 'The Storytellers');
@@ -5606,13 +5621,15 @@ function vtm_get_chargen_reference($characterID) {
 	$pid = sprintf("%04d", vtm_get_player_id_from_characterID($characterID));
 	$tid = sprintf("%04d", vtm_get_templateid($characterID));
 	
-	// $login = vtm_get_login_from_characterID($characterID);
-	// if (isset($login)) {
-		// $bloguser = get_users('search=' . $login . '&number=1');
-		// $wpid = isset($bloguser) ? sprintf("%04d", $bloguser[0]->user_login) : '0000';
-	// } else {
-		// $wpid = '0000';
-	// }
+	$login = vtm_get_chargenlogin($characterID);
+	if (isset($login)) {
+		//echo "<li>$login</li>";
+		$bloguser = get_users('search=' . $login . '&number=1');
+		//print_r($bloguser);
+		$wpid = isset($bloguser[0]->ID) ? sprintf("%04d", $bloguser[0]->ID) : '0000';
+	} else {
+		$wpid = '0000';
+	}
 	
 	$ref = "$cid/$pid/$tid/$wpid";
 	//echo "<li>Reference: $ref</li>";

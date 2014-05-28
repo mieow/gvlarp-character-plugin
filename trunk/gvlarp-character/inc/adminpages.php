@@ -74,7 +74,7 @@ function vtm_register_character_settings() {
 	register_setting( 'vtm_options_group', 'vtm_signin_columns' );
 
 	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_mustbeloggedin' );
-	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_wpaccount' );
+	//register_setting( 'vtm_chargen_options_group', 'vtm_chargen_wpaccount' );
 	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_emailtag' );
 	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_email_from_name' );
 	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_email_from_address' );

@@ -6,7 +6,7 @@ register_activation_hook( __FILE__, 'vtm_character_install_data' );
 global $vtm_character_version;
 global $vtm_character_db_version;
 $vtm_character_version = "1.10"; 
-$vtm_character_db_version = "21"; 
+$vtm_character_db_version = "22"; 
 
 function vtm_update_db_check() {
     global $vtm_character_version;
@@ -568,10 +568,7 @@ function vtm_character_install() {
 					NATURE_ID                 MEDIUMINT(9)  NOT NULL,
 					DEMEANOUR_ID              MEDIUMINT(9)  NOT NULL,
 					CHARGEN_STATUS_ID		  MEDIUMINT(9)  NOT NULL,
-					CHARGEN_TEMPLATE_ID		  MEDIUMINT(9)  NOT NULL,
 					CONCEPT					  TINYTEXT		NOT NULL,
-					CHARGEN_NOTE_TO_ST		  TINYTEXT		NOT NULL,
-					CHARGEN_NOTE_FROM_ST	  TINYTEXT		NOT NULL,
 					EMAIL					  VARCHAR(60)	NOT NULL,
 					LAST_UPDATED              DATE          NOT NULL,
 					VISIBLE                   VARCHAR(1)    NOT NULL,
@@ -887,6 +884,19 @@ function vtm_character_install() {
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 		
+		$current_table_name = $table_prefix . "CHARACTER_GENERATION";
+		$sql = "CREATE TABLE " . $current_table_name . " (
+					ID                    MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
+					CHARACTER_ID          MEDIUMINT(9)  NOT NULL,
+					TEMPLATE_ID			  MEDIUMINT(9)  NOT NULL,
+					NOTE_TO_ST       	  TEXT   		NOT NULL,
+					NOTE_FROM_ST          TEXT   		NOT NULL,
+					WORDPRESS_ID          VARCHAR(32)	NOT NULL,
+					DATE_OF_APPROVAL	  DATE			NOT NULL,
+					PRIMARY KEY  (ID),
+					CONSTRAINT `" . $table_prefix . "char_gen_constraint_1` FOREIGN KEY (CHARACTER_ID)  REFERENCES " . $table_prefix . "CHARACTER(ID)
+					) ENGINE=INNODB;";
+		dbDelta($sql);
 
 	
 	//}
@@ -1212,9 +1222,15 @@ function vtm_character_update_1_9 () {
 	}
 	
 	// Add new foreign key(s)
-	vtm_add_constraint(VTM_TABLE_PREFIX . "CHARACTER", "char_constraint_10", "CHARGEN_STATUS_ID", "CHARGEN_STATUS(ID)"
-	
+	vtm_add_constraint(VTM_TABLE_PREFIX . "CHARACTER", "char_constraint_10", "CHARGEN_STATUS_ID", "CHARGEN_STATUS(ID)");
+
+	// Remove some columns that may have been created while developing this version
+	$remove = array (
+		'CHARGEN_TEMPLATE_ID' => '',
+		'CHARGEN_NOTE_TO_ST' => '',
+		'CHARGEN_NOTE_FROM_ST' => ''
 	);
+	vtm_remove_columns(VTM_TABLE_PREFIX . "CHARACTER", $remove);
 
 }
 
