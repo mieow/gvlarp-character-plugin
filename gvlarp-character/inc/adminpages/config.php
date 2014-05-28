@@ -329,18 +329,6 @@ function vtm_character_config() {
 			<td><label>From address of notification emails: </label></td>
 			<td><input type="text" name="vtm_chargen_email_from_address" value="<?php echo get_option( 'vtm_chargen_email_from_address', get_bloginfo('admin_email') ); ?>" /></td>
 		</tr>
-		<tr>
-			<td><label>Wordpress Account used for character generation</label></td>
-			<td>
-				<?php wp_dropdown_users(
-						array(
-							'show_option_none' 	=> '[None]',
-							'name'  			=> 'vtm_chargen_wpaccount',
-							'selected' 			=> get_option( 'vtm_chargen_wpaccount' )
-						)
-					); ?>
-			</td>
-		</tr>
 		</table>
 		<?php submit_button("Save Character Generation Options", "primary", "save_chargen_button"); ?>
 		</form>
