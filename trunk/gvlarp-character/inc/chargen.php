@@ -858,7 +858,7 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 						$grouptotals[$grp] = max(0,$saved[$key]->LEVEL - $freedot);
 				}
 			}
-			print_r($grouptotals);
+			//print_r($grouptotals);
 			$groupselected = array();
 			foreach ($grouptotals as $grp => $total) {
 				switch($total) {
@@ -868,7 +868,7 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 					default: $groupselected[$grp] = 0;
 				}
 			}
-			print_r($groupselected);
+			//print_r($groupselected);
 		}
 	}
 
@@ -4508,7 +4508,7 @@ function vtm_validate_attributes($settings, $characterID, $usepost = 1) {
 					$grouptotals[$grp] = $item->level_from - 1;
 			}
 		}
-		print_r($grouptotals);
+		//print_r($grouptotals);
 		$dball = array();
 		foreach ($grouptotals as $grp => $total) {
 			switch($total) {
@@ -4560,7 +4560,7 @@ function vtm_validate_attributes($settings, $characterID, $usepost = 1) {
 					foreach  ($attributes as $attribute) {
 						if (sanitize_key($attribute->GROUPING) == $group) {
 							$key     = sanitize_key($attribute->NAME);
-							$sectiontotal += isset($values[$key]) ? $values[$key] - 1 : 0;
+							$sectiontotal += isset($values[$key]) ? max(0,$values[$key] - 1) : 0;
 						}
 					}
 					//echo "<li>group $group: target = " . $target[$sectiontype-1] . ", total = $sectiontotal</li>";
@@ -4602,6 +4602,7 @@ function vtm_validate_attributes($settings, $characterID, $usepost = 1) {
 		$errormessages .= "<li>WARNING: You have not spent any dots</li>";
 		$complete = 0;
 	}
+	//echo "<li>$errormessages</li>";
 	return array($ok, $errormessages, $complete);
 }
 
