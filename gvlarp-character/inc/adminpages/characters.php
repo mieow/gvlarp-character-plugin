@@ -1739,7 +1739,7 @@ function vtm_setupInitialCharTables($characterID, $playerID, $characterRoadOrPat
 		'Willpower' => vtm_establishTempStatID('Willpower')
 	);
 	$tempStatReasonID = vtm_establishTempStatReasonID('Initial');
-	foreach ($tempstatIDs as $tempstatID) {
+	foreach ($tempstatIDs as $tempstatName => $tempstatID) {
 		$sql = "SELECT ID
 				FROM " . VTM_TABLE_PREFIX . "CHARACTER_TEMPORARY_STAT 
 				WHERE CHARACTER_ID = %s AND TEMPORARY_STAT_ID = %d";
@@ -1752,7 +1752,7 @@ function vtm_setupInitialCharTables($characterID, $playerID, $characterRoadOrPat
 					'TEMPORARY_STAT_ID' => $tempstatID,
 					'TEMPORARY_STAT_REASON_ID' => $tempStatReasonID,
 					'AWARDED' => Date('Y-m-d'),
-					'AMOUNT'  => 10,
+					'AMOUNT'  => $tempStatRating[$tempstatName],
 					'COMMENT' => "Initial Temporary Stat Level"
 				),
 				array ('%d', '%d', '%d', '%s', '%d', '%s')
@@ -1827,6 +1827,9 @@ function vtm_character_chargen_approval() {
 		// prompt for deny message
 		$showform = 1;
 	}
+	elseif (isset($_REQUEST['action']) && 'string' == gettype($_REQUEST['character']) && $_REQUEST['action'] == 'approveit') {
+		$testListTable->approve($_REQUEST['character']);
+	}
 	
 	$iconurl = plugins_url('adminpages/icons/',dirname(__FILE__));
 	$testListTable->prepare_items();
@@ -1892,12 +1895,166 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 	
 	function approve($characterID) {
 		global $wpdb;
+		$wpdb->show_errors();
 		
-		// Update Status and save approval date in ST notes
+		$playerID = vtm_get_player_id_from_characterID($characterID);
+		
+		// Transfer XP to character tables (including freebie table)
+		$sql = "SELECT * FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND WHERE CHARACTER_ID = %s";
+		$sql = $wpdb->prepare($sql, $characterID);
+		$results = $wpdb->get_results($sql);
+		$failed = 0;
+		foreach ($results as $row) {
+			$levelcol   = $row->CHARTABLE == 'PENDING_FREEBIE_SPEND' ? 'LEVEL_TO' : 'LEVEL';
+			$commentcol = $row->CHARTABLE == 'PENDING_FREEBIE_SPEND' ? 'SPECIALISATION' : 'COMMENT';
+		
+			if ($row->CHARTABLE_ID > 0) {
+				// Update table
+				$result = $wpdb->update( VTM_TABLE_PREFIX . $row->CHARTABLE,
+					array (
+						$levelcol => $row->CHARTABLE_LEVEL,
+						$commentcol => $row->SPECIALISATION
+					),
+					array ('ID' => $row->CHARTABLE_ID)
+				);
+				if ($result || $result === 0) {
+					echo "<p style='color:green'>Updated XP spend {$row->ITEMTABLE} {$row->ITEMNAME}</p>";
+					$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND WHERE ID = %d;";
+					$result = $wpdb->get_results($wpdb->prepare($sql, $row->ID));
+					
+					$reason = $wpdb->get_var("SELECT ID FROM " . VTM_TABLE_PREFIX . "XP_REASON WHERE NAME = 'XP Spend'");
+					$data = array (
+						'PLAYER_ID'    => $playerID,
+						'CHARACTER_ID' => $characterID,
+						'XP_REASON_ID' => $reason,
+						'AWARDED'      => $row->AWARDED,
+						'AMOUNT'       => $row->AMOUNT,
+						'COMMENT'	   => "Character Generation: {$row->ITEMNAME} to {$row->CHARTABLE_LEVEL}"
+					);
+					$wpdb->insert(VTM_TABLE_PREFIX . "PLAYER_XP",
+									$data,
+									array (
+										'%d',
+										'%d',
+										'%d',
+										'%s',
+										'%d',
+										'%s'
+									)
+								);
+					if ($wpdb->insert_id  == 0) {
+						echo "<p style='color:red'><b>Error:</b> XP spend not added to spent XP table for {$row->ITEMNAME}";
+						$failed = 1;
+					} 
+			
+				}
+				else {
+					$wpdb->print_error();
+					echo "<p style='color:red'>Could not update XP spend {$row->ITEMTABLE} {$row->ITEMNAME} ({$row->CHARTABLE_ID})</p>";
+					$failed = 1;
+				}
+			} else {
+				$wpdb->insert(VTM_TABLE_PREFIX . $row->CHARTABLE,
+					array (
+						$levelcol      => $row->CHARTABLE_LEVEL,
+						$commentcol      => $row->SPECIALISATION,
+						'CHARACTER_ID' => $characterID,
+						$row->ITEMTABLE . "_ID" => $row->ITEMTABLE_ID
+					),
+					array ('%d', '%s', '%d', '%d')
+				);
+				
+				$id = $wpdb->insert_id;
+				if ($id == 0) {
+					echo "<p style='color:red'><b>Error XP spend:</b> {$row->ITEMTABLE} {$row->ITEMNAME} could not be inserted</p>";
+				} else {
+					echo "<p style='color:green'>Added XP spend {$row->ITEMTABLE} {$row->ITEMNAME} (ID: {$wpdb->insert_id})</p>";
+					$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND WHERE ID = %d;";
+					$result = $wpdb->get_results($wpdb->prepare($sql, $row->ID));
+				}
+			}
+		}
+		if ($failed) {
+			"<p style='color:red'>Failed when trying to add the experience point spends to the character</p>";
+			return;
+		}
+
+		// Transfer freebies to character tables
+		$sql = "SELECT * FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND WHERE CHARACTER_ID = %s";
+		$sql = $wpdb->prepare($sql, $characterID);
+		$results = $wpdb->get_results($sql);
+		$failed = 0;
+		foreach ($results as $row) {
+			if ($row->CHARTABLE_ID > 0) {
+				// Update table
+				$result = $wpdb->update( VTM_TABLE_PREFIX . $row->CHARTABLE,
+					array (
+						'LEVEL'   => $row->LEVEL_TO,
+						'COMMENT' => $row->SPECIALISATION
+					),
+					array ('ID' => $row->CHARTABLE_ID)
+				);
+				if ($result || $result === 0) {
+					echo "<p style='color:green'>Updated freebie spend {$row->ITEMTABLE} {$row->ITEMNAME}</p>";
+					$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND WHERE ID = %d;";
+					$result = $wpdb->get_results($wpdb->prepare($sql, $row->ID));
+					// Update pending detail
+					if (!empty($row->PENDING_DETAIL)) {
+						$wpdb->update( VTM_TABLE_PREFIX . $row->CHARTABLE,
+							array ('APPROVED_DETAIL'   => $row->PENDING_DETAIL),
+							array ('ID' => $row->CHARTABLE_ID)
+						);
+					}
+				}
+				else {
+					$wpdb->print_error();
+					echo "<p style='color:red'>Could not update freebie spend {$row->ITEMTABLE} {$row->ITEMNAME} ({$row->CHARTABLE_ID})</p>";
+					$failed = 1;
+				}
+			} else {
+				$wpdb->insert(VTM_TABLE_PREFIX . $row->CHARTABLE,
+					array (
+						'LEVEL'        => $row->LEVEL_TO,
+						'COMMENT'      => $row->SPECIALISATION,
+						'CHARACTER_ID' => $characterID,
+						$row->ITEMTABLE . "_ID" => $row->ITEMTABLE_ID
+					),
+					array ('%d', '%s', '%d', '%d')
+				);
+				
+				$id = $wpdb->insert_id;
+				if ($id == 0) {
+					echo "<p style='color:red'><b>Error on freebie spend :</b> {$row->ITEMTABLE} {$row->ITEMNAME} could not be inserted</p>";
+				} else {
+					echo "<p style='color:green'>Added freebie spend {$row->ITEMTABLE} {$row->ITEMNAME} (ID: {$wpdb->insert_id})</p>";
+					$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND WHERE ID = %d;";
+					$result = $wpdb->get_results($wpdb->prepare($sql, $row->ID));
+					if (!empty($row->PENDING_DETAIL)) {
+						$wpdb->update( VTM_TABLE_PREFIX . $row->CHARTABLE,
+							array ('APPROVED_DETAIL'   => $row->PENDING_DETAIL),
+							array ('ID' => $id)
+						);
+					}
+				}
+			}
+		}
+		if ($failed) {
+			"<p style='color:red'>Failed when trying to add the freebie point spends to the character</p>";
+			return;
+		}
 		
 		// Create initial tables for WP, Path, etc
+		$RoadOrPathRating = $wpdb->get_var($wpdb->prepare("SELECT ROAD_OR_PATH_RATING FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
+		$willpower = $wpdb->get_var($wpdb->prepare("SELECT LEVEL FROM 
+				" . VTM_TABLE_PREFIX . "CHARACTER_STAT cs,
+				" . VTM_TABLE_PREFIX . "STAT stat
+				WHERE stat.ID = cs.STAT_ID AND CHARACTER_ID = %s", $characterID));
+		vtm_setupInitialCharTables($characterID, $playerID, $RoadOrPathRating,
+			array ('Blood' => 10, 'Willpower' => $willpower));
 		
 		// Create Wordpress Account with correct role
+		
+		// Update Status and save approval date in ST notes
 		
 		// Email user with the details
 		
@@ -1910,7 +2067,6 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 		
 		// Update Status and ST notes
 		$data = array(
-			'CHARGEN_NOTE_FROM_ST'  => $denyMessage,
 			'CHARGEN_STATUS_ID'     => $statusid
 		);
 		$result = $wpdb->update(VTM_TABLE_PREFIX . "CHARACTER",
@@ -1921,6 +2077,15 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 		);
 		
 		if ($result) {
+			$data = array(
+				'NOTE_FROM_ST'  => $denyMessage
+			);
+			$result = $wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_GENERATION",
+				$data,
+				array (
+					'CHARACTER_ID' => $characterID
+				)
+			);
 			// Email user with the details
 			$result = vtm_email_chargen_denied($characterID, $denyMessage);
 			
@@ -1950,7 +2115,7 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
                 return stripslashes($item->$column_name);
          case 'CONCEPT':
                 return $item->$column_name;
-         case 'CHARGEN_NOTE_TO_ST':
+         case 'NOTE_TO_ST':
                 return $item->$column_name;
          default:
                 return print_r($item,true); 
@@ -1982,7 +2147,7 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
             'PLAYER'     => 'Player',
             'TEMPLATE'   => 'Template',
             'CONCEPT'    => 'Character Concept',
-            'CHARGEN_NOTE_TO_ST' => 'Note to Storytellers'
+            'NOTE_TO_ST' => 'Note to Storytellers'
        );
         return $columns;
 		
@@ -2013,18 +2178,20 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 		
 		/* Get the data from the database */
 		$sql = "SELECT ch.ID, ch.NAME, pl.NAME as PLAYER, clan.NAME as CLAN,
-					ch.CONCEPT, ch.CHARGEN_NOTE_TO_ST, cgt.NAME as TEMPLATE
+					ch.CONCEPT, cg.NOTE_TO_ST, cgt.NAME as TEMPLATE
 				FROM
 					" . VTM_TABLE_PREFIX . "PLAYER pl,
 					" . VTM_TABLE_PREFIX . "CHARACTER ch,
 					" . VTM_TABLE_PREFIX . "CLAN clan,
 					" . VTM_TABLE_PREFIX . "CHARGEN_STATUS cgs,
-					" . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE cgt
+					" . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE cgt,
+					" . VTM_TABLE_PREFIX ."CHARACTER_GENERATION cg
 				WHERE
 					ch.PLAYER_ID = pl.id
 					AND ch.PRIVATE_CLAN_ID = clan.id
 					AND ch.CHARGEN_STATUS_ID = cgs.ID
-					AND ch.CHARGEN_TEMPLATE_ID = cgt.ID
+					AND cg.TEMPLATE_ID = cgt.ID
+					AND cg.CHARACTER_ID = ch.ID 
 					AND cgs.NAME = 'Submitted'
 					AND ch.DELETED = 'N'";
 				
