@@ -107,16 +107,17 @@ add_action( 'admin_menu', 'vtm_register_character_settings' );
 
 function vtm_register_character_menu() {
 	add_menu_page( "Character Plugin Options", "Characters", "manage_options", "character-plugin", "vtm_character_options");
-	add_submenu_page( "character-plugin", "Players",            "Players",            "manage_options", "vtmcharacter-player", "vtm_character_players" );  
-	add_submenu_page( "character-plugin", "Database Tables",    "Data Tables",        "manage_options", "vtmcharacter-data",   "vtm_character_datatables" );  
-	add_submenu_page( "character-plugin", "Backgrounds",        "Backgrounds",        "manage_options", "vtmcharacter-bg",     "vtm_character_backgrounds" );  
-	add_submenu_page( "character-plugin", "Character Approval", "Character Approval", "manage_options", "vtmcharacter-chargen","vtm_character_chargen_approval" );  
-	add_submenu_page( "character-plugin", "XP Approval",        "XP Approval",        "manage_options", "vtmcharacter-xp",     "vtm_character_experience" );  
-	add_submenu_page( "character-plugin", "Path Changes",       "Path Changes",       "manage_options", "vtmcharacter-paths",  "vtm_character_master_path" );  
-	add_submenu_page( "character-plugin", "Stat Changes",       "Stat Changes",       "manage_options", "vtmcharacter-stats",  "vtm_character_temp_stats" );  
-	add_submenu_page( "character-plugin", "Assign XP",          "Assign XP",          "manage_options", "vtmcharacter-xpassign",  "vtm_character_xp_assign" );  
-	add_submenu_page( "character-plugin", "Reports",            "Reports",            "manage_options", "vtmcharacter-report", "vtm_character_reports" );  
-	add_submenu_page( "character-plugin", "Configuration",      "Configuration",      "manage_options", "vtmcharacter-config", "vtm_character_config" );  
+	add_submenu_page( "character-plugin", "Character Admin",     "Character Admin",     "manage_options", "character-plugin",    "vtm_character_options" );  
+	add_submenu_page( "character-plugin", "Character Approval",  "Character Approval",  "manage_options", "vtmcharacter-chargen","vtm_character_chargen_approval" );  
+	add_submenu_page( "character-plugin", "Player Admin",        "Player Admin",        "manage_options", "vtmcharacter-player", "vtm_character_players" );  
+	add_submenu_page( "character-plugin", "Assign XP",           "Assign XP",           "manage_options", "vtmcharacter-xpassign",  "vtm_character_xp_assign" );  
+	add_submenu_page( "character-plugin", "XP Approval",         "XP Approval",         "manage_options", "vtmcharacter-xp",     "vtm_character_experience" );  
+	add_submenu_page( "character-plugin", "Backgrounds",         "Backgrounds",         "manage_options", "vtmcharacter-bg",     "vtm_character_backgrounds" );  
+	add_submenu_page( "character-plugin", "Path Changes",        "Path Changes",        "manage_options", "vtmcharacter-paths",  "vtm_character_master_path" );  
+	add_submenu_page( "character-plugin", "Stat Changes",        "Stat Changes",        "manage_options", "vtmcharacter-stats",  "vtm_character_temp_stats" );  
+	add_submenu_page( "character-plugin", "Reports",             "Reports",             "manage_options", "vtmcharacter-report", "vtm_character_reports" );  
+	add_submenu_page( "character-plugin", "Database Tables",     "Data Tables",         "manage_options", "vtmcharacter-data",   "vtm_character_datatables" );  
+	add_submenu_page( "character-plugin", "Configuration",       "Configuration",       "manage_options", "vtmcharacter-config", "vtm_character_config" );  
 }
 
 

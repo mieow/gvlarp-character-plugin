@@ -356,10 +356,10 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 		$character  = isset($_POST['character']) ? $_POST['character'] : '';
 		$concept    = isset($_POST['concept']) ? $_POST['concept'] : '';
 		
-		$pub_clan    = 0;
-		$priv_clan   = 0;
-		$natureid    = 0;
-		$demeanourid = 0;
+		$pub_clan    = isset($_POST['pub_clan'])  ? $_POST['pub_clan']  : 0;
+		$priv_clan   = isset($_POST['priv_clan']) ? $_POST['priv_clan'] : 0;
+		$natureid    = isset($_POST['nature'])    ? $_POST['nature']    : 0;
+		$demeanourid = isset($_POST['demeanour']) ? $_POST['demeanour'] : 0;
 		$playerset   = 0;
 		
 		if (is_user_logged_in()) {
@@ -373,7 +373,7 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 				// find other accounts with that email to guess the player
 				$otherlogins = get_users("search=$email&exclude=$userid");
 				foreach ($otherlogins as $other) {
-					echo "<li>{$other->user_login}</li>";
+					//echo "<li>{$other->user_login}</li>";
 					$player      = vtm_get_player_from_login($other->user_login);
 					if (isset($player)) {
 						$shownew    = 'off';
@@ -1179,15 +1179,17 @@ function vtm_render_finishing($step, $characterID, $templateID, $submitted) {
 
 	// Date of Birth
 	$dob = $wpdb->get_var($wpdb->prepare("SELECT DATE_OF_BIRTH FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
+	$dob_array = explode('-',$dob);
 	$dob_day   = isset($_POST['day_dob'])   ? $_POST['day_dob']   : (isset($dob) ? strftime("%d", strtotime($dob)) : '');
 	$dob_month = isset($_POST['month_dob']) ? $_POST['month_dob'] : (isset($dob) ? strftime("%m", strtotime($dob)) : '');
-	$dob_year  = isset($_POST['year_dob'])  ? $_POST['year_dob']  : (isset($dob) ? strftime("%Y", strtotime($dob)) : '');
+	$dob_year  = isset($_POST['year_dob'])  ? $_POST['year_dob']  : (isset($dob) ? $dob_array[0] : '');
 	
 	// Date of Embrace
 	$doe = $wpdb->get_var($wpdb->prepare("SELECT DATE_OF_EMBRACE FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
+	$doe_array = explode('-',$doe);
 	$doe_day   = isset($_POST['day_doe'])   ? $_POST['day_doe']   : (isset($doe) ? strftime("%d", strtotime($doe)) : '');
 	$doe_month = isset($_POST['month_doe']) ? $_POST['month_doe'] : (isset($doe) ? strftime("%m", strtotime($doe)) : '');
-	$doe_year  = isset($_POST['year_doe'])  ? $_POST['year_doe']  : (isset($doe) ? strftime("%Y", strtotime($doe)) : '');
+	$doe_year  = isset($_POST['year_doe'])  ? $_POST['year_doe']  : (isset($doe) ? $doe_array[0] : '');
 	
 	// Date of Embrace
 	$sire = $wpdb->get_var($wpdb->prepare("SELECT SIRE FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
@@ -1840,6 +1842,16 @@ function vtm_save_finish($characterID, $templateID) {
 	
 	// Save Specialities
 	if (isset($_POST['itemname'])) {
+	
+		// Remove anything with a speciality to ensure that skills haven't dropped
+		// since the last time the specialities were saved
+		$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_STAT",  array('COMMENT' => ''), array('CHARACTER_ID' => $characterID));
+		$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_SKILL", array('COMMENT' => ''), array('CHARACTER_ID' => $characterID));
+		$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_MERIT", array('COMMENT' => ''), array('CHARACTER_ID' => $characterID));
+		$wpdb->update(VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND", array('SPECIALISATION' => ''), array('CHARACTER_ID' => $characterID));
+		$wpdb->update(VTM_TABLE_PREFIX . "PENDING_XP_SPEND",      array('SPECIALISATION' => ''), array('CHARACTER_ID' => $characterID));
+		
+		// Then re-add the ones we need
 		foreach ($_POST['itemname'] as $index => $name) {
 			$comment = $_POST['comment'][$index];
 			$id      = $_POST['tableid'][$index];
@@ -1855,6 +1867,7 @@ function vtm_save_finish($characterID, $templateID) {
 				$colname => $comment
 			);
 			$result = $wpdb->update(VTM_TABLE_PREFIX . $table, $data, array ('ID' => $id),array('%s'));		
+			//if ($result) 			echo "<p style='color:green'>Updated $name speciality with $comment</p>";
 			//if ($result) 			echo "<p style='color:green'>Updated $name speciality with $comment</p>";
 			//else if ($result === 0) echo "<p style='color:orange'>No updates made to $name speciality</p>";
 			//else {
@@ -3033,15 +3046,20 @@ function vtm_get_chargen_roads() {
 function vtm_render_dot_select($type, $itemid, $current, $pending, $free, $max, $submitted) {
 
 	$output = "";
-	$fulldoturl = plugins_url( 'gvlarp-character/images/cg_freedot.jpg' );
-	$doturl = plugins_url( 'gvlarp-character/images/cg_selectdot.jpg' );
+	$fulldoturl    = plugins_url( 'gvlarp-character/images/cg_freedot.jpg' );
+	$doturl        = plugins_url( 'gvlarp-character/images/cg_selectdot.jpg' );
 	$emptydoturl   = plugins_url( 'gvlarp-character/images/cg_emptydot.jpg' );
-	$freebiedoturl   = plugins_url( 'gvlarp-character/images/cg_freebiedot.jpg' );
+	$freebiedoturl = plugins_url( 'gvlarp-character/images/cg_freebiedot.jpg' );
 	
 	if ($pending) {
 		$output .= "<input type='hidden' name='" . $type . "[" . $itemid . "]' value='$current' />";
 	}
 	$output .= "<fieldset class='dotselect'>";
+	
+	// Ensure that anything with a free dot is selected initially at that level or 
+	// it won't be saved to the database
+	if ($free > 0 && $current == 0)
+		$current = $free;
 	
 	for ($index = $max ; $index > 0 ; $index--) {
 		$radioid = "dot_{$type}_{$itemid}_{$index}";
@@ -4429,7 +4447,6 @@ function vtm_validate_abilities($settings, $characterID, $usepost = 1) {
 			$sectiontype = $postall[$group];
 			if ($sectiontype == -1) {
 				$errormessages .= "<li>ERROR: You have not selected if $group is Primary, Secondary or Tertiary</li>";
-				$ok = 0;
 				$complete = 0;
 			} else {
 				$check += $sectiontype;
@@ -5620,7 +5637,7 @@ function vtm_get_chargen_reference($characterID) {
 
 	$cid = sprintf("%04d", $characterID);
 	$pid = sprintf("%04d", vtm_get_player_id_from_characterID($characterID));
-	$tid = sprintf("%04d", vtm_get_templateid($characterID));
+	$tid = sprintf("%02d", vtm_get_templateid($characterID));
 	
 	$login = vtm_get_chargenlogin($characterID);
 	if (isset($login)) {

@@ -60,7 +60,20 @@ function vtm_count_BG4approval() {
 	
 	return $count;
 }
-
+function vtm_count_CharGen4approval() {
+	global $wpdb;
+	
+	$sql = "SELECT COUNT(ch.ID)
+			FROM 
+				" . VTM_TABLE_PREFIX . "CHARACTER ch,
+				" . VTM_TABLE_PREFIX . "CHARGEN_STATUS cgs
+			WHERE 
+				cgs.NAME = 'Submitted'
+				AND ch.DELETED = 'N'
+				AND ch.CHARGEN_STATUS_ID = cgs.ID";
+	//echo "<p>SQL: $sql</p>";
+	return $wpdb->get_var($sql);
+}
 
 /* WORDPRESS TOOLBAR 
 ----------------------------------------------------------------- */
@@ -97,6 +110,15 @@ function vtm_toolbar_link_admin( $wp_admin_bar ) {
 			'id'    => 'vtmbg',
 			'title' => 'Approve Backgrounds (' . vtm_count_BG4approval() . ')',
 			'href'  => admin_url('admin.php?page=vtmcharacter-bg'),
+			'parent' => 'vtmcharacters',
+			'meta'  => array( 'class' => 'vtm-toolbar-page' )
+		); 
+		$wp_admin_bar->add_node( $args );
+		
+		$args = array(
+			'id'    => 'vtmchargen',
+			'title' => 'Approve Characters (' . vtm_count_CharGen4approval() . ')',
+			'href'  => admin_url('admin.php?page=vtmcharacter-chargen'),
 			'parent' => 'vtmcharacters',
 			'meta'  => array( 'class' => 'vtm-toolbar-page' )
 		); 

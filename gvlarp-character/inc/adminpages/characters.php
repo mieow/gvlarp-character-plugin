@@ -1923,7 +1923,7 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 					array ('ID' => $row->CHARTABLE_ID)
 				);
 				if ($result || $result === 0) {
-					echo "<p style='color:green'>Updated XP spend {$row->ITEMTABLE} {$row->ITEMNAME}</p>";
+					//echo "<p style='color:green'>Updated XP spend {$row->ITEMTABLE} {$row->ITEMNAME}</p>";
 					$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND WHERE ID = %d;";
 					$result = $wpdb->get_results($wpdb->prepare($sql, $row->ID));
 					
@@ -1973,7 +1973,7 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 				if ($id == 0) {
 					echo "<p style='color:red'><b>Error XP spend:</b> {$row->ITEMTABLE} {$row->ITEMNAME} could not be inserted</p>";
 				} else {
-					echo "<p style='color:green'>Added XP spend {$row->ITEMTABLE} {$row->ITEMNAME} (ID: {$wpdb->insert_id})</p>";
+					//echo "<p style='color:green'>Added XP spend {$row->ITEMTABLE} {$row->ITEMNAME} (ID: {$wpdb->insert_id})</p>";
 					$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND WHERE ID = %d;";
 					$result = $wpdb->get_results($wpdb->prepare($sql, $row->ID));
 				}
@@ -2000,7 +2000,7 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 					array ('ID' => $row->CHARTABLE_ID)
 				);
 				if ($result || $result === 0) {
-					echo "<p style='color:green'>Updated freebie spend {$row->ITEMTABLE} {$row->ITEMNAME}</p>";
+					//echo "<p style='color:green'>Updated freebie spend {$row->ITEMTABLE} {$row->ITEMNAME}</p>";
 					$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND WHERE ID = %d;";
 					$result = $wpdb->get_results($wpdb->prepare($sql, $row->ID));
 					// Update pending detail
@@ -2031,7 +2031,7 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 				if ($id == 0) {
 					echo "<p style='color:red'><b>Error on freebie spend :</b> {$row->ITEMTABLE} {$row->ITEMNAME} could not be inserted</p>";
 				} else {
-					echo "<p style='color:green'>Added freebie spend {$row->ITEMTABLE} {$row->ITEMNAME} (ID: {$wpdb->insert_id})</p>";
+					//echo "<p style='color:green'>Added freebie spend {$row->ITEMTABLE} {$row->ITEMNAME} (ID: {$wpdb->insert_id})</p>";
 					$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND WHERE ID = %d;";
 					$result = $wpdb->get_results($wpdb->prepare($sql, $row->ID));
 					if (!empty($row->PENDING_DETAIL)) {
@@ -2331,6 +2331,11 @@ function vtm_email_chargen_approved($characterID, $password) {
 	$fromname = get_option( 'vtm_chargen_email_from_name', 'The Storytellers');
 	$fromaddr = get_option( 'vtm_chargen_email_from_address', get_bloginfo('admin_email') );
 	
+	$url1 = vtm_get_stlink_url('viewProfile', true);
+	$url2 = vtm_get_stlink_url('viewCharSheet', true);
+	$url3 = vtm_get_stlink_url('printCharSheet', true);
+	$url4 = vtm_get_stlink_url('viewXPSpend', true);
+
 	$subject   = "$tag Character Approved: $name";
 	$headers[] = "From: \"$fromname\" <$fromaddr>";
 	
@@ -2339,15 +2344,15 @@ function vtm_email_chargen_approved($characterID, $password) {
 The Storytellers have approved your character.  Please log into the website with the below details:
 
 	Login name: $username
-	Password: $password
-	Website: $website
+	Password:   $password
+	Website:    $website
 
 Here are some useful direct links:
 
-	View your character: "  . vtm_get_stlink_url('viewCharSheet', true) . "
-	Print your character: " . vtm_get_stlink_url('printCharSheet', true) . "
-	Spend Experience:  "    . vtm_get_stlink_url('viewXPSpend', true) . "
-
+	Change your password:  $url1
+	View your character:   $url2
+	Print your character:  $url3
+	Spend Experience:      $url4
 	";
 	
 	$result = wp_mail($email, $subject, $userbody, $headers);

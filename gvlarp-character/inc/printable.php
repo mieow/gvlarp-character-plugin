@@ -86,7 +86,7 @@ function vtm_print_redirect()
 			$physical = $mycharacter->getAttributes("Physical");
 			$social   = $mycharacter->getAttributes("Social");
 			$mental   = $mycharacter->getAttributes("Mental");
-			
+						
 			for ($i=0;$i<3;$i++) {
 			
 				$physicalname = isset($physical[$i]->name)      ? $physical[$i]->name                    : '';
@@ -288,9 +288,14 @@ function vtm_print_redirect()
 			
 			/* Dates, Sire, Concept */
 			$pdf->Divider('Character Information');
+			$dob = explode('-',$mycharacter->date_of_birth);
+			$doe = explode('-',$mycharacter->date_of_embrace);
+			$dobm = strftime("%b", strtotime($mycharacter->date_of_birth));
+			$doem = strftime("%b", strtotime($mycharacter->date_of_embrace));
+			
 			$pdf->BasicInfoTableRow( array(
-					'Date of Birth', date_i18n(get_option('date_format'),strtotime($mycharacter->date_of_birth)),
-					'Date of Embrace', date_i18n(get_option('date_format'),strtotime($mycharacter->date_of_embrace)),
+					'Date of Birth',   ($dob[2] * 1) . " $dobm " . $dob[0],
+					'Date of Embrace', ($doe[2] * 1) . " $doem " . $doe[0],
 					'Sire',          $mycharacter->sire
 				)
 			);
