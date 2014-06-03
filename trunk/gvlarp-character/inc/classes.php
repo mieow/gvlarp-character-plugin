@@ -188,13 +188,13 @@ class vtmclass_character {
 		$sql = "SELECT stat.name		name,
 					stat.grouping		grouping,
 					stat.ordering		ordering,
-					charstat.comment	specialty,
+					IFNULL(freebie.SPECIALISATION,charstat.comment)	specialty,
 					IFNULL(freebie.LEVEL_TO,charstat.level) level,
 					xp.CHARTABLE_LEVEL  pending
 				FROM
 					" . VTM_TABLE_PREFIX . "STAT stat
 					LEFT JOIN (
-						SELECT ITEMTABLE_ID, LEVEL_TO
+						SELECT ITEMTABLE_ID, LEVEL_TO, SPECIALISATION
 						FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
 						WHERE
 							ITEMTABLE = 'STAT'
