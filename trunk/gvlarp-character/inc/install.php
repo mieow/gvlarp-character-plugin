@@ -6,7 +6,7 @@ register_activation_hook( __FILE__, 'vtm_character_install_data' );
 global $vtm_character_version;
 global $vtm_character_db_version;
 $vtm_character_version = "1.10"; 
-$vtm_character_db_version = "22"; 
+$vtm_character_db_version = "25"; 
 
 function vtm_update_db_check() {
     global $vtm_character_version;
@@ -309,6 +309,7 @@ function vtm_character_install() {
 					CLAN_FLAW    	TINYTEXT      NOT NULL,
 					CLAN_COST_MODEL_ID      MEDIUMINT(9) NOT NULL,
 					NONCLAN_COST_MODEL_ID   MEDIUMINT(9) NOT NULL,
+					WORDPRESS_ROLE  TINYTEXT      NOT NULL,
 					VISIBLE      	VARCHAR(1)    NOT NULL,
 					PRIMARY KEY  (ID),
 					CONSTRAINT `" . $table_prefix . "clan_constraint_1` FOREIGN KEY (CLAN_COST_MODEL_ID)    REFERENCES " . $table_prefix . "COST_MODEL(ID),
@@ -1175,7 +1176,7 @@ function vtm_rename_table($from, $to, $prefixfrom = VTM_TABLE_PREFIX, $prefixto 
 
 }
 
-function vtm_character_update_1_9 () {
+function vtm_character_update_1_9() {
 	global $wpdb;
 	
 	//$wpdb->show_errors();
@@ -1207,17 +1208,29 @@ function vtm_character_update_1_9 () {
 	// Add Character Generation Status to all characters
 	$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARGEN_STATUS WHERE NAME = 'Approved'";
 	$approvedid = $wpdb->get_var($sql);
-	//echo "ApprovedID: $approvedid<br />";
 	$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ISNULL(CHARGEN_STATUS_ID) OR CHARGEN_STATUS_ID = 0";
 	$result = $wpdb->get_col($sql);
 	if (count($result) > 0) {
-		//echo "Updating characters with character generation status<br />";
 		foreach ($result as $characterID) {
 			$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER",
 				array('CHARGEN_STATUS_ID' => $approvedid),
 				array('ID' => $characterID)
 			);
 			
+		}
+	}
+	
+	// Add subscriber as default wordpress role to clan table
+	$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "CLAN WHERE WORDPRESS_ROLE = ''";
+	$result = $wpdb->get_col($sql);
+	//echo "<li>SQL: $sql</li>";
+	//print_r($result);
+	if (count($result) > 0) {
+		foreach ($result as $clanID) {
+			$wpdb->update(VTM_TABLE_PREFIX . "CLAN",
+				array('WORDPRESS_ROLE' => 'subscriber'),
+				array('ID' => $clanID)
+			);
 		}
 	}
 	

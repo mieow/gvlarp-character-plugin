@@ -11,14 +11,15 @@ function vtm_render_clan_page(){
 			$_REQUEST['clan_iconlink'], $_REQUEST['clan_clanpage'], $_REQUEST['clan_flaw'], 
 			$_REQUEST['clan_visible'], $_REQUEST['clan_costmodel'],
 			$_REQUEST['clan_costmodel_nonclan'], array($_REQUEST['clan_clan_disc1'], 
-			$_REQUEST['clan_clan_disc2'], $_REQUEST['clan_clan_disc3'], $_REQUEST['clan_clan_disc4']));
+			$_REQUEST['clan_clan_disc2'], $_REQUEST['clan_clan_disc3'], $_REQUEST['clan_clan_disc4']),
+			$_REQUEST['clan_role']);
 									
 	}
 	if ($doaction == "save-clan") {
 		$testListTable["clans"]->edit_clan($_REQUEST['clan_id'], $_REQUEST['clan_name'], $_REQUEST['clan_description'], $_REQUEST['clan_iconlink'], 
 			$_REQUEST['clan_clanpage'], $_REQUEST['clan_flaw'], $_REQUEST['clan_visible'], $_REQUEST['clan_costmodel'],
 			$_REQUEST['clan_costmodel_nonclan'], array($_REQUEST['clan_clan_disc1'], $_REQUEST['clan_clan_disc2'], $_REQUEST['clan_clan_disc3'], 
-			$_REQUEST['clan_clan_disc4']));
+			$_REQUEST['clan_clan_disc4']), $_REQUEST['clan_role']);
 									
 	}
 
@@ -56,6 +57,7 @@ function vtm_render_clan_add_form($addaction) {
 		$visible = $_REQUEST[$type . '_visible'];
 		$costmodel_id = $_REQUEST[$type . '_costmodel'];
 		$nonclan_costmodel_id = $_REQUEST[$type . '_costmodel_nonclan'];
+		$role = $_REQUEST[$type . '_role'];
 
 		$clan_discipline1_id = $_REQUEST[$type . '_clan_disc1'];
 		$clan_discipline2_id = $_REQUEST[$type . '_clan_disc2'];
@@ -86,6 +88,7 @@ function vtm_render_clan_add_form($addaction) {
 		$visible = $data[0]->VISIBLE;
 		$costmodel_id = $data[0]->CLAN_COST_MODEL_ID;
 		$nonclan_costmodel_id = $data[0]->NONCLAN_COST_MODEL_ID;
+		$role = $data[0]->WORDPRESS_ROLE;
 		
 		$sql = "select disciplines.ID, disciplines.NAME
 				from " . VTM_TABLE_PREFIX . "CLAN_DISCIPLINE clandisc,
@@ -115,6 +118,7 @@ function vtm_render_clan_add_form($addaction) {
 		$visible  = "Y";
 		$costmodel_id = "";
 		$nonclan_costmodel_id = "";
+		$role = 'subscriber';
 		
 		$clan_discipline1_id = 0;
 		$clan_discipline2_id = 0;
@@ -158,7 +162,13 @@ function vtm_render_clan_add_form($addaction) {
 		</tr>
 		<tr>
 			<td>Link to clan icon:  </td>
-			<td colspan=3><input type="text" name="<?php print $type; ?>_iconlink" value="<?php print $iconlink; ?>" size=60 /></td>
+			<td><input type="text" name="<?php print $type; ?>_iconlink" value="<?php print $iconlink; ?>" size=30 /></td>
+			<td>Wordpress Role: </td>
+			<td>
+				<select name="<?php print $type; ?>_role">
+					<?php wp_dropdown_roles($role); ?>
+				</select>
+			</td>
 			<td>Cost Model for Non-Clan Disciplines: </td>
 			<td>
 				<select name="<?php print $type; ?>_costmodel_nonclan">
@@ -327,7 +337,7 @@ class vtmclass_admin_clans_table extends vtmclass_MultiPage_ListTable {
 	
  	function add_clan($name, $description, $iconlink, $clanpage,
 						$clanflaw, $visible, $costmodel, $nonclanmodel, 
-						$discids) {
+						$discids, $role) {
 		global $wpdb;
 		
 		$wpdb->show_errors();
@@ -341,7 +351,8 @@ class vtmclass_admin_clans_table extends vtmclass_MultiPage_ListTable {
 						'CLAN_FLAW' => $clanflaw,
 						'VISIBLE' => $visible,
 						'CLAN_COST_MODEL_ID' => $costmodel,
-						'NONCLAN_COST_MODEL_ID' => $nonclanmodel
+						'NONCLAN_COST_MODEL_ID' => $nonclanmodel,
+						'WORDPRESS_ROLE' => $role
 					);
 		
 		/* print_r($dataarray); */
@@ -356,7 +367,8 @@ class vtmclass_admin_clans_table extends vtmclass_MultiPage_ListTable {
 						'%s',
 						'%s',
 						'%d',
-						'%d'
+						'%d',
+						'%s'
 					)
 				);
 				
@@ -393,7 +405,7 @@ class vtmclass_admin_clans_table extends vtmclass_MultiPage_ListTable {
 	}
  	function edit_clan($clanid, $name, $description, $iconlink, $clanpage,
 						$clanflaw, $visible, $costmodel, $nonclanmodel, 
-						$discids) {
+						$discids, $role) {
 		global $wpdb;
 		
 		$wpdb->show_errors();
@@ -406,7 +418,8 @@ class vtmclass_admin_clans_table extends vtmclass_MultiPage_ListTable {
 						'CLAN_FLAW' => $clanflaw,
 						'VISIBLE' => $visible,
 						'CLAN_COST_MODEL_ID' => $costmodel,
-						'NONCLAN_COST_MODEL_ID' => $nonclanmodel
+						'NONCLAN_COST_MODEL_ID' => $nonclanmodel,
+						'WORDPRESS_ROLE' => $role
 					);
 		
 		/* print_r($dataarray); */
@@ -469,6 +482,8 @@ class vtmclass_admin_clans_table extends vtmclass_MultiPage_ListTable {
                 return $item->$column_name;
            case 'NONCLAN_MODEL':
                 return $item->$column_name;
+           case 'WORDPRESS_ROLE':
+                return $item->$column_name;
             default:
                 return print_r($item,true); 
         }
@@ -503,6 +518,7 @@ class vtmclass_admin_clans_table extends vtmclass_MultiPage_ListTable {
             'VISIBLE'      => 'Visible to Players',
             'COST_MODEL'   => 'Clan Cost Model',
             'NONCLAN_MODEL'  => 'Non-Clan Cost Model',
+            'WORDPRESS_ROLE' => 'Wordpress Role Mapping',
         );
         return $columns;
 		
@@ -557,7 +573,7 @@ class vtmclass_admin_clans_table extends vtmclass_MultiPage_ListTable {
 		
 		/* Get the data from the database */
 		$sql = "select clan.ID, clan.NAME, clan.DESCRIPTION, clan.ICON_LINK, clan.CLAN_PAGE_LINK, 
-					clan.CLAN_FLAW, clan.VISIBLE,
+					clan.CLAN_FLAW, clan.VISIBLE, clan.WORDPRESS_ROLE,
 					clancosts.NAME as COST_MODEL, nonclancosts.NAME as NONCLAN_MODEL
 				from " . VTM_TABLE_PREFIX. "CLAN clan,
 					" . VTM_TABLE_PREFIX. "COST_MODEL clancosts,

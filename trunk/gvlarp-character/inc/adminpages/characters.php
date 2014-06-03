@@ -1196,6 +1196,8 @@ function vtm_displayUpdateCharacter($characterID) {
 function vtm_processCharacterUpdate($characterID) {
 	global $wpdb;
 	$table_prefix = VTM_TABLE_PREFIX;
+	
+	$wpdb->show_errors();
 
 	$characterName             = $_POST['charName'];
 	$characterPlayer           = $_POST['charPlayer'];
@@ -1293,6 +1295,8 @@ function vtm_processCharacterUpdate($characterID) {
 		if ($fail)
 			return $characterID;
 
+		$genstatus	= $wpdb->get_var("SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARGEN_STATUS WHERE NAME = 'Approved';");
+			
 		$wpdb->insert($table_prefix . "CHARACTER",
 				array (
 					'NAME' => $characterName, 								'PUBLIC_CLAN_ID' => $characterPublicClan,
@@ -1303,10 +1307,11 @@ function vtm_processCharacterUpdate($characterID) {
 					'CHARACTER_STATUS_COMMENT' =>  $characterStatusComment,	'ROAD_OR_PATH_ID' => $characterRoadOrPath,
 					'ROAD_OR_PATH_RATING' => $characterRoadOrPathRating,	'DOMAIN_ID' => $characterDomain,
 					'SECT_ID' => $characterSect,							'WORDPRESS_ID' => $characterWordPress,
-					'VISIBLE' => $characterVisible,							'DELETED' => 'N'
+					'VISIBLE' => $characterVisible,							'DELETED' => 'N',
+					'CHARGEN_STATUS_ID' => $genstatus
 				),
 				array (
-					'%s', '%d', '%d', '%d', '%s', '%s', '%s', '%d', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%s', '%s', '%s'
+					'%s', '%d', '%d', '%d', '%s', '%s', '%s', '%d', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%s', '%s', '%s', '%d'
 				)
 		);
 		$characterID = $wpdb->insert_id;
@@ -1698,8 +1703,8 @@ function vtm_setupInitialCharTables($characterID, $playerID, $characterRoadOrPat
 		$xpReasonID = vtm_establishXPReasonID('Initial XP');
 		$wpdb->insert(VTM_TABLE_PREFIX . "PLAYER_XP",
 			array (
-				'PLAYER_ID' => $characterID,
-				'CHARACTER_ID' => $playerID,
+				'PLAYER_ID' => $playerID,
+				'CHARACTER_ID' => $characterID,
 				'XP_REASON_ID' => $xpReasonID,
 				'AWARDED' => Date('Y-m-d'),
 				'AMOUNT'  => 0,
@@ -2053,10 +2058,52 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 			array ('Blood' => 10, 'Willpower' => $willpower));
 		
 		// Create Wordpress Account with correct role
+		// wp_generate_password
+		$sql = "SELECT ch.NAME, ch.EMAIL, ch.WORDPRESS_ID, clans.WORDPRESS_ROLE
+				FROM " . VTM_TABLE_PREFIX . "CLAN clans,
+					" . VTM_TABLE_PREFIX . "CHARACTER ch
+				WHERE
+					ch.PRIVATE_CLAN_ID = clans.ID 
+					AND ch.ID = %s";
+		$sql = $wpdb->prepare($sql, $characterID);
+		$result = $wpdb->get_row($sql);
 		
-		// Update Status and save approval date in ST notes
+		$pass        = wp_generate_password();
+		$login       = $result->WORDPRESS_ID;
+		$email       = $result->EMAIL;
+		$displayname = $result->NAME;
+		$role        = $result->WORDPRESS_ROLE;
+		$userdata = array (
+			'user_pass'    => $pass,
+			'user_login'   => $login,
+			'user_email'   => $email,
+			'display_name' => $displayname,
+			'role'         => $role
+		);
+		$user_id = wp_insert_user( $userdata ) ;
+		if( is_wp_error($user_id) ) {
+			$failed = 1;
+			echo "<p style='color:red'>Failed to create new user</p>";
+			print_r($userdata);
+			return;
+		} else {
+			echo "<p style='color:green'>User created : $login (ID: $user_id) with '$role' role </p>";
+			//print_r($userdata);
+		}
+		
+		// Update Status and save approval date
+		$approvedid = $wpdb->get_var("SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARGEN_STATUS WHERE NAME = 'Approved'");
+		$result = $wpdb->update(VTM_TABLE_PREFIX . "CHARACTER",
+					array('CHARGEN_STATUS_ID' => $approvedid),
+					array('ID' => $characterID)
+		);
+		$result = $wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_GENERATION",
+					array('DATE_OF_APPROVAL' => Date('Y-m-d')),
+					array('CHARACTER_ID' => $characterID)
+		);
 		
 		// Email user with the details
+		vtm_email_chargen_approved($characterID, $pass);
 		
 	}
 	
@@ -2257,6 +2304,56 @@ You can return to character generation by following this link: $url";
 	
 	if (!$result)
 		echo "<p>Failed to send email. Character Ref: $ref</p>";
+		
+	return $result;
+}
+
+function vtm_email_chargen_approved($characterID, $password) {
+	global $current_user;
+	global $wpdb;
+	
+	$sql = "SELECT ch.NAME as name, pl.NAME as player, ch.EMAIL as email,
+				ch.WORDPRESS_ID as username
+			FROM " . VTM_TABLE_PREFIX . "CHARACTER ch,
+				" . VTM_TABLE_PREFIX . "PLAYER pl
+			WHERE
+				ch.PLAYER_ID = pl.ID
+				AND ch.ID = %s";
+	$results = $wpdb->get_row($wpdb->prepare($sql, $characterID));
+
+	$name     = $results->name;
+	$player   = $results->player;
+	$email    = $results->email;
+	$username = $results->username;
+	$website  = site_url();
+		
+	$tag = get_option( 'vtm_chargen_emailtag' );
+	$fromname = get_option( 'vtm_chargen_email_from_name', 'The Storytellers');
+	$fromaddr = get_option( 'vtm_chargen_email_from_address', get_bloginfo('admin_email') );
+	
+	$subject   = "$tag Character Approved: $name";
+	$headers[] = "From: \"$fromname\" <$fromaddr>";
+	
+	$userbody = "Hello $player,
+	
+The Storytellers have approved your character.  Please log into the website with the below details:
+
+	Login name: $username
+	Password: $password
+	Website: $website
+
+Here are some useful direct links:
+
+	View your character: "  . vtm_get_stlink_url('viewCharSheet', true) . "
+	Print your character: " . vtm_get_stlink_url('printCharSheet', true) . "
+	Spend Experience:  "    . vtm_get_stlink_url('viewXPSpend', true) . "
+
+	";
+	
+	$result = wp_mail($email, $subject, $userbody, $headers);
+	
+	if (!$result)
+		echo "<p>Failed to send email. Character: $name, Player: $player</p>";
 		
 	return $result;
 }
