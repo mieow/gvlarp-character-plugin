@@ -2048,6 +2048,21 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 			return;
 		}
 		
+		// Approve Pending Detail for extended backgrounds
+		//		Questions, Backgrounds, Merits and Flaws
+		$tables = array("CHARACTER_EXTENDED_BACKGROUND", "CHARACTER_BACKGROUND", "CHARACTER_MERIT");
+			foreach ($tables as $table) {
+			$sql = "SELECT ID, PENDING_DETAIL FROM " . VTM_TABLE_PREFIX . $table .
+					" WHERE CHARACTER_ID = %s AND PENDING_DETAIL != ''";
+			$results = $wpdb->get_results($wpdb->prepare($sql, $characterID));
+			foreach ($results as $row) {
+				$wpdb->update(VTM_TABLE_PREFIX . $table,
+					array('PENDING_DETAIL'  => '', 'APPROVED_DETAIL' => $row->PENDING_DETAIL), 
+					array ('ID' => $row->ID)
+				);
+			}
+		}
+		
 		// Create initial tables for WP, Path, etc
 		$RoadOrPathRating = $wpdb->get_var($wpdb->prepare("SELECT ROAD_OR_PATH_RATING FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
 		$willpower = $wpdb->get_var($wpdb->prepare("SELECT LEVEL FROM 
@@ -2056,6 +2071,7 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 				WHERE stat.ID = cs.STAT_ID AND CHARACTER_ID = %s", $characterID));
 		vtm_setupInitialCharTables($characterID, $playerID, $RoadOrPathRating,
 			array ('Blood' => 10, 'Willpower' => $willpower));
+		
 		
 		// Create Wordpress Account with correct role
 		// wp_generate_password

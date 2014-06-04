@@ -33,6 +33,7 @@ class vtmclass_character {
 	var $combo_disciplines;
 	var $current_experience;
 	var $pending_experience;
+	var $spent_experience;
 	var $nature;
 	var $demeanour;
 	var $clan_flaw;
@@ -730,6 +731,8 @@ class vtmclass_character {
 		/* Current Experience */
 		$this->current_experience = vtm_get_total_xp($this->player_id, $characterID);
 		$this->pending_experience = vtm_get_pending_xp($this->player_id, $characterID);
+		$this->spent_experience  = $wpdb->get_var($wpdb->prepare("SELECT SUM(amount) FROM " . VTM_TABLE_PREFIX . "PLAYER_XP WHERE CHARACTER_ID = '%s'", $characterID)) * -1;
+		$this->spent_experience += $wpdb->get_var($wpdb->prepare("SELECT SUM(amount) FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND WHERE CHARACTER_ID = '%s'", $characterID)) * -1;
 		
 		// Offices / Positions
 		$sql = "SELECT offices.name, offices.visible, domains.name as domain
