@@ -5366,7 +5366,7 @@ function vtm_get_chargen_specialties($characterID) {
 	}
 	
 	// MERITS
-	$sql = "SELECT
+	$sql = "(SELECT
 				'MERIT'					as type,
 				'Merits and Flaws'		as typename,
 				merit.NAME 				as itemname, 
@@ -5376,26 +5376,41 @@ function vtm_get_chargen_specialties($characterID) {
 				''				        as spec,
 				pendingfreebie.ID 		as freebieid,
 				pendingfreebie.SPECIALISATION as freebiespec,
-				pendingxp.ID 			as xpid,
-				pendingxp.SPECIALISATION as xpspec,
+				0 			            as xpid,
+				''                      as xpspec,
 				merit.HAS_SPECIALISATION as has_specialisation
 			FROM
 				" . VTM_TABLE_PREFIX . "MERIT merit,
 				" . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND pendingfreebie
-				LEFT JOIN (
-					SELECT ID, CHARTABLE_LEVEL, ITEMTABLE_ID, SPECIALISATION
-					FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
-					WHERE CHARACTER_ID = %s
-						AND ITEMTABLE = 'MERIT'
-				) pendingxp
-				ON 
-					pendingxp.ITEMTABLE_ID = pendingfreebie.ITEMTABLE_ID
 			WHERE
 				merit.ID = pendingfreebie.ITEMTABLE_ID
 				AND pendingfreebie.ITEMTABLE = 'MERIT'
 				AND pendingfreebie.CHARACTER_ID = %s
 			ORDER BY
-				merit.VALUE DESC, merit.NAME";
+				merit.VALUE DESC, merit.NAME)
+			UNION
+			(SELECT
+				'MERIT'					as type,
+				'Merits and Flaws'		as typename,
+				merit.NAME 				as itemname, 
+				merit.GROUPING 			as grp, 
+				merit.VALUE 			as level,
+				0					    as id,
+				''				        as spec,
+				0					    as freebieid,
+				''				        as freebiespec,
+				pendingxp.ID 			as xpid,
+				pendingxp.SPECIALISATION as xpspec,
+				merit.HAS_SPECIALISATION as has_specialisation
+			FROM
+				" . VTM_TABLE_PREFIX . "MERIT merit,
+				" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND pendingxp
+			WHERE
+				merit.ID = pendingxp.ITEMTABLE_ID
+				AND pendingxp.ITEMTABLE = 'MERIT'
+				AND pendingxp.CHARACTER_ID = %s
+			ORDER BY
+				merit.VALUE DESC, merit.NAME)";
 	$sql = $wpdb->prepare($sql, $characterID, $characterID);
 	//echo "<p>SQL: $sql</p>";
 	$results = $wpdb->get_results($sql);
