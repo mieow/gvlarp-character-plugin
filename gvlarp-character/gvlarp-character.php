@@ -3,7 +3,7 @@
         Plugin URI: http://www.gvlarp.com/character-plugin
         Description: Management of Characters and Players for Vampire-the Masquerade
         Author: Lambert Behnke & Jane Houston
-        Version: 1.8.0
+        Version: 1.10
         Author URI: http://www.gvlarp.com
     */
 
@@ -73,6 +73,18 @@
 					  XP changes don't get deleted if approval fails. Extended Background widget added. Show
 					  Feeding domains in a googlemaps api shortcode. Fixed PDF report issue for data generated 
 					  on the 2nd page and onward
+		Version 1.10.0	Character Generation added. Character names on View Character page show up correctly if 
+					  they have an apostrophe in the name. Non-Clan, Non-visible disciplines now show up to buy 
+					  when the character already has a dot in it. Ability to add extra blank columns in the 
+					  sign-in report added. Report added to show when characters were last updated. Characters 
+					  without a WordPress ID (e.g NPCs) can now be viewed. Optional 4th Clan Discipline can now 
+					  be specified for clans. Initial level of the character road/path can only be set at 
+					  initial character creation. Validation performed on create character inputs (e.g. 
+					  wordpress ID, required fields, duplicate character names). Report when character could not 
+					  be added to database. Conscience/instinct/etc pull-down boxes only go to 5, and not to the 
+					  generational maximum. For login Widget: Removed download DT link, Pick up page URLs from 
+					  database and Checkbox to set which links to show
+
         Comments:
 
 	*/
@@ -81,16 +93,15 @@
         DB Changes: 
 		
 		Version 1.9.10
-			Table GENERATION,			Removed column COST
-			Table MERIT,				Added column PROFILE_DISPLAY_ID
-			Table CONFIG,				Added column DISPLAY_BACKGROUND_IN_PROFILE
-			Table CHARACTER,			Restored column VISIBLE
-			Table CHARACTER,			Constraint on NATURE_ID removed
-			Table CHARACTER,			Constraint on DEMEANOUR_ID removed
-			Table CHARACTER_BACKGROUND,	Constraint on SECTOR_ID removed
-			Added PROFILE_DISPLAY Table
-			Added MAPOWNER Table
-			Added MAPDOMAIN Table
+			Table CLAN,					Added column WORDPRESS_ROLE
+			Table CHARACTER,			Added column CHARGEN_STATUS_ID
+			Table CHARACTER,			Added column CONCEPT
+			Table CHARACTER,			Added column EMAIL
+			Added CHARGEN_TEMPLATE Table
+			Added CHARGEN_STATUS Table
+			Added CHARGEN_TEMPLATE_OPTIONS Table
+			Added PENDING_FREEBIE_SPEND Table
+			Added CHARACTER_GENERATION Table
 			
          */
 global $wpdb;
