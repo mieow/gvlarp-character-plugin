@@ -2074,6 +2074,7 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 		
 		
 		// Create Wordpress Account with correct role
+		// or update the account if it already exists
 		// wp_generate_password
 		$sql = "SELECT ch.NAME, ch.EMAIL, ch.WORDPRESS_ID, clans.WORDPRESS_ROLE
 				FROM " . VTM_TABLE_PREFIX . "CLAN clans,
@@ -2084,44 +2085,91 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 		$sql = $wpdb->prepare($sql, $characterID);
 		$result = $wpdb->get_row($sql);
 		
-		$pass        = wp_generate_password();
 		$login       = $result->WORDPRESS_ID;
 		$email       = $result->EMAIL;
 		$displayname = $result->NAME;
 		$role        = $result->WORDPRESS_ROLE;
-		$userdata = array (
-			'user_pass'    => $pass,
-			'user_login'   => $login,
-			'user_email'   => $email,
-			'display_name' => $displayname,
-			'role'         => $role
-		);
-		$user_id = wp_insert_user( $userdata ) ;
-		if( is_wp_error($user_id) ) {
-			$failed = 1;
-			echo "<p style='color:red'>Failed to create new user</p>";
-			print_r($userdata);
-			return;
-		} else {
-			echo "<p style='color:green'>User created : $login (ID: $user_id) with '$role' role </p>";
-			//print_r($userdata);
+		
+		$searchusers = get_users("search=$login");
+		//print_r($searchusers);
+		// loop through returned to ensure search didn't just return a partial match
+		$wpid = 0;
+		foreach ($searchusers as $searchuser) {
+			if ($searchuser->user_login == $login) {
+				foreach ($searchuser->roles as $checkrole) {
+					if ($checkrole == 'administrator') {
+						$wpid = -1;
+					} else {
+						$wpid = $searchuser->ID;
+					}
+				}
+			}
 		}
 		
-		// Update Status and save approval date
-		$approvedid = $wpdb->get_var("SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARGEN_STATUS WHERE NAME = 'Approved'");
-		$result = $wpdb->update(VTM_TABLE_PREFIX . "CHARACTER",
-					array('CHARGEN_STATUS_ID' => $approvedid),
-					array('ID' => $characterID)
-		);
-		$result = $wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_GENERATION",
-					array('DATE_OF_APPROVAL' => Date('Y-m-d')),
-					array('CHARACTER_ID' => $characterID)
-		);
+		if ($wpid == -1) {
+			echo "<p>No changes made to administrator account '$login'</p>";
+		}
+		elseif ($wpid == 0) {
+			$pass        = wp_generate_password();
+			$userdata = array (
+				'user_pass'    => $pass,
+				'user_login'   => $login,
+				'user_email'   => $email,
+				'display_name' => $displayname,
+				'role'         => $role
+			);
+			$user_id = wp_insert_user( $userdata ) ;
+			if( is_wp_error($user_id) ) {
+				$failed = 1;
+				echo "<p style='color:red'>Failed to create new user</p>";
+				print_r($userdata);
+				return;
+			} else {
+				echo "<p style='color:green'>User created : $login (ID: $user_id) with '$role' role </p>";
+				//print_r($userdata);
+			}
+			
+		}
+		else {
+			$pass = "";
+			$userdata = array (
+				'ID'           => $wpid,
+				'user_email'   => $email,
+				'display_name' => $displayname,
+				'role'         => $role
+			);
+
+			$result = wp_update_user( $userdata );
+
+			if ( is_wp_error( $result ) ) {
+				// There was an error, probably that user doesn't exist.
+				$failed = 1;
+				echo "<p style='color:red'>Failed to updated user '$login'</p>";
+				print_r($userdata);
+				return;
+			} else {
+				echo "<p style='color:green'>User updated : $login (ID: $wpid) with '$role' role </p>";
+			}	
+		}
 		
+		if (!$failed) {
+			// Update Status and save approval date
+			$approvedid = $wpdb->get_var("SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARGEN_STATUS WHERE NAME = 'Approved'");
+			$result = $wpdb->update(VTM_TABLE_PREFIX . "CHARACTER",
+						array('CHARGEN_STATUS_ID' => $approvedid),
+						array('ID' => $characterID)
+			);
+			$result = $wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_GENERATION",
+						array('DATE_OF_APPROVAL' => Date('Y-m-d')),
+						array('CHARACTER_ID' => $characterID)
+		);
+
 		// Email user with the details
-		vtm_email_chargen_approved($characterID, $pass);
+		vtm_email_chargen_approved($characterID, $wpid, $pass);
+
+		}
+}
 		
-	}
 	
 	function deny($characterID, $denyMessage) {
 		global $wpdb;
@@ -2324,7 +2372,7 @@ You can return to character generation by following this link: $url";
 	return $result;
 }
 
-function vtm_email_chargen_approved($characterID, $password) {
+function vtm_email_chargen_approved($characterID, $wpid, $password) {
 	global $current_user;
 	global $wpdb;
 	
@@ -2355,21 +2403,27 @@ function vtm_email_chargen_approved($characterID, $password) {
 	$subject   = "$tag Character Approved: $name";
 	$headers[] = "From: \"$fromname\" <$fromaddr>";
 	
-	$userbody = "Hello $player,
+	$userbody = "Hello $player,\n\nThe Storytellers have approved your character.  ";
 	
-The Storytellers have approved your character.  Please log into the website with the below details:
-
-	Login name: $username
-	Password:   $password
-	Website:    $website
-
-Here are some useful direct links:
-
-	Change your password:  $url1
-	View your character:   $url2
-	Print your character:  $url3
-	Spend Experience:      $url4
-	";
+	if ($wpid == 0) {
+		// New Wordpress Account
+		$userbody .= "Please log into the website with the below details:\n\n";
+		$userbody .= "\tLogin name: $username\n";
+		$userbody .= "\tPassword:   $password\n";
+		$userbody .= "\tWebsite:    $website\n\n";
+	}
+	else {
+		// Already existing WP account
+		$userbody .= "Please log into the website with login details already created:\n\n";
+		$userbody .= "\tLogin name: $username\n";
+		$userbody .= "\tWebsite:    $website\n\n";
+	}
+	
+	$userbody .= "Here are some useful direct links:\n\n";
+	$userbody .= "\tChange your password:  $url1\n";
+	$userbody .= "\tView your character:   $url2\n";
+	$userbody .= "\tPrint your character:  $url3\n";
+	$userbody .= "\tSpend Experience:      $url4\n";
 	
 	$result = wp_mail($email, $subject, $userbody, $headers);
 	

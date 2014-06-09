@@ -6,7 +6,7 @@ register_activation_hook( __FILE__, 'vtm_character_install_data' );
 global $vtm_character_version;
 global $vtm_character_db_version;
 $vtm_character_version = "1.10"; 
-$vtm_character_db_version = "27b"; 
+$vtm_character_db_version = "27"; 
 
 function vtm_update_db_check() {
     global $vtm_character_version;
@@ -34,7 +34,7 @@ function vtm_character_install() {
 	global $wpdb;
 	global $vtm_character_db_version;
 	
-	$wpdb->show_errors();
+	//$wpdb->show_errors();
 	
 	$table_prefix = VTM_TABLE_PREFIX;
 	$installed_version = get_site_option( "vtm_character_db_version" );
@@ -1231,6 +1231,34 @@ function vtm_character_update_1_9() {
 				array('WORDPRESS_ROLE' => 'subscriber'),
 				array('ID' => $clanID)
 			);
+		}
+	}
+	
+	// Copy in initial values for the new CHARACTER EMAIL column
+	$sql = "SELECT ch.ID, ch.WORDPRESS_ID, ch.NAME 
+		FROM 
+			" . VTM_TABLE_PREFIX . "CHARACTER ch,
+			" . VTM_TABLE_PREFIX . "CHARACTER_STATUS cs
+		WHERE
+			ch.CHARACTER_STATUS_ID = cs.ID
+			AND ch.EMAIL = ''
+			AND cs.NAME = 'Alive'
+			AND ch.VISIBLE = 'Y'
+			AND ch.WORDPRESS_ID != ''";
+	//echo "<p>SQL: $sql</p>";
+	$result = $wpdb->get_results($sql);
+	if (count($result) > 0) {
+		foreach ($result as $row) {
+			$userdata = get_user_by( 'login', $row->WORDPRESS_ID );
+			if ($userdata) {
+				//echo "<li>Email address of {$row->NAME} ({$row->WORDPRESS_ID}) is {$userdata->user_email}</li>";
+				$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER",
+					array('EMAIL' => $userdata->user_email),
+					array('ID' => $row->ID)
+				);
+			} //else {
+			//	echo "<li>No account created for {$row->NAME} ({$row->WORDPRESS_ID})</li>";
+			//}
 		}
 	}
 	
