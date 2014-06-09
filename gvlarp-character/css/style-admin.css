@@ -98,3 +98,17 @@ nav {
 #map-canvas img {max-width: none;}
 table.feedingmapkey {width:auto;}
 .feedingmapkey td {border:1px solid darkgrey;}
+
+/* =Templates
+-------------------------------------------------------------- */
+#new-template {
+	margin-left: 30px;
+}
+div.datatables_detail {
+}
+.datatables_detail td {
+	vertical-align: top;
+}
+tr.template_option_row > td {
+	border-bottom: 1px dotted grey;
+}

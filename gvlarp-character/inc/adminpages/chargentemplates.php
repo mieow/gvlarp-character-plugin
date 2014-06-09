@@ -177,20 +177,23 @@ function vtm_render_template_data(){
 		$visible = "Y";
 	}
 	
-	vtm_render_select_template();
+	?>
+	<p>Select a template to edit or create a new template.</p>
+	
+	<?php vtm_render_select_template();
 	
 	
 ?>
 	<h3>Add/Edit Character Generation Template</h3>
-	
-	<p>Select a template to edit or create a new template.</p>
 
-	<h4>Character Generation Template</h4>
-	
 	<form id="new-<?php print $type; ?>" method="post" action='<?php print htmlentities($current_url); ?>'>
+
+	<h4>Character Generation Template Information</h4>
+	
 	<input type="hidden" name="tab" value="<?php print $type; ?>" />
 	<input type="hidden" name="template" value="<?php print $_REQUEST['template']; ?>" />
 	<input type="hidden" name="action" value="save" />
+	<div class="datatables_info">
 	<p>Template Name:
 	<input type="text"   name="template_name" value="<?php print $name; ?>" size=30 /></p>
 	<p>Description:
@@ -201,10 +204,12 @@ function vtm_render_template_data(){
 			<option value="Y" <?php selected($visible, "Y"); ?>>Yes</option>
 		</select>
 	</p>
+	</div>
 
 	<h4>Character Generation Template Options</h4>
+	<div class="datatables_detail">
 	<table>
-	<tr>
+	<tr class="template_option_row">
 		<td rowspan=1>Assigning Attributes</td>
 		<td><input type="radio" name="attributes-method" value="PST" <?php checked( 'PST', $settings['attributes-method']); ?>>Primary/Secondary/Tertiary
 			<table>
@@ -219,7 +224,7 @@ function vtm_render_template_data(){
 			</table>
 		</td>
 	</tr>
-	<tr>
+	<tr class="template_option_row">
 		<td rowspan=1>Assigning Abilities</td>
 		<td colspan=2>
 			<table>
@@ -233,7 +238,7 @@ function vtm_render_template_data(){
 			</table>
 		</td>
 	</tr>
-	<tr>
+	<tr class="template_option_row">
 		<td rowspan=1>Assigning Disciplines</td>
 		<td colspan=2>
 			<table>
@@ -241,7 +246,7 @@ function vtm_render_template_data(){
 			</table>
 		</td>
 	</tr>
-	<tr>
+	<tr class="template_option_row">
 		<td rowspan=1>Assigning Backgrounds</td>
 		<td colspan=2>
 			<table>
@@ -249,7 +254,7 @@ function vtm_render_template_data(){
 			</table>
 		</td>
 	</tr>
-	<tr>
+	<tr class="template_option_row">
 		<td rowspan=1>Assigning Virtues</td>
 		<td colspan=2>
 			<table>
@@ -257,7 +262,7 @@ function vtm_render_template_data(){
 			</table>
 		</td>
 	</tr>
-	<tr>
+	<tr class="template_option_row">
 		<td rowspan=1>Paths of Enlightenment</td>
 		<td colspan=2>
 			<table>
@@ -265,7 +270,7 @@ function vtm_render_template_data(){
 			</table>
 		</td>
 	</tr>
-	<tr>
+	<tr class="template_option_row">
 		<td rowspan=1>Merits and Flaws</td>
 		<td colspan=2>
 			<table>
@@ -274,7 +279,7 @@ function vtm_render_template_data(){
 			</table>
 		</td>
 	</tr>
-	<tr>
+	<tr class="template_option_row">
 		<td rowspan=1>Freebie Points</td>
 		<td colspan=2>
 			<table>
@@ -283,6 +288,7 @@ function vtm_render_template_data(){
 		</td>
 	</tr>
 	</table>
+	</div>
 	<?php
 	
 	// template options
