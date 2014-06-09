@@ -204,7 +204,7 @@ function vtm_character_datatables() {
 				<li><?php echo vtm_get_tablink('costmodel', 'Cost Models'); ?></li>
 				<li><?php echo vtm_get_tablink('enlighten', 'Paths of Enlightenment'); ?></li>
 				<li><?php echo vtm_get_tablink('path',    'Paths of Magik'); ?></li>
-				<li><?php if ($config->USE_NATURE_DEMEANOUR == 'Y') echo vtm_get_tablink('nature',  'Nature/Demeanour'); ?></li>
+				<li><?php if (isset($config->USE_NATURE_DEMEANOUR) && $config->USE_NATURE_DEMEANOUR == 'Y') echo vtm_get_tablink('nature',  'Nature/Demeanour'); ?></li>
 				<li><?php echo vtm_get_tablink('domain',  'Domains'); ?></li>
 				<li><?php echo vtm_get_tablink('office',  'Offices'); ?></li>
 				<li><?php echo vtm_get_tablink('combo',   'Combination Disciplines'); ?></li>

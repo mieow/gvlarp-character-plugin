@@ -6,7 +6,7 @@ register_activation_hook( __FILE__, 'vtm_character_install_data' );
 global $vtm_character_version;
 global $vtm_character_db_version;
 $vtm_character_version = "1.10"; 
-$vtm_character_db_version = "25"; 
+$vtm_character_db_version = "27b"; 
 
 function vtm_update_db_check() {
     global $vtm_character_version;
@@ -34,7 +34,7 @@ function vtm_character_install() {
 	global $wpdb;
 	global $vtm_character_db_version;
 	
-	//$wpdb->show_errors();
+	$wpdb->show_errors();
 	
 	$table_prefix = VTM_TABLE_PREFIX;
 	$installed_version = get_site_option( "vtm_character_db_version" );
@@ -583,7 +583,7 @@ function vtm_character_install() {
 					CONSTRAINT `" . $table_prefix . "char_constraint_6`  FOREIGN KEY  (CHARACTER_STATUS_ID)  REFERENCES " . $table_prefix . "CHARACTER_STATUS(ID),
 					CONSTRAINT `" . $table_prefix . "char_constraint_7`  FOREIGN KEY  (ROAD_OR_PATH_ID)      REFERENCES " . $table_prefix . "ROAD_OR_PATH(ID),
 					CONSTRAINT `" . $table_prefix . "char_constraint_8`  FOREIGN KEY  (DOMAIN_ID)            REFERENCES " . $table_prefix . "DOMAIN(ID),
-					CONSTRAINT `" . $table_prefix . "char_constraint_9`  FOREIGN KEY  (SECT_ID)              REFERENCES " . $table_prefix . "SECT(ID)
+					CONSTRAINT `" . $table_prefix . "char_constraint_9`  FOREIGN KEY  (SECT_ID)              REFERENCES " . $table_prefix . "SECT(ID),
 					CONSTRAINT `" . $table_prefix . "char_constraint_10`  FOREIGN KEY (CHARGEN_STATUS_ID)    REFERENCES " . $table_prefix . "CHARGEN_STATUS(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
