@@ -1888,13 +1888,13 @@ function vtm_save_finish($characterID, $templateID) {
 				$colname => $comment
 			);
 			$result = $wpdb->update(VTM_TABLE_PREFIX . $table, $data, array ('ID' => $id),array('%s'));		
-			//if ($result) 			echo "<p style='color:green'>Updated $name speciality with $comment</p>\n";
-			//if ($result) 			echo "<p style='color:green'>Updated $name speciality with $comment</p>\n";
-			//else if ($result === 0) echo "<p style='color:orange'>No updates made to $name speciality</p>\n";
-			//else {
-			//	$wpdb->print_error();
-			//	echo "<p style='color:red'>Could not update $name speciality</p>\n";
-			//}
+			/*if ($result) 			echo "<p style='color:green'>Updated $name speciality with $comment</p>\n";
+			if ($result) 			echo "<p style='color:green'>Updated $name speciality with $comment</p>\n";
+			else if ($result === 0) echo "<p style='color:orange'>No updates made to $name speciality</p>\n";
+			else {
+				$wpdb->print_error();
+				echo "<p style='color:red'>Could not update $name speciality</p>\n";
+			}*/
 		}
 	}
 
@@ -3376,7 +3376,7 @@ function vtm_get_freebie_costs($type, $characterID = 0) {
 			$to   = $data[$i]['NEXT_VALUE'];
 			$cost = 0;
 			
-			while ($from != $to && $to <= 10) {
+			while ($from != $to && $to <= 10 && $to > 0) {
 				if ($data[$from]['FREEBIE_COST'] != 0) {
 					$cost += $data[$from]['FREEBIE_COST'];
 					$clancost[$i][$to] = $cost;
@@ -3394,7 +3394,7 @@ function vtm_get_freebie_costs($type, $characterID = 0) {
 			$to   = $data[$i]['NEXT_VALUE'];
 			$cost = 0;
 			
-			while ($from != $to && $to <= 10) {
+			while ($from != $to && $to <= 10 && $to > 0) {
 				if ($data[$from]['FREEBIE_COST'] != 0) {
 					$cost += $data[$from]['FREEBIE_COST'];
 					$nonclancost[$i][$to] = $cost;
@@ -3459,7 +3459,7 @@ function vtm_get_freebie_costs($type, $characterID = 0) {
 					$to   = $data[$i]['NEXT_VALUE'];
 					$cost = 0;
 					
-					while ($from != $to && $to <= 10) {
+					while ($from != $to && $to <= 10 && $to > 0) {
 						if ($data[$from]['FREEBIE_COST'] != 0) {
 							$cost += $data[$from]['FREEBIE_COST'];
 							$outdata[$key][$i][$to] = $cost;
@@ -3918,47 +3918,12 @@ function vtm_get_freebies_spent($characterID) {
 		
 		}
 		
-		/*
 
-		$current      = vtm_sanitize_array($current);
-		$freebiecosts = vtm_sanitize_array($freebiecosts);
-		
-		//print_r($current);
-		
-		$bought = $_POST[$postvariable];
-		foreach ($bought as $name => $level_to) {
-			$levelfrom = isset($current[$name]->level_from) ? $current[$name]->level_from : 0;
-			$actualname = preg_replace("/_\d+$/", "", $name);
-		
-			if ($table == 'MERIT') {
-				if (!isset($current[$name])) {
-					if (isset($current[$actualname]->multiple) && $current[$actualname]->multiple == 'Y') {
-						$spent += isset($freebiecosts[$actualname][0][1]) ? $freebiecosts[$actualname][0][1] : 0;
-						//echo "<li>Running total is $spent. Bought $actualname ({$freebiecosts[$actualname][0][1]})</li>\n";
-					}
-				} else {
-					$spent += isset($freebiecosts[$name][0][1]) ? $freebiecosts[$name][0][1] : 0;
-					//echo "<li>Running total is $spent. Bought $name ({$freebiecosts[$name][0][1]})</li>\n";
-				}
-			}
-			elseif (!isset($current[$name])) {
-				//echo "$name becomes $actualname, <br />\n";
-				if (isset($current[$actualname]->multiple) && $current[$actualname]->multiple == 'Y') {
-					//echo "$name - from: {$current[$actualname]->level_from}, to: {$level_to}, cost: {$freebiecosts[$actualname][$current[$actualname]->level_from][$level_to]}<br />\n";
-					$spent += isset($freebiecosts[$actualname][$current[$actualname]->level_from][$level_to]) ? $freebiecosts[$actualname][$current[$actualname]->level_from][$level_to] : 0;
-					//echo "<li>Running total is $spent. Bought $actualname to $level_to ({$freebiecosts[$actualname][$current[$actualname]->level_from][$level_to]})</li>\n";
-				}
-			} else {
-				$spent += isset($freebiecosts[$name][$levelfrom][$level_to]) ? $freebiecosts[$name][$levelfrom][$level_to] : 0;
-				//echo "<li>Running total is $spent. Bought $name to $level_to ({$freebiecosts[$name][$levelfrom][$level_to]})</li>\n";
-			}
-		}
-		*/
 	} else {
 		$sql = "SELECT SUM(AMOUNT) FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
 				WHERE CHARACTER_ID = %s";
 		$sql = $wpdb->prepare($sql, $characterID);
-		$spent = $wpdb->get_var($sql);
+		$spent = $wpdb->get_var($sql) * 1;
 	}
 
 	return $spent;
@@ -4318,7 +4283,7 @@ function vtm_validate_basic_info($settings, $characterID, $usepost = 1) {
 						WHERE CHARACTER_ID = %s AND (ITEMTABLE='DISCIPLINE' OR ITEMTABLE = 'PATH')", $characterID)));
 	$discspends += count($wpdb->get_var($wpdb->prepare("SELECT ID 
 						FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND 
-						WHERE CHARACTER_ID = %s AND (ITEMTABLE='DISCIPLINE' OR (ITEMTABLE = 'PATH')", $characterID)));
+						WHERE CHARACTER_ID = %s AND (ITEMTABLE='DISCIPLINE' OR ITEMTABLE = 'PATH')", $characterID)));
 	$discspends += count($wpdb->get_var($wpdb->prepare("SELECT ID 
 						FROM " . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE 
 						WHERE CHARACTER_ID = %s", $characterID)));
@@ -5383,7 +5348,7 @@ function vtm_get_chargen_specialties($characterID) {
 	
 	foreach ($results as $row) {
 		if ($row->has_specialisation == 'Y' && (isset($row->id) || isset($row->freebieid) || isset($row->xpid))) {
-			if (isset($row->xpid)) {
+			if (isset($row->xpid) && $row->xpid > 0) {
 				$updatetable = 'PENDING_XP_SPEND';
 				$tableid     = $row->xpid;
 				$comment     = $row->xpspec;
@@ -5525,6 +5490,8 @@ function vtm_validate_submit($settings, $characterID, $usepost = 1) {
 function vtm_save_submit($characterID, $templateID) {
 	global $wpdb;
 	global $current_user;
+	
+	$wpdb->show_errors();
 	
 	// Exit if we aren't actually submitting the character
 	if (!isset($_POST['chargen-submit']) || !isset($_POST['status']) || $_POST['status'] != 1) {
