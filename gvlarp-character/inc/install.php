@@ -18,9 +18,10 @@ function vtm_update_db_check() {
 		echo "<p>Updating from " . get_option( 'vtm_character_version' ) . "." . get_option( 'vtm_character_db_version' );
 		echo " to  $vtm_character_version.$vtm_character_db_version</p>";
 		
-        $errors = vtm_character_update();
+        $errors = vtm_character_update('before');
         vtm_character_install();
 		vtm_character_install_data();
+        $errors += vtm_character_update('after');
 				
 		if (!$errors) {
 			update_option( "vtm_character_version", $vtm_character_version );
@@ -1026,7 +1027,7 @@ function vtm_character_install_data() {
 	
 }
 
-function vtm_character_update() {
+function vtm_character_update($beforeafter) {
 	global $vtm_character_version;
 	global $vtm_character_db_version;
 	
@@ -1036,14 +1037,14 @@ function vtm_character_update() {
 	
 	switch ($installed_version) {
 		//--- FROM VERSION 1.9 -------------------------------------------------
-		case "1.9": $errors += vtm_character_update_1_9();
+		case "1.9": $errors += vtm_character_update_1_9($beforeafter);
 	}
 	
 	// Incremental database updates, during development
 	$db_version = get_site_option( "vtm_character_db_version", "1" );
 	if ($installed_version == $vtm_character_version && $db_version != $vtm_character_db_version) {
 		switch ($installed_version) {
-			case "1.10": $errors += vtm_character_update_1_9();
+			case "1.10": $errors += vtm_character_update_1_9($beforeafter);
 		}
 	
 	}
@@ -1176,102 +1177,108 @@ function vtm_rename_table($from, $to, $prefixfrom = VTM_TABLE_PREFIX, $prefixto 
 
 }
 
-function vtm_character_update_1_9() {
+function vtm_character_update_1_9($beforeafter) {
 	global $wpdb;
 	
 	//$wpdb->show_errors();
 	
-	// Rename GVLARP_ tables to VTM_ tables
-	$oldprefix = $wpdb->prefix . "GVLARP_";
-	$sql = "SHOW TABLES LIKE %s";
-	$sql = $wpdb->prepare($sql, $oldprefix . "%");
-	$result = $wpdb->get_col($sql);
-	if (count($result) > 0) {
-		foreach ($result as $table) {
-			$newtable = str_replace($oldprefix, VTM_TABLE_PREFIX, $table);
-			
-			$sql = "SHOW TABLES LIKE %s";
-			$sql = $wpdb->prepare($sql, $newtable);
-			$result = $wpdb->get_results($sql);
-			
-			if (count($result) == 0) {
-				$sql = "RENAME TABLE $table TO $newtable";
-				$result = $wpdb->query($sql);
-				if (isset($result) && $result === false) {
-					$errors++;
+	if ( $beforeafter == 'before') {
+		// Rename GVLARP_ tables to VTM_ tables
+		$oldprefix = $wpdb->prefix . "GVLARP_";
+		$sql = "SHOW TABLES LIKE %s";
+		$sql = $wpdb->prepare($sql, $oldprefix . "%");
+		$result = $wpdb->get_col($sql);
+		if (count($result) > 0) {
+			foreach ($result as $table) {
+				$newtable = str_replace($oldprefix, VTM_TABLE_PREFIX, $table);
+				
+				$sql = "SHOW TABLES LIKE %s";
+				$sql = $wpdb->prepare($sql, $newtable);
+				$result = $wpdb->get_results($sql);
+				
+				if (count($result) == 0) {
+					$sql = "RENAME TABLE $table TO $newtable";
+					$result = $wpdb->query($sql);
+					if (isset($result) && $result === false) {
+						$errors++;
+					}
 				}
+			}
+			
+		}
+		
+		// Remove some columns that may have been created while developing this version
+		$remove = array (
+			'CHARGEN_TEMPLATE_ID' => '',
+			'CHARGEN_NOTE_TO_ST' => '',
+			'CHARGEN_NOTE_FROM_ST' => ''
+		);
+		vtm_remove_columns(VTM_TABLE_PREFIX . "CHARACTER", $remove);
+
+	} else {
+	
+		// Add Character Generation Status to all characters
+		$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARGEN_STATUS WHERE NAME = 'Approved'";
+		$approvedid = $wpdb->get_var($sql);
+		$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ISNULL(CHARGEN_STATUS_ID) OR CHARGEN_STATUS_ID = 0";
+		$result = $wpdb->get_col($sql);
+		print_r($result);
+		if (count($result) > 0) {
+			foreach ($result as $characterID) {
+				$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER",
+					array('CHARGEN_STATUS_ID' => $approvedid),
+					array('ID' => $characterID)
+				);
+				
 			}
 		}
 		
-	}
-	
-	// Add Character Generation Status to all characters
-	$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARGEN_STATUS WHERE NAME = 'Approved'";
-	$approvedid = $wpdb->get_var($sql);
-	$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ISNULL(CHARGEN_STATUS_ID) OR CHARGEN_STATUS_ID = 0";
-	$result = $wpdb->get_col($sql);
-	if (count($result) > 0) {
-		foreach ($result as $characterID) {
-			$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER",
-				array('CHARGEN_STATUS_ID' => $approvedid),
-				array('ID' => $characterID)
-			);
-			
-		}
-	}
-	
-	// Add subscriber as default wordpress role to clan table
-	$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "CLAN WHERE WORDPRESS_ROLE = ''";
-	$result = $wpdb->get_col($sql);
-	//echo "<li>SQL: $sql</li>";
-	//print_r($result);
-	if (count($result) > 0) {
-		foreach ($result as $clanID) {
-			$wpdb->update(VTM_TABLE_PREFIX . "CLAN",
-				array('WORDPRESS_ROLE' => 'subscriber'),
-				array('ID' => $clanID)
-			);
-		}
-	}
-	
-	// Copy in initial values for the new CHARACTER EMAIL column
-	$sql = "SELECT ch.ID, ch.WORDPRESS_ID, ch.NAME 
-		FROM 
-			" . VTM_TABLE_PREFIX . "CHARACTER ch,
-			" . VTM_TABLE_PREFIX . "CHARACTER_STATUS cs
-		WHERE
-			ch.CHARACTER_STATUS_ID = cs.ID
-			AND ch.EMAIL = ''
-			AND cs.NAME = 'Alive'
-			AND ch.VISIBLE = 'Y'
-			AND ch.WORDPRESS_ID != ''";
-	//echo "<p>SQL: $sql</p>";
-	$result = $wpdb->get_results($sql);
-	if (count($result) > 0) {
-		foreach ($result as $row) {
-			$userdata = get_user_by( 'login', $row->WORDPRESS_ID );
-			if ($userdata) {
-				//echo "<li>Email address of {$row->NAME} ({$row->WORDPRESS_ID}) is {$userdata->user_email}</li>";
-				$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER",
-					array('EMAIL' => $userdata->user_email),
-					array('ID' => $row->ID)
+		// Add subscriber as default wordpress role to clan table
+		$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "CLAN WHERE WORDPRESS_ROLE = ''";
+		$result = $wpdb->get_col($sql);
+		//echo "<li>SQL: $sql</li>";
+		//print_r($result);
+		if (count($result) > 0) {
+			foreach ($result as $clanID) {
+				$wpdb->update(VTM_TABLE_PREFIX . "CLAN",
+					array('WORDPRESS_ROLE' => 'subscriber'),
+					array('ID' => $clanID)
 				);
-			} //else {
-			//	echo "<li>No account created for {$row->NAME} ({$row->WORDPRESS_ID})</li>";
-			//}
+			}
 		}
-	}
+		
+		// Copy in initial values for the new CHARACTER EMAIL column
+		$sql = "SELECT ch.ID, ch.WORDPRESS_ID, ch.NAME 
+			FROM 
+				" . VTM_TABLE_PREFIX . "CHARACTER ch,
+				" . VTM_TABLE_PREFIX . "CHARACTER_STATUS cs
+			WHERE
+				ch.CHARACTER_STATUS_ID = cs.ID
+				AND ch.EMAIL = ''
+				AND cs.NAME = 'Alive'
+				AND ch.VISIBLE = 'Y'
+				AND ch.WORDPRESS_ID != ''";
+		//echo "<p>SQL: $sql</p>";
+		$result = $wpdb->get_results($sql);
+		if (count($result) > 0) {
+			foreach ($result as $row) {
+				$userdata = get_user_by( 'login', $row->WORDPRESS_ID );
+				if ($userdata) {
+					//echo "<li>Email address of {$row->NAME} ({$row->WORDPRESS_ID}) is {$userdata->user_email}</li>";
+					$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER",
+						array('EMAIL' => $userdata->user_email),
+						array('ID' => $row->ID)
+					);
+				} //else {
+				//	echo "<li>No account created for {$row->NAME} ({$row->WORDPRESS_ID})</li>";
+				//}
+			}
+		}
 	
-	// Add new foreign key(s)
-	vtm_add_constraint(VTM_TABLE_PREFIX . "CHARACTER", "char_constraint_10", "CHARGEN_STATUS_ID", "CHARGEN_STATUS(ID)");
-
-	// Remove some columns that may have been created while developing this version
-	$remove = array (
-		'CHARGEN_TEMPLATE_ID' => '',
-		'CHARGEN_NOTE_TO_ST' => '',
-		'CHARGEN_NOTE_FROM_ST' => ''
-	);
-	vtm_remove_columns(VTM_TABLE_PREFIX . "CHARACTER", $remove);
+		// Add new foreign key(s)
+		vtm_add_constraint(VTM_TABLE_PREFIX . "CHARACTER", "char_constraint_10", "CHARGEN_STATUS_ID", "CHARGEN_STATUS(ID)");
+	
+	}
 
 }
 

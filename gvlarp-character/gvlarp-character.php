@@ -107,7 +107,7 @@
 global $wpdb;
 
 define( 'VTM_CHARACTER_URL', plugin_dir_path(__FILE__) );
-define( 'VTM_TABLE_PREFIX', $wpdb->prefix . "vtm_" );
+define( 'VTM_TABLE_PREFIX', $wpdb->prefix . "larp_" );
 require_once VTM_CHARACTER_URL . 'inc/printable.php';
 require_once VTM_CHARACTER_URL . 'inc/install.php';
 require_once VTM_CHARACTER_URL . 'inc/extendedbackground.php';
