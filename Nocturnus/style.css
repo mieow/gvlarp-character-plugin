@@ -305,6 +305,7 @@ input[type="password"] {
 	font-weight: bold;
 	text-decoration: none;
 	color:inherit;
+	font-size: 200%;
 }
 
 #site-description {
