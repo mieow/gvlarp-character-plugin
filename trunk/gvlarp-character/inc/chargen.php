@@ -3455,8 +3455,8 @@ function vtm_get_freebie_costs($type, $characterID = 0) {
 			
 			if (count($data) > 0) {
 				for ($i = 0 ; $i < 10 ; $i++) {
-					$from = $data[$i]['CURRENT_VALUE'];
-					$to   = $data[$i]['NEXT_VALUE'];
+					$from = isset($data[$i]['CURRENT_VALUE']) ? $data[$i]['CURRENT_VALUE'] : 0;
+					$to   = isset($data[$i]['NEXT_VALUE']) ? $data[$i]['NEXT_VALUE'] : 0;
 					$cost = 0;
 					
 					while ($from != $to && $to <= 10 && $to > 0) {
@@ -3621,8 +3621,8 @@ function vtm_get_chargen_xp_costs($type, $characterID = 0) {
 			
 			if (count($data) > 0) {
 				for ($i = 0 ; $i < 10 ; $i++) {
-					$from = $data[$i]['CURRENT_VALUE'];
-					$to   = $data[$i]['NEXT_VALUE'];
+					$from = isset($data[$i]['CURRENT_VALUE']) ? $data[$i]['CURRENT_VALUE'] : 0;
+					$to   = isset($data[$i]['NEXT_VALUE']) ? $data[$i]['NEXT_VALUE'] : 0;
 					$cost = 0;
 					
 					while ($from != $to && $to <= 10) {
