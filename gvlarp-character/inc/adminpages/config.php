@@ -278,15 +278,15 @@ function vtm_character_config() {
 			</tr>
 			<tr>
 				<td><label>Centre Point, Latitude:</label></td>
-				<td><input type="number" name="feedingmap_centre_lat" value="<?php echo get_option('feedingmap_centre_lat'); ?>" /></td>
+				<td><input type="number" name="feedingmap_centre_lat" value="<?php echo get_option('feedingmap_centre_lat'); ?>" style="width:120px;" /></td>
 			</tr>
 			<tr>
 				<td><label>Centre Point, Longitude:</label></td>
-				<td><input type="number" name="feedingmap_centre_long" value="<?php echo get_option('feedingmap_centre_long'); ?>" /></td>
+				<td><input type="number" name="feedingmap_centre_long" value="<?php echo get_option('feedingmap_centre_long'); ?>" style="width:120px;" /></td>
 			</tr>
 			<tr>
 				<td><label>Map Zoom:</label></td>
-				<td><input type="number" name="feedingmap_zoom" value="<?php echo get_option('feedingmap_zoom'); ?>" /></td>
+				<td><input type="number" name="feedingmap_zoom" value="<?php echo get_option('feedingmap_zoom'); ?>" style="width:50px;" /></td>
 			</tr>
 			<tr>
 				<td><label>Map Type:</label></td>

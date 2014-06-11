@@ -910,6 +910,7 @@ function vtm_character_install_data() {
 	
 	$wpdb->show_errors();
 	
+	// SET UP THE AVAILABLE PAGES
 	$data = array (
 		'editCharSheet' => array(	'VALUE' => 'editCharSheet',
 									'DESCRIPTION' => 'New/Edit Character Sheet',
@@ -969,20 +970,9 @@ function vtm_character_install_data() {
 	foreach ($results as $row) {
 		$result = $wpdb->get_results($wpdb->prepare($sql, $row->ID));
 	}
-
-	// Does the sect ID need to be added to the characters
-	$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE SECT_ID = 0";
-	$results = $wpdb->get_results($sql);
-		
-	if (count($results) > 0) {
-		foreach ($results as $row) {
-			$data = array ('SECT_ID' => '1');
-			$results = $wpdb->update(VTM_TABLE_PREFIX . "CHARACTER",$data,array ('ID' => $row->ID));		
-		}
-	}
 	
+	// LOAD UP THE INITIAL TABLE DATA
 	$datalist = glob(VTM_CHARACTER_URL . "init/*.csv");
-	
 	foreach ($datalist as $datafile) {
 		$temp = explode(".", basename($datafile));
 		$tablename = $temp[1];
@@ -990,17 +980,13 @@ function vtm_character_install_data() {
 		$sql = "select ID from " . VTM_TABLE_PREFIX . $tablename;
 		$rows = count($wpdb->get_results($sql));
 		if (!$rows) {
-			//print "<p>Reading data for table $tablename</p>";
 			$filehandle = fopen($datafile,"r");
 			
 			$i=0;
 			$data = array();
 			while(! feof($filehandle)) {
-				/* print_r(fgetcsv($filehandle)); */
-				
 				if ($i == 0) {
 					$headings = fgetcsv($filehandle,0,",");
-					/* print_r($headings); */
 				} else {
 					$line = fgetcsv($filehandle,0,",");
 					if ($line > 0) {
@@ -1011,19 +997,16 @@ function vtm_character_install_data() {
 						}
 					}
 				}
-				
 				$i++;
 			}
 			fclose($filehandle);
-			/* print_r($data); */
+
 			$rowsadded = 0;
 			foreach ($data as $id => $entry) {
 				$rowsadded += $wpdb->insert( VTM_TABLE_PREFIX . $tablename, $entry);
 			}
 		}
-		
 	}
-
 	
 }
 
@@ -1058,10 +1041,6 @@ function vtm_remove_columns($table, $columninfo) {
 	//SHOW CREATE TABLE gvpluginwp_VTM_CHARACTER
 	// gvpluginwp_VTM_CHARACTER_ibfk_8
 	
-	/* echo "</p>columninfo:";
-	print_r($columninfo);
-	echo "</p>"; */
-	
 	$existing_keys = $wpdb->get_col("SHOW INDEX FROM $table WHERE Key_name != 'PRIMARY';",2);
 	$existing_columns = $wpdb->get_col("DESC $table", 0);
 	
@@ -1069,24 +1048,12 @@ function vtm_remove_columns($table, $columninfo) {
 	$remove_constraints = array_intersect(array_values($columninfo), $existing_keys);
 	$sql = "ALTER TABLE $table DROP FOREIGN KEY ".implode(', DROP INDEX ',$remove_constraints).';';
 	
-	/* do remove */
-	/* if( !empty($remove_constraints) ) {
-		echo "</p>constraints:";
-		print_r($remove_constraints);
-		echo "</p>SQL: $sql</p>";
-	} */
 	if( !empty($remove_constraints) ) $wpdb->query($sql);			
 
 	/* which columns to remove */
 	$remove_columns = array_intersect(array_keys($columninfo), $existing_columns);
 	$sql = "ALTER TABLE $table DROP COLUMN ".implode(', DROP COLUMN ',$remove_columns).';';
 	
-	/* do remove */
-	/* if( !empty($remove_columns) ) {
-		echo "</p>columns:";
-		print_r($remove_columns);
-		echo "</p>SQL: $sql</p>";
-	} */
 	if( !empty($remove_columns) ) $wpdb->query($sql); 
 
 }
@@ -1115,13 +1082,13 @@ function vtm_add_constraint($table, $constraint, $foreignkey, $reference) {
 	$constraint = VTM_TABLE_PREFIX . $constraint;
 	$reference  = VTM_TABLE_PREFIX . $reference;
 	
-	/* which constraints/foreign keys to remove */
+	/* which constraints/foreign keys to add */
 	$check_constraints = array_intersect(array($constraint), $existing_keys);
 	$sql = "ALTER TABLE $table ADD CONSTRAINT $constraint FOREIGN KEY ($foreignkey) REFERENCES $reference;";
 	
 	//echo "SQL: $sql<br />";
 	
-	/* do remove */
+	/* do add */
 	if( empty($check_constraints) ) $wpdb->query($sql);			
 
 
@@ -1180,7 +1147,7 @@ function vtm_rename_table($from, $to, $prefixfrom = VTM_TABLE_PREFIX, $prefixto 
 function vtm_character_update_1_9($beforeafter) {
 	global $wpdb;
 	
-	//$wpdb->show_errors();
+	$wpdb->show_errors();
 	
 	if ( $beforeafter == 'before') {
 		// Rename GVLARP_ tables to VTM_ tables
