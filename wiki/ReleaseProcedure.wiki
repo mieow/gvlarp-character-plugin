@@ -7,44 +7,25 @@ This is the process to go through before the version is available for release
 
 = Details =
 
-1) HTML Validation
-
-2) Check formatting in latest versions of Firefox, IE and Chrome
-
-3) Prepare summary of changes, and update in
-
-  * Web page
-  * Top level PHP file
-  * List of Tests to perform
-
-4) Prepare summary of database changes
-
-  - Top level PHP fle
-
-5) Update initial data tables
-
-6) Change table prefix and recreate tables from scratch, with imported data
-
-  - Create a new character with everything in it
-
-  - Check that it saves
-
-  - Check that it shows up on reports
-
-  - Check printable PDF, XP Spend, etc pages
-
-  - Check that data tables are initialised correctly
-
-7) Load in snapshot/database state & data from the last release and repeat testing of step 5. Also check:
-
-  - All database changes have actually happened and no error messages
-
-8) Testing
-
-9) Take a snapshot of the database
-
-10) SVN Tag (example)
-
+  # HTML Validation
+  # Check formatting in latest versions of Firefox, IE and Chrome
+  # Prepare summary of changes, and update in
+    # Web page
+    # Top level PHP file
+    # List of Tests to perform
+  # Prepare summary of database changes - Top level PHP fle
+  # Update initial data tables
+  # Change table prefix and recreate tables from scratch, with imported data
+    * Create a new character with everything in it
+    * Check that it saves
+    * Check that it shows up on reports
+    * Check printable PDF, XP Spend, etc pages
+    * Check that data tables are initialised correctly
+  # Load in snapshot/database state & data from the last release and repeat testing from previous step. Also check:
+    * All database changes have actually happened and no error messages
+  # Testing
+  # Take a snapshot of the database
+  # SVN Tag (example)
 {{{
 cd gvlarp-character-plugin
 svn update
