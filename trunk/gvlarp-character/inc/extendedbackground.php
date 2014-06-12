@@ -490,7 +490,7 @@ function vtm_get_extmisc_questions($characterID) {
 			ORDER BY questions.ORDERING ASC";
 			
 	$sql = $wpdb->prepare($sql, $characterID, $characterID);
-	echo "<p>SQL: $sql</p>";
+	//echo "<p>SQL: $sql</p>";
 	$questions = $wpdb->get_results($sql);
 	return $questions;
 }
