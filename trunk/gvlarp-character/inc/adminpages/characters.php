@@ -1912,6 +1912,8 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 		foreach ($results as $row) {
 			$levelcol   = $row->CHARTABLE == 'PENDING_FREEBIE_SPEND' ? 'LEVEL_TO' : 'LEVEL';
 			$commentcol = $row->CHARTABLE == 'PENDING_FREEBIE_SPEND' ? 'SPECIALISATION' : 'COMMENT';
+			
+			$propername = $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . $row->ITEMTABLE . " WHERE ID = %s", $row->ITEMTABLE_ID ));
 		
 			if ($row->CHARTABLE_ID > 0) {
 				// Update table
@@ -1923,7 +1925,7 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 					array ('ID' => $row->CHARTABLE_ID)
 				);
 				if ($result || $result === 0) {
-					//echo "<p style='color:green'>Updated XP spend {$row->ITEMTABLE} {$row->ITEMNAME}</p>";
+					echo "<p style='color:green'>Updated XP spend {$row->ITEMTABLE} $propername</p>";
 					$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND WHERE ID = %d;";
 					$result = $wpdb->get_results($wpdb->prepare($sql, $row->ID));
 					
@@ -1934,7 +1936,57 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 						'XP_REASON_ID' => $reason,
 						'AWARDED'      => $row->AWARDED,
 						'AMOUNT'       => $row->AMOUNT,
-						'COMMENT'	   => "Character Generation: {$row->ITEMNAME} to {$row->CHARTABLE_LEVEL}"
+						'COMMENT'	   => "Character Generation: $propername to {$row->CHARTABLE_LEVEL}"
+					);
+					$wpdb->insert(VTM_TABLE_PREFIX . "PLAYER_XP",
+									$data,
+									array (
+										'%d',
+										'%d',
+										'%d',
+										'%s',
+										'%d',
+										'%s'
+									)
+								);
+					if ($wpdb->insert_id  == 0) {
+						echo "<p style='color:red'><b>Error:</b> XP spend not added to spent XP table for $propername";
+						$failed = 1;
+					} 
+			
+				}
+				else {
+					$wpdb->print_error();
+					echo "<p style='color:red'>Could not update XP spend {$row->ITEMTABLE} $propername ({$row->CHARTABLE_ID})</p>";
+					$failed = 1;
+				}
+			} else {
+				$wpdb->insert(VTM_TABLE_PREFIX . $row->CHARTABLE,
+					array (
+						$levelcol      => $row->CHARTABLE_LEVEL,
+						$commentcol    => $row->SPECIALISATION,
+						'CHARACTER_ID' => $characterID,
+						$row->ITEMTABLE . "_ID" => $row->ITEMTABLE_ID
+					),
+					array ('%d', '%s', '%d', '%d')
+				);
+				
+				$id = $wpdb->insert_id;
+				if ($id == 0) {
+					echo "<p style='color:red'><b>Error XP spend:</b> {$row->ITEMTABLE} {$row->ITEMNAME} could not be inserted</p>";
+				} else {
+					echo "<p style='color:green'>Added XP spend {$row->ITEMTABLE} $propername (ID: {$wpdb->insert_id})</p>";
+					$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND WHERE ID = %d;";
+					$result = $wpdb->get_results($wpdb->prepare($sql, $row->ID));
+					
+					$reason = $wpdb->get_var("SELECT ID FROM " . VTM_TABLE_PREFIX . "XP_REASON WHERE NAME = 'XP Spend'");
+					$data = array (
+						'PLAYER_ID'    => $playerID,
+						'CHARACTER_ID' => $characterID,
+						'XP_REASON_ID' => $reason,
+						'AWARDED'      => $row->AWARDED,
+						'AMOUNT'       => $row->AMOUNT,
+						'COMMENT'	   => "Character Generation: $propername to {$row->CHARTABLE_LEVEL}"
 					);
 					$wpdb->insert(VTM_TABLE_PREFIX . "PLAYER_XP",
 									$data,
@@ -1951,31 +2003,6 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 						echo "<p style='color:red'><b>Error:</b> XP spend not added to spent XP table for {$row->ITEMNAME}";
 						$failed = 1;
 					} 
-			
-				}
-				else {
-					$wpdb->print_error();
-					echo "<p style='color:red'>Could not update XP spend {$row->ITEMTABLE} {$row->ITEMNAME} ({$row->CHARTABLE_ID})</p>";
-					$failed = 1;
-				}
-			} else {
-				$wpdb->insert(VTM_TABLE_PREFIX . $row->CHARTABLE,
-					array (
-						$levelcol      => $row->CHARTABLE_LEVEL,
-						$commentcol      => $row->SPECIALISATION,
-						'CHARACTER_ID' => $characterID,
-						$row->ITEMTABLE . "_ID" => $row->ITEMTABLE_ID
-					),
-					array ('%d', '%s', '%d', '%d')
-				);
-				
-				$id = $wpdb->insert_id;
-				if ($id == 0) {
-					echo "<p style='color:red'><b>Error XP spend:</b> {$row->ITEMTABLE} {$row->ITEMNAME} could not be inserted</p>";
-				} else {
-					//echo "<p style='color:green'>Added XP spend {$row->ITEMTABLE} {$row->ITEMNAME} (ID: {$wpdb->insert_id})</p>";
-					$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND WHERE ID = %d;";
-					$result = $wpdb->get_results($wpdb->prepare($sql, $row->ID));
 				}
 			}
 		}
@@ -2222,7 +2249,9 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
                 return stripslashes($item->$column_name);
           case 'PLAYER':
                 return stripslashes($item->$column_name);
-          case 'TEMPLATE':
+          case 'WORDPRESS_ID':
+                return stripslashes($item->$column_name);
+         case 'TEMPLATE':
                 return stripslashes($item->$column_name);
          case 'CONCEPT':
                 return $item->$column_name;
@@ -2256,6 +2285,7 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
             'NAME'       => 'Name',
             'CLAN' 		 => 'Clan',
             'PLAYER'     => 'Player',
+            'WORDPRESS_ID' => 'Login Name',
             'TEMPLATE'   => 'Template',
             'CONCEPT'    => 'Character Concept',
             'NOTE_TO_ST' => 'Note to Storytellers'
@@ -2289,7 +2319,7 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 		
 		/* Get the data from the database */
 		$sql = "SELECT ch.ID, ch.NAME, pl.NAME as PLAYER, clan.NAME as CLAN,
-					ch.CONCEPT, cg.NOTE_TO_ST, cgt.NAME as TEMPLATE
+					ch.CONCEPT, cg.NOTE_TO_ST, cgt.NAME as TEMPLATE, ch.WORDPRESS_ID
 				FROM
 					" . VTM_TABLE_PREFIX . "PLAYER pl,
 					" . VTM_TABLE_PREFIX . "CHARACTER ch,
