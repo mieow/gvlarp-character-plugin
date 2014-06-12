@@ -4531,8 +4531,9 @@ function vtm_validate_attributes($settings, $characterID, $usepost = 1) {
 		} else {
 			$target = $settings['attributes-points'];
 			$total = 0;
+
 			foreach ($values as $att => $val)
-				$total += $val - 1;
+				$total += max(0,$val - 1);
 			
 			if ($total > $target) {
 				$errormessages .= "<li>ERROR: You have spent too many points</li>\n";
