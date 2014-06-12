@@ -6,7 +6,7 @@ register_activation_hook( __FILE__, 'vtm_character_install_data' );
 global $vtm_character_version;
 global $vtm_character_db_version;
 $vtm_character_version = "1.10"; 
-$vtm_character_db_version = "29g"; 
+$vtm_character_db_version = "29"; 
 
 function vtm_update_db_check() {
     global $vtm_character_version;
@@ -1149,7 +1149,7 @@ function vtm_character_update_1_9($beforeafter) {
 	
 	
 	if ( $beforeafter == 'before') {
-		echo "<p>Setting up tables</p>";
+		//echo "<p>Setting up tables</p>";
 	
 		// Rename GVLARP_ tables to VTM_ tables
 		$oldprefix = $wpdb->prefix . "GVLARP_";
@@ -1186,14 +1186,14 @@ function vtm_character_update_1_9($beforeafter) {
 
 	} else {
 	
-		echo "<p>Updating data</p>";
+		//echo "<p>Updating data</p>";
 		$wpdb->show_errors();
 
 		// Add Character Generation Status to all characters
 		$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARGEN_STATUS WHERE NAME = 'Approved'";
 		$approvedid = $wpdb->get_var($sql);
 		$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ISNULL(CHARGEN_STATUS_ID) OR CHARGEN_STATUS_ID = 0";
-		echo "<p>SQL: $sql</p>";
+		//echo "<p>SQL: $sql</p>";
 		$result = $wpdb->get_col($sql);
 		print_r($result);
 		if (count($result) > 0) {
