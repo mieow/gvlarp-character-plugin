@@ -100,9 +100,9 @@ function vtm_render_clan_add_form($addaction) {
 		
 		//print_r($data);
 		
-		$clan_discipline1_id = $data[0]->ID;
-		$clan_discipline2_id = $data[1]->ID;
-		$clan_discipline3_id = $data[2]->ID;	
+		$clan_discipline1_id = isset($data[0]->ID) ? $data[0]->ID : 0;
+		$clan_discipline2_id = isset($data[1]->ID) ? $data[1]->ID : 0;
+		$clan_discipline3_id = isset($data[2]->ID) ? $data[2]->ID : 0;	
 		$clan_discipline4_id = isset($data[3]->ID) ? $data[3]->ID : 0;	
 		
 		$nextaction = "save";
