@@ -892,7 +892,7 @@ function vtm_render_xp_by_player () {
 			$xp = "&nbsp;";
 		} else {
 			$player = $row->PLAYER;
-			$xp = $player_xp[$row->PLAYER_ID]->PLAYER_XP;
+			$xp = isset($player_xp[$row->PLAYER_ID]->PLAYER_XP) ? $player_xp[$row->PLAYER_ID]->PLAYER_XP : 0;
 			$rowclass = !$rowclass;
 		}
 		$lastplayer = $row->PLAYER;

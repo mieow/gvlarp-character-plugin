@@ -4845,12 +4845,16 @@ function vtm_validate_finishing($settings, $characterID, $usepost = 1) {
 		}
 		
 		$dob = $wpdb->get_var($wpdb->prepare("SELECT DATE_OF_BIRTH FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
+		$dob_array = explode('-',$dob);
 		$dbday_dob   = isset($_POST['day_dob'])   ? $_POST['day_dob']   : (isset($dob) ? strftime("%d", strtotime($dob)) : '');
 		$dbmonth_dob = isset($_POST['month_dob']) ? $_POST['month_dob'] : (isset($dob) ? strftime("%m", strtotime($dob)) : '');
+		$dbyear_dob  = isset($_POST['year_dob'])  ? $_POST['year_dob']  : (isset($dob) ? $dob_array[0] : '0000');
 		
 		$doe = $wpdb->get_var($wpdb->prepare("SELECT DATE_OF_EMBRACE FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
+		$doe_array = explode('-',$doe);
 		$dbday_doe   = isset($_POST['day_doe'])   ? $_POST['day_doe']   : (isset($doe) ? strftime("%d", strtotime($doe)) : '');
 		$dbmonth_doe = isset($_POST['month_doe']) ? $_POST['month_doe'] : (isset($doe) ? strftime("%m", strtotime($doe)) : '');
+		$dbyear_doe  = isset($_POST['year_doe'])  ? $_POST['year_doe']  : (isset($dob) ? $doe_array[0] : '0000');
 		
 		$dbsire = $wpdb->get_var($wpdb->prepare("SELECT SIRE FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
 	}
@@ -4864,8 +4868,10 @@ function vtm_validate_finishing($settings, $characterID, $usepost = 1) {
 	$postsire      = $usepost ? (isset($_POST['sire']) ? $_POST['sire'] : '') : $dbsire;
 	$postday_dob   = $usepost ? (isset($_POST['day_dob']) ? $_POST['day_dob'] : '') : $dbday_dob;
 	$postmonth_dob = $usepost ? (isset($_POST['month_dob']) ? $_POST['month_dob'] : '') : $dbmonth_dob;
+	$postyear_dob  = $usepost ? (isset($_POST['year_dob']) ? $_POST['year_dob'] : '0000') : $dbmonth_dob;
 	$postday_doe   = $usepost ? (isset($_POST['day_doe']) ? $_POST['day_doe'] : '') : $dbday_doe;
 	$postmonth_doe = $usepost ? (isset($_POST['month_doe']) ? $_POST['month_doe'] : '') : $dbmonth_doe;
+	$postyear_doe  = $usepost ? (isset($_POST['year_doe']) ? $_POST['year_doe'] : '0000') : $dbmonth_dob;
 
 	// All specialities are entered
 	// Sire name is entered
@@ -4883,12 +4889,12 @@ function vtm_validate_finishing($settings, $characterID, $usepost = 1) {
 		$errormessages .= "<li>ERROR: Please enter the name of your sire, or enter 'unknown' if your character does not know.</li>\n";
 		$complete = 0;
 }
-	if ($postday_dob == 0 || $postmonth_dob == 0) {
+	if ($postday_dob == 0 || $postmonth_dob == 0 || $postyear_dob == '0000') {
 		$errormessages .= "<li>ERROR: Please enter your character's Date of Birth.</li>\n";
 		$ok = 0;
 		$complete = 0;
 	}
-	if ($postday_doe == 0 || $postmonth_doe == 0) {
+	if ($postday_doe == 0 || $postmonth_doe == 0 || $postyear_doe == '0000') {
 		$errormessages .= "<li>ERROR: Please enter your character's Date of Embrace.</li>\n";
 		$ok = 0;
 		$complete = 0;
