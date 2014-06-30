@@ -216,7 +216,8 @@ function vtm_character_options() {
 			}
 						
 			$sql .= " 	ORDER BY charactername, visible, character_type, character_status";
-			$sql = $wpdb->prepare($sql,$args);
+			if (count($args) > 0)
+				$sql = $wpdb->prepare($sql,$args);
 			$result = $wpdb->get_results($sql);
 			//echo "<p>SQL: $sql</p>";
 			//print_r($result);
@@ -2254,9 +2255,9 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
          case 'TEMPLATE':
                 return stripslashes($item->$column_name);
          case 'CONCEPT':
-                return $item->$column_name;
+                return stripslashes($item->$column_name);
          case 'NOTE_TO_ST':
-                return $item->$column_name;
+                return stripslashes($item->$column_name);
          default:
                 return print_r($item,true); 
         }

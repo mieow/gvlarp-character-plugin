@@ -165,7 +165,7 @@ function vtm_render_template_data(){
 		$settings['abilities-max']        = isset($results['abilities-max']->VALUE) ? $results['abilities-max']->VALUE : $settings['abilities-max'];
 		$settings['disciplines-points']   = isset($results['disciplines-points']->VALUE) ? $results['disciplines-points']->VALUE : $settings['disciplines-points'];
 		$settings['virtues-points']       = isset($results['virtues-points']->VALUE) ? $results['virtues-points']->VALUE : $settings['virtues-points'];
-		$settings['backgrounds-points']   = isset($results['backgrounds-points']->VALUE) ? $results['virtues-points']->VALUE : $settings['backgrounds-points'];
+		$settings['backgrounds-points']   = isset($results['backgrounds-points']->VALUE) ? $results['backgrounds-points']->VALUE : $settings['backgrounds-points'];
 		$settings['road-multiplier']      = isset($results['road-multiplier']->VALUE) ? $results['road-multiplier']->VALUE : $settings['road-multiplier'];
 		$settings['merits-max']           = isset($results['merits-max']->VALUE) ? $results['merits-max']->VALUE : $settings['merits-max'];
 		$settings['flaws-max']            = isset($results['flaws-max']->VALUE) ? $results['flaws-max']->VALUE : $settings['flaws-max'];
