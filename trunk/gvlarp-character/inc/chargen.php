@@ -367,7 +367,11 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 			$userid = $current_user->ID;
 			
 			if (empty($email)) $email = $current_user->user_email;
-			if (empty($login)) $login = $current_user->user_login;
+			
+			$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE WORDPRESS_ID = %s";
+			$sql = $wpdb->prepare($sql, $current_user->user_login);
+			$check = $wpdb->get_results($sql);
+			if (empty($login) && count($check) == 0) $login = $current_user->user_login;
 			
 			if (empty($playername)) {
 				// find other accounts with that email to guess the player
@@ -477,7 +481,7 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 		$output .= "</td></tr>\n";
 	}	
 	$output .= "<tr>
-			<th class='gvthleft'>Preferred login name:</th>
+			<th class='gvthleft'>Login name*:</th>
 			<td>\n";
 	if ($submitted)
 		$output .= $login;
@@ -4230,7 +4234,12 @@ function vtm_validate_basic_info($settings, $characterID, $usepost = 1) {
 		}
 	}
 	
-	if (!empty($login)) {
+	if (empty($login)) {
+		$errormessages .= "<li>ERROR: Please enter a login name</li>\n";
+		$ok = 0;
+		$complete = 0;
+	}
+	else {
 		get_currentuserinfo();
 		if (username_exists( $login ) && $login != $current_user->user_login) {
 			$ok = 0;
@@ -4800,7 +4809,7 @@ function vtm_validate_freebies($settings, $characterID, $usepost = 1) {
 		$complete = 0;
 	}
 	elseif ($spent > $points) {
-		$errormessages .= "<li>ERROR: You have spent too many dots ($spent / $points)</li>\n";
+		$errormessages .= "<li>ERROR: You have spent too many dots</li>\n";
 		$ok = 0;
 		$complete = 0;
 	}

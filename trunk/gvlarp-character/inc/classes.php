@@ -112,18 +112,18 @@ class vtmclass_character {
 			$this->generation   = $result[0]->generation;
 			$this->max_rating   = $result[0]->max_rating;
 			$this->player_id    = $result[0]->player_id;
-			$this->clan_flaw    = $result[0]->clan_flaw;
+			$this->clan_flaw    = stripslashes($result[0]->clan_flaw);
 			$this->sect         = $result[0]->sect;
 			$this->bloodpool    = $result[0]->bloodpool;
-			$this->sire         = $result[0]->sire;
+			$this->sire         = stripslashes($result[0]->sire);
 			$this->char_status  = $result[0]->cstat;
 			$this->last_updated = $result[0]->last_updated;
+			$this->concept      = stripslashes($result[0]->concept);
 			$this->blood_per_round = $result[0]->blood_per_round;
 			$this->date_of_birth   = $result[0]->date_of_birth;
 			$this->date_of_embrace = $result[0]->date_of_embrace;
-			$this->char_status_comment   = $result[0]->cstat_comment;
-			$this->path_of_enlightenment = $result[0]->path;
-			$this->concept      = $result[0]->concept;
+			$this->char_status_comment   = stripslashes($result[0]->cstat_comment);
+			$this->path_of_enlightenment = stripslashes($result[0]->path);
 		} else {
 			$this->name         = 'No character selected';
 			$this->clan         = '';
