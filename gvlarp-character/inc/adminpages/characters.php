@@ -1926,7 +1926,7 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 					array ('ID' => $row->CHARTABLE_ID)
 				);
 				if ($result || $result === 0) {
-					echo "<p style='color:green'>Updated XP spend {$row->ITEMTABLE} $propername</p>";
+					//echo "<p style='color:green'>Updated XP spend {$row->ITEMTABLE} $propername</p>";
 					$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND WHERE ID = %d;";
 					$result = $wpdb->get_results($wpdb->prepare($sql, $row->ID));
 					
@@ -1976,7 +1976,7 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 				if ($id == 0) {
 					echo "<p style='color:red'><b>Error XP spend:</b> {$row->ITEMTABLE} {$row->ITEMNAME} could not be inserted</p>";
 				} else {
-					echo "<p style='color:green'>Added XP spend {$row->ITEMTABLE} $propername (ID: {$wpdb->insert_id})</p>";
+					//echo "<p style='color:green'>Added XP spend {$row->ITEMTABLE} $propername (ID: {$wpdb->insert_id})</p>";
 					$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND WHERE ID = %d;";
 					$result = $wpdb->get_results($wpdb->prepare($sql, $row->ID));
 					
