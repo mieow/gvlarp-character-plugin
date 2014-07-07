@@ -93,6 +93,7 @@ class vtmclass_character {
 					  AND chara.GENERATION_ID = gen.ID
 					  AND chara.ROAD_OR_PATH_ID = paths.ID
 					  AND chara.SECT_ID = sects.ID
+					  AND chara.CHARACTER_STATUS_ID = cstatus.ID
                       AND chara.ID = '%s';";
 		$sql = $wpdb->prepare($sql, $characterID);
 		//echo "<p>SQL: ($characterID) $sql</p>";
