@@ -830,8 +830,8 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 							else
 								$rowoutput .= "<img src='$emptydoturl' alt='*' id='$radioid' />\n";
 						}
-						elseif (isset($xpcosts[$name][$levelfrom][$i])) {
-							$cost = $xpcosts[$name][$levelfrom][$i];
+						elseif (isset($xpcosts[$name][$levelfb][$i])) {
+							$cost = $xpcosts[$name][$levelfb][$i];
 							$rowoutput .= "<input type='radio' id='$radioid' name='{$postvariable}[$key]' value='$i' ";
 							$rowoutput .= checked($current, $i, false);
 							$rowoutput .= " /><label for='$radioid' title='Level $i ($cost xp)'";
@@ -1957,7 +1957,10 @@ function vtm_save_xp($characterID, $templateID) {
 	$items['MERIT']      = vtm_sanitize_array(vtm_get_chargen_merits($characterID, OBJECT_K));
 	$items['PATH']       = vtm_sanitize_array(vtm_get_chargen_paths($characterID, OBJECT_K));
 	
-	//print_r($freebies['SKILL']);
+	//print_r($bought['DISCIPLINE']);
+	//print_r($current['DISCIPLINE']);
+	//print_r($xpcosts['DISCIPLINE']);
+	//print_r($items['DISCIPLINE']);
 	
 	foreach ($bought as $type => $row) {
 		foreach ($row as $key => $value) {
