@@ -1250,30 +1250,30 @@ function vtm_render_finishing($step, $characterID, $templateID, $submitted) {
 	
 	// Notes to ST
 	$stnotes = $wpdb->get_var($wpdb->prepare("SELECT NOTE_TO_ST FROM " . VTM_TABLE_PREFIX . "CHARACTER_GENERATION WHERE CHARACTER_ID = %s", $characterID));
-	$stnotes = isset($_POST['noteforST']) ? $_POST['noteforST'] : $stnotes;
+	$stnotes = htmlspecialchars(stripslashes(isset($_POST['noteforST']) ? $_POST['noteforST'] : $stnotes), ENT_QUOTES);
 	
 	$spec_output = "";
 	foreach ($specialities as $item) {
 		if ($title != $item['title']) {
-			$title = $item['title'];
+			$title = htmlspecialchars($item['title'], ENT_QUOTES);
 			$spec_output .= "<tr><th colspan=3>$title</th></tr>\n";
 		}
 	
 		// have a hidden row with the tablename and tableid info
 		$spec_output .= "<tr style='display:none'><td colspan=3>
-					<input type='hidden' name='tablename[]' value='{$item['updatetable']}' />
-					<input type='hidden' name='tableid[]' value='{$item['tableid']}' />
-					<input type='hidden' name='itemname[]' value='{$item['name']}' />
+					<input type='hidden' name='tablename[]' value='" . htmlspecialchars($item['updatetable'], ENT_QUOTES) . "' />
+					<input type='hidden' name='tableid[]' value='" . htmlspecialchars($item['tableid'], ENT_QUOTES) . "' />
+					<input type='hidden' name='itemname[]' value='" . htmlspecialchars($item['name'], ENT_QUOTES) . "' />
 					</td></tr>\n";
 		
-		$spec = isset($_POST['comment'][$i]) ? $_POST['comment'][$i] : $item['comment'];
-		$spec_output .= "<tr><td>" . stripslashes($item['name']) . "</td>
+		$spec = htmlspecialchars(stripslashes(isset($_POST['comment'][$i]) ? $_POST['comment'][$i] : $item['comment']), ENT_QUOTES);
+		$spec_output .= "<tr><td>" . htmlspecialchars($item['name'], ENT_QUOTES) . "</td>
 					<td>{$item['level']}</td>
 					<td>\n";
 		if ($submitted)
 			$spec_output .= $spec;
 		else
-			$spec_output .= "<input type='text' name='comment[]' value='$spec' />\n";
+			$spec_output .= "<input type='text' name='comment[]' value='$spec' maxlength='25' />\n";
 		//$spec_output .= "{$item['updatetable']} / {$item['tableid']}";
 		$spec_output .= "</td></tr>\n";
 					
@@ -1777,7 +1777,7 @@ function vtm_save_history($characterID, $templateID) {
 				'CHARACTER_ID'  	=> $characterID,
 				'QUESTION_ID'		=> $index,
 				'APPROVED_DETAIL'	=> '',
-				'PENDING_DETAIL'	=> $text,
+				'PENDING_DETAIL'	=> trim($text),
 				'DENIED_DETAIL'		=> '',
 			);
 			//print_r($data);
@@ -1803,7 +1803,7 @@ function vtm_save_history($characterID, $templateID) {
 		foreach ($_POST['meritquestion'] as $index => $text) {
 		
 			$data = array (
-				'PENDING_DETAIL'	=> $text
+				'PENDING_DETAIL'	=> trim($text)
 			);
 			
 			$wpdb->update(VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND",
@@ -1817,7 +1817,7 @@ function vtm_save_history($characterID, $templateID) {
 	if (isset($_POST['bgquestion'])) {
 		foreach ($_POST['bgquestion'] as $index => $text) {
 			$data = array (
-				'PENDING_DETAIL'	=> $text
+				'PENDING_DETAIL'	=> trim($text)
 			);
 			
 			$wpdb->update(VTM_TABLE_PREFIX . $_POST['bgquestion_source'][$index],
@@ -1855,7 +1855,7 @@ function vtm_save_finish($characterID, $templateID) {
 	
 	// Save CHARACTER_GENERATION information
 	$data = array (
-		'NOTE_TO_ST'  => $_POST['noteforST'],
+		'NOTE_TO_ST'  => trim($_POST['noteforST']),
 	);
 	$result = $wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_GENERATION",
 		$data,
@@ -4454,7 +4454,7 @@ function vtm_validate_attributes($settings, $characterID, $usepost = 1) {
 			}
 		}
 		//print_r($dbgroups);
-		$grouplist = array_combine($dbgroups,$dbgroups);
+		$grouplist = count($dbgroups) > 0 ? array_combine($dbgroups,$dbgroups) : array();
 		$grouptotals = array();
 		foreach  ($items as $item) {
 			$key = sanitize_key($item->name);
@@ -4911,6 +4911,26 @@ function vtm_validate_finishing($settings, $characterID, $usepost = 1) {
 		$ok = 0;
 		$complete = 0;
 	}
+	if ($postyear_dob > date("Y") * 1) {
+		$errormessages .= "<li>ERROR: Your character's Date of Birth cannot be in the future.</li>\n";
+		$ok = 0;
+		$complete = 0;
+	}
+	if ($postyear_doe > date("Y") * 1) {
+		$errormessages .= "<li>ERROR: Your character's Date of Embrace cannot be in the future.</li>\n";
+		$ok = 0;
+		$complete = 0;
+	}
+	if ($postyear_dob != floor($postyear_dob)) {
+		$errormessages .= "<li>ERROR: Your character's Date of Birth cannot be a decimal number.</li>\n";
+		$ok = 0;
+		$complete = 0;
+	}
+	if ($postyear_doe != floor($postyear_doe)) {
+		$errormessages .= "<li>ERROR: Your character's Date of Embrace cannot be a decimal number.</li>\n";
+		$ok = 0;
+		$complete = 0;
+	}
 
 	return array($ok, $errormessages, $complete);
 }
@@ -5308,7 +5328,7 @@ function vtm_get_chargen_specialties($characterID) {
 					'tableid' => $tableid,
 					'level'   => $level,
 					'grp'     => $row->grp,
-					'comment' => $comment,
+					'comment' => stripslashes($comment),
 					'spec_at' => $row->specialisation_at));
 		}
 	}
