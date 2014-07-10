@@ -232,7 +232,7 @@ function vtm_character_options() {
 				echo "<th>";
 				
 				if ($character->chargen_status != 'Approved')
-					echo $name;
+					echo htmlspecialchars($name,ENT_QUOTES);
 				elseif (!empty($character->wordpress_id))
 					echo '<a href="' . $stlinks['viewCharSheet']->LINK . '?CHARACTER='. urlencode($character->wordpress_id) . '">' . $name . '</a>';
 				else
@@ -379,7 +379,7 @@ function vtm_displayUpdateCharacter($characterID) {
 			$characterDetails = $wpdb->get_results($wpdb->prepare($sql, $characterID));
 
 			foreach ($characterDetails as $characterDetail) {
-				$characterName             = stripslashes($characterDetail->NAME);
+				$characterName             = htmlspecialchars(stripslashes($characterDetail->NAME),ENT_QUOTES);
 				$characterPublicClanId     = $characterDetail->PUBLIC_CLAN_ID;
 				$characterPrivateClanId    = $characterDetail->PRIVATE_CLAN_ID;
 				$characterGenerationId     = $characterDetail->GENERATION_ID;
@@ -657,7 +657,7 @@ function vtm_displayUpdateCharacter($characterID) {
 			
 			$output .= "</td>"
 				. "<td class=\"gvcol_2 gvcol_val\">" . vtm_printSelectCounter($statName, $currentStat->level, 0, 10) . "</td>"
-				. "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\"" . $statName . "Comment\" value=\"" . stripslashes($currentStat->comment) . "\" /></td>"
+				. "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\"" . $statName . "Comment\" value=\"" . htmlspecialchars(stripslashes($currentStat->comment), ENT_QUOTES) . "\" /></td>"
 				. "<td class='gvcol_4 gvcol_val'>";
 
 			if ($currentStat->grouping == "Virtue"  && $statName != "Courage") {
@@ -706,7 +706,7 @@ function vtm_displayUpdateCharacter($characterID) {
 			$skillName = "skill" . $skillCount;
 			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $characterSkill->name . "</td>"
 				. "<td class=\"gvcol_2 gvcol_val\">" . vtm_printSelectCounter($skillName, $characterSkill->level, 0, 10) . "</td>"
-				. "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $skillName . "Comment\" value=\"" . stripslashes($characterSkill->comment)  . "\" /></td>"
+				. "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $skillName . "Comment\" value=\"" . htmlspecialchars(stripslashes($characterSkill->comment), ENT_QUOTES)  . "\" /></td>"
 				. "<td class='gvcol_4 gvcol_val'><input type=\"checkbox\" name=\"" . $skillName . "Delete\" value=\""  . $characterSkill->cskillid . "\" />"
 				.     "<input type='HIDDEN' name=\""   . $skillName . "ID\" value=\""      . $characterSkill->cskillid . "\" /></td></tr>";
 
