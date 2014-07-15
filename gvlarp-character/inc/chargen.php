@@ -2795,6 +2795,7 @@ function vtm_email_new_character($email, $characterID, $playerid, $name, $clanid
 	$ref = $characterID . '-' . $userid . '-' . $playerid; */
 	$ref = vtm_get_chargen_reference($characterID);
 	$clan = vtm_get_clan_name($clanid);
+	$name = stripslashes($name);
 	$tag = get_option( 'vtm_chargen_emailtag' );
 	$toname = get_option( 'vtm_chargen_email_from_name', 'The Storytellers');
 	$toaddr = get_option( 'vtm_chargen_email_from_address', get_bloginfo('admin_email') );
@@ -5577,7 +5578,7 @@ function vtm_save_submit($characterID, $templateID) {
 		$toaddr = get_option( 'vtm_chargen_email_from_address', get_bloginfo('admin_email') );
 		$fromname = $results->player;
 		$fromemail = $results->email;
-		$character = $results->name;
+		$character = stripslashes($results->name);
 		$concept = $results->concept;
 		$clan = vtm_get_clan_name($results->clanid);
 		$url    = add_query_arg('reference', $ref, vtm_get_stlink_url('viewCharGen', true));
