@@ -1873,7 +1873,7 @@ function vtm_render_chargen_approve_form($showform, $characterID) {
 		<input type="hidden" name="characterID" value="<?php print $characterID; ?>" />
 		<table style='width:500px'>
 		<tr>
-			<td>Character: </td><td><?php print $character; ?></td>
+			<td>Character: </td><td><?php print stripslashes($character); ?></td>
 		</tr>
 		<tr>
 			<td>Denied Reason:  </td>
@@ -2244,8 +2244,6 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 
     function column_default($item, $column_name){
         switch($column_name){
-          case 'NAME':
-                return stripslashes($item->$column_name);
           case 'CLAN':
                 return stripslashes($item->$column_name);
           case 'PLAYER':
@@ -2273,7 +2271,7 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
         );
         
         return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
-            $item->NAME,
+            stripslashes($item->NAME),
             $item->ID,
             $this->row_actions($actions)
         );
@@ -2373,7 +2371,7 @@ function vtm_email_chargen_denied($characterID, $denyMessage) {
 				AND ch.ID = %s";
 	$results = $wpdb->get_row($wpdb->prepare($sql, $characterID));
 
-	$name   = $results->name;
+	$name   = stripslashes($results->name);
 	$player = $results->player;
 	$email  = $results->email;
 	
@@ -2416,7 +2414,7 @@ function vtm_email_chargen_approved($characterID, $wpid, $password) {
 				AND ch.ID = %s";
 	$results = $wpdb->get_row($wpdb->prepare($sql, $characterID));
 
-	$name     = $results->name;
+	$name     = stripslashes($results->name);
 	$player   = $results->player;
 	$email    = $results->email;
 	$username = $results->username;
