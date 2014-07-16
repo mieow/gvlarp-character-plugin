@@ -71,7 +71,7 @@ function vtm_get_profile_content() {
 		if (isset($_POST['VTM_FORM']) && $_POST['VTM_FORM'] == 'updateDisplayName' && isset($_POST['displayName']) 
 			&& !empty($_POST['displayName']) && $_POST['displayName'] != $displayName) {
 			
-			$newDisplayName = $_POST['displayName'];
+			$newDisplayName = stripslashes($_POST['displayName']);
 			
 			$output .= "<p>Changed display name to <i>$newDisplayName</i></p>";
 			vtm_changeDisplayNameByID ($userID, $newDisplayName);
@@ -95,7 +95,7 @@ function vtm_get_profile_content() {
 			if ($newPassword1 !== $newPassword2) {
 				$output .= "<p>Passwords don't match</p>";
 			} 
-			elseif (vtm_changePassword($character, $newPassword1, $newPassword2)) {
+			elseif (vtm_changePasswordByID($userID, $newPassword1, $newPassword2)) {
 				$output .= "<p>Successfully changed password</p>";
 			}
 			else {
