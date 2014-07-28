@@ -11,13 +11,13 @@
 				<header class="archive-header">
 					<h1 class="archive-title"><?php
 						if ( is_day() ) :
-							printf( 'Daily Archives: %s', '<span>' . get_the_date() . '</span>' );
+							printf( __('Daily Archives: %s', 'nocturnus'), '<span>' . get_the_date() . '</span>' );
 						elseif ( is_month() ) :
-							printf( 'Monthly Archives: %s', '<span>' . get_the_date('F Y') . '</span>' );
+							printf( __('Monthly Archives: %s', 'nocturnus'), '<span>' . get_the_date('F Y') . '</span>' );
 						elseif ( is_year() ) :
-							printf( 'Yearly Archives: %s', '<span>' . get_the_date('Y') . '</span>' );
+							printf( __('Yearly Archives: %s', 'nocturnus'), '<span>' . get_the_date('Y') . '</span>' );
 						else :
-							echo 'Archives';
+							_e('Archives', 'nocturnus');
 						endif;
 					?></h1>
 				</header><!-- .archive-header --><?php
@@ -31,12 +31,12 @@
 									<h1 class="entry-title"><?php the_title(); ?></h1>
 								<?php else : ?>
 									<h1 class="entry-title">
-										<a href="<?php the_permalink(); ?>" title="<?php echo esc_attr( sprintf('Permalink to %s', the_title_attribute( 'echo=0' ) ) ); ?>" rel="bookmark"><?php the_title(); ?></a>
+										<a href="<?php the_permalink(); ?>" title="<?php echo esc_attr( sprintf(__('Permalink to %s', 'nocturnus'), the_title_attribute( 'echo=0' ) ) ); ?>" rel="bookmark"><?php the_title(); ?></a>
 									</h1>
 								<?php endif; // is_single() ?>
 								<?php if ( comments_open() ) : ?>
 									<div class="comments-link">
-										<?php comments_popup_link( '<span class="leave-reply">' . 'Leave a reply' . '</span>', '1 Reply', '% Replies' ); ?>
+										<?php comments_popup_link( '<span class="leave-reply">' . __('Leave a reply', 'nocturnus') . '</span>', __('1 Reply', 'nocturnus'), __('% Replies', 'nocturnus') ); ?>
 									</div><!-- .comments-link -->
 								<?php endif; // comments_open() ?>
 							</header><!-- .entry-header -->
@@ -44,7 +44,7 @@
 							
 							<div class="entry-excerpt">
 								<?php the_excerpt(); ?>
-								<?php wp_link_pages( array( 'before' => '<div class="page-links">' . 'Pages:', 'after' => '</div>' ) ); ?>
+								<?php wp_link_pages( array( 'before' => '<div class="page-links">' . __('Pages:', 'nocturnus'), 'after' => '</div>' ) ); ?>
 							</div><!-- .entry-content -->
 
 							<footer><hr /></footer>
@@ -56,11 +56,11 @@
 			?><article id="post-0" class="post no-results not-found">
 
 				<header class="archive-header">
-					<h1 class="archive-title">No posts to display</h1>
+					<h1 class="archive-title"><?php _e('No posts to display', 'nocturnus'); ?></h1>
 				</header>
 
 				<div class="archive-content">
-					<p>No posts to display</p>
+					<p><?php _e('No posts to display', 'nocturnus'); ?></p>
 				</div>
 
 			</article><!-- #post-0 --> <?php

@@ -14,7 +14,7 @@ get_header(); ?>
 				while (have_posts()) :
 					the_post();
 					the_title('<h1 class="posttitle">', '</h1>');
-					edit_post_link('Edit', '<span class="edit-link">', '</span>' );
+					edit_post_link(__('Edit', 'nocturnus'), '<span class="edit-link">', '</span>' );
 					the_content();
 				endwhile;
 			endif;
