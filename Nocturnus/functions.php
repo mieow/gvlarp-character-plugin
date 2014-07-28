@@ -50,6 +50,14 @@ add_theme_support( 'custom-background', $themedefaults );
 ------------------------------------------------ */
 add_theme_support( 'html5', array( 'comment-list', 'comment-form', 'search-form' ) );
 
+/* Internationalisation / Localisation
+------------------------------------------------ */
+
+function nocturnus_load_theme_textdomain() {
+load_theme_textdomain( 'nocturnus', FALSE, basename( dirname( __FILE__ ) ) . '/languages/' );
+}
+add_action( 'after_setup_theme', 'nocturnus_load_theme_textdomain' );
+
 /* Editor Style
 ------------------------------------------------ */
 function nocturnus_add_editor_styles() {

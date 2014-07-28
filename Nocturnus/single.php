@@ -22,22 +22,24 @@ get_header(); ?>
 					<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 					<header class="entry-header">
 					<h1 class="entry-title"><?php the_title(); ?></h1>
-					<span class="single-posted">Posted: <?php the_time( get_option( 'date_format' ) ); ?> by  <?php the_author(); ?> </span>
-					<?php edit_post_link('Edit', '<span class="edit-link">', '</span>' ); ?>
+					<span class="single-posted">
+					<?php printf (__('Posted: %1$s by %2$s', 'nocturnus'), the_time( get_option( 'date_format' ) ),  the_author()); ?>
+					</span>
+					<?php edit_post_link(__('Edit', 'nocturnus'), '<span class="edit-link">', '</span>' ); ?>
 					</header>
 
 					<div class="entry-content">
 						<?php the_content(); ?>
 						<?php comments_template(); ?> 
-						<?php wp_link_pages( array( 'before' => '<div class="page-links">' . 'Pages:', 'after' => '</div>' ) ); ?>
+						<?php wp_link_pages( array( 'before' => '<div class="page-links">' . __('Page', 'nocturnus') . ':', 'after' => '</div>' ) ); ?>
 					</div><!-- .entry-content -->
 					
 					<footer class="entry-meta">
-						<?php edit_post_link('Edit', '<span class="edit-link">', '</span>' ); ?>
+						<?php edit_post_link(__('Edit', 'nocturnus'), '<span class="edit-link">', '</span>' ); ?>
 						<span class="single-cat"><?php 
 							$categories_list =  get_the_category_list(', ');
-							echo 'Categories: ' . $categories_list;
-							$tag_list = get_the_tag_list(' | Tags: ', ', ');
+							echo __('Categories', 'nocturnus') . ': ' . $categories_list;
+							$tag_list = get_the_tag_list(' | ' . __('Tags', 'nocturnus') . ': ', ', ');
 							if ( '' != $tag_list ) {
 								echo $tag_list;
 							}

@@ -29,6 +29,11 @@ As standard
 
 == Changelog ==
 
+= 2.3 = 
+* Internationalization added
+* Replaced <hgroup> in header with <div> for HTML5 support
+* Replaced <h1> in for site title in header with <h2> to improve readability for screen readers
+
 = 2.2 = 
 * Used 'wp_enqueue_style' function for setting up login stylesheet
 * Moved 'wp_head' function to immediately before </head> HTML tag

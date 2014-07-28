@@ -6,23 +6,23 @@ get_header(); ?>
 			<div id="content" role="main">
 	
 			<article>
-			<header><h1>Page Not Found</h1></header>
+			<header><h1><?php _e('Page Not Found', 'nocturnus'); ?></h1></header>
 			
-			<p>Cannot find the page you were looking for.  Perhaps we have lost it!</p>
+			<p><?php _e('Cannot find the page you were looking for.  Perhaps we have lost it!', 'nocturnus'); ?></p>
 			
-			<blockquote><i>I put my heart and my soul into my work, and have lost my mind in the process.</i> - Vincent Van Gogh</blockquote>
+			<blockquote><?php _e('<i>I put my heart and my soul into my work, and have lost my mind in the process.</i> - Vincent Van Gogh', 'nocturnus'); ?></blockquote>
 			
 			<?php
 			if ( ! is_user_logged_in() ) { // Display WordPress login form:
 				?>
-				<p>Or perhaps you just need to log in:</p>
+				<p><?php _e('Or perhaps you just need to log in:', 'nocturnus'); ?></p>
 				<?php
     				$args = array(
 				        'form_id' => 'loginform-custom',
-				        'label_username' => 'Login Name:' ,
-				        'label_password' => 'Password:',
-				        'label_remember' => 'Remember Me',
-				        'label_log_in' => 'Log In',
+				        'label_username' => __('Login Name', 'nocturnus') ,
+				        'label_password' => __('Password', 'nocturnus'),
+				        'label_remember' => __('Remember Me', 'nocturnus'),
+				        'label_log_in'   => __('Log In', 'nocturnus'),
 				        'remember' => true
 				);
 			    	wp_login_form( $args );
