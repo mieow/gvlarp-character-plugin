@@ -1,0 +1,19 @@
+ID,NAME,DESCRIPTION,SOURCE_BOOK_ID,PAGE_NUMBER,VISIBLE
+1,Auspex,Supernatural senses,1,134,Y
+2,Celerity,Supernatural speed and dexterity,1,142,Y
+3,Potence,Supernatural strength,1,192,Y
+4,Presence,Presence,1,193,Y
+5,Thaumaturgy,Blood magic,1,212,Y
+6,Animalism,Power over wild creatures,1,128,Y
+7,Chimerstry,Illusions,1,144,Y
+8,Dementation,Spreading insanity,1,147,Y
+9,Dominate,Enforcing your will,1,151,Y
+10,Fortitude,Supernatural stamina,1,158,Y
+11,Necromancy,Magic over the dead,1,159,Y
+12,Obfuscate,Hiding in shadows,1,184,Y
+13,Obtenebration,Control the shadows,1,188,Y
+14,Protean,Shapeshifting,1,199,Y
+15,Quietus,Powers of assassination,1,203,Y
+16,Serpentis,Snake power,1,209,Y
+17,Vicissitude,Fleshcrafting,1,241,Y
+18,Thanatosis,Death and decay,1,410,Y
