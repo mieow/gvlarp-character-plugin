@@ -4,7 +4,7 @@
 
   # Export the latest release
 {{{
-svn export http://gvlarp-character-plugin.googlecode.com/svn/tags/version1-8 gvlarp-character
+svn export http://gvlarp-character-plugin.googlecode.com/svn/tags/version1-10 gvlarp-character
 }}}
   # Zip the folder
   # Log into the admin account on the wordpress website
@@ -18,7 +18,7 @@ svn export http://gvlarp-character-plugin.googlecode.com/svn/tags/version1-8 gvl
   # Deactivate the plugin via Wordpress admin
   # Export the latest release
 {{{
-svn export http://gvlarp-character-plugin.googlecode.com/svn/tags/version1-8 gvlarp-character
+svn export http://gvlarp-character-plugin.googlecode.com/svn/tags/version1-10 gvlarp-character
 }}}
   # Upload the exported files to {{{/public_html/wp-content/plugins/gvlarp-character/}}}
   # Re-activate the plugin
