@@ -24,10 +24,10 @@ This is the process to go through before the version is available for release
   # Load in snapshot/database state & data from the last release and repeat testing from previous step. Also check:
     * All database changes have actually happened and no error messages
   # Testing
-  # Take a snapshot of the database
+  # Take a snapshot of the test and live databases
   # SVN Tag (example)
 {{{
 cd gvlarp-character-plugin
 svn update
-svn copy gvlarp-character https://gvlarp-character-plugin.googlecode.com/svn/tags/version1-8 -m "Tagging the v1.8 release of the character plugin."
+svn copy gvlarp-character https://gvlarp-character-plugin.googlecode.com/svn/tags/version1-10 -m "Tagging the v1.10 release of the character plugin."
 }}}
