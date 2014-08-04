@@ -30,10 +30,11 @@ svn export http://gvlarp-character-plugin.googlecode.com/svn/tags/version1-10 gv
 
 == V1.9 to V1.10 ==
 
+  * Fix lost PDF colours on Config page
+  * Configure Character Generation options
   * Check and re-save each of your cost models
   * Update the Wordpress Role for each clan
   * Configure any extra columns you want on the sign-in report
-  * Configure Character Generation options
   * Set up Character Generation templates
 
   * Update to latest Downloads plugin, upload and set up templates
