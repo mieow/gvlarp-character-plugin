@@ -656,7 +656,7 @@ function vtm_render_skills($characterID, $maxRating, $pendingSpends, $xp_avail) 
 
 }
 
-function vtm_render_skills_row ($type, $rownum, $max2display, $maxRating, $datarow, $levelsdata, $xp_avail) {
+function vtm_render_skills_row($type, $rownum, $max2display, $maxRating, $datarow, $levelsdata, $xp_avail) {
 
 	$fulldoturl    = plugins_url( 'gvlarp-character/images/xpdot.jpg' );
 	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
@@ -737,7 +737,8 @@ function vtm_render_skills_row ($type, $rownum, $max2display, $maxRating, $datar
 	}
 	
 		
-	$xpcost = ($xpcost && $xp_avail >= $xpcost) ? "(" . $xpcost . " XP)" : "";
+	//$xpcost = ($xpcost && $xp_avail >= $xpcost) ? "(" . $xpcost . " XP)" : "";
+	$xpcost = ($datarow->NEXT_VALUE <= $maxRating) ? "(" . $datarow->XP_COST . " XP)" : "";
 	if ($datarow->has_pending)
 		//$rowoutput .= "<td class='gvxp_checkbox'><input type='CHECKBOX' name='{$type}_cancel[$rownum]' value='{$datarow->pending_id}'><label>clear</label></td>";
 		$rowoutput .= "<td class='gvcol_cost'><input class='gvxp_clear' type='submit' name=\"{$type}_cancel[{$datarow->pending_id}]\" value=\"Clear\"></td>";
@@ -1310,7 +1311,7 @@ function vtm_render_spend_table($type, $allxpdata, $maxRating, $columns, $xp_ava
 			}
 			
 				
-			$xpcost = ($xpcost && $xp_avail >= $xpcost) ? "(" . $xpcost . " XP)" : "";
+			$xpcost = ($xpdata->NEXT_VALUE <= $maxRating) ? "(" . $xpdata->XP_COST . " XP)" : "";
 			if ($xpdata->has_pending)
 				//$rowoutput .= "<td class='gvxp_checkbox'><input type='CHECKBOX' name='{$type}_cancel[$id]' value='{$xpdata->pending_id}'><label>clear</label></td>";
 				$rowoutput .= "<td class='gvcol_cost'><input class='gvxp_clear' type='submit' name=\"{$type}_cancel[{$xpdata->pending_id}]\" value=\"Clear\"></td>";
@@ -1488,7 +1489,7 @@ function vtm_render_ritual_spend_table($type, $allxpdata, $columns, $xp_avail) {
 						
 			
 				
-			$xpcost = ($xpcost && $xp_avail >= $xpcost) ? "(" . $xpcost . " XP)" : "";
+			$xpcost = ($xpcost) ? "(" . $xpcost . " XP)" : "";
 			if ($xpdata->has_pending)
 				$rowoutput .= "<td class='gvcol_cost'><input class='gvxp_clear' type='submit' name=\"{$type}_cancel[{$xpdata->pending_id}]\" value=\"Clear\"></td>";
 			else
@@ -1575,10 +1576,8 @@ function vtm_render_combo_spend_table($type, $allxpdata, $xp_avail) {
 					$rowoutput .= "<td class='gvxp_dot'><img alt='O' src='$emptydoturl'></td>";
 				
 			}
-						
-			
-				
-			$xpcost = ($xpcost && $xp_avail >= $xpcost) ? "(" . $xpcost . " XP)" : "";
+	
+			$xpcost = ($xpcost) ? "(" . $xpcost . " XP)" : "";
 			if ($xpdata->has_pending)
 				$rowoutput .= "<td class='gvcol_cost'><input class='gvxp_clear' type='submit' name=\"{$type}_cancel[{$xpdata->pending_id}]\" value=\"Clear\"></td>";
 			else
@@ -1662,7 +1661,7 @@ function vtm_render_merit_spend_table($type, $list, $allxpdata, $columns, $xp_av
 	return $rowoutput;
 }
 
-function vtm_render_merits_row ($type, $id, $xpdata, $levelsdata, $xp_avail) {
+function vtm_render_merits_row($type, $id, $xpdata, $levelsdata, $xp_avail) {
 
 	$fulldoturl    = plugins_url( 'gvlarp-character/images/xpdot.jpg' );
 	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
@@ -1729,7 +1728,7 @@ function vtm_render_merits_row ($type, $id, $xpdata, $levelsdata, $xp_avail) {
 				$rowoutput .= "<td class='gvxp_dot'><img alt='O' src='$emptydoturl'></td>\n";
 		} 
 		
-	$xpcost = ($xpdata->XP_COST && $xp_avail >= $xpcost) ? "(" . $xpdata->XP_COST . " XP)" : "";
+	$xpcost = ($xpdata->XP_COST) ? "(" . $xpdata->XP_COST . " XP)" : "";
 	if (isset($xpdata->has_pending) && $xpdata->has_pending)
 		$rowoutput .= "<td class='gvcol_cost'><input class='gvxp_clear' type='submit' name=\"{$type}_cancel[{$xpdata->pending_id}]\" value=\"Clear\"></td>\n";
 	elseif ($cha_id && $xpdata->level >= 0)
