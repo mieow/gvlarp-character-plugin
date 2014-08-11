@@ -615,29 +615,32 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 					$rowoutput .= "<input type='hidden' name='{$postvariable}_detail[" . $key . "]' value='$detail' />\n";
 					$rowoutput .= "</td></tr>\n";
 					
+					$namehtml = "<span title='" . htmlspecialchars(stripslashes($item->DESCRIPTION), ENT_QUOTES) . "'>" . stripslashes($item->NAME) . "</span>";
+					
 					if ($postvariable == 'freebie_merit') {
 						$cost = $freebiecosts[$name][0][1];
 						$cbid = "cb_{$key}_{$j}";
-						$rowoutput .= "<tr><td><span class='mfdotselect'>\n";
+						//$rowoutput .= "<tr><td><span class='mfdotselect'>\n";
+						$rowoutput .= "<tr><td class='mfdotselect'>\n";
 						if ($issubmitted) {
 							if ($current == $cost) {
 								$rowoutput .= "<img src='$doturl' alt='X' /> ";
 							} else {
 								$rowoutput .= "<img src='$emptydoturl' alt='O' /> ";
 							}
-							$rowoutput .=  stripslashes($item->NAME) . " ($cost)";
+							$rowoutput .=  $namehtml . " ($cost)";
 						} else {
 							$rowoutput .= "<input type='checkbox' name='{$postvariable}[" . $key . "]' id='$cbid' value='$cost' ";
 							$rowoutput .= checked($current, $cost, false);
 							$rowoutput .= "/>\n";
-							$rowoutput .= "<label for='$cbid'>" . stripslashes($item->NAME) . " ($cost)</label>\n";
+							$rowoutput .= "<label for='$cbid'>" . $namehtml . " ($cost)</label>\n";
 						}
 						$rowoutput .= "</span></td></tr>\n";
 					
 					} else {
 						//dots row
 						$flag = 0;
-						$rowoutput .= "<tr><th class='gvthleft'><span>" . stripslashes($item->NAME) . "</span></th><td>\n";
+						$rowoutput .= "<tr><th class='gvthleft'>" . $namehtml . "</th><td>\n";
 						$rowoutput .= "<fieldset class='dotselect'>\n";
 						for ($i=$max2display;$i>=1;$i--) {
 							$radioid = "dot_{$key}_{$i}_{$j}";
@@ -740,6 +743,7 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 				case 'instinct':    $max2display = 5; break;
 			}
 			$colspan = $postvariable == 'xp_merit' ? 1 : 2;
+			$namehtml = "<span title='" . htmlspecialchars(stripslashes($item->DESCRIPTION), ENT_QUOTES) . "'>" . stripslashes($item->NAME) . "</span>";
 				
 			// Base level from main table in database
 			$levelfrom = isset($saved[$key]->level_from) ? $saved[$key]->level_from : 0;
@@ -796,26 +800,26 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 
 				if ($postvariable == 'xp_merit') {
 					$cbid = "cb_{$j}_{$key}";
-					$rowoutput .= "<tr><td><span class='mfdotselect'>\n";
+					$rowoutput .= "<tr><td class='mfdotselect'>\n";
 					if ($issubmitted) {
 						if ($current) {
 							$rowoutput .= "<img src='$doturl' alt='X' /> ";
 						} else {
 							$rowoutput .= "<img src='$emptydoturl' alt='O' /> ";
 						}
-						$rowoutput .=  stripslashes($item->NAME) . " ($meritlevel) - $meritcost XP";
+						$rowoutput .=  $namehtml . " ($meritlevel) - $meritcost XP";
 					} else {
 						$rowoutput .= "<input type='checkbox' name='{$postvariable}[" . $key . "]' id='$cbid' value='$meritlevel' ";
 						if ($current) {
 							$rowoutput .= checked($current, $current, false);
 						}
 						$rowoutput .= "/>\n";
-						$rowoutput .= "<label for='$cbid'>" . stripslashes($item->NAME) . " ($meritlevel) - $meritcost XP</label>\n";
+						$rowoutput .= "<label for='$cbid'>" . $namehtml . " ($meritlevel) - $meritcost XP</label>\n";
 					}
 					$rowoutput .= "</span></td></tr>\n";
 				} else {
 					//dots row
-					$rowoutput .= "<tr><th class='gvthleft'><span>" . stripslashes($item->NAME) . "</span></th><td>\n";
+					$rowoutput .= "<tr><th class='gvthleft'>" . $namehtml . "</th><td>\n";
 					$rowoutput .= "<fieldset class='dotselect'>\n";
 					for ($i=$max2display;$i>=1;$i--) {
 						$radioid = "dot_{$key}_{$i}_{$j}";
