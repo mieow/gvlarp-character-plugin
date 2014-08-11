@@ -45,6 +45,7 @@ class vtmclass_character {
 	var $history;
 	var $last_updated;
 	var $concept;
+	var $email;
 	
 	function load ($characterID){
 		global $wpdb;
@@ -76,7 +77,8 @@ class vtmclass_character {
 					   sects.name                      sect,
 					   pub_clan.icon_link			   public_icon,
 					   priv_clan.icon_link			   private_icon,
-					   chara.concept				   concept
+					   chara.concept				   concept,
+					   chara.email
                     FROM " . VTM_TABLE_PREFIX . "CHARACTER chara,
                          " . VTM_TABLE_PREFIX . "PLAYER player,
                          " . VTM_TABLE_PREFIX . "DOMAIN domains,
@@ -108,7 +110,7 @@ class vtmclass_character {
 			$this->public_icon  = $result[0]->public_icon;
 			$this->private_icon = $result[0]->private_icon;
 			$this->domain       = $result[0]->domain;
-			$this->player       = $result[0]->pname;
+			$this->player       = stripslashes($result[0]->pname);
 			$this->wordpress_id = $result[0]->wpid;
 			$this->generation   = $result[0]->generation;
 			$this->max_rating   = $result[0]->max_rating;
@@ -125,6 +127,7 @@ class vtmclass_character {
 			$this->date_of_embrace = $result[0]->date_of_embrace;
 			$this->char_status_comment   = stripslashes($result[0]->cstat_comment);
 			$this->path_of_enlightenment = stripslashes($result[0]->path);
+			$this->email        = $result[0]->email;
 		} else {
 			$this->name         = 'No character selected';
 			$this->clan         = '';
@@ -149,6 +152,7 @@ class vtmclass_character {
 			$this->char_status_comment   = '';
 			$this->path_of_enlightenment = '';
 			$this->concept      = '';
+			$this->email        = '';
 		}
 		
         $user = get_user_by('login',$this->name);

@@ -1018,8 +1018,13 @@ function vtm_get_sects() {
         }
     }
 
-    function vtm_changeDisplayNameByID ($userID, $newDisplayName) {
+    function vtm_changeDisplayNameByID($userID, $newDisplayName) {
         $args = array ('ID' => $userID, 'display_name' => $newDisplayName);
+        wp_update_user($args);
+        return true;
+    }
+    function vtm_changeEmailByID($userID, $newEmail) {
+        $args = array ('ID' => $userID, 'user_email ' => $newEmail);
         wp_update_user($args);
         return true;
     }

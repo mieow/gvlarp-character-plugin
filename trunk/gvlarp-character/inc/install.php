@@ -5,7 +5,7 @@ register_activation_hook( __FILE__, 'vtm_character_install_data' );
 
 global $vtm_character_version;
 global $vtm_character_db_version;
-$vtm_character_version = "1.10"; 
+$vtm_character_version = "1.11"; 
 $vtm_character_db_version = "29"; 
 
 function vtm_update_db_check() {
@@ -1163,7 +1163,7 @@ function vtm_character_update_1_9($beforeafter) {
 				$sql = "SHOW TABLES LIKE %s";
 				$sql = $wpdb->prepare($sql, $newtable);
 				$result = $wpdb->get_results($sql);
-				echo "<p>SQL: $sql</p>";
+				//echo "<p>SQL: $sql</p>";
 				
 				if (count($result) == 0) {
 					$sql = "RENAME TABLE $table TO $newtable";
