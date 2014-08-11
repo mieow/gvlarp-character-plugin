@@ -471,7 +471,7 @@ class vtmclass_admin_clans_table extends vtmclass_MultiPage_ListTable {
     function column_default($item, $column_name){
         switch($column_name){
             case 'DESCRIPTION':
-                return $item->$column_name;
+                return stripslashes($item->$column_name);
             case 'CLAN_PAGE_LINK':
                 return $item->$column_name;
              case 'ICON_LINK':
@@ -902,7 +902,7 @@ class vtmclass_admin_disciplines_table extends vtmclass_MultiPage_ListTable {
     function column_default($item, $column_name){
         switch($column_name){
             case 'DESCRIPTION':
-                return $item->$column_name;
+                return stripslashes($item->$column_name);
             case 'PAGE_NUMBER':
                 return $item->$column_name;
              case 'SOURCE_BOOK':
