@@ -334,9 +334,9 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 		$login      = $result->WORDPRESS_ID;
 		$playerid   = $result->PLAYER_ID;
 		$sectid     = $result->SECT_ID;
-		$playername = stripslashes($result->player);
+		$playername = htmlspecialchars(stripslashes($result->player), ENT_QUOTES);
 		$shownew    = 'off';
-		$character  = stripslashes($result->charactername);
+		$character  = htmlspecialchars(stripslashes($result->charactername), ENT_QUOTES);
 		
 		$pub_clan    = $result->PUBLIC_CLAN_ID;
 		$priv_clan   = $result->PRIVATE_CLAN_ID;
@@ -351,9 +351,9 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 		$login      = isset($_POST['wordpress_id']) ? $_POST['wordpress_id'] : '';
 		$playerid   = isset($_POST['playerID']) ? $_POST['playerID'] : '';
 		$sectid     = isset($_POST['sect']) ? $_POST['sect'] : $config->HOME_SECT_ID;
-		$playername = isset($_POST['player']) ? $_POST['player'] : '';
+		$playername = isset($_POST['player']) ? htmlspecialchars(stripslashes($_POST['player']), ENT_QUOTES) : '';
 		$shownew    = isset($_POST['newplayer']) ? $_POST['newplayer'] : 'off';
-		$character  = isset($_POST['character']) ? $_POST['character'] : '';
+		$character  = isset($_POST['character']) ? htmlspecialchars(stripslashes($_POST['character']), ENT_QUOTES) : '';
 		$concept    = isset($_POST['concept']) ? $_POST['concept'] : '';
 		
 		$pub_clan    = isset($_POST['pub_clan'])  ? $_POST['pub_clan']  : 0;
@@ -2800,6 +2800,7 @@ function vtm_email_new_character($email, $characterID, $playerid, $name, $clanid
 	$toname = get_option( 'vtm_chargen_email_from_name', 'The Storytellers');
 	$toaddr = get_option( 'vtm_chargen_email_from_address', get_bloginfo('admin_email') );
 	$url = add_query_arg('reference', $ref, vtm_get_stlink_url('viewCharGen', true));
+	$player = stripslashes($player);
 	
 	$subject   = "$tag New Character Created: $name";
 	$headers[] = "From: \"$toname\" <$toaddr>\n";
@@ -5576,7 +5577,7 @@ function vtm_save_submit($characterID, $templateID) {
 		$tag    = get_option( 'vtm_chargen_emailtag' );
 		$toname = get_option( 'vtm_chargen_email_from_name', 'The Storytellers');
 		$toaddr = get_option( 'vtm_chargen_email_from_address', get_bloginfo('admin_email') );
-		$fromname = $results->player;
+		$fromname = stripslashes($results->player);
 		$fromemail = $results->email;
 		$character = stripslashes($results->name);
 		$concept = $results->concept;
