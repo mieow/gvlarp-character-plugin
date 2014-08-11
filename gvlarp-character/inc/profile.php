@@ -61,6 +61,7 @@ function vtm_get_profile_content() {
 	
 	$mycharacter = new vtmclass_character();
 	$mycharacter->load($characterID);
+	$emailAddress = $mycharacter->email;
 
 	// Update display name
 	if (vtm_isST() || $currentCharacter == $character) {
@@ -76,6 +77,35 @@ function vtm_get_profile_content() {
 			$output .= "<p>Changed display name to <i>$newDisplayName</i></p>";
 			vtm_changeDisplayNameByID ($userID, $newDisplayName);
 			$displayName = $newDisplayName;
+		}
+	}
+	
+	// Update email address
+	if (vtm_isST() || $currentCharacter == $character) {
+	
+		if (isset($_POST['VTM_FORM']) && $_POST['VTM_FORM'] == 'updateEmail' && isset($_POST['emailAddress']) 
+			&& !empty($_POST['emailAddress']) && $_POST['emailAddress'] != $emailAddress) {
+			
+			$newemailAddress = sanitize_email($_POST['emailAddress']);
+			
+			// SAVE email to database and wordpress account
+			if (is_email($newemailAddress)) {
+			
+				$result = $wpdb->update(VTM_TABLE_PREFIX . "CHARACTER",
+					array('EMAIL' => $newemailAddress),
+					array('ID'    => $characterID)
+				);
+				if (!$result && $result !== 0){
+					echo "<p style='color:red'>Could not save character email $newemailAddress ($characterID)</p>";
+				} else {
+					vtm_changeEmailByID($userID, $newemailAddress);
+					
+					$output .= "<p>Changed email <i>$newemailAddress</i></p>";
+				}
+			} else {
+				$output .= "<p>Email address <i>$newemailAddress</i> is invalid</p>";
+			}
+				$emailAddress = $newemailAddress;
 		}
 	}
 	
@@ -225,6 +255,20 @@ function vtm_get_profile_content() {
 		$output .= "<input type='text' size=50 maxlength=50 name=\"displayName\" value=\"" . $displayName . "\">";
 		$output .= "</td>\n";
 		$output .= "<td><input type='submit' name=\"displayNameUpdate\" value=\"Update\"></td>";
+		$output .= "</tr>";
+		$output .= "</table></form></div>\n";
+
+		$output .= "<div class='displayEmailForm'><strong>Update Email Address:</strong>";
+		$output .= "<form name=\"EMAIL_UPDATE_FORM\" method='post'>";
+
+		$output .= "<input type='HIDDEN' name=\"VTM_FORM\" value=\"updateEmail\" />";
+		$output .= "<input type='HIDDEN' name=\"USER_ID\" value=\"" . $userID . "\" />";
+		
+		$output .= "<table>\n";
+		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Email address:</td><td class=\"gvcol_2 gvcol_val\">";
+		$output .= "<input type='text' size=60 maxlength=60 name=\"emailAddress\" value=\"" . $emailAddress . "\">";
+		$output .= "</td>\n";
+		$output .= "<td><input type='submit' name=\"emailAddressUpdate\" value=\"Update\"></td>";
 		$output .= "</tr>";
 		$output .= "</table></form></div>\n";
 
