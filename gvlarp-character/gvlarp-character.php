@@ -437,7 +437,9 @@ function vtm_get_sects() {
         $table_prefix = VTM_TABLE_PREFIX;
 
         $statusClause = "";
+		$playerStatusID = "";
         if ($playerStatus != null && $playerStatus != "") {
+			$playerStatusID = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . $table_prefix . "PLAYER_STATUS WHERE NAME = %s", $playerStatus));
             $statusClause = " AND player_status_id = %d ";
         }
 
@@ -455,11 +457,11 @@ function vtm_get_sects() {
                           " . $statusClause . $typeClause . "
                         ORDER BY name";
 
-        if ($playerStatus != null && $playerStatus != "" && $playerType != null && $playerType != "") {
-            $sql = $wpdb->prepare($sql, $playerStatus, $playerType);
+        if ($playerStatusID != null && $playerStatusID != "" && $playerType != null && $playerType != "") {
+            $sql = $wpdb->prepare($sql, $playerStatusID, $playerType);
         }
-        else if ($playerStatus != null && $playerStatus != "") {
-            $sql = $wpdb->prepare($sql, $playerStatus);
+        else if ($playerStatusID != null && $playerStatusID != "") {
+            $sql = $wpdb->prepare($sql, $playerStatusID);
         }
         else if ($playerType != null && $playerType != "") {
             $sql = $wpdb->prepare($sql, $playerType);
