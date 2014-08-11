@@ -259,7 +259,7 @@ function vtm_character_options() {
 				}
 				echo "</div></td>";
 				echo "<td>{$character->clan}</td>";
-				echo "<td>{$character->player}</td>";
+				echo "<td>" . stripslashes($character->player) . "</td>";
 				echo "<td>{$character->player_status}</td>";
 				echo "<td>{$character->character_type}</td>";
 				echo "<td>{$character->character_status}</td>";
@@ -298,6 +298,7 @@ add_filter( 'the_content', 'vtm_edit_character_content_filter' );
 function vtm_get_edit_character_content() {
 
 	$output = "";
+	$submitted = 0;
 
 	if (isset($_REQUEST['characterID']))
 		$characterID = $_REQUEST['characterID'];
@@ -306,20 +307,21 @@ function vtm_get_edit_character_content() {
 
 	if (isset($_REQUEST['cSubmit']) && $_REQUEST['cSubmit'] == "Submit character changes") {
 		$characterID = vtm_processCharacterUpdate($characterID);
+		$submitted = 1;
 	}
-	$output .= vtm_displayUpdateCharacter($characterID);
+	$output .= vtm_displayUpdateCharacter($characterID, $submitted);
 	
 	return $output;
 }
 
 
-function vtm_displayUpdateCharacter($characterID) {
+function vtm_displayUpdateCharacter($characterID, $submitted) {
 	global $wpdb;
 	$table_prefix = VTM_TABLE_PREFIX;
 	$output = "";
 
 	if ($characterID == "0" || (int) ($characterID) > 0) {
-		$players           = vtm_listPlayers("", "");       // ID, name
+		$players           = vtm_listPlayers("Active", "");       // ID, name
 		$clans             = vtm_listClans();               // ID, name
 		$generations       = vtm_listGenerations();         // ID, name
 		$domains           = vtm_listDomains();             // ID, name
@@ -329,29 +331,54 @@ function vtm_displayUpdateCharacter($characterID) {
 		$roadsOrPaths      = vtm_listRoadsOrPaths();        // ID, name
 
 		$config = vtm_getConfig();
-					
-		$characterName             = "New Name";
-		$characterPublicClanId     = "";
-		$characterPrivateClanId    = "";
-		$characterGenerationId     = $config->DEFAULT_GENERATION_ID;
-		$characterDateOfBirth      = "";
-		$characterDateOfEmbrace    = "";
-		$characterSire             = "";
-		$characterPlayerId         = "";
-		$characterTypeId           = "";
-		$characterStatusId         = "";
-		$characterStatusComment    = "";
-		$characterRoadOrPathId     = "";
-		$characterRoadOrPathRating = "";
-		$characterDomainId         = $config->HOME_DOMAIN_ID;
-		$characterSectId           = $config->HOME_SECT_ID;
-		$characterWordpressName    = "";
-		$characterVisible          = "Y";
-		$characterNatureId         = "";
-		$characterDemeanourId      = "";
+		
+		if ($submitted) {
+			$characterName             = $_POST['charName'];
+			$characterPublicClanId     = $_POST['charPubClan'];
+			$characterPrivateClanId    = $_POST['charPrivClan'];
+			$characterGenerationId     = $_POST['charGen'];
+			$characterDateOfBirth      = $_POST['charDoB'];
+			$characterDateOfEmbrace    = $_POST['charDoE'];
+			$characterSire             = $_POST['charSire'];
+			$characterPlayerId         = $_POST['charPlayer'];
+			$characterTypeId           = $_POST['charType'];
+			$characterStatusId         = $_POST['charStatus'];
+			$characterStatusComment    = $_POST['charStatusComment'];
+			$characterRoadOrPathId     = $_POST['charRoadOrPath'];
+			$characterRoadOrPathRating = $_POST['charRoadOrPathRating'];
+			$characterDomainId         = $_POST['charDomain'];
+			$characterSectId           = $_POST['charSect'];
+			$characterWordpressName    = $_POST['charWordPress'];
+			$characterVisible          = $_POST['charVisible'];
+			$characterNatureId         = $_POST['charNature'];
+			$characterDemeanourId      = $_POST['charDemeanour'];
 
-		$characterHarpyQuote       = "";
-		$characterPortraitURL      = "";
+			$characterHarpyQuote       = $_POST['charHarpyQuote'];
+			$characterPortraitURL      = $_POST['charPortraitURL'];
+		} else {
+			$characterName             = "New Name";
+			$characterPublicClanId     = "";
+			$characterPrivateClanId    = "";
+			$characterGenerationId     = $config->DEFAULT_GENERATION_ID;
+			$characterDateOfBirth      = "";
+			$characterDateOfEmbrace    = "";
+			$characterSire             = "";
+			$characterPlayerId         = "";
+			$characterTypeId           = "";
+			$characterStatusId         = "";
+			$characterStatusComment    = "";
+			$characterRoadOrPathId     = "";
+			$characterRoadOrPathRating = "";
+			$characterDomainId         = $config->HOME_DOMAIN_ID;
+			$characterSectId           = $config->HOME_SECT_ID;
+			$characterWordpressName    = "";
+			$characterVisible          = "Y";
+			$characterNatureId         = "";
+			$characterDemeanourId      = "";
+
+			$characterHarpyQuote       = "";
+			$characterPortraitURL      = "";
+		}
 
 		if ((int) ($characterID) > 0) {
 
@@ -447,7 +474,7 @@ function vtm_displayUpdateCharacter($characterID) {
 			if ($player->ID == $characterPlayerId) {
 				$output .= "SELECTED";
 			}
-			$output .= ">" . $player->name . "</option>";
+			$output .= ">" . stripslashes($player->name) . "</option>";
 		}
 		$output .= "</select></td></tr>";
 
@@ -1297,7 +1324,8 @@ function vtm_processCharacterUpdate($characterID) {
 			return $characterID;
 
 		$genstatus	= $wpdb->get_var("SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARGEN_STATUS WHERE NAME = 'Approved';");
-			
+		
+		$wpdb->show_errors();
 		$wpdb->insert($table_prefix . "CHARACTER",
 				array (
 					'NAME' => $characterName, 								'PUBLIC_CLAN_ID' => $characterPublicClan,
@@ -1315,6 +1343,7 @@ function vtm_processCharacterUpdate($characterID) {
 					'%s', '%d', '%d', '%d', '%s', '%s', '%s', '%d', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%s', '%s', '%s', '%d'
 				)
 		);
+		$wpdb->hide_errors();
 		$characterID = $wpdb->insert_id;
 		if ($wpdb->insert_id == 0) {
 			echo "<p style='color:red'><b>Error:</b> Character $characterName could not be added</p>";
@@ -2372,7 +2401,7 @@ function vtm_email_chargen_denied($characterID, $denyMessage) {
 	$results = $wpdb->get_row($wpdb->prepare($sql, $characterID));
 
 	$name   = stripslashes($results->name);
-	$player = $results->player;
+	$player = stripslashes($results->player);
 	$email  = $results->email;
 	
 	$ref = vtm_get_chargen_reference($characterID);
@@ -2415,7 +2444,7 @@ function vtm_email_chargen_approved($characterID, $wpid, $password) {
 	$results = $wpdb->get_row($wpdb->prepare($sql, $characterID));
 
 	$name     = stripslashes($results->name);
-	$player   = $results->player;
+	$player   = stripslashes($results->player);
 	$email    = $results->email;
 	$username = $results->username;
 	$website  = site_url();
