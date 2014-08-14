@@ -170,6 +170,8 @@ function vtm_render_template_data(){
 		$settings['merits-max']           = isset($results['merits-max']->VALUE) ? $results['merits-max']->VALUE : $settings['merits-max'];
 		$settings['flaws-max']            = isset($results['flaws-max']->VALUE) ? $results['flaws-max']->VALUE : $settings['flaws-max'];
 		$settings['freebies-points']      = isset($results['freebies-points']->VALUE) ? $results['freebies-points']->VALUE : $settings['freebies-points'];
+		$settings['rituals-method']       = isset($results['rituals-method']->VALUE) ? $results['rituals-method']->VALUE : $settings['rituals-method'];
+		$settings['rituals-points']       = isset($results['rituals-points']->VALUE) ? $results['rituals-points']->VALUE : $settings['rituals-points'];
 			
 	} else {
 		$name   = "";
@@ -287,20 +289,32 @@ function vtm_render_template_data(){
 			</table>
 		</td>
 	</tr>
+	<tr class="template_option_row">
+		<td rowspan=1>Assigning Rituals</td>
+		<td colspan=2>
+			<table>
+			<tr><td><input type="radio" name="rituals-method" value="none" <?php checked( 'none', $settings['rituals-method']); ?>>Don't assign rituals during character generation</td></tr>
+			<tr>
+				<td>
+					<input type="radio" name="rituals-method" value="point" <?php checked( 'point', $settings['rituals-method']); ?>>Get a set number of points to spend 
+					<input type="text" name="rituals-points" value="<?php print $settings['rituals-points']; ?>">
+				</td>
+			</tr>
+			<tr><td><input type="radio" name="rituals-method" value="discipline" <?php checked( 'discipline', $settings['rituals-method']); ?>>Points equal Thaumaturgy level (Thaum 5 gives 5 levels of disciplines)</td></tr>
+			<tr><td><input type="radio" name="rituals-method" value="accumulate" <?php checked( 'accumulate', $settings['rituals-method']); ?>>Points equal to accumulated Thaum level (Thaum 5 gives 1+2+3+4+5=15 levels)</td></tr>
+			</table>
+		</td>
+	</tr>
 	</table>
 	</div>
-	<?php
-	
-	// template options
-	
-	
-	?>
-	
+
+	<br />	
 	</table>
 	<input type="submit" name="do_save_<?php print $type; ?>" class="button-primary" value="Save" />
 	<input type="submit" name="do_new_<?php print $type; ?>" class="button-primary" value="New" />
 	<input type="submit" name="do_delete_<?php print $type; ?>" class="button-primary" value="Delete" />
 	</form>
+
 
 <?php
 }

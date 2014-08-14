@@ -591,6 +591,30 @@ table.feedingmapkey {width:auto;}
     background-image: url('/wp-content/plugins/gvlarp-character/images/pendingdot.jpg');
 } */
 
+/*.vtm_ritual_table input[type="checkbox"]:checked + label { 
+	font-style: italic;
+	background-color: #770506;
+}*/
+.ritrowselect input[type="checkbox"]:checked + label  { 
+	font-style: italic;
+	background-color: #770506;
+}
+.ritrowselect input[type="checkbox"],
+.ritrowselect img { 
+	float: left;
+	margin-top: 5px;
+	margin-left: 5px;
+}
+.ritrowselect label { 
+	display: block;
+	padding-left: 25px;
+}
+.ritrowselect img { 
+	width:12px;
+    padding:0 .1em;
+    line-height:1.2;
+}
+
 #chargen-main .dotselect > label:active {
     content: url('/wp-content/plugins/gvlarp-character/images/cg_selectdot.jpg');
 }
