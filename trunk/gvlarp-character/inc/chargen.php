@@ -14,7 +14,7 @@ function vtm_default_chargen_settings() {
 		'abilities-max'        => 3,
 		'disciplines-points'   => 3,
 		'backgrounds-points'   => 5,
-		'virtues-method'       => '???',  // V20? 3E? free dots? limit depending on path?
+		'virtues-free-dots'    => 'humanityonly',  // 'yes', 'no', 'humanityonly'
 		'virtues-points'       => 7,
 		'road-multiplier'      => 1,
 		'merits-max'           => 7,
@@ -1131,8 +1131,10 @@ function vtm_render_chargen_virtues($step, $characterID, $templateID, $submitted
 		'courage' => $items['courage']
 	);
 	
+	$freedot = vtm_has_virtue_free_dot($selectedpath, $settings);
+	
 	$output .= vtm_render_chargen_section($saved, false, 0, 0, 0, 
-		1, $pathitems, $virtues, $pendingfb, $pendingxp, 'Virtues', 'virtue_value', $submitted);
+		$freedot, $pathitems, $virtues, $pendingfb, $pendingxp, 'Virtues', 'virtue_value', $submitted);
 	
 	return $output;
 }
@@ -4988,7 +4990,9 @@ function vtm_validate_virtues($settings, $characterID, $usepost = 1) {
 	$postpath = $usepost ? 
 				(isset($_POST['path']) ? $_POST['path'] : 0) :
 				$dbpath;
-				
+	
+	//print_r($postvalues);
+	
 	// VALIDATE VIRTUES
 	//		- all points spent
 	//		- point spent on the correct virtues
@@ -5002,10 +5006,16 @@ function vtm_validate_virtues($settings, $characterID, $usepost = 1) {
 		$total = 0;
 		$statfail = 0;
 		foreach  ($values as $key => $val) {
-			$total += $val - 1;
+			$level = $val - vtm_has_virtue_free_dot($selectedpath, $settings);
+			$total += $level;
 			
 			if ($key != $statkey1 && $key != $statkey2 && $key != 'courage') {
 				$statfail = 1;
+			} 
+			elseif ($level == 0) {
+				$errormessages .= "<li>ERROR: Virtues must each have at least 1 dot</li>\n";
+				$ok = 0;
+				$complete = 0;
 			}
 			
 		}
@@ -6039,6 +6049,24 @@ function vtm_get_chargen_ritual_points($characterID, $settings, $items) {
 	}
 	
 	return $points;
+}
+
+function vtm_has_virtue_free_dot($selectedpath, $settings) {
+	global $wpdb;
+
+	if ($settings['virtues-free-dots'] == 'yes')
+		$freedot = 1;
+	elseif ($settings['virtues-free-dots'] == 'no')
+		$freedot = 0;
+	else {
+		$humanityid = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE NAME = %s", 'Humanity'));
+		if ($humanityid == $selectedpath)
+			$freedot = 1;
+		else
+			$freedot = 0;
+	}
+
+	return $freedot;
 }
 
 ?>

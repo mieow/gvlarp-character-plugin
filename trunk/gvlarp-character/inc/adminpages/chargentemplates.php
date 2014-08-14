@@ -178,6 +178,7 @@ function vtm_render_template_data(){
 		$settings['limit-road-id']        = isset($results['limit-road-id']->VALUE) ? $results['limit-road-id']->VALUE : $settings['limit-road-id'];
 		$settings['limit-sect-method']    = isset($results['limit-sect-method']->VALUE) ? $results['limit-sect-method']->VALUE : $settings['limit-sect-method'];
 		$settings['limit-sect-id']        = isset($results['limit-sect-id']->VALUE) ? $results['limit-sect-id']->VALUE : $settings['limit-sect-id'];
+		$settings['virtues-free-dots']    = isset($results['virtues-free-dots']->VALUE) ? $results['virtues-free-dots']->VALUE : $settings['virtues-free-dots'];
 			
 	} else {
 		$name   = "";
@@ -266,7 +267,17 @@ function vtm_render_template_data(){
 		<td rowspan=1>Assigning Virtues</td>
 		<td colspan=2>
 			<table>
-			<tr><th>Number of Virtue Dots</th> <td><input type="text" name="virtues-points"  value="<?php print $settings['virtues-points']; ?>"></td></tr>
+			<tr><th>Number of Virtue Dots to spend</th> <td><input type="text" name="virtues-points"  value="<?php print $settings['virtues-points']; ?>"></td></tr>
+			<tr>
+				<th>Free Virtue Dots</th>
+				<td>
+					<select name='virtues-free-dots'>
+						<option value="yes" <?php selected($settings['virtues-free-dots'], "yes"); ?>>Each virtue gets an initial free dot</option>
+						<option value="no" <?php selected($settings['virtues-free-dots'], "no"); ?>>Virtues do not get an initial free dot</option>
+						<option value="humanityonly" <?php selected($settings['virtues-free-dots'], "humanityonly"); ?>>Only Virtues for the path of Humanity get a free dot</option>
+					</select>
+				</td>
+			</tr>
 			</table>
 		</td>
 	</tr>
