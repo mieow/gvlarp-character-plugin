@@ -87,8 +87,8 @@ function vtm_render_temp_stat_page($stat) {
 		$errstat = 2;
 		for ($i=0;$i<count($ids);$i++) {
 			if (!vtm_update_temp_stat($ids[$i], $amount, $stat, $statID, $reasonID, 
-							$maximums[$i], $currents[$i], $names[$i], ''))
-				$err = 1;
+							$maximums[$i], $currents[$i], htmlspecialchars(stripslashes($names[$i]),ENT_QUOTES), ''))
+				$errstat = 1;
 		}
 	}
 	elseif (isset($_REQUEST['applychanges'])) {
@@ -96,8 +96,8 @@ function vtm_render_temp_stat_page($stat) {
 		for ($i=0;$i<count($ids);$i++) {
 			if (!empty($amounts[$i]))
 				if (!vtm_update_temp_stat($ids[$i], $amounts[$i], $stat, $statID, $tmpreasons[$i], 
-							$maximums[$i], $currents[$i], $names[$i], $comments[$i]))
-					$err = 1;
+							$maximums[$i], $currents[$i], htmlspecialchars(stripslashes($names[$i]),ENT_QUOTES), $comments[$i]))
+					$errstat = 1;
 		}
 	}
 	if ($errstat == 2) {
@@ -178,9 +178,9 @@ function vtm_render_temp_stat_page($stat) {
 				?>
 				<tr>
 					<?php 
-					echo "<td><input type='hidden' name='charname[]' value='{$item->CHARACTERNAME}'/>
+					echo "<td><input type='hidden' name='charname[]' value='" . htmlspecialchars(stripslashes($item->CHARACTERNAME),ENT_QUOTES) . "'/>
 						<input type='hidden' name='charID[]' value='{$item->ID}'/>
-						{$item->CHARACTERNAME}
+						" . htmlspecialchars(stripslashes($item->CHARACTERNAME),ENT_QUOTES) . "
 						<span style='color:silver'>(ID:{$item->ID})</span></td>";
 					echo "<td><input type='hidden' name='current[]' value='{$item->CURRENTSTAT}'/>
 						{$item->CURRENTSTAT}</td>";
@@ -212,18 +212,20 @@ function vtm_update_temp_stat($selectedID, $amount, $stat, $statID, $reasonID,
 	$wpdb->show_errors();
 		
 	$change = $amount;
-			
+	
+	echo "<ul>";
 	if ( $current + $amount > $max ) {
 		$change = $max - $current;
-		echo "<p style='color:orange'>Current $stat for $char is capped at the maximum</p>";
+		echo "<li><span style='color:orange'>Current $stat for $char is capped at the maximum</span></li>";
 	}
 	elseif ($current + $amount < 0) {
 		$change = $current * -1;
-		echo "<p style='color:orange'>Current $stat for $char is capped at the minimum of 0</p>";
+		echo "<li><span style='color:orange'>Current $stat for $char is capped at the minimum of 0</span></li>";
 	}
 	
-	if ($change != 0) {
-		vtm_touch_last_updated($selectedID);
+	if ($change == 0) {
+		echo "<ul>";
+		return 1;
 	}
 	
 	$data = array (
@@ -247,10 +249,11 @@ function vtm_update_temp_stat($selectedID, $amount, $stat, $statID, $reasonID,
 		);
 
 	if ($wpdb->insert_id == 0) {
-		echo "<p style='color:red'><b>Error:</b>$stat update for character $char failed";
+		echo "<li><span style='color:red'><b>Error:</b>$stat update for character $char failed</span></li>";
 	} else {
-		 vtm_touch_last_updated($characterID);
+		 vtm_touch_last_updated($selectedID);
 	}
+	echo "<ul>";
 	
 	return ($wpdb->insert_id != 0);
 }
