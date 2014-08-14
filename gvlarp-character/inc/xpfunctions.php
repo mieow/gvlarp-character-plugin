@@ -2166,17 +2166,18 @@ function vtm_validate_details($characterID) {
 		$spec_at      = $_REQUEST['stat_spec_at'];
 		$statlevels   = $_REQUEST['stat_level'];
 		$stattraining = $_REQUEST['stat_training'];
-		$stat_specialisations = $_REQUEST['stat_spec'];
 		$stat_spec_error = array();
 		$stat_train_error = array();
 		
-		if (isset($stat_specialisations))
+		if (isset($_REQUEST['stat_spec'])) {
+			$stat_specialisations = $_REQUEST['stat_spec'];
 			foreach ($stat_specialisations as $id => $specialisation) {
 				if ($spec_at[$id] <= $statlevels[$id] &&
 					($specialisation == "" || $specialisation == $defaultSpecialisation)) {
 					$stat_spec_error[$id] = 1;
 				}
 			}
+		}
 		
 		if (count($stat_spec_error))
 			$outputError .= "<p>Please fix missing or invalid <a href='#gvid_xpst_stat'>Attribute</a> specialisations</p>";
