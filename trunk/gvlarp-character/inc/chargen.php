@@ -14,13 +14,18 @@ function vtm_default_chargen_settings() {
 		'abilities-max'        => 3,
 		'disciplines-points'   => 3,
 		'backgrounds-points'   => 5,
+		'virtues-method'       => '???',  // V20? 3E? free dots? limit depending on path?
 		'virtues-points'       => 7,
 		'road-multiplier'      => 1,
 		'merits-max'           => 7,
 		'flaws-max'            => 7,
 		'freebies-points'      => 15,
 		'rituals-method'       => 'point',  // 'discipline', 'accumulate', 'point' or 'none'
-		'rituals-points'       => 1
+		'rituals-points'       => 1,
+		'limit-sect-method'    => 'none', // 'none', 'only', 'exclude'
+		'limit-sect-id'        => 1,
+		'limit-road-method'    => 'none', // 'none', 'only', 'exclude'
+		'limit-road-id'        => 1,
 	);
 
 }
@@ -1074,17 +1079,30 @@ function vtm_render_chargen_virtues($step, $characterID, $templateID, $submitted
 	// Display Path pull-down
 	if (isset($_POST['path'])) {
 		$selectedpath = $_POST['path'];
-	} else {
+	}
+	elseif ($settings['limit-road-method'] == 'only') {
+		$selectedpath = $settings['limit-road-id'];
+	}
+	else {
 		$selectedpath = $wpdb->get_var($wpdb->prepare("SELECT ROAD_OR_PATH_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
 	}
 	$output .= "<p><label><strong>Path of Enlightenment:</strong></label> ";
 	if ($submitted) {
 		$pathname = $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $selectedpath));
 		$output .= "<span>$pathname</span>\n";
-	} else {
+	} 
+	elseif ($settings['limit-road-method'] == 'only') {
+		$pathname = $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $selectedpath));
+		$output .= "<input type='hidden' name='path' value='{$settings['limit-road-id']}' />";
+		$output .= "<span>$pathname</span>\n";
+	}
+	else {
 		$output .= "<select name='path'>\n";
 		foreach (vtm_get_chargen_roads() as $path) {
-			$output .= "<option value='{$path->ID}' " . selected($path->ID, $selectedpath, false) . ">" . stripslashes($path->NAME) . "</option>\n";
+			if ($settings['limit-road-method'] != 'exclude' || 
+					($settings['limit-road-method'] == 'exclude' && $settings['limit-road-id'] != $path->ID)) {
+				$output .= "<option value='{$path->ID}' " . selected($path->ID, $selectedpath, false) . ">" . stripslashes($path->NAME) . "</option>\n";
+			}
 		}
 		$output .= "</select>\n";
 	}

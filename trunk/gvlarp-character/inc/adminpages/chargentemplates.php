@@ -3,7 +3,6 @@
 
 
 function vtm_render_template_data(){
-
 	global $wpdb;
 	
 	$id = "";
@@ -15,6 +14,8 @@ function vtm_render_template_data(){
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
 	$wpdb->show_errors();
+	
+	$roads = vtm_listRoadsOrPaths();
 	
 	$thisaction = isset($_REQUEST['action']) ? $_REQUEST['action'] : '';
 	
@@ -172,6 +173,8 @@ function vtm_render_template_data(){
 		$settings['freebies-points']      = isset($results['freebies-points']->VALUE) ? $results['freebies-points']->VALUE : $settings['freebies-points'];
 		$settings['rituals-method']       = isset($results['rituals-method']->VALUE) ? $results['rituals-method']->VALUE : $settings['rituals-method'];
 		$settings['rituals-points']       = isset($results['rituals-points']->VALUE) ? $results['rituals-points']->VALUE : $settings['rituals-points'];
+		$settings['limit-road-method']    = isset($results['limit-road-method']->VALUE) ? $results['limit-road-method']->VALUE : $settings['limit-road-method'];
+		$settings['limit-road-id']        = isset($results['limit-road-id']->VALUE) ? $results['limit-road-id']->VALUE : $settings['limit-road-id'];
 			
 	} else {
 		$name   = "";
@@ -268,7 +271,29 @@ function vtm_render_template_data(){
 		<td rowspan=1>Paths of Enlightenment</td>
 		<td colspan=2>
 			<table>
-			<tr><th>Rating is Conscience + Self-Control multiplied by</th> <td><input type="text" name="road-multiplier"  value="<?php print $settings['road-multiplier']; ?>" size=5 ></td></tr>
+			<tr><th>Rating is Conscience + Self-Control multiplied by</th><td><input type="text" name="road-multiplier"  value="<?php print $settings['road-multiplier']; ?>" size=5 ></td></tr>
+			<tr>
+				<th>Limiting Paths</th>
+				<td>
+					<select name="limit-road-method">
+						<option value="none" <?php selected($settings['limit-road-method'], "none"); ?>>No Limit</option>
+						<option value="only" <?php selected($settings['limit-road-method'], "only"); ?>>Limit to a specific path</option>
+						<option value="exclude" <?php selected($settings['limit-road-method'], "exclude"); ?>>Exclude a specific path</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th>Select Path for limit</th>
+				<td>
+					<select name="limit-road-id">
+					<?php 
+						foreach ($roads as $road) {
+							print "<option value='{$road->ID}' " . selected($settings['limit-road-id'],$road->ID, false) . ">{$road->name}</option>\n";
+						}
+					?>
+					</select>
+				</td>
+			</tr>
 			</table>
 		</td>
 	</tr>
