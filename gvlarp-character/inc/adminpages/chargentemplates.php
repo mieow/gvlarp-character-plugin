@@ -16,6 +16,7 @@ function vtm_render_template_data(){
 	$wpdb->show_errors();
 	
 	$roads = vtm_listRoadsOrPaths();
+	$sects = vtm_get_sects();
 	
 	$thisaction = isset($_REQUEST['action']) ? $_REQUEST['action'] : '';
 	
@@ -175,6 +176,8 @@ function vtm_render_template_data(){
 		$settings['rituals-points']       = isset($results['rituals-points']->VALUE) ? $results['rituals-points']->VALUE : $settings['rituals-points'];
 		$settings['limit-road-method']    = isset($results['limit-road-method']->VALUE) ? $results['limit-road-method']->VALUE : $settings['limit-road-method'];
 		$settings['limit-road-id']        = isset($results['limit-road-id']->VALUE) ? $results['limit-road-id']->VALUE : $settings['limit-road-id'];
+		$settings['limit-sect-method']    = isset($results['limit-sect-method']->VALUE) ? $results['limit-sect-method']->VALUE : $settings['limit-sect-method'];
+		$settings['limit-sect-id']        = isset($results['limit-sect-id']->VALUE) ? $results['limit-sect-id']->VALUE : $settings['limit-sect-id'];
 			
 	} else {
 		$name   = "";
@@ -327,6 +330,35 @@ function vtm_render_template_data(){
 			</tr>
 			<tr><td><input type="radio" name="rituals-method" value="discipline" <?php checked( 'discipline', $settings['rituals-method']); ?>>Points equal Thaumaturgy level (Thaum 5 gives 5 levels of disciplines)</td></tr>
 			<tr><td><input type="radio" name="rituals-method" value="accumulate" <?php checked( 'accumulate', $settings['rituals-method']); ?>>Points equal to accumulated Thaum level (Thaum 5 gives 1+2+3+4+5=15 levels)</td></tr>
+			</table>
+		</td>
+	</tr>
+	<tr class="template_option_row">
+		<td rowspan=1>Controlling Sects</td>
+		<td colspan=2>
+			<table>
+			<tr>
+				<th>Limiting Sects</th>
+				<td>
+					<select name="limit-sect-method">
+						<option value="none" <?php selected($settings['limit-sect-method'], "none"); ?>>No Limit</option>
+						<option value="only" <?php selected($settings['limit-sect-method'], "only"); ?>>Limit to a specific Sect</option>
+						<option value="exclude" <?php selected($settings['limit-sect-method'], "exclude"); ?>>Exclude a specific Sect</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th>Select Sect for limit</th>
+				<td>
+					<select name="limit-sect-id">
+					<?php 
+						foreach ($sects as $sect) {
+							print "<option value='{$sect->ID}' " . selected($settings['limit-sect-id'],$sect->ID, false) . ">{$sect->NAME}</option>\n";
+						}
+					?>
+					</select>
+				</td>
+			</tr>
 			</table>
 		</td>
 	</tr>

@@ -316,6 +316,7 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 	$clans          = vtm_get_clans();
 	$natures        = vtm_get_natures();
 	$config         = vtm_getConfig();
+	$settings = vtm_get_chargen_settings($templateID);
 	
 	$characterID = $characterID ? $characterID : (isset($_POST['characterID']) ? $_POST['characterID'] : -1);
 	
@@ -364,7 +365,6 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 		$email      = isset($_POST['email']) ? sanitize_email($_POST['email']) : '';
 		$login      = isset($_POST['wordpress_id']) ? $_POST['wordpress_id'] : '';
 		$playerid   = isset($_POST['playerID']) ? $_POST['playerID'] : '';
-		$sectid     = isset($_POST['sect']) ? $_POST['sect'] : $config->HOME_SECT_ID;
 		$playername = isset($_POST['player']) ? htmlspecialchars(stripslashes($_POST['player']), ENT_QUOTES) : '';
 		$shownew    = isset($_POST['newplayer']) ? $_POST['newplayer'] : 'off';
 		$character  = isset($_POST['character']) ? htmlspecialchars(stripslashes($_POST['character']), ENT_QUOTES) : '';
@@ -375,6 +375,13 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 		$natureid    = isset($_POST['nature'])    ? $_POST['nature']    : 0;
 		$demeanourid = isset($_POST['demeanour']) ? $_POST['demeanour'] : 0;
 		$playerset   = 0;
+		
+		if (isset($_POST['sect']))
+			$sectid = $_POST['sect'];
+		elseif ($setttings['limit-sect-method'] == 'only')
+			$sectid = $setttings['limit-sect-id'];
+		else
+			$sectid = $config->HOME_SECT_ID;
 		
 		if (is_user_logged_in()) {
 			get_currentuserinfo();
@@ -461,10 +468,17 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 			<td>\n";
 	if ($submitted) {
 		$output .= $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "SECT WHERE ID = %s", $sectid));
-	} else {
+	} 
+	elseif ($settings['limit-sect-method'] == 'only') {
+		$output .= "<input type='hidden' name='sect' value='{$settings['limit-sect-id']}' />\n";
+		$output .= $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "SECT WHERE ID = %s", $sectid));
+	}
+	else {
 		$output .= "<select name='sect'>\n";
 		foreach (vtm_get_sects() as $sect) {
-			$output .= "<option value='{$sect->ID}' " . selected( $sect->ID, $sectid, false) . ">{$sect->NAME}</option>\n";		
+			if ($settings['limit-sect-method'] != 'exclude' ||
+			    ($settings['limit-sect-method'] == 'exclude' && $settings['limit-sect-id'] != $sect->ID)) 
+				$output .= "<option value='{$sect->ID}' " . selected( $sect->ID, $sectid, false) . ">{$sect->NAME}</option>\n";		
 		}
 		$output .= "</select>\n";
 	}
