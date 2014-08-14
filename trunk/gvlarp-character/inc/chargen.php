@@ -3,7 +3,7 @@
 function vtm_default_chargen_settings() {
 
 	return array(
-		'attributes-method'    => "PST",
+		'attributes-method'    => "PST", // or 'point'
 		'attributes-primary'   => 7,
 		'attributes-secondary' => 5,
 		'attributes-tertiary'  => 3,
@@ -19,6 +19,8 @@ function vtm_default_chargen_settings() {
 		'merits-max'           => 7,
 		'flaws-max'            => 7,
 		'freebies-points'      => 15,
+		'rituals-method'       => 'point',  // 'discipline', 'accumulate', 'point' or 'none'
+		'rituals-points'       => 1
 	);
 
 }
@@ -31,6 +33,7 @@ function vtm_chargen_flow_steps($characterID, $templateID) {
 	$settings = vtm_get_chargen_settings($templateID);
 	$chargenstatus = $wpdb->get_var($wpdb->prepare("SELECT cgs.NAME FROM " . VTM_TABLE_PREFIX . "CHARACTER c, " . VTM_TABLE_PREFIX . "CHARGEN_STATUS cgs WHERE c.ID = %s AND c.CHARGEN_STATUS_ID = cgs.ID",$characterID));
 	$feedback = $wpdb->get_var( $wpdb->prepare("SELECT NOTE_FROM_ST FROM " . VTM_TABLE_PREFIX . "CHARACTER_GENERATION WHERE CHARACTER_ID = %s", $characterID));
+	$rituals = count(vtm_get_chargen_rituals($characterID));
 	
 	//print_r($settings);
 	
@@ -96,6 +99,12 @@ function vtm_chargen_flow_steps($characterID, $templateID) {
 				'function'   => 'vtm_render_chargen_freebies',
 				'validate'   => 'vtm_validate_freebies',
 				'save'       => 'vtm_save_freebies'));
+	}			
+	if ($settings['rituals-method'] != 'none' && $rituals > 0) {
+		array_push($buttons,array(	'title' => "Rituals", 
+				'function'   => 'vtm_render_chargen_rituals',
+				'validate'   => 'vtm_validate_rituals',
+				'save'       => 'vtm_save_rituals'));
 	}			
 	if ($xp > 0) {
 		array_push($buttons, array(
@@ -742,7 +751,7 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 				case 'courage':     $max2display = 5; break;
 				case 'instinct':    $max2display = 5; break;
 			}
-			$colspan = $postvariable == 'xp_merit' ? 1 : 2;
+			$colspan = ($postvariable == 'xp_merit' || $postvariable == 'xp_ritual') ? 1 : 2;
 			$namehtml = "<span title='" . htmlspecialchars(stripslashes($item->DESCRIPTION), ENT_QUOTES) . "'>" . stripslashes($item->NAME) . "</span>";
 				
 			// Base level from main table in database
@@ -761,11 +770,16 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 			// Merit stuff
 			$meritcost  = $postvariable == 'xp_merit' ? $xpcosts[$name][0][1] : 0;
 			$meritlevel = $postvariable == 'xp_merit' ? $fbcosts[$name][0][1] : 0;
+			// Ritual stuff
+			$ritualcost  = $postvariable == 'xp_ritual' ? $xpcosts[$name][0][1] : 0;
+			$rituallevel = $postvariable == 'xp_ritual' ? $item->LEVEL : 0;
 			
 			//echo "<li>$key/$name - from: $levelfrom, fb: $levelfb, current: $current, spec: $specialisation</li>\n";
 			if ($postvariable == 'xp_merit' && $meritcost > 0 && $meritlevel > 0)
 				$dodisplay = 1;
-			elseif ($postvariable != 'xp_merit' && ($levelfrom > 0 || $showzeros))
+			if ($postvariable == 'xp_ritual' && $ritualcost > 0)
+				$dodisplay = 1;
+			elseif ($postvariable != 'xp_merit' && $postvariable != 'xp_ritual' && ($levelfrom > 0 || $showzeros))
 				$dodisplay = 1;
 			else
 				$dodisplay = 0;
@@ -817,7 +831,33 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 						$rowoutput .= "<label for='$cbid'>" . $namehtml . " ($meritlevel) - $meritcost XP</label>\n";
 					}
 					$rowoutput .= "</span></td></tr>\n";
-				} else {
+				} 
+				elseif ($postvariable == 'xp_ritual') {
+					$cbid = "cb_{$j}_{$key}";
+					$rowoutput .= "<tr><td class='mfdotselect'>\n";
+					if ($issubmitted) {
+						if ($current) {
+							$rowoutput .= "<img src='$doturl' alt='X' /> ";
+						} else {
+							$rowoutput .= "<img src='$emptydoturl' alt='O' /> ";
+						}
+						$rowoutput .=  $namehtml . " (level $rituallevel) - $ritualcost XP";
+					} 
+					elseif ($saved[$key]->level > 0) {
+						$rowoutput .= "<img src='$fulldoturl' alt='X' />\n";
+						$rowoutput .= $namehtml . " (level $rituallevel)\n";
+					}
+					else {
+						$rowoutput .= "<input type='checkbox' name='{$postvariable}[" . $key . "]' id='$cbid' value='$rituallevel' ";
+						if ($current) {
+							$rowoutput .= checked($current, $current, false);
+						}
+						$rowoutput .= "/>\n";
+						$rowoutput .= "<label for='$cbid'>" . $namehtml . " (level $rituallevel) - $ritualcost XP</label>\n";
+					}
+					$rowoutput .= "</span></td></tr>\n";
+				}
+				else {
 					//dots row
 					$rowoutput .= "<tr><th class='gvthleft'>" . $namehtml . "</th><td>\n";
 					$rowoutput .= "<fieldset class='dotselect'>\n";
@@ -873,6 +913,8 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 
 	$output = "";
 
+	$class = $postvariable == 'ritual_value' ? "class='ritrowselect'" : "";
+	
 	// Make a guess from saved levels which is Primary/Secondary/Tertiary
 	if (count($saved) > 0) {
 		if ($isPST) {
@@ -915,22 +957,38 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 				$output .= vtm_render_pst_select($group, $val, $submitted);
 			}
 			
-			$output .= "</p>
-				<input type='hidden' name='group[]' value='$group' />
-				<table><tr><th>$title</th><th>Rating</th><th>Description</th></tr>\n";
+			$output .= "</p><input type='hidden' name='group[]' value='$group' />";
+			if ($postvariable == 'ritual_value')
+				$output .= "<table><tr><th>$title</th><th>Description</th></tr>\n";
+			else
+				$output .= "<table><tr><th>$title</th><th>Rating</th><th>Description</th></tr>\n";
 		}
 				
 		// Display Data
-		$output .= "<tr><td class=\"gvcol_key\">" . $item->NAME . "</td>\n";
-		$output .= "<td>\n";
+		$key   = sanitize_key($item->NAME);
+		$level = isset($posted[$key]) ? $posted[$key] : (isset($saved[$key]->LEVEL) ? $saved[$key]->LEVEL : 0);  // currently selected or saved level
+		if ($postvariable == 'ritual_value') {
+			$id = "id$key";
+			$output .= "<tr><td $class class=\"gvcol_key\">";
+			if (isset($pendingxp[$key])) {
+				$freebiedoturl = plugins_url( 'gvlarp-character/images/cg_freebiedot.jpg' );
+				$output .= "<img src='$freebiedoturl' alt='*' />";
+			}
+			else
+				$output .= "<input id='$id' name='ritual_value[$key]' type='checkbox' " . checked( $item->LEVEL, $level, false) . " value='{$item->LEVEL}'>";
+			$output .= "<label for='$id'>Level {$item->LEVEL} - " . stripslashes($item->NAME) . "</label>";
+			$output .= "</td>\n";
+		} else {
+			$output .= "<tr><td $class class=\"gvcol_key\">" . stripslashes($item->NAME) . "</td>\n";
+			$output .= "<td $class>";
+			
+			$pending = isset($pendingfb[$key]->value) ? $pendingfb[$key]->value : 0 ;         // level bought with freebies
+			$pending = isset($pendingxp[$key]->value) ? $pendingxp[$key]->value : $pending ;  // level bought with xp
+			
+			$output .= vtm_render_dot_select($postvariable, $key, $level, $pending, $freedot, 5, $submitted);
+		}
 		
-		$key     = sanitize_key($item->NAME);
-		$level   = isset($posted[$key]) ? $posted[$key] : (isset($saved[$key]->LEVEL) ? $saved[$key]->LEVEL : 0);  // currently selected or saved level
-		$pending = isset($pendingfb[$key]->value) ? $pendingfb[$key]->value : 0 ;         // level bought with freebies
-		$pending = isset($pendingxp[$key]->value) ? $pendingxp[$key]->value : $pending ;  // level bought with xp
-		$output .= vtm_render_dot_select($postvariable, $key, $level, $pending, $freedot, 5, $submitted);
-		
-		$output .= "</td><td>\n";
+		$output .= "</td><td $class>\n";
 		$output .= stripslashes($item->DESCRIPTION);
 		$output .= "</td></tr>\n";
 	
@@ -1130,15 +1188,17 @@ function vtm_render_chargen_xp($step, $characterID, $templateID, $submitted) {
 						'disc'       => "Disciplines",
 						'path'       => "Paths",
 						'merit'      => "Merits",
+						'ritual'     => "Rituals",
 					);
-	$sectionorder   = array('stat', 'skill', 'disc', 'path', 'merit');
+	$sectionorder   = array('stat', 'skill', 'disc', 'path', 'merit', 'ritual');
 	
 	$pendingSpends = array();
-	$sectioncontent['stat']  = vtm_render_chargen_xp_stats($characterID, $submitted);
-	$sectioncontent['skill'] = vtm_render_chargen_xp_skills($characterID, $submitted);
-	$sectioncontent['disc']  = vtm_render_xp_disciplines($characterID, $submitted);
-	$sectioncontent['path']  = vtm_render_chargen_xp_paths($characterID, $submitted);
-	$sectioncontent['merit'] = vtm_render_chargen_xp_merits($characterID, $submitted);
+	$sectioncontent['stat']   = vtm_render_chargen_xp_stats($characterID, $submitted);
+	$sectioncontent['skill']  = vtm_render_chargen_xp_skills($characterID, $submitted);
+	$sectioncontent['disc']   = vtm_render_xp_disciplines($characterID, $submitted);
+	$sectioncontent['path']   = vtm_render_chargen_xp_paths($characterID, $submitted);
+	$sectioncontent['merit']  = vtm_render_chargen_xp_merits($characterID, $submitted);
+	$sectioncontent['ritual'] = vtm_render_chargen_xp_rituals($characterID, $submitted);
 	
 	// DISPLAY TABLES 
 	//-------------------------------
@@ -1534,6 +1594,43 @@ function vtm_render_chargen_backgrounds($step, $characterID, $templateID, $submi
 	
 	return $output;
 } 
+
+function vtm_render_chargen_rituals($step, $characterID, $templateID, $submitted) {
+	global $wpdb;
+
+	//print_r ($_POST);
+	
+	$output = "";
+	$settings = vtm_get_chargen_settings($templateID);
+	$items    = vtm_get_chargen_rituals($characterID);
+	$points   = vtm_get_chargen_ritual_points($characterID, $settings, $items);
+	$pendingxp  = vtm_get_pending_chargen_xp('RITUAL', $characterID); 
+		
+	$output .= "<h3>Step $step: Rituals</h3>\n";
+	foreach ($points as $discipline => $point)
+		$output .= "<p>You have $point points to spend on your $discipline rituals.</p>\n";
+	
+	// read initial values
+	$sql = "SELECT rit.NAME as NAME, disc.NAME as DISCIPLINE, rit.LEVEL 
+			FROM 
+				" . VTM_TABLE_PREFIX . "CHARACTER_RITUAL crit,
+				" . VTM_TABLE_PREFIX . "RITUAL rit,
+				" . VTM_TABLE_PREFIX . "DISCIPLINE disc
+			WHERE 
+				rit.ID = crit.RITUAL_ID
+				AND rit.DISCIPLINE_ID = disc.ID
+				AND crit.CHARACTER_ID = %s";
+	$sql = $wpdb->prepare($sql, $characterID);
+	$saved = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K)); 
+
+	$rituals = isset($_POST['ritual_value']) ? $_POST['ritual_value'] : array();
+
+	$output .= vtm_render_chargen_section($saved, false, 0, 0, 0, 
+	     0, $items, $rituals, array(), $pendingxp, 'Ritual', 'ritual_value', $submitted);
+	
+	return $output;
+} 
+
 function vtm_render_choose_template() {
 	global $wpdb;
 
@@ -1652,6 +1749,67 @@ function vtm_save_attributes($characterID) {
 	}
 	return $characterID;
 
+}
+
+function vtm_save_rituals($characterID) {
+	global $wpdb;
+	
+	$rituals = vtm_get_chargen_rituals($characterID);
+	
+	// Get saved into database
+	$sql = "SELECT rit.NAME, crit.RITUAL_ID, crit.ID
+			FROM 
+				" . VTM_TABLE_PREFIX . "CHARACTER_RITUAL crit,
+				" . VTM_TABLE_PREFIX . "RITUAL rit
+			WHERE 
+				rit.ID = crit.RITUAL_ID
+				AND CHARACTER_ID = %s";
+	$sql = $wpdb->prepare($sql, $characterID);
+	$saved = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K));
+
+	// Get levels to be saved
+	$new = isset($_POST['ritual_value']) ? $_POST['ritual_value'] : array();
+	
+	foreach ($rituals as $ritual) {
+		$key     = sanitize_key($ritual->NAME);
+		$value   = isset($new[$key]) ? $new[$key] : 0;
+	
+		$data = array(
+			'CHARACTER_ID' => $characterID,
+			'RITUAL_ID'    => $ritual->ID,
+			'LEVEL'        => $value
+		);
+		if (isset($saved[$key])) {
+			// update
+			$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_RITUAL",
+				$data,
+				array (
+					'ID' => $saved[$key]->ID
+				)
+			);
+		} 
+		elseif (isset($new[$key])) {
+			// insert
+			$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_RITUAL",
+						$data,
+						array ('%d', '%d', '%d')
+					);
+		}
+	}
+	
+	// Delete anything no longer needed
+	foreach ($saved as $id => $value) {
+		if (!isset($new[$id]) || $new[$id] <= 0) {
+			// Delete
+			$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "CHARACTER_RITUAL
+					WHERE CHARACTER_ID = %s AND RITUAL_ID = %s";
+			$sql = $wpdb->prepare($sql,$characterID,$saved[$id]->RITUAL_ID);
+			//echo "<li>Delete $id ($sql)</li>\n";
+			$wpdb->get_results($sql);
+		}
+	}
+	
+	return $characterID;
 }
 
 function vtm_save_freebies($characterID, $templateID) {
@@ -1926,6 +2084,7 @@ function vtm_save_xp($characterID, $templateID) {
 	$bought['DISCIPLINE'] = isset($_POST['xp_discipline']) ? $_POST['xp_discipline'] : array();
 	$bought['MERIT']      = isset($_POST['xp_merit']) ? $_POST['xp_merit'] : array();
 	$bought['PATH']       = isset($_POST['xp_path']) ? $_POST['xp_path'] : array();
+	$bought['RITUAL']     = isset($_POST['xp_ritual']) ? $_POST['xp_ritual'] : array();
 
 	$comments['STAT']  = isset($_POST['xp_stat_comment'])   ? $_POST['xp_stat_comment'] : array();
 	$comments['SKILL']  = isset($_POST['xp_skill_comment']) ? $_POST['xp_skill_comment'] : array();
@@ -1942,6 +2101,7 @@ function vtm_save_xp($characterID, $templateID) {
 	$current['DISCIPLINE'] = vtm_get_current_disciplines($characterID);
 	$current['MERIT']      = vtm_get_current_merits($characterID);
 	$current['PATH']       = vtm_get_current_paths($characterID);
+	$current['RITUAL']     = vtm_get_current_rituals($characterID);
 	
 	$freebies['STAT']       = vtm_get_pending_freebies('STAT', $characterID);
 	$freebies['SKILL']      = vtm_get_pending_freebies('SKILL', $characterID);
@@ -1954,12 +2114,14 @@ function vtm_save_xp($characterID, $templateID) {
 	$xpcosts['DISCIPLINE'] = vtm_get_chargen_xp_costs('DISCIPLINE', $characterID);
 	$xpcosts['MERIT']      = vtm_get_chargen_xp_costs('MERIT', $characterID);
 	$xpcosts['PATH']       = vtm_get_chargen_xp_costs('PATH', $characterID);
+	$xpcosts['RITUAL']     = vtm_get_chargen_xp_costs('RITUAL', $characterID);
 
 	$items['STAT']       = vtm_sanitize_array(vtm_get_chargen_stats($characterID, OBJECT_K));
 	$items['SKILL']      = vtm_sanitize_array(vtm_get_chargen_abilities($characterID, 1, OBJECT_K));
 	$items['DISCIPLINE'] = vtm_sanitize_array(vtm_get_chargen_disciplines($characterID, OBJECT_K));
 	$items['MERIT']      = vtm_sanitize_array(vtm_get_chargen_merits($characterID, OBJECT_K));
 	$items['PATH']       = vtm_sanitize_array(vtm_get_chargen_paths($characterID, OBJECT_K));
+	$items['RITUAL']     = vtm_sanitize_array(vtm_get_chargen_rituals($characterID, OBJECT_K));
 	
 	//print_r($bought['DISCIPLINE']);
 	//print_r($current['DISCIPLINE']);
@@ -1983,7 +2145,7 @@ function vtm_save_xp($characterID, $templateID) {
 
 				$levelfrom   = isset($current[$type][$key]->level_from)  ? $current[$type][$key]->level_from  : 0;
 				$levelfrom   = isset($freebies[$type][$itemname]->value) ? $freebies[$type][$itemname]->value : $levelfrom;
-				$amount      = ($type == 'MERIT') ? $xpcosts[$type][$key][0][1] : $xpcosts[$type][$key][$levelfrom][$value];
+				$amount      = ($type == 'MERIT' || $type == 'RITUAL') ? $xpcosts[$type][$key][0][1] : $xpcosts[$type][$key][$levelfrom][$value];
 				$itemid      = $items[$type][$key]->ID;
 				$spec        = isset($comments[$type][$itemname]) ? $comments[$type][$itemname] : '';
 
@@ -1999,7 +2161,7 @@ function vtm_save_xp($characterID, $templateID) {
 					$chartableid = 0;
 				}
 				
-				if ($value > $levelfrom || $type == 'MERIT') {
+				if ($value > $levelfrom || $type == 'MERIT' || $type == 'RITUAL') {
 					$data = array (
 						'PLAYER_ID'       => $playerID,
 						'CHARACTER_ID'    => $characterID,
@@ -2018,9 +2180,9 @@ function vtm_save_xp($characterID, $templateID) {
 						
 						'ITEMTABLE_ID'    => $itemid
 					);
-					///echo "<pre>\n";
-					///print_r($data);
-					///echo "</pre>\n";
+					//echo "<pre>\n";
+					//print_r($data);
+					//echo "</pre>\n";
 					
 					$wpdb->insert(VTM_TABLE_PREFIX . "PENDING_XP_SPEND",
 								$data,
@@ -3011,6 +3173,31 @@ function vtm_get_chargen_merits($characterID = 0, $output_type = OBJECT) {
 	return $results;
 
 }
+function vtm_get_chargen_rituals($characterID = 0, $output_type = OBJECT) {
+	global $wpdb;
+	
+	
+	$sql = "SELECT item.NAME, item.ID, item.DESCRIPTION, item.LEVEL, 
+					disc.NAME as GROUPING, cdisc.LEVEL as DISCIPLINE_LEVEL
+			FROM 
+				" . VTM_TABLE_PREFIX . "RITUAL item,
+				" . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE cdisc,
+				" . VTM_TABLE_PREFIX . "DISCIPLINE disc
+			WHERE
+				item.VISIBLE = 'Y'
+				AND item.DISCIPLINE_ID = cdisc.DISCIPLINE_ID
+				AND item.DISCIPLINE_ID = disc.ID
+				AND cdisc.CHARACTER_ID = %s
+			ORDER BY GROUPING, LEVEL, NAME";
+			
+	$sql = $wpdb->prepare($sql, $characterID);
+	//echo "<p>SQL: $sql</p>\n";
+	$results = vtm_sanitize_array($wpdb->get_results($sql, $output_type));
+	//print_r($results);
+	
+	return $results;
+
+}
 
 function vtm_get_chargen_paths($characterID = 0, $output_type = OBJECT) {
 	global $wpdb;
@@ -3609,6 +3796,15 @@ function vtm_get_chargen_xp_costs($type, $characterID = 0) {
 			$outdata[$key][0][1] = $item->XP_COST;
 		}
 	}
+	elseif ($type == "RITUAL") {
+		$sql = "SELECT ID, NAME, COST FROM " . VTM_TABLE_PREFIX . "RITUAL ORDER BY ID";
+		$items = $wpdb->get_results($sql);
+		
+		foreach ($items as $item) {
+			$key = sanitize_key($item->NAME);
+			$outdata[$key][0][1] = $item->COST;
+		}
+	}
 	else {
 	
 		$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . $type . " ORDER BY ID";
@@ -3782,6 +3978,41 @@ function vtm_get_current_merits($characterID) {
 			WHERE 
 				item.VISIBLE = 'Y'
 		    ORDER BY item.GROUPING, item.COST DESC, item.name";
+	$sql   = $wpdb->prepare($sql, $characterID);
+	$items = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K));
+	
+	//echo "<p>SQL: $sql</p>\n";
+	//print_r($items);
+	
+	return $items;
+}
+
+function vtm_get_current_rituals($characterID) {
+	global $wpdb;
+
+	$sql = "SELECT 
+				item.name, 
+				0 						as level_from,
+				IFNULL(cha_rit.ID,0) 	as chartableid, 
+				item.ID 				as itemid, 
+				disc.NAME 			    as discipline,
+				IFNULL(cha_rit.LEVEL,0)	as level
+			FROM 
+				" . VTM_TABLE_PREFIX . "RITUAL item
+				LEFT JOIN
+					(SELECT ID, RITUAL_ID, LEVEL
+					FROM
+						" . VTM_TABLE_PREFIX . "CHARACTER_RITUAL
+					WHERE
+						CHARACTER_ID = %s
+					) as cha_rit
+				ON
+					cha_rit.RITUAL_ID = item.ID,
+				" . VTM_TABLE_PREFIX . "DISCIPLINE disc
+			WHERE 
+				item.VISIBLE = 'Y'
+				AND item.DISCIPLINE_ID = disc.ID
+		    ORDER BY disc.NAME, item.LEVEL, item.name";
 	$sql   = $wpdb->prepare($sql, $characterID);
 	$items = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K));
 	
@@ -4149,6 +4380,30 @@ function vtm_render_chargen_xp_merits($characterID, $submitted) {
 	
 	$rowoutput = vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, 
 		$pendingxp, 'xp_merit', 1, $submitted, $fbcosts);
+	
+	if ($rowoutput != "")
+		$output .= "<table id='merit_xp_table'>$rowoutput</table>\n";
+
+	return $output;
+
+}
+function vtm_render_chargen_xp_rituals($characterID, $submitted) {
+	global $wpdb;
+	
+	$output = "";
+
+	// Get costs
+	$xpcosts   = vtm_get_chargen_xp_costs('RITUAL', $characterID);
+	$fbcosts   = array();
+	$items     = vtm_get_chargen_rituals($characterID, OBJECT_K);
+	$saved     = vtm_get_current_rituals($characterID);
+	$pendingfb = array();
+	$pendingxp = vtm_get_pending_chargen_xp('RITUAL', $characterID);
+	
+	//print_r($items);
+	
+	$rowoutput = vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, 
+		$pendingxp, 'xp_ritual', 1, $submitted, $fbcosts);
 	
 	if ($rowoutput != "")
 		$output .= "<table id='merit_xp_table'>$rowoutput</table>\n";
@@ -4840,6 +5095,85 @@ function vtm_validate_freebies($settings, $characterID, $usepost = 1) {
 				$complete = 0;
 			}
 		}
+	}
+
+	return array($ok, $errormessages, $complete);
+}
+
+function vtm_validate_rituals($settings, $characterID, $usepost = 1) {
+
+	$ok = 1;
+	$errormessages = "";
+	$complete = 1;
+	
+	$target = vtm_get_chargen_ritual_points($characterID, $settings, vtm_get_chargen_rituals($characterID));
+	//print_r($target);
+	
+	if (!$usepost) {
+		$dbvalues = array();
+		$dbgroups = array();
+		$dball = array();
+		
+		$items = vtm_get_current_rituals($characterID);
+		$discipline = "";
+		foreach ($items as $item) {
+			$key = sanitize_key($item->name);
+			
+			$dbvalues[$key] = $item->level;
+			
+			if ($discipline != $item->discipline) {
+				$dbgroups[] = sanitize_key($item->discipline);
+				$discipline = $item->discipline;
+			}
+		}
+		//print_r($dbvalues);
+		//print_r($dbgroups);
+	}
+	
+	$postvalues = $usepost ? 
+				(isset($_POST['ritual_value']) ? $_POST['ritual_value'] : array()) :
+				$dbvalues;
+	$postgroups = $usepost ? 
+				(isset($_POST['group']) ? $_POST['group'] : array()) :
+				$dbgroups;
+	$postall    = $usepost ? 
+				(isset($_POST) ? $_POST : array()) :
+				$dball;
+	
+	if (count($postvalues) > 0) {
+		$values = $postvalues;
+		
+		$groups = $postgroups;
+		$rituals = vtm_get_chargen_rituals($characterID);
+		//print_r($rituals);
+
+		$check = 0;
+		
+		foreach ($groups as $group) {
+			$disctotal = 0;
+			$groupname = "";
+			foreach ($rituals as $ritual) {
+				$key = sanitize_key($ritual->NAME);
+				if (sanitize_key($ritual->GROUPING) == $group) {
+					$disctotal += isset($values[$key]) ? max(0,$values[$key]) : 0;
+					$groupname = $ritual->GROUPING;
+				}
+			}
+			
+			if ($disctotal > $target[$group]) {
+				$errormessages .= "<li>ERROR: You have spent too many points on $groupname Rituals</li>\n";
+				$ok = 0;
+				$complete = 0;
+			}
+			elseif ($disctotal < $target[$group])  {
+				$errormessages .= "<li>WARNING: You haven't spent enough points on $groupname Rituals</li>\n";
+				$complete = 0;
+			}
+		}
+	
+	} else {
+		$errormessages .= "<li>WARNING: You have not spent any points of rituals</li>\n";
+		$complete = 0;
 	}
 
 	return array($ok, $errormessages, $complete);
@@ -5644,6 +5978,35 @@ function vtm_get_chargen_reference($characterID) {
 	//echo "<li>Reference: $ref</li>\n";
 	return $ref;
 
+}
+
+function vtm_get_chargen_ritual_points($characterID, $settings, $items) {
+	global $wpdb;
+	
+	foreach ($items as $ritual) {
+	
+		$key = sanitize_key($ritual->GROUPING);
+	
+		if ($settings['rituals-method'] == 'none') {
+			$points[$key] = 0;
+		}
+		elseif ($settings['rituals-method'] == 'point') {
+			//echo "<li>point - {$settings['rituals-points']}</li>";
+			$points[$key] = $settings['rituals-points'];
+		}
+		elseif ($settings['rituals-method'] == 'discipline') {
+			//echo "<li>discipline - {$ritual->DISCIPLINE_LEVEL}</li>";
+			$points[$key] = $ritual->DISCIPLINE_LEVEL;
+		}
+		else {
+			//echo "<li>accumulate</li>";
+			$points[$key] = 0;
+			for ($i = $ritual->DISCIPLINE_LEVEL ; $i >= 1 ; $i--)
+				$points[$key] += $i;
+		}
+	}
+	
+	return $points;
 }
 
 ?>
