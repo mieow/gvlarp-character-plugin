@@ -576,13 +576,13 @@ class vtmclass_admin_xpapproval_table extends vtmclass_MultiPage_ListTable {
     function column_default($item, $column_name){
         switch($column_name){
             case 'PLAYER':
-                return $item->$column_name;
+                return stripslashes($item->$column_name);
             case 'COMMENT':
-                return $item->$column_name;
+                return stripslashes($item->$column_name);
             case 'SPECIALISATION':
-                return $item->$column_name;
+                return stripslashes($item->$column_name);
              case 'TRAINING_NOTE':
-                return $item->$column_name;
+                return stripslashes($item->$column_name);
             case 'CHARTABLE':
                 return $item->$column_name;
             case 'CHARTABLE_ID':
@@ -608,7 +608,7 @@ class vtmclass_admin_xpapproval_table extends vtmclass_MultiPage_ListTable {
         
         
         return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
-            $item->CHARACTERNAME,
+            stripslashes($item->CHARACTERNAME),
             $item->ID,
             $this->row_actions($actions)
         );
