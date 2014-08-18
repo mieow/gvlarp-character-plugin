@@ -6,7 +6,7 @@ register_activation_hook( __FILE__, 'vtm_character_install_data' );
 global $vtm_character_version;
 global $vtm_character_db_version;
 $vtm_character_version = "1.11"; 
-$vtm_character_db_version = "29"; 
+$vtm_character_db_version = "32"; 
 
 function vtm_update_db_check() {
     global $vtm_character_version;
@@ -456,10 +456,12 @@ function vtm_character_install() {
 					SOURCE_BOOK_ID  MEDIUMINT(9)  NOT NULL,
 					PAGE_NUMBER     SMALLINT(4)   NOT NULL,
 					VISIBLE         VARCHAR(1)    NOT NULL,
+					COST_MODEL_ID   MEDIUMINT(9)  NOT NULL,
 					PRIMARY KEY  (ID),
 					CONSTRAINT `" . $table_prefix . "road_constraint_1` FOREIGN KEY (STAT1_ID) REFERENCES " . $table_prefix . "STAT(ID),
 					CONSTRAINT `" . $table_prefix . "road_constraint_2` FOREIGN KEY (STAT2_ID) REFERENCES " . $table_prefix . "STAT(ID),
 					CONSTRAINT `" . $table_prefix . "road_constraint_3` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
+					CONSTRAINT `" . $table_prefix . "road_constraint_4` FOREIGN KEY (COST_MODEL_ID)  REFERENCES " . $table_prefix . "COST_MODEL(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 		
@@ -1020,7 +1022,8 @@ function vtm_character_update($beforeafter) {
 	
 	switch ($installed_version) {
 		//--- FROM VERSION 1.9 -------------------------------------------------
-		case "1.9": $errors += vtm_character_update_1_9($beforeafter);
+		case "1.9":  $errors += vtm_character_update_1_9($beforeafter);
+		case "1.10": $errors += vtm_character_update_1_10($beforeafter);
 	}
 	
 	// Incremental database updates, during development
@@ -1028,6 +1031,7 @@ function vtm_character_update($beforeafter) {
 	if ($installed_version == $vtm_character_version && $db_version != $vtm_character_db_version) {
 		switch ($installed_version) {
 			case "1.10": $errors += vtm_character_update_1_9($beforeafter);
+			case "1.11": $errors += vtm_character_update_1_10($beforeafter);
 		}
 	
 	}
@@ -1195,7 +1199,7 @@ function vtm_character_update_1_9($beforeafter) {
 		$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ISNULL(CHARGEN_STATUS_ID) OR CHARGEN_STATUS_ID = 0";
 		//echo "<p>SQL: $sql</p>";
 		$result = $wpdb->get_col($sql);
-		print_r($result);
+		//print_r($result);
 		if (count($result) > 0) {
 			foreach ($result as $characterID) {
 				$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER",
@@ -1250,6 +1254,73 @@ function vtm_character_update_1_9($beforeafter) {
 	
 		// Add new foreign key(s)
 		vtm_add_constraint(VTM_TABLE_PREFIX . "CHARACTER", "char_constraint_10", "CHARGEN_STATUS_ID", "CHARGEN_STATUS(ID)");
+	
+	}
+
+}
+
+function vtm_character_update_1_10($beforeafter) {
+	global $wpdb;
+	
+	if ( $beforeafter == 'before') {
+		//echo "<p>Setting up tables</p>";
+
+	} else {
+	
+		//echo "<p>Updating data</p>";
+		$wpdb->show_errors();
+
+		// Add Cost Model for Paths of Enlightenment
+		$modelid = $wpdb->get_var("SELECT ID FROM " . VTM_TABLE_PREFIX . "COST_MODEL WHERE NAME = 'RoadOrPath'");
+		if (!$modelid) {
+			$wpdb->insert(VTM_TABLE_PREFIX . "COST_MODEL",
+				array(
+					'NAME' => 'RoadOrPath',
+					'DESCRIPTION' => 'Paths of Enlightenment'
+				),
+				array('%s', '%s')
+			);
+			$modelid = $wpdb->insert_id;
+			
+			for ($i=0;$i<11;$i++) {
+						
+				$dataarray = array (
+					'COST_MODEL_ID'   => $modelid,
+					'SEQUENCE'        => $i+1,
+					'CURRENT_VALUE'   => $i,
+					'NEXT_VALUE'      => ($i == 10 ? 10 : $i + 1),
+					'FREEBIE_COST'    => ($i == 10 ? 0 : 2),
+					'XP_COST'         => ($i == 10 ? 0 : $i * 2)
+				);
+				
+				$wpdb->insert(VTM_TABLE_PREFIX . "COST_MODEL_STEP",
+					$dataarray,
+					array (
+						'%d',
+						'%d',
+						'%d',
+						'%d',
+						'%d',
+						'%d'
+					)
+				);
+			}
+		}
+		
+		// Add Cost Model to Paths of Enlightenment
+		$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ISNULL(COST_MODEL_ID) OR (NOT(ISNULL(COST_MODEL_ID)) AND COST_MODEL_ID = 0)";
+		//echo "<p>SQL: $sql</p>";
+		$result = $wpdb->get_col($sql);
+		//print_r($result);
+		if (count($result) > 0) {
+			foreach ($result as $roadid) {
+				$wpdb->update(VTM_TABLE_PREFIX . "ROAD_OR_PATH",
+					array('COST_MODEL_ID' => $modelid),
+					array('ID' => $roadid)
+				);
+			}
+		}
+	
 	
 	}
 

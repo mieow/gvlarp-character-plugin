@@ -44,6 +44,7 @@ function vtm_render_enlighten_add_form($type, $addaction) {
 		$sourcebook_id = $_REQUEST[$type . "_sourcebook"];
 		$pagenum  = $_REQUEST[$type . "_pagenum"];
 		$visible  = $_REQUEST[$type . "_visible"];
+		$costmodel_id  = $_REQUEST[$type . "_costmodel"];
 		
 		$nextaction = $_REQUEST['action'];
 
@@ -61,6 +62,7 @@ function vtm_render_enlighten_add_form($type, $addaction) {
 		$sourcebook_id = $data[0]->SOURCE_BOOK_ID;
 		$pagenum  = $data[0]->PAGE_NUMBER;
 		$visible  = $data[0]->VISIBLE;
+		$costmodel_id  = $data[0]->COST_MODEL_ID;
 		
 		$nextaction = "save";
 
@@ -73,6 +75,7 @@ function vtm_render_enlighten_add_form($type, $addaction) {
 		$sourcebook_id = 4;
 		$pagenum = "";
 		$visible = 'Y';
+		$costmodel_id = 1;
 		
 		$nextaction = "add";
 		
@@ -126,9 +129,21 @@ function vtm_render_enlighten_add_form($type, $addaction) {
 				<input type="radio" name="<?php print $type; ?>_stat1" value="<?php echo $conviction; ?>" <?php if ($stat1_id == $conviction) print "checked"; ?>>Conviction	
 			</td>
 			<td>Stat 2:  </td>
-			<td colspan=3>
+			<td>
 				<input type="radio" name="<?php print $type; ?>_stat2" value="<?php echo $selfcontrol; ?>" <?php if ($stat2_id == $selfcontrol || $stat2_id == 0) print "checked"; ?>>Self Control
 				<input type="radio" name="<?php print $type; ?>_stat2" value="<?php echo $instinct; ?>" <?php if ($stat2_id == $instinct) print "checked"; ?>>Instinct	
+			</td>
+			<td>Cost Model:  </td>
+			<td colspan=3>
+				<select name="<?php print $type; ?>_costmodel">
+					<?php
+						foreach (vtm_get_costmodels() as $costmodel) {
+							print "<option value='{$costmodel->ID}' ";
+							selected($costmodel->ID, $costmodel_id);
+							echo ">{$costmodel->NAME}</option>";
+						}
+					?>
+				</select>
 			</td>
 		</tr>
 		<tr>
@@ -211,7 +226,8 @@ class vtmclass_admin_enlighten_table extends vtmclass_MultiPage_ListTable {
 						'STAT2_ID'    => $_REQUEST['enlighten_stat2'],
 						'SOURCE_BOOK_ID'  => $_REQUEST['enlighten_sourcebook'],
 						'PAGE_NUMBER' => $_REQUEST['enlighten_pagenum'],
-						'VISIBLE'     => $_REQUEST['enlighten_visible']
+						'VISIBLE'     => $_REQUEST['enlighten_visible'],
+						'COST_MODEL_ID' => $_REQUEST['enlighten_costmodel']
 					);
 		
 		/* print_r($dataarray); */
@@ -225,7 +241,8 @@ class vtmclass_admin_enlighten_table extends vtmclass_MultiPage_ListTable {
 						'%d',
 						'%d',
 						'%d',
-						'%s'
+						'%s',
+						'%d'
 					)
 				);
 		
@@ -250,7 +267,8 @@ class vtmclass_admin_enlighten_table extends vtmclass_MultiPage_ListTable {
 						'STAT2_ID'    => $_REQUEST['enlighten_stat2'],
 						'SOURCE_BOOK_ID'    => $_REQUEST['enlighten_sourcebook'],
 						'PAGE_NUMBER' => $_REQUEST['enlighten_pagenum'],
-						'VISIBLE'     => $_REQUEST['enlighten_visible']
+						'VISIBLE'     => $_REQUEST['enlighten_visible'],
+						'COST_MODEL_ID' => $_REQUEST['enlighten_costmodel']
 					);
 		
 		$result = $wpdb->update(VTM_TABLE_PREFIX . "ROAD_OR_PATH",
@@ -309,6 +327,8 @@ class vtmclass_admin_enlighten_table extends vtmclass_MultiPage_ListTable {
                 return $item->$column_name;
             case 'STAT2':
                 return $item->$column_name;
+            case 'COSTMODEL':
+                return stripslashes($item->$column_name);
             default:
                 return print_r($item,true); 
         }
@@ -342,6 +362,7 @@ class vtmclass_admin_enlighten_table extends vtmclass_MultiPage_ListTable {
             'STAT1'      => 'Stat1',
             'STAT2'      => 'Stat2',
             'SOURCEBOOK' => 'Source book',
+            'COSTMODEL'  => 'Cost Model',
             'VISIBLE'    => 'Visible to Players',
          );
         return $columns;
@@ -397,16 +418,19 @@ class vtmclass_admin_enlighten_table extends vtmclass_MultiPage_ListTable {
 		
 		/* Get the data from the database */
 		$sql = "SELECT paths.ID, paths.NAME, paths.DESCRIPTION, stats1.NAME as STAT1, stats2.NAME as STAT2,
-					books.name as bookname, paths.PAGE_NUMBER, paths.VISIBLE
+					books.name as bookname, paths.PAGE_NUMBER, paths.VISIBLE,
+					model.name as COSTMODEL
 				FROM 
 					" . VTM_TABLE_PREFIX . "ROAD_OR_PATH paths,
 					" . VTM_TABLE_PREFIX . "STAT stats1,
 					" . VTM_TABLE_PREFIX . "STAT stats2,
-					" . VTM_TABLE_PREFIX . "SOURCE_BOOK books
+					" . VTM_TABLE_PREFIX . "SOURCE_BOOK books,
+					" . VTM_TABLE_PREFIX . "COST_MODEL model
 				WHERE 
 					paths.STAT1_ID = stats1.ID
 					AND paths.STAT2_ID = stats2.ID
-					AND paths.SOURCE_BOOK_ID = books.ID";
+					AND paths.SOURCE_BOOK_ID = books.ID
+					AND paths.COST_MODEL_ID = model.ID";
 				
 		/* order the data according to sort columns */
 		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']))

@@ -16,7 +16,7 @@ function vtm_character_experience() {
 	<?php
 }
 
-function vtm_render_xp_approvals_page($type){
+function vtm_render_xp_approvals_page($type) {
 
     $testListTable['xpapprove'] = new vtmclass_admin_xpapproval_table();
 	
@@ -37,7 +37,7 @@ function vtm_render_xp_approvals_page($type){
 }
 
 
-function vtm_render_costmodel_page($type){
+function vtm_render_costmodel_page($type) {
 
 	global $wpdb;
 	
@@ -342,7 +342,7 @@ function vtm_render_costmodel_page($type){
 <?php
 }
 
-function vtm_render_select_model () {
+function vtm_render_select_model() {
 
 	$selected = isset($_REQUEST['costmodel']) ? $_REQUEST['costmodel'] : '';
 
@@ -533,7 +533,7 @@ class vtmclass_admin_xpapproval_table extends vtmclass_MultiPage_ListTable {
 	
 		return $result;
 	}
-	function approve_combo ($data2update) {
+	function approve_combo($data2update) {
 		global $wpdb;
 	
 		$wpdb->show_errors();
@@ -622,7 +622,7 @@ class vtmclass_admin_xpapproval_table extends vtmclass_MultiPage_ListTable {
         );
     }
 
-    function get_columns(){
+    function get_columns() {
         $columns = array(
             'cb'             => '<input type="checkbox" />', 
             'CHARACTERNAME'  => 'Character',
@@ -766,7 +766,7 @@ function vtm_addPlayerXP($player, $character, $xpReason, $value, $comment) {
 }
 
 
-function vtm_render_xp_assign_page(){
+function vtm_render_xp_assign_page() {
 
 	$type = "xpassign";
 	
@@ -831,7 +831,7 @@ function vtm_render_xp_assign_page(){
 }
 
 
-function vtm_render_xp_by_player () {
+function vtm_render_xp_by_player() {
 	global $wpdb;
 	
 	$sql = "SELECT
@@ -917,7 +917,7 @@ function vtm_render_xp_by_player () {
 	echo $output;
 
 }
-function vtm_render_xp_by_character () {
+function vtm_render_xp_by_character() {
 	global $wpdb;
 
 	$sql = "SELECT

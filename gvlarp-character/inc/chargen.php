@@ -573,7 +573,7 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 		$submitted = 0;
 		$posted = array();
 	}
-	//print_r($posted);
+	//print_r($pendingfb);
 
 	$output = "";
 	$maxitems = count($items);
@@ -593,6 +593,9 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 				
 				$name = sanitize_key($item->NAME);
 				$key = (isset($item->MULTIPLE) && $item->MULTIPLE == 'Y') ? $name . "_" . $j : $name;
+				if ($postvariable == 'freebie_stat' && $item->NAME == 'Path Rating') {
+					$name = sanitize_key($item->GROUPING);
+				}
 			
 				// Base level from main table in database
 				$levelfrom = isset($saved[$key]->level_from) ? $saved[$key]->level_from : 0;
@@ -1069,7 +1072,9 @@ function vtm_render_chargen_virtues($step, $characterID, $templateID, $submitted
 	$settings  = vtm_get_chargen_settings($templateID);
 	$items     = vtm_get_chargen_virtues($characterID);
 	$pendingfb = vtm_get_pending_freebies('STAT', $characterID);  // name => value
-	$pendingxp = vtm_get_pending_freebies('STAT', $characterID);  // name => value
+	$pendingxp = vtm_get_pending_chargen_xp('STAT', $characterID);  // name => value
+	
+	$pendingroad = vtm_get_pending_freebies('ROAD_OR_PATH', $characterID);
 	
 	$output .= "<h3>Step $step: Virtues</h3>\n";
 	$output .= "<p>You have {$settings['virtues-points']} dots to spend on your virtues.</p>\n";
@@ -1086,7 +1091,7 @@ function vtm_render_chargen_virtues($step, $characterID, $templateID, $submitted
 	$sql = $wpdb->prepare($sql, $characterID);
 	$saved = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K));
 	
-	//print_r($saved);
+	//print_r($pendingfb);
 
 	$virtues = isset($_POST['virtue_value']) ? $_POST['virtue_value'] : array();
 	
@@ -1105,9 +1110,9 @@ function vtm_render_chargen_virtues($step, $characterID, $templateID, $submitted
 		$pathname = $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $selectedpath));
 		$output .= "<span>$pathname</span>\n";
 	} 
-	elseif ($settings['limit-road-method'] == 'only') {
+	elseif ($settings['limit-road-method'] == 'only' || count($pendingroad) > 0) {
 		$pathname = $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $selectedpath));
-		$output .= "<input type='hidden' name='path' value='{$settings['limit-road-id']}' />";
+		$output .= "<input type='hidden' name='path' value='$selectedpath' />";
 		$output .= "<span>$pathname</span>\n";
 	}
 	else {
@@ -1133,8 +1138,14 @@ function vtm_render_chargen_virtues($step, $characterID, $templateID, $submitted
 	
 	$freedot = vtm_has_virtue_free_dot($selectedpath, $settings);
 	
+	if (count($pendingroad) > 0) {
+		$submitted = 1;
+		$output .= "<p>Please remove freebie point spends on your path if you want to alter your Virtues</p>";
+	}
+	
 	$output .= vtm_render_chargen_section($saved, false, 0, 0, 0, 
-		$freedot, $pathitems, $virtues, $pendingfb, $pendingxp, 'Virtues', 'virtue_value', $submitted);
+		$freedot, $pathitems, $virtues, $pendingfb, $pendingxp, 'Virtues', 'virtue_value',
+		$submitted);
 	
 	return $output;
 }
@@ -1291,14 +1302,21 @@ function vtm_render_finishing($step, $characterID, $templateID, $submitted) {
 	// Calculate Path
 	$pathid    = $wpdb->get_var($wpdb->prepare("SELECT ROAD_OR_PATH_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
 	$pathname  = $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $pathid));
-	$statid1   = $wpdb->get_var($wpdb->prepare("SELECT STAT1_ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $pathid));
-	$statid2   = $wpdb->get_var($wpdb->prepare("SELECT STAT2_ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $pathid));
-	$sql = "SELECT cs.LEVEL
-			FROM " . VTM_TABLE_PREFIX . "CHARACTER_STAT cs
-			WHERE STAT_ID = %s AND CHARACTER_ID = %s";
-	$stat1      = $wpdb->get_var($wpdb->prepare($sql, $statid1, $characterID));
-	$stat2      = $wpdb->get_var($wpdb->prepare($sql, $statid2, $characterID));
-	$pathrating = ($stat1 + $stat2) * $settings['road-multiplier'];
+	$pathfreeb = $wpdb->get_var("SELECT LEVEL_TO FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND WHERE ITEMTABLE = 'ROAD_OR_PATH'");
+
+	if ($pathfreeb) {
+		$pathrating = $pathfreeb * $settings['road-multiplier'];
+	} else {
+		$statid1   = $wpdb->get_var($wpdb->prepare("SELECT STAT1_ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $pathid));
+		$statid2   = $wpdb->get_var($wpdb->prepare("SELECT STAT2_ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $pathid));
+		
+		$sql = "SELECT cs.LEVEL
+				FROM " . VTM_TABLE_PREFIX . "CHARACTER_STAT cs
+				WHERE STAT_ID = %s AND CHARACTER_ID = %s";
+		$stat1      = $wpdb->get_var($wpdb->prepare($sql, $statid1, $characterID));
+		$stat2      = $wpdb->get_var($wpdb->prepare($sql, $statid2, $characterID));
+		$pathrating = ($stat1 + $stat2) * $settings['road-multiplier'];
+	}
 
 	// Date of Birth
 	$dob = $wpdb->get_var($wpdb->prepare("SELECT DATE_OF_BIRTH FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
@@ -1500,11 +1518,11 @@ function vtm_render_chargen_submit($step, $characterID, $templateID, $submitted)
 			
 			if ($flow[$index]['title'] == 'Spend Experience' && $status != "Error") $status = "N/A";
 			
-			if ($status == "Error") $errinfo = "({$result[1]})"; else $errinfo = "";
+			if ($status == "Error") $errinfo = "<ul>{$result[1]}</ul>"; else $errinfo = "";
 			If ($status == "Complete" || $status == "N/A") $done++;
 			
 			$output .= "<td>Step " . ($index +1) .": {$flow[$index]['title']}</td>\n";
-			$output .= "<td>$status</td>\n";
+			$output .= "<td>$status $errinfo</td>\n";
 			$output .= "</tr>\n";
 			}
 		$index++;
@@ -1655,6 +1673,7 @@ function vtm_render_chargen_rituals($step, $characterID, $templateID, $submitted
 				AND rit.DISCIPLINE_ID = disc.ID
 				AND crit.CHARACTER_ID = %s";
 	$sql = $wpdb->prepare($sql, $characterID);
+	//echo "<p>$sql</p>";
 	$saved = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K)); 
 
 	$rituals = isset($_POST['ritual_value']) ? $_POST['ritual_value'] : array();
@@ -1862,6 +1881,8 @@ function vtm_save_freebies($characterID, $templateID) {
 	$freebiecosts['BACKGROUND'] = vtm_get_freebie_costs('BACKGROUND', $characterID);
 	$freebiecosts['MERIT']      = vtm_get_freebie_costs('MERIT', $characterID);
 	$freebiecosts['PATH']       = vtm_get_freebie_costs('PATH', $characterID);
+	$freebiecosts['ROAD_OR_PATH'] = vtm_get_freebie_costs('ROAD_OR_PATH', $characterID);
+	$freebiecosts['STAT'] = array_merge($freebiecosts['STAT'], vtm_get_freebie_costs('ROAD_OR_PATH'));
 	
 	$current['STAT']       = vtm_get_current_stats($characterID);
 	$current['SKILL']      = vtm_get_current_skills($characterID);
@@ -1869,6 +1890,7 @@ function vtm_save_freebies($characterID, $templateID) {
 	$current['BACKGROUND'] = vtm_get_current_backgrounds($characterID);
 	$current['MERIT']      = vtm_get_current_merits($characterID);
 	$current['PATH']       = vtm_get_current_paths($characterID);
+	$current['STAT'] = array_merge($current['STAT'], vtm_get_current_road($characterID));
 			
 	$bought['STAT']       = isset($_POST['freebie_stat']) ? $_POST['freebie_stat'] : array();
 	$bought['SKILL']      = isset($_POST['freebie_skill']) ? $_POST['freebie_skill'] : array();
@@ -1887,11 +1909,12 @@ function vtm_save_freebies($characterID, $templateID) {
 	$pending_detail['MERIT']      = isset($_POST['freebie_merit_detail']) ? $_POST['freebie_merit_detail'] : array();
 	$pending_detail['BACKGROUND'] = isset($_POST['freebie_background_detail']) ? $_POST['freebie_background_detail'] : array();
 	
-	//print_r($freebiecosts);
+	//print_r($bought);
 	
 	foreach ($bought as $type => $items) {
 		foreach ($items as $key => $levelto) {
 			$levelfrom   = isset($current[$type][$key]->level_from)  ? $current[$type][$key]->level_from  : 0;
+			$itemtable = $type;
 			
 			if ($levelto != 0) {
 				$itemname = $key;
@@ -1905,6 +1928,12 @@ function vtm_save_freebies($characterID, $templateID) {
 				$chartableid = isset($current[$type][$key]->chartableid) ? $current[$type][$key]->chartableid : 0;
 				if ($type == 'MERIT')
 					$amount = isset($freebiecosts[$type][$key][0][1]) ? $freebiecosts[$type][$key][0][1] : 0;
+				elseif ($type == 'STAT' && $key == 'pathrating') {
+					$pathname = sanitize_key($current[$type][$key]->grp);
+					$itemtable = "ROAD_OR_PATH";
+					//echo "<li>pathname: $pathname, from: $levelfrom, to: $levelto</li>";
+					$amount = isset($freebiecosts[$type][$pathname][$levelfrom][$levelto]) ? $freebiecosts[$type][$pathname][$levelfrom][$levelto] : 0;
+				}
 				else
 					$amount = isset($freebiecosts[$type][$key][$levelfrom][$levelto]) ? $freebiecosts[$type][$key][$levelfrom][$levelto] : 0;
 				$itemid      = $current[$type][$key]->itemid;
@@ -1923,7 +1952,7 @@ function vtm_save_freebies($characterID, $templateID) {
 						
 						'LEVEL_TO'       => $levelto,
 						'AMOUNT'         => $amount,
-						'ITEMTABLE'      => $type,
+						'ITEMTABLE'      => $itemtable,
 						'ITEMNAME'       => $itemname,
 						
 						'ITEMTABLE_ID'   => $itemid,
@@ -2369,6 +2398,28 @@ function vtm_save_disciplines($characterID) {
 	// Delete anything no longer needed
 	foreach ($saved as $id => $row) {
 		if (!isset($new[$id]) || $new[$id] == 0) {
+			// Delete any selected rituals associated with a deleted discipline
+			$sql = "SELECT crit.ID 
+					FROM 
+						" . VTM_TABLE_PREFIX . "CHARACTER_RITUAL crit,
+						" . VTM_TABLE_PREFIX . "RITUAL rit
+					WHERE 
+						crit.CHARACTER_ID = %s 
+						AND crit.RITUAL_ID = rit.ID
+						AND rit.DISCIPLINE_ID = %s";
+			$sql = $wpdb->prepare($sql,$characterID,$saved[$id]->DISCIPLINE_ID);
+			//echo "<p>ritual SQL: $sql</p>";
+			$rituals = $wpdb->get_col($sql);
+			if (count($rituals) > 0) {
+				foreach ($rituals as $rid) {
+					$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "CHARACTER_RITUAL
+							WHERE ID = %s";
+					$sql = $wpdb->prepare($sql,$rid);
+					$wpdb->get_results($sql);
+				}
+				//echo "<li>Delete ritual $rid ($sql)</li>\n";
+			}
+		
 			// Delete
 			$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE
 					WHERE CHARACTER_ID = %s AND DISCIPLINE_ID = %s";
@@ -2894,6 +2945,8 @@ function vtm_get_player_id($playername, $guess = false) {
 	if (empty($playername))
 		return;
 	
+	$playername = esc_sql($playername);
+	
 	if ($guess) {
 		$playername = "%$playername%";
 		$test = 'LIKE';
@@ -3262,6 +3315,25 @@ function vtm_get_chargen_paths($characterID = 0, $output_type = OBJECT) {
 	return $results;
 
 }
+function vtm_get_chargen_road($characterID = 0, $output_type = OBJECT) {
+	global $wpdb;
+	
+	
+	$sql = "SELECT 'Path Rating' as NAME, road.ID, road.DESCRIPTION, road.NAME as GROUPING
+			FROM 
+				" . VTM_TABLE_PREFIX . "ROAD_OR_PATH road,
+				" . VTM_TABLE_PREFIX . "CHARACTER cha
+			WHERE
+				cha.ID = %s 
+				AND cha.ROAD_OR_PATH_ID = road.ID";
+	$sql = $wpdb->prepare($sql, $characterID);
+	$results = $wpdb->get_results($sql, $output_type);
+	//echo "<p>SQL: $sql</p>\n";
+	//print_r($results);
+	
+	return $results;
+
+}
 
 function vtm_get_chargen_abilities($characterID = 0, $showsecondary = 0, $output_type = OBJECT) {
 	global $wpdb;
@@ -3306,7 +3378,7 @@ function vtm_render_dot_select($type, $itemid, $current, $pending, $free, $max, 
 	$emptydoturl   = plugins_url( 'gvlarp-character/images/cg_emptydot.jpg' );
 	$freebiedoturl = plugins_url( 'gvlarp-character/images/cg_freebiedot.jpg' );
 	
-	if ($pending) {
+	if ($pending || $submitted) {
 		$output .= "<input type='hidden' name='" . $type . "[" . $itemid . "]' value='$current' />\n";
 	}
 	$output .= "<fieldset class='dotselect'>\n";
@@ -3382,15 +3454,19 @@ function vtm_render_freebie_stats($characterID, $submitted) {
 	// COSTS OF STATS - if entry doesn't exist then you can't buy it
 	//	$cost['<statname>'] = array( '<from>' => array( '<to>' => <cost>))
 	$freebiecosts = vtm_get_freebie_costs('STAT');
+	$freebiecosts = array_merge($freebiecosts, vtm_get_freebie_costs('ROAD_OR_PATH'));
 
 	// display stats to buy
 	$items = vtm_get_chargen_stats($characterID);
+	$items = array_merge($items, vtm_get_chargen_road($characterID));
 	
 	// Current stats saved into db
 	$saved = vtm_get_current_stats($characterID);
+	$saved = array_merge($saved, vtm_get_current_road($characterID));
 	
 	// Current freebies saved into database
 	$pendingfb = vtm_get_pending_freebies('STAT', $characterID);
+	$pendingfb = array_merge($pendingfb, vtm_get_pending_freebies('ROAD_OR_PATH', $characterID));
 
 	// Current bought with XP
 	$pendingxp  = vtm_get_pending_chargen_xp('STAT', $characterID);  // name => value
@@ -3920,6 +3996,47 @@ function vtm_get_current_stats($characterID) {
 	
 	return $items;
 }
+function vtm_get_current_road($characterID) {
+	global $wpdb;
+
+	$sql = "SELECT 
+				'Path Rating'				as name, 
+				stat1.LEVEL + stat2.LEVEL	as level_from,
+				0	 						as chartableid, 
+				'' 							as comment,
+				road.ID 					as itemid, 
+				road.name 	as grp
+			FROM 
+				" . VTM_TABLE_PREFIX . "CHARACTER cha
+				,
+				" . VTM_TABLE_PREFIX . "ROAD_OR_PATH road
+				LEFT JOIN (
+					SELECT STAT_ID, LEVEL
+					FROM
+						" . VTM_TABLE_PREFIX . "CHARACTER_STAT cstat
+					WHERE
+						CHARACTER_ID = %s
+				) stat1
+				ON 
+					stat1.STAT_ID = road.STAT1_ID
+				LEFT JOIN (
+					SELECT STAT_ID, LEVEL
+					FROM
+						" . VTM_TABLE_PREFIX . "CHARACTER_STAT cstat
+					WHERE
+						CHARACTER_ID = %s
+				) stat2
+				ON 
+					stat2.STAT_ID = road.STAT2_ID
+			WHERE 
+				cha.ROAD_OR_PATH_ID      = road.ID
+				AND cha.ID = %s";
+	$sql   = $wpdb->prepare($sql, $characterID, $characterID, $characterID);
+	//echo "<p>SQL: $sql</p>\n";
+	$items = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K));
+	
+	return $items;
+}
 
 function vtm_get_current_skills($characterID) {
 	global $wpdb;
@@ -4148,6 +4265,7 @@ function vtm_get_freebies_spent($characterID) {
 		$freebiecosts['BACKGROUND'] = vtm_get_freebie_costs('BACKGROUND', $characterID);
 		$freebiecosts['MERIT']      = vtm_get_freebie_costs('MERIT', $characterID);
 		$freebiecosts['PATH']       = vtm_get_freebie_costs('PATH', $characterID);
+		$freebiecosts['STAT'] = array_merge($freebiecosts['STAT'], vtm_get_freebie_costs('ROAD_OR_PATH'));
 		
 		$current['STAT']       = vtm_get_current_stats($characterID);
 		$current['SKILL']      = vtm_get_current_skills($characterID);
@@ -4155,6 +4273,7 @@ function vtm_get_freebies_spent($characterID) {
 		$current['BACKGROUND'] = vtm_get_current_backgrounds($characterID);
 		$current['MERIT']      = vtm_get_current_merits($characterID);
 		$current['PATH']       = vtm_get_current_paths($characterID);
+		$current['STAT'] = array_merge($current['STAT'], vtm_get_current_road($characterID));
 				
 		$bought['STAT']       = isset($_POST['freebie_stat']) ? $_POST['freebie_stat'] : array();
 		$bought['SKILL']      = isset($_POST['freebie_skill']) ? $_POST['freebie_skill'] : array();
@@ -4188,7 +4307,14 @@ function vtm_get_freebies_spent($characterID) {
 						$spent += isset($freebiecosts[$type][$actualkey][$current[$type][$actualkey]->level_from][$levelto]) ? $freebiecosts[$type][$actualkey][$current[$type][$actualkey]->level_from][$levelto] : 0;
 						//echo "<li>Running total is $spent. Bought $actualkey to $levelto ({$freebiecosts[$type][$actualkey][$current[$actualkey]->level_from][$levelto]})</li>\n";
 					}
-				} else {
+				} 
+				elseif ($type == 'STAT' && $key == 'pathrating') {
+					$pathname = sanitize_key($current[$type][$key]->grp);
+					//echo "$key becomes $pathname for Path of Enlightenment<br />\n";
+					$spent += isset($freebiecosts[$type][$pathname][$levelfrom][$levelto]) ? $freebiecosts[$type][$pathname][$levelfrom][$levelto] : 0;
+					//echo "<li>Running total is $spent. Bought $pathname to $levelto ({$freebiecosts[$type][$pathname][$levelfrom][$levelto]})</li>\n";
+				}
+				else {
 					$spent += isset($freebiecosts[$type][$key][$levelfrom][$levelto]) ? $freebiecosts[$type][$key][$levelfrom][$levelto] : 0;
 					//echo "<li>Running total is $spent. Bought $key to $levelto ({$freebiecosts[$type][$key][$levelfrom][$levelto]})</li>\n";
 				}
@@ -5202,14 +5328,21 @@ function vtm_validate_rituals($settings, $characterID, $usepost = 1) {
 				}
 			}
 			
-			if ($disctotal > $target[$group]) {
-				$errormessages .= "<li>ERROR: You have spent too many points on $groupname Rituals</li>\n";
-				$ok = 0;
-				$complete = 0;
+			if (isset($target[$group])) {
+				if ($disctotal > $target[$group]) {
+					$errormessages .= "<li>ERROR: You have spent too many points on $groupname Rituals</li>\n";
+					$ok = 0;
+					$complete = 0;
+				}
+				elseif ($disctotal < $target[$group])  {
+					$errormessages .= "<li>WARNING: You haven't spent enough points on $groupname Rituals</li>\n";
+					$complete = 0;
+				}
 			}
-			elseif ($disctotal < $target[$group])  {
-				$errormessages .= "<li>WARNING: You haven't spent enough points on $groupname Rituals</li>\n";
-				$complete = 0;
+			elseif ($disctotal > 0) {
+					$errormessages .= "<li>ERROR: You have spent points on $groupname Rituals but you don't have the discipline</li>\n";
+					$ok = 0;
+					$complete = 0;
 			}
 		}
 	
