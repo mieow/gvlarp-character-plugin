@@ -2047,7 +2047,13 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 		$results = $wpdb->get_results($sql);
 		$failed = 0;
 		foreach ($results as $row) {
-			if ($row->CHARTABLE_ID > 0) {
+			
+			if ($row->ITEMTABLE == 'ROAD_OR_PATH') {
+				// Path rating already saved as part of finishing step
+				$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND WHERE ID = %d;";
+				$result = $wpdb->get_results($wpdb->prepare($sql, $row->ID));
+			}
+			elseif ($row->CHARTABLE_ID > 0) {
 				// Update table
 				$result = $wpdb->update( VTM_TABLE_PREFIX . $row->CHARTABLE,
 					array (
