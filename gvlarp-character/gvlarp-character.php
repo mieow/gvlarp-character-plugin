@@ -341,6 +341,7 @@ function vtm_get_generations() {
 	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "GENERATION ORDER BY BLOODPOOL, MAX_DISCIPLINE;";
 	$list = $wpdb->get_results($sql);
 	
+	//echo "<p>SQL: $sql</p>";
 	//print_r($list);
 	
 	return $list;

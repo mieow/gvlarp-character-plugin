@@ -179,6 +179,7 @@ function vtm_render_template_data(){
 		$settings['limit-sect-method']    = isset($results['limit-sect-method']->VALUE) ? $results['limit-sect-method']->VALUE : $settings['limit-sect-method'];
 		$settings['limit-sect-id']        = isset($results['limit-sect-id']->VALUE) ? $results['limit-sect-id']->VALUE : $settings['limit-sect-id'];
 		$settings['virtues-free-dots']    = isset($results['virtues-free-dots']->VALUE) ? $results['virtues-free-dots']->VALUE : $settings['virtues-free-dots'];
+		$settings['limit-generation-low'] = isset($results['limit-generation-low']->VALUE) ? $results['limit-generation-low']->VALUE : $settings['limit-generation-low'];
 			
 	} else {
 		$name   = "";
@@ -365,6 +366,26 @@ function vtm_render_template_data(){
 					<?php 
 						foreach ($sects as $sect) {
 							print "<option value='{$sect->ID}' " . selected($settings['limit-sect-id'],$sect->ID, false) . ">{$sect->NAME}</option>\n";
+						}
+					?>
+					</select>
+				</td>
+			</tr>
+			</table>
+		</td>
+	</tr>
+	<tr class="template_option_row">
+		<td rowspan=1>Generation Settings</td>
+		<td colspan=2>
+			<table>
+			<tr>
+				<th>Lowest Generation available:</th>
+				<td>
+					<select name="limit-generation-low">
+					<?php
+						
+						foreach (vtm_get_generations() as $gen) {
+							print "<option value='{$gen->ID}' " . selected($settings['limit-generation-low'],$gen->ID, false) . ">{$gen->NAME}th</option>";
 						}
 					?>
 					</select>
