@@ -563,14 +563,13 @@ function vtm_render_feedback($step, $characterID, $templateID, $submitted) {
 }
 
 function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $freebiecosts, 
-		$postvariable, $showzeros, $issubmitted) {
+		$postvariable, $showzeros, $issubmitted, $max2display = 5) {
 	
 	$fulldoturl    = plugins_url( 'gvlarp-character/images/cg_freedot.jpg' );
 	$emptydoturl   = plugins_url( 'gvlarp-character/images/cg_emptydot.jpg' );
 	$freebiedoturl = plugins_url( 'gvlarp-character/images/cg_freebiedot.jpg' );
 	$doturl        = plugins_url( 'gvlarp-character/images/cg_selectdot.jpg' );
 
-	$max2display = 5;
 	$columns     = 3;
 	$rowoutput   = "";
 	
@@ -746,10 +745,10 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 }
 
 function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, 
-	$pendingxp, $postvariable, $showzeros, $issubmitted, $fbcosts = array()) {
+	$pendingxp, $postvariable, $showzeros, $issubmitted, $fbcosts = array(),
+	$max2display = 5) {
 
 	$rowoutput = "";
-	$max2display = 5;
 	$columns = 3;
 	$fulldoturl = plugins_url( 'gvlarp-character/images/cg_freedot.jpg' );
 	$freebiedoturl = plugins_url( 'gvlarp-character/images/cg_freebiedot.jpg' );
@@ -941,7 +940,8 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 }
 
 function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $freedot,
-	$items, $posted, $pendingfb, $pendingxp, $title, $postvariable, $submitted) {
+	$items, $posted, $pendingfb, $pendingxp, $title, $postvariable, $submitted,
+	$maxdots = 5) {
 
 	$output = "";
 
@@ -1002,9 +1002,9 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 			
 			if ($postvariable == 'virtue_value' && $key == 'courage' 
 				&& (isset($pendingfb['willpower']) || isset($pendingxp['willpower'])))
-				$output .= vtm_render_dot_select($postvariable, $key, $level, $pending, $freedot, 5, 1);
+				$output .= vtm_render_dot_select($postvariable, $key, $level, $pending, $freedot, $maxdots, 1);
 			else
-				$output .= vtm_render_dot_select($postvariable, $key, $level, $pending, $freedot, 5, $submitted);
+				$output .= vtm_render_dot_select($postvariable, $key, $level, $pending, $freedot, $maxdots, $submitted);
 		}
 		
 		$output .= "</td><td $class>\n";
@@ -1026,6 +1026,7 @@ function vtm_render_attributes($step, $characterID, $templateID, $submitted) {
 	
 	$pendingfb  = vtm_get_pending_freebies('STAT', $characterID);  
 	$pendingxp  = vtm_get_pending_chargen_xp('STAT', $characterID);  
+	$geninfo = vtm_calculate_generation($characterID);
 
 	//print_r($pendingxp);
 	
@@ -1056,7 +1057,8 @@ function vtm_render_attributes($step, $characterID, $templateID, $submitted) {
 	
 	$output .= vtm_render_chargen_section($saved, ($settings['attributes-method'] == "PST"), 
 		$settings['attributes-primary'], $settings['attributes-secondary'], $settings['attributes-tertiary'], 
-		1, $items, $stats, $pendingfb, $pendingxp, 'Attributes', 'attribute_value', $submitted);
+		1, $items, $stats, $pendingfb, $pendingxp, 'Attributes', 'attribute_value', 
+		$submitted,$geninfo['MaxDot']);
 	
 	return $output;
 }
@@ -1148,7 +1150,7 @@ function vtm_render_chargen_virtues($step, $characterID, $templateID, $submitted
 	
 	$output .= vtm_render_chargen_section($saved, false, 0, 0, 0, 
 		$freedot, $pathitems, $virtues, $pendingfb, $pendingxp, 'Virtues', 'virtue_value',
-		$submitted);
+		$submitted, 5);
 	
 	return $output;
 }
@@ -1187,7 +1189,7 @@ function vtm_render_chargen_freebies($step, $characterID, $templateID, $submitte
 	$sectioncontent['skill'] = vtm_render_freebie_skills($characterID, $submitted);
 	$sectioncontent['disc']  = vtm_render_freebie_disciplines($characterID, $submitted);
 	$sectioncontent['path']  = vtm_render_freebie_paths($characterID, $submitted);
-	$sectioncontent['background'] = vtm_render_freebie_backgrounds($characterID, $submitted);
+	$sectioncontent['background'] = vtm_render_freebie_backgrounds($characterID, $submitted, $templateID);
 	$sectioncontent['merit'] = vtm_render_freebie_merits($characterID, $submitted);
 	
 	// DISPLAY TABLES 
@@ -1276,31 +1278,15 @@ function vtm_render_finishing($step, $characterID, $templateID, $submitted) {
 
 	$output = "";
 	$settings = vtm_get_chargen_settings($templateID);
-	$options  = vtm_getConfig();
+	//$options  = vtm_getConfig();
 	
 	$output .= "<h3>Step $step: Finishing Touches</h3>\n";
 	$output .= "<p>Please fill in more information on your character.</p>\n";
 	
 	// Calculate Generation
-	$defaultgen = $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "GENERATION WHERE ID = %s", $options->DEFAULT_GENERATION_ID));
-	$sql = "SELECT charbg.LEVEL 
-			FROM 
-				" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND charbg,
-				" . VTM_TABLE_PREFIX . "BACKGROUND bg
-			WHERE
-				charbg.CHARACTER_ID = %s
-				AND charbg.BACKGROUND_ID = bg.ID
-				AND bg.NAME = 'Generation'";
-	$genfromgb  = $wpdb->get_var($wpdb->prepare($sql, $characterID));
-	$sql = "SELECT LEVEL_TO 
-			FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
-			WHERE 
-				ITEMTABLE = 'BACKGROUND'
-				AND ITEMNAME = 'generation'
-				AND CHARACTER_ID = %s";
-	$genfromfreebie = $wpdb->get_var($wpdb->prepare($sql, $characterID));
-	$generation     = $defaultgen - (isset($genfromfreebie) ? $genfromfreebie : $genfromgb);
-	$generationID   = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . VTM_TABLE_PREFIX . "GENERATION WHERE NAME = %s", $generation));
+	$generationInfo = vtm_calculate_generation($characterID);
+	$generation   = $generationInfo['ID'];
+	$generationID = $generationInfo['Gen'];
 
 	// Calculate Path
 	$pathid    = $wpdb->get_var($wpdb->prepare("SELECT ROAD_OR_PATH_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
@@ -1575,14 +1561,16 @@ function vtm_render_abilities($step, $characterID, $templateID, $submitted) {
 	$saved = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K)); 
 	//echo "<li>SQL: $sql</li>\n";
 	
-	//print_r($pendingxp);
+	$geninfo = vtm_calculate_generation($characterID);
+	//print_r($geninfo);
 	
 	// abilities Posted data
 	$abilities = isset($_POST['ability_value']) ? $_POST['ability_value'] : array();
 	
 	$output .= vtm_render_chargen_section($saved, true, 
 		$settings['abilities-primary'], $settings['abilities-secondary'], $settings['abilities-tertiary'], 
-		0, $items, $abilities, $pendingfb, $pendingxp, 'Abilities', 'ability_value', $submitted);
+		0, $items, $abilities, $pendingfb, $pendingxp, 'Abilities', 'ability_value', 
+		$submitted,$geninfo['MaxDot']);
 
 	return $output;
 }
@@ -1595,6 +1583,7 @@ function vtm_render_chargen_disciplines($step, $characterID, $templateID, $submi
 	$items      = vtm_get_chargen_disciplines($characterID);
 	$pendingfb  = vtm_get_pending_freebies('DISCIPLINE', $characterID); 
 	$pendingxp  = vtm_get_pending_chargen_xp('DISCIPLINE', $characterID); 
+	$geninfo    = vtm_calculate_generation($characterID);
 		
 	$output .= "<h3>Step $step: Disciplines</h3>\n";
 	$output .= "<p>You have {$settings['disciplines-points']} dots to spend on your Disciplines</p>\n";
@@ -1614,7 +1603,8 @@ function vtm_render_chargen_disciplines($step, $characterID, $templateID, $submi
 	$disciplines = isset($_POST['discipline_value']) ? $_POST['discipline_value'] : array();
 	
 	$output .= vtm_render_chargen_section($saved, false, 0, 0, 0, 
-		0, $items, $disciplines, $pendingfb, $pendingxp, 'Disciplines', 'discipline_value', $submitted);
+		0, $items, $disciplines, $pendingfb, $pendingxp, 'Disciplines', 
+		'discipline_value', $submitted,$geninfo['MaxDisc']);
 
 
 	return $output;
@@ -1640,12 +1630,16 @@ function vtm_render_chargen_backgrounds($step, $characterID, $templateID, $submi
 				bg.ID = cbg.BACKGROUND_ID
 				AND CHARACTER_ID = %s";
 	$sql = $wpdb->prepare($sql, $characterID);
-	$saved = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K)); 
+	$saved = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K));
+	
+	// Work out how many dots we need
+	$maxdots = $wpdb->get_var($wpdb->prepare("SELECT MAX_DISCIPLINE FROM " . VTM_TABLE_PREFIX . "GENERATION WHERE ID = %s", $settings['limit-generation-low']));
 
 	$backgrounds = isset($_POST['background_value']) ? $_POST['background_value'] : array();
 
 	$output .= vtm_render_chargen_section($saved, false, 0, 0, 0, 
-		0, $items, $backgrounds, $pending, array(), 'Backgrounds', 'background_value', $submitted);
+		0, $items, $backgrounds, $pending, array(), 'Backgrounds', 'background_value', 
+		$submitted, $maxdots);
 	
 	return $output;
 } 
@@ -3560,9 +3554,11 @@ function vtm_render_freebie_stats($characterID, $submitted) {
 
 	// Current bought with XP
 	$pendingxp  = vtm_get_pending_chargen_xp('STAT', $characterID);  // name => value
-		
+	
+	$geninfo = vtm_calculate_generation($characterID);
+	
 	$rowoutput = vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp,
-			$freebiecosts, 'freebie_stat', 0, $submitted);
+			$freebiecosts, 'freebie_stat', 0, $submitted, $geninfo['MaxDot']);
 	
 	//print_r($saved);
 	
@@ -3576,7 +3572,8 @@ function vtm_render_freebie_stats($characterID, $submitted) {
 function vtm_render_freebie_skills($characterID, $submitted) {
 	global $wpdb;
 	
-	$output      = "";
+	$output  = "";
+	$geninfo = vtm_calculate_generation($characterID);
 
 	// COSTS OF skills - if entry doesn't exist then you can't buy it
 	//	$cost['<statname>'] = array( '<from>' => array( '<to>' => <cost>))
@@ -3595,7 +3592,7 @@ function vtm_render_freebie_skills($characterID, $submitted) {
 	$pendingxp  = vtm_get_pending_chargen_xp('SKILL', $characterID);  // name => value
 
 	$rowoutput = vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp,
-			$freebiecosts, 'freebie_skill', 1, $submitted);
+			$freebiecosts, 'freebie_skill', 1, $submitted, $geninfo['MaxDot']);
 	
 	if ($rowoutput != "")
 		$output .= "<table>$rowoutput</table>\n";
@@ -3607,6 +3604,8 @@ function vtm_render_freebie_skills($characterID, $submitted) {
 function vtm_render_freebie_disciplines($characterID, $submitted) {	
 	$output      = "";
 
+	$geninfo = vtm_calculate_generation($characterID);
+	
 	// COSTS OF STATS - if entry doesn't exist then you can't buy it
 	//	$cost['<statname>'] = array( '<from>' => array( '<to>' => <cost>))
 	$freebiecosts = vtm_get_freebie_costs('DISCIPLINE', $characterID);
@@ -3624,7 +3623,7 @@ function vtm_render_freebie_disciplines($characterID, $submitted) {
 	$pendingxp  = vtm_get_pending_chargen_xp('DISCIPLINE', $characterID);  // name => value
 
 	$rowoutput = vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp,
-			$freebiecosts, 'freebie_discipline', 1, $submitted);
+			$freebiecosts, 'freebie_discipline', 1, $submitted, $geninfo['MaxDisc']);
 	
 	if ($rowoutput != "")
 		$output .= "<table>$rowoutput</table>\n";
@@ -3643,10 +3642,12 @@ function vtm_render_xp_disciplines($characterID, $submitted) {
 	$saved     = vtm_get_current_disciplines($characterID);
 	$pendingfb = vtm_get_pending_freebies('DISCIPLINE', $characterID);
 	$pendingxp = vtm_get_pending_chargen_xp('DISCIPLINE', $characterID);
+	$geninfo   = vtm_calculate_generation($characterID);
 	
 	//print_r($xpcosts);
 	
-	$rowoutput = vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, $pendingxp, 'xp_discipline', 1, $submitted);
+	$rowoutput = vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, 
+		$pendingxp, 'xp_discipline', 1, $submitted,array(), $geninfo['MaxDisc']);
 	
 	if ($rowoutput != "")
 		$output .= "<table>$rowoutput</table>\n";
@@ -3668,7 +3669,7 @@ function vtm_render_freebie_paths($characterID, $submitted) {
 	//print_r($currentpending);
 	
 	$rowoutput = vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp,
-			$freebiecosts, 'freebie_path', 1, $submitted);
+			$freebiecosts, 'freebie_path', 1, $submitted, 5);
 
 	if ($rowoutput != "")
 		$output .= "<table>$rowoutput</table>\n";
@@ -3677,11 +3678,12 @@ function vtm_render_freebie_paths($characterID, $submitted) {
 
 } 
 
-function vtm_render_freebie_backgrounds($characterID, $submitted) {
+function vtm_render_freebie_backgrounds($characterID, $submitted, $templateID) {
 	global $wpdb;
 	
 	$output      = "";
-	$max2display = 5;
+	$settings    = vtm_get_chargen_settings($templateID);
+	$max2display = $wpdb->get_var($wpdb->prepare("SELECT MAX_DISCIPLINE FROM " . VTM_TABLE_PREFIX . "GENERATION WHERE ID = %s", $settings['limit-generation-low']));
 	$columns     = 3;
 	$fulldoturl  = plugins_url( 'gvlarp-character/images/cg_freedot.jpg' );
 	$emptydoturl = plugins_url( 'gvlarp-character/images/cg_emptydot.jpg' );
@@ -3693,7 +3695,7 @@ function vtm_render_freebie_backgrounds($characterID, $submitted) {
 	$pendingfb = vtm_get_pending_freebies('BACKGROUND', $characterID);
 		
 	$rowoutput = vtm_render_freebie_section($items, $saved, $pendingfb, array(),
-			$freebiecosts, 'freebie_background', 1, $submitted);
+			$freebiecosts, 'freebie_background', 1, $submitted, $max2display);
 
 	if ($rowoutput != "")
 		$output .= "<table>$rowoutput</table>\n";
@@ -4556,6 +4558,8 @@ function vtm_sanitize_keys($a) {
 function vtm_render_chargen_xp_stats($characterID, $submitted) {
 	$output = "";
 
+	$geninfo   = vtm_calculate_generation($characterID);
+
 	// Get costs
 	$xpcosts = vtm_get_chargen_xp_costs('STAT', $characterID);
 
@@ -4572,7 +4576,8 @@ function vtm_render_chargen_xp_stats($characterID, $submitted) {
 	// Currently bought with XP
 	$pendingxp  = vtm_get_pending_chargen_xp('STAT', $characterID);  // name => value
 	
-	$rowoutput = vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, $pendingxp, 'xp_stat', 0, $submitted);
+	$rowoutput = vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, 
+		$pendingxp, 'xp_stat', 0, $submitted,array(),$geninfo['MaxDot']);
 
 	if ($rowoutput != "")
 		$output .= "<table>$rowoutput</table>\n";
@@ -4591,7 +4596,7 @@ function vtm_render_chargen_xp_paths($characterID, $submitted) {
 	//print_r($current_path);
 	
 	$rowoutput = vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, 
-		$pendingxp, 'xp_path', 1, $submitted);
+		$pendingxp, 'xp_path', 1, $submitted,array(),5);
 	
 	if ($rowoutput != "")
 		$output .= "<table>$rowoutput</table>\n";
@@ -4610,8 +4615,10 @@ function vtm_render_chargen_xp_skills($characterID, $submitted) {
 	$saved     = vtm_get_current_skills($characterID);
 	$pendingfb = vtm_get_pending_freebies('SKILL', $characterID);
 	$pendingxp = vtm_get_pending_chargen_xp('SKILL', $characterID);
+	$geninfo   = vtm_calculate_generation($characterID);
 	
-	$rowoutput = vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, $pendingxp, 'xp_skill', 1, $submitted);
+	$rowoutput = vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, 
+	$pendingxp, 'xp_skill', 1, $submitted,array(), $geninfo['MaxDot']);
 	
 	if ($rowoutput != "")
 		$output .= "<table>$rowoutput</table>\n";
@@ -6144,6 +6151,45 @@ function vtm_has_virtue_free_dot($selectedpath, $settings) {
 	}
 
 	return $freedot;
+}
+
+function vtm_calculate_generation($characterID) {
+	global $wpdb;
+	
+	$options = vtm_getConfig();
+	
+	$defaultgen = $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "GENERATION WHERE ID = %s", $options->DEFAULT_GENERATION_ID));
+	$sql = "SELECT charbg.LEVEL 
+			FROM 
+				" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND charbg,
+				" . VTM_TABLE_PREFIX . "BACKGROUND bg
+			WHERE
+				charbg.CHARACTER_ID = %s
+				AND charbg.BACKGROUND_ID = bg.ID
+				AND bg.NAME = 'Generation'";
+	$genfromgb  = $wpdb->get_var($wpdb->prepare($sql, $characterID));
+	$sql = "SELECT LEVEL_TO 
+			FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
+			WHERE 
+				ITEMTABLE = 'BACKGROUND'
+				AND ITEMNAME = 'generation'
+				AND CHARACTER_ID = %s";
+	$genfromfreebie = $wpdb->get_var($wpdb->prepare($sql, $characterID));
+	$generation     = $defaultgen - (isset($genfromfreebie) ? $genfromfreebie : $genfromgb);
+
+	$results   = $wpdb->get_row($wpdb->prepare("SELECT ID, MAX_RATING, MAX_DISCIPLINE FROM " . VTM_TABLE_PREFIX . "GENERATION WHERE NAME = %s", $generation));
+
+	$data = array(
+		'ID' => $results->ID,
+		'Gen' => $generation,
+		'MaxDot' => $results->MAX_RATING,
+		'MaxDisc' => $results->MAX_DISCIPLINE
+	);
+	
+	//print "<li>Dot limit for {$generation}th generation is {$results->MAX_RATING}/{$results->MAX_DISCIPLINE}</li>";
+	
+	return $data;
+	
 }
 
 ?>
