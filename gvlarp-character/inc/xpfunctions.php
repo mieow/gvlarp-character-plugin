@@ -925,7 +925,10 @@ function vtm_render_paths($characterID, $maxRating, $pendingSpends, $xp_avail) {
 					(char_disc.level >= cha_path.level
 					OR ISNULL(cha_path.level)
 					)
-				AND path.VISIBLE = 'Y'
+				AND (
+					path.VISIBLE = 'Y'
+					OR (NOT(ISNULL(cha_path.LEVEL)) AND steps.CURRENT_VALUE > 0)
+				)
 				AND (
 					(ISNULL(cha_path.LEVEL) AND steps.CURRENT_VALUE = 0)
 					OR steps.CURRENT_VALUE = cha_path.level
