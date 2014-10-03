@@ -945,8 +945,8 @@ function vtm_print_character_details($atts, $content=null) {
 					AND chara.ID = %s";
 		$result = $wpdb->get_row($wpdb->prepare($sql, $character_details->ID));
 	
-		$character_details->nature   = $result->nature;
-		$character_details->demeanour = $result->demeanour;
+		$character_details->nature    = isset($result->nature) ? $result->nature : '';
+		$character_details->demeanour = isset($result->demeanour) ? $result->demeanour : '';
 		
 	}
 
