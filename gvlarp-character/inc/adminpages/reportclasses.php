@@ -548,7 +548,7 @@ class vtmclass_report_signin extends vtmclass_Report_ListTable {
 		$filterinfo = $this->get_filter_sql();
 		
 		$sql = "SELECT COUNT(ID) as total2do FROM " . VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND WHERE VISIBLE = 'Y'";
-		$this->totalqs += $wpdb->get_var($sql);
+		$this->totalqs = $wpdb->get_var($sql);
 		
 		$sql = "SELECT characters.NAME as CHARACTERNAME, players.NAME as PLAYERNAME, \"\" as SIGNATURE,
 					CONCAT(FORMAT((IFNULL(SUM(bginfo.TOTALDONE),0) + IFNULL(SUM(mfinfo.TOTALDONE),0) + IFNULL(SUM(qinfo.TOTALDONE),0)) * 100 /

@@ -1068,7 +1068,8 @@ class vtmclass_Report_ListTable extends WP_List_Table {
 
 			$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 			$current_url = remove_query_arg( 'paged', $current_url );
-			$current_url = add_query_arg('report', $_REQUEST['report']);
+			if (isset($_REQUEST['report']))
+				$current_url = add_query_arg('report', $_REQUEST['report']);
 
 			if ( isset( $_GET['orderby'] ) )
 					$current_orderby = $_GET['orderby'];
