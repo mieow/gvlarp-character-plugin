@@ -78,7 +78,7 @@ function vtm_print_background_shortcode($atts, $content = null) {
 		"domain"     => "home",
 		"liststatus" => "Alive",
 		"level"      => "all",
-		"columns"    => "level,character,player,clan,domain,background,sector,comment,level",
+		"columns"    => "level,character,player,clan,domain,background,sector,offices,comment,level",
 		"heading"    => 1
 		), $atts)
 	);
@@ -258,6 +258,38 @@ function vtm_print_background_shortcode($atts, $content = null) {
 	//echo "<p>SQL: $sql<p>";
 	//print_r($result);
 	
+	$sqloffices = "SELECT co.CHARACTER_ID, office.NAME as NAME, 
+			domain.NAME as DOMAIN
+		FROM 
+			" . VTM_TABLE_PREFIX . "OFFICE office,
+			" . VTM_TABLE_PREFIX . "DOMAIN domain,
+			" . VTM_TABLE_PREFIX . "CHARACTER_OFFICE co
+		WHERE
+			co.OFFICE_ID = office.ID
+			AND co.DOMAIN_ID = domain.ID
+			AND office.VISIBLE = 'Y'
+			AND domain.VISIBLE = 'Y'
+		ORDER BY co.CHARACTER_ID, office.ORDERING";
+	$temp = $wpdb->get_results($sqloffices);
+	//echo "<p>SQL: $sqloffices<p>";
+	//print_r($temp);
+	$offices = array();
+	if (count($temp)) {
+		$homedomain = vtm_get_homedomain();
+		foreach ($temp as $row) {
+			$text = $row->NAME;
+			//echo "<li>{$row->CHARACTER_ID}, home:$homedomain, domain:{$row->DOMAIN}</li>";
+			$text .= $row->DOMAIN == $homedomain ? "" : " ({$row->DOMAIN})";
+			if (array_key_exists($row->CHARACTER_ID, $offices)) {
+				$offices[$row->CHARACTER_ID] .= ", $text";
+			} else {
+				$offices[$row->CHARACTER_ID] = $text;
+			}
+		
+		}
+	}
+	//print_r($offices);
+	
 	if (count($result)) {
 		$columnlist = explode(',',$columns);
 		$output = "<table class='gvplugin' id=\"" . vtm_get_shortcode_id("gvid_blb") . "\">\n";
@@ -273,6 +305,7 @@ function vtm_print_background_shortcode($atts, $content = null) {
 				if ($name == 'comment')   $output .= "<th>Comment</th>";
 				if ($name == 'sector')   $output .= "<th>Sector</th>";
 				if ($name == 'level')  $output .= "<th>Level</th>";
+				if ($name == 'offices')   $output .= "<th>Office</th>";
 			}
 			$output .= "</tr>\n";
 		}
@@ -290,6 +323,10 @@ function vtm_print_background_shortcode($atts, $content = null) {
 				if ($name == 'comment') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->comment}</td>";
 				if ($name == 'sector') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->sectorname}</td>";
 				if ($name == 'level')  $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->level}</td>";
+				if ($name == 'offices') {
+					$text = isset($offices[$tablerow->id]) ? $offices[$tablerow->id] : "";
+					$output .= "<td class='gvcol_$col gvcol_val'>$text</td>";
+				}
 				$col++;
 			}
 			$output .= "</tr>\n";
