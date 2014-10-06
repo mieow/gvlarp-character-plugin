@@ -180,7 +180,15 @@ function vtm_get_chargen_content() {
 	$templateID  = vtm_get_templateid($characterID);
 	
 	if ($characterID == -1) {
-		$output .= "<div class='gvxp_error'><p>Invalid Reference</p></div>\n";
+		$output .= "<div class='gvxp_error'><p>Invalid Reference</p>";
+		if (isset($_POST['chargen_reference']) && $_POST['chargen_reference'] != '') {
+			$split = explode("/",$_POST['chargen_reference']);
+			if ($split[3] != '0000') {
+				$output .= "<p>Check that you are logged
+				in under the same account that you originally created the character under.</p>";
+			}
+		}
+		$output .= "</div>\n";
 		$step = 0;
 		$chargenstatus = '';
 	} else {
@@ -2261,7 +2269,7 @@ function vtm_save_xp($characterID, $templateID) {
 	$items['MERIT']      = vtm_sanitize_array(vtm_get_chargen_merits($characterID, OBJECT_K));
 	$items['PATH']       = vtm_sanitize_array(vtm_get_chargen_paths($characterID, OBJECT_K));
 	$items['RITUAL']     = vtm_sanitize_array(vtm_get_chargen_rituals($characterID, OBJECT_K));
-	
+
 	// Add free skills to bought skills
 	foreach ($templatefree as $type => $data) {
 		foreach ($data as $key => $row) {
@@ -6040,7 +6048,6 @@ function vtm_get_chargen_specialties($characterID) {
 					'key'     => $key));
 		}
 	}
-			
 	
 	//echo "<p>SQL: $sql</p>\n";
 	//echo "<pre>\n";
