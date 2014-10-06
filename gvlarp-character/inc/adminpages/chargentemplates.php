@@ -20,6 +20,7 @@ function vtm_render_template_data(){
 	
 	$thisaction = isset($_REQUEST['action']) ? $_REQUEST['action'] : '';
 	
+	
 	$id = 0;
 	switch ($thisaction) {
 		case "loadtemplate":
@@ -59,6 +60,34 @@ function vtm_render_template_data(){
 						);
 					}
 					
+					// save template defaults
+					$tables   = $_REQUEST['table'];
+					$items    = $_REQUEST['item'];
+					$sectors  = $_REQUEST['item_sector'];
+					$comments = $_REQUEST['item_spec'];
+					$levels   = $_REQUEST['item_level'];
+					for ($i = 0 ; $i < count($items) ; $i++) {
+						if ($levels[$i] > 0 && $items[$i] != 0) {
+						
+							$data = array(
+									'TEMPLATE_ID'  => $id,
+									'CHARTABLE'    => 'CHARACTER_' . $tables[$i],
+									'ITEMTABLE'    => $tables[$i],
+									'ITEMTABLE_ID' => $items[$i],
+									'SECTOR_ID'      => isset($sectors[$i]) ? $sectors[$i] : 0,
+									'SPECIALISATION' => isset($comments[$i]) ? $comments[$i] : '',
+									'LEVEL'          => $levels[$i]
+								);
+						
+							//print_r($data);
+							$wpdb->insert(VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_DEFAULTS",
+								$data,
+								array('%d', '%s', '%s', '%d', '%d', '%s', '%d')
+							);
+						}
+					}
+					
+					
 				}
 			} 
 			elseif (isset($_REQUEST['do_delete_' . $type])) {
@@ -74,6 +103,9 @@ function vtm_render_template_data(){
 					if ($ok) {
 						/* delete options */
 						$sql = "delete from " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_OPTIONS where TEMPLATE_ID = %d;";
+						$result = $wpdb->get_results($wpdb->prepare($sql, $id));
+						/* delete defaults */
+						$sql = "delete from " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_DEFAULTS where TEMPLATE_ID = %d;";
 						$result = $wpdb->get_results($wpdb->prepare($sql, $id));
 						/* delete template */
 						$sql = "delete from " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE where ID = %d;";
@@ -136,6 +168,40 @@ function vtm_render_template_data(){
 						if ($wpdb->insert_id == 0) {
 							echo "<p style='color:red'><b>Error:</b> $option could not be inserted</p>";
 						}
+					}
+				}
+				
+				// save template defaults
+				
+				//delete defaults 
+				$sql = "delete from " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_DEFAULTS where TEMPLATE_ID = %d;";
+				$result = $wpdb->get_results($wpdb->prepare($sql, $id));
+
+				// then re-add
+				$tables   = $_REQUEST['table'];
+				$items    = $_REQUEST['item'];
+				$sectors  = $_REQUEST['item_sector'];
+				$comments = $_REQUEST['item_spec'];
+				$levels   = $_REQUEST['item_level'];
+				$delete   = $_REQUEST['item_delete'];
+				//print_r($_REQUEST);
+				for ($i = 0 ; $i < count($items) ; $i++) {
+					if ($levels[$i] > 0 && $items[$i] != 0 && (!isset($delete[$i]) || (isset($delete[$i]) && $delete[$i] != 'on'))) {
+						$data = array(
+								'TEMPLATE_ID'  => $id,
+								'CHARTABLE'    => 'CHARACTER_' . $tables[$i],
+								'ITEMTABLE'    => $tables[$i],
+								'ITEMTABLE_ID' => $items[$i],
+								'SECTOR_ID'      => isset($sectors[$i]) ? $sectors[$i] : 0,
+								'SPECIALISATION' => isset($comments[$i]) ? $comments[$i] : '',
+								'LEVEL'          => $levels[$i]
+							);
+					
+						//print_r($data);
+						$wpdb->insert(VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_DEFAULTS",
+							$data,
+							array('%d', '%s', '%s', '%d', '%d', '%s', '%d')
+						);
 					}
 				}
 				
@@ -397,6 +463,159 @@ function vtm_render_template_data(){
 	</table>
 	</div>
 
+	<h4>Character Generation Template Defaults</h4>
+	<p>Select any items which will be automatically added on to the character.</p>
+	<div class="datatables_defaults">
+	
+	<h5>Backgrounds</h5>
+	<table>
+	<tr class="template_default_row">
+		<th>Background</th><th>Sector</th><th>Comment</th><th>Level</th><th>Delete</th>
+	</tr>
+	<?php 
+		$backgrounds = vtm_get_backgrounds();
+		$sectors = vtm_get_sectors(true);
+		
+		if ($id > 0) {
+			$sql = "SELECT bg.NAME, bg.ID, ctd.SPECIALISATION, ctd.LEVEL,
+						IFNULL(sector.ID,0) as SECTOR_ID, 
+						IFNULL(sector.NAME,'') as SECTOR
+					FROM 
+						" . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_DEFAULTS ctd
+						LEFT JOIN (
+							SELECT ID, NAME
+							FROM " . VTM_TABLE_PREFIX . "SECTOR
+						) sector
+						ON sector.ID = ctd.SECTOR_ID,
+						" . VTM_TABLE_PREFIX . "BACKGROUND bg
+					WHERE 
+						ctd.TEMPLATE_ID = %s 
+						AND ctd.ITEMTABLE_ID = bg.ID
+						AND ctd.ITEMTABLE = 'BACKGROUND'";
+			$sql = $wpdb->prepare($sql, $id);
+			$bought = $wpdb->get_results($sql);
+		} else {
+			$bought = array();
+		}
+		
+		$offset = 0;
+		foreach ($bought as $item) {
+
+			print "<tr class='template_default_row'>\n";
+			print "<td>
+				<input type='hidden' name='table[$offset]' value='BACKGROUND'>
+				<input type='hidden' name='item[$offset]' value='{$item->ID}'>
+				" . stripslashes($item->NAME) . "</td>\n";
+			print "<td>
+				<input type='hidden' name='item_sector[$offset]' value='{$item->SECTOR_ID}'>
+				{$item->SECTOR}</td>\n";
+			print "<td><input type='hidden' name='item_spec[$offset]' value='{$item->SPECIALISATION}'>
+				" . stripslashes($item->SPECIALISATION) . "</td>\n";
+			print "<td>
+				<input type='hidden' name='item_level[$offset]' value='{$item->LEVEL}'>
+				{$item->LEVEL}</td>\n";
+			print "<td><input type='checkbox' name='item_delete[$offset]'></td>\n";
+			print "</tr>\n";
+			
+			$offset++;
+		}
+		
+		for ($i = $offset ; $i < ($offset + 4) ; $i++) {
+			print "<tr class='template_default_row'>\n";
+			print "<td>
+				<input type='hidden' name='table[$i]' value='BACKGROUND'>
+				<select name='item[$i]'>\n";
+			print "<option value='0'>[Select]</option>\n";
+			foreach ($backgrounds as $item) {
+				print "<option value='{$item->ID}'>" . stripslashes($item->NAME) . "</option>\n";
+			}
+			print "</select</td>\n";
+			print "<td><select name='item_sector[$i]'>\n";
+			print "<option value='0'>[None]</option>\n";
+			foreach ($sectors as $item) {
+				print "<option value='{$item->ID}'>" . stripslashes($item->NAME) . "</option>\n";
+			}
+			print "</select</td>\n";
+			print "<td><input type='text' name='item_spec[$i]' value=''></td>\n";
+			print "<td><select name='item_level[$i]'>\n";
+			for ($j = 0 ; $j <= 5 ; $j++) {
+				print "<option value='$j'>$j</option>\n";
+			}
+			print "</select</td>\n";
+			print "<td><input type='hidden' name='item_delete[$i]' value='off'></td>\n";
+			print "</tr>\n";
+		}
+		$offset = $i;
+	?>
+	</table>
+	
+	<h5>Abilities</h5>
+	<table>
+	<tr class="template_default_row">
+		<th>Ability</th><th>Speciality</th><th>Level</th>
+	</tr>
+	<?php 
+		$skills = vtm_listSkills("", "Y");
+		
+		if ($id > 0) {
+			$sql = "SELECT skill.NAME, skill.ID, ctd.SPECIALISATION, ctd.LEVEL
+					FROM 
+						" . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_DEFAULTS ctd,
+						" . VTM_TABLE_PREFIX . "SKILL skill
+					WHERE 
+						ctd.TEMPLATE_ID = %s 
+						AND ctd.ITEMTABLE_ID = skill.ID
+						AND ctd.ITEMTABLE = 'SKILL'";
+			$sql = $wpdb->prepare($sql, $id);
+			$bought = $wpdb->get_results($sql);
+		} else {
+			$bought = array();
+		}
+		
+		foreach ($bought as $item) {
+
+			print "<tr class='template_default_row'>\n";
+			print "<td>
+				<input type='hidden' name='table[$offset]' value='SKILL'>
+				<input type='hidden' name='item[$offset]' value='{$item->ID}'>
+				" . stripslashes($item->NAME) . "</td>\n";
+			print "<td><input type='hidden' name='item_spec[$offset]' value='{$item->SPECIALISATION}'>
+				" . stripslashes($item->SPECIALISATION) . "</td>\n";
+			print "<td>
+				<input type='hidden' name='item_level[$offset]' value='{$item->LEVEL}'>
+				{$item->LEVEL}</td>\n";
+			print "<td><input type='checkbox' name='item_delete[$offset]'></td>\n";
+			print "</tr>\n";
+			
+			$offset++;
+		}
+		
+		for ($i = $offset ; $i < ($offset + 4) ; $i++) {
+			print "<tr class='template_default_row'>\n";
+			print "<td>
+				<input type='hidden' name='table[$i]' value='SKILL'>
+				<select name='item[$i]'>\n";
+			print "<option value='0'>[Select]</option>\n";
+			foreach ($skills as $item) {
+				print "<option value='{$item->id}'>" . stripslashes($item->name) . "</option>\n";
+			}
+			print "</select</td>\n";
+			print "<td><input type='text' name='item_spec[$i]' value=''></td>\n";
+			print "<td><select name='item_level[$i]'>\n";
+			for ($j = 0 ; $j <= 5 ; $j++) {
+				print "<option value='$j'>$j</option>\n";
+			}
+			print "</select</td>\n";
+			print "<td><input type='hidden' name='item_delete[$i]' value='off'>
+				<input type='hidden' name='item_sector[$i]' value='0'></td>\n";
+			print "</tr>\n";
+		}
+		$offset = $i;
+	?>
+	</table>
+	
+	</div>	
+	
 	<br />	
 	</table>
 	<input type="submit" name="do_save_<?php print $type; ?>" class="button-primary" value="Save" />
