@@ -989,9 +989,9 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 	// Make a guess from saved levels which is Primary/Secondary/Tertiary
 	if (count($saved) > 0 || count($posted) > 0) {
 		if ($isPST) {
-		
-			$groupselected = vtm_get_pst($saved, $posted, $items, $pdots, $sdots, $tdots,
-				$freedot);
+			$info = vtm_get_pst($saved, $posted, $items, $pdots, $sdots, $tdots,
+				$freedot, $templatefree);
+			//print_r($info);
 		}
 	}
 
@@ -1006,9 +1006,7 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 			$group = sanitize_key($item->grp);
 			$output .= "<h4>{$item->grp}</h4><p>\n";
 			if ($isPST) {
-				//$val = isset($_POST[$group]) ? $_POST[$group] : (isset($groupselected[$group]) ? $groupselected[$group] : 0);
-				$val = isset($groupselected[$group]) ? $groupselected[$group] : 0;
-				$output .= vtm_render_pst_select($group, $val, $submitted);
+				$output .= vtm_render_pst_select($group, $info);
 			}
 			
 			$output .= "</p><input type='hidden' name='group[]' value='$group' />";
@@ -1559,7 +1557,7 @@ function vtm_render_chargen_submit($step, $characterID, $templateID, $submitted)
 		if ($index < (count($progress) - 1)) {
 			$output .= "<tr>\n";
 			if ($result[2]) $status = "Complete";
-			elseif ($result[0]) $status = "In progress";
+			elseif ($result[0]) $status = "In progress: {$result[1]}";
 			else $status = "Error";
 			
 			if ($flow[$index]['title'] == 'Spend Experience' && $status != "Error") $status = "N/A";
@@ -1603,7 +1601,12 @@ function vtm_render_abilities($step, $characterID, $templateID, $submitted) {
 	$templatefree = vtm_get_free_levels('SKILL',$templateID);
 		
 	$output .= "<h3>Step $step: Abilities</h3>\n";
-	$output .= "<p>You have {$settings['abilities-primary']} dots to spend on your Primary abilities, {$settings['abilities-secondary']} to spend on Secondary and {$settings['abilities-tertiary']} to spend on Tertiary.</p>\n";
+	$output .= "<p>You have {$settings['abilities-primary']} dots to spend on your Primary abilities, 
+		{$settings['abilities-secondary']} to spend on Secondary and {$settings['abilities-tertiary']} to 
+		spend on Tertiary.";
+	if ($settings['abilities-max'] > 0)
+		$output .= " The maximum you can spend on any one Ability at this stage is {$settings['abilities-max']}.";
+	$output .= "</p>\n";
 	
 
 	// read/guess initial values
@@ -1719,7 +1722,7 @@ function vtm_render_chargen_rituals($step, $characterID, $templateID, $submitted
 		$output .= "<p>You have $point points to spend on your $discipline rituals.</p>\n";
 	
 	// read initial values
-	$sql = "SELECT rit.NAME as NAME, disc.NAME as DISCIPLINE, rit.LEVEL 
+	$sql = "SELECT rit.NAME as name, disc.NAME as discipline, rit.LEVEL as level_from
 			FROM 
 				" . VTM_TABLE_PREFIX . "CHARACTER_RITUAL crit,
 				" . VTM_TABLE_PREFIX . "RITUAL rit,
@@ -2016,7 +2019,7 @@ function vtm_save_freebies($characterID, $templateID) {
 				$detail     = isset($pending_detail[$type][$itemname]) ? $pending_detail[$type][$itemname] : '';
 				if (isset($specialisation[$type][$itemname]) && $specialisation[$type][$itemname] != '')
 					$spec = $specialisation[$type][$itemname];
-				elseif (isset($current[$type][$key]->specialisation))
+				elseif (isset($current[$type][$key]->specialisation) && $current[$type][$key]->specialisation != '')
 					$spec =  $current[$type][$key]->specialisation;
 				elseif (isset($templatefree[$itemname]->SPECIALISATION)) 
 					$spec = $templatefree[$itemname]->SPECIALISATION;
@@ -2668,7 +2671,7 @@ function vtm_save_virtues($characterID, $templateID) {
 	} 
 	else {
 		// insert
-		print_r($data);
+		//print_r($data);
 		$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_STAT",
 					$data,
 					array ('%d', '%d', '%d')
@@ -3559,22 +3562,37 @@ function vtm_render_dot_select($type, $itemid, $current, $pending, $free, $max, 
 
 }
 
-function vtm_render_pst_select($name, $selected, $submitted) {
+function vtm_render_pst_select($name, $info ) {
+
+	$selected = isset($info['pst'][$name])     ? $info['pst'][$name]     : 0;
+	$target   = isset($info['correct'][$name]) ? $info['correct'][$name] : 0;
+	$actual   = isset($info['totals'][$name])  ? $info['totals'][$name]  : 0;
 
 	$pst = "Primary/Secondary/Tertiary";
 	switch ($selected) {
 		case 1: 
-			$pst = "Primary\n"; 
+			$pst = "Primary"; 
 			break;
 		case 2: 
-			$pst = "Secondary\n"; 
+			$pst = "Secondary"; 
 			break;
 		case 3: 
-			$pst = "Tertiary\n"; 
+			$pst = "Tertiary"; 
 			break;
 		default:
 			$selected = -1;
 	}
+	
+	$spent = array();
+	if ($selected > 0) {
+		if ($actual > 0 && $actual != $target) {
+			$pst .= " (spent $actual, target $target)";
+		}
+	} 
+	elseif ($actual > 0) {
+		$pst .= " (spent $actual)";
+	}
+	
 	//$output = "<strong>$pst</strong><input name='$name' type='hidden' value='$selected' />\n";
 	$output = "<strong>$pst</strong>\n";
 	
@@ -3582,17 +3600,15 @@ function vtm_render_pst_select($name, $selected, $submitted) {
 }
 
 function vtm_get_pst($saved, $posted, $items, $pdots, $sdots, $tdots, $freedot,
-	$grouplist = array()) {
+	$templatefree = array()) {
 
 	$grouptotals = array();
-	//print_r($posted);
+	//print_r($templatefree);
 	
 	// Get all the groups
 	// "physical" => 1
-	if (count($grouplist) == 0) {
-		foreach  ($items as $item) {
-			$grouplist[sanitize_key($item->grp)] = 1;
-		}
+	foreach  ($items as $item) {
+		$grouplist[sanitize_key($item->grp)] = 1;
 	}
 	//print_r($grouplist);
 	
@@ -3612,12 +3628,14 @@ function vtm_get_pst($saved, $posted, $items, $pdots, $sdots, $tdots, $freedot,
 		else
 			$level = 0;
 			
+		$freelevel = isset($templatefree[$key]->LEVEL) ? $templatefree[$key]->LEVEL : 0;
+			
 		//echo "<li>key: $key, grp: $grp, level: $level</li>";
 		if ($level > 0  && isset($grouplist[$grp])) {
 			if (isset($grouptotals[$grp]))
-				$grouptotals[$grp] += max(0,$level - $freedot);
+				$grouptotals[$grp] += max(0,$level - $freedot - $freelevel);
 			elseif ($level > 0)
-				$grouptotals[$grp] = max(0,$level - $freedot);
+				$grouptotals[$grp] = max(0,$level - $freedot - $freelevel);
 		}
 	}
 	//print_r($grouptotals);
@@ -3657,10 +3675,21 @@ function vtm_get_pst($saved, $posted, $items, $pdots, $sdots, $tdots, $freedot,
 			}
 		}
 	}
+	
 	//print_r($groupselected);
+	$correct = array();
+	foreach ($groupselected as $grp => $pst) {
+		if ($pst == 1) $correct[$grp] = $pdots;
+		if ($pst == 2) $correct[$grp] = $sdots;
+		if ($pst == 3) $correct[$grp] = $tdots;
+	}
+	
+	$out['pst']     = $groupselected;
+	$out['totals']  = $grouptotals;
+	$out['correct'] = $correct;
 	
 	//return array($groupselected, $grouptotals, array_keys($grouplist));
-	return $groupselected;
+	return $out;
 }
 
 function vtm_render_freebie_stats($characterID, $submitted) {
