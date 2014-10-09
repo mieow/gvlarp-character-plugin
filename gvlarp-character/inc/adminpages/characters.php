@@ -2037,7 +2037,7 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 			}
 		}
 		if ($failed) {
-			"<p style='color:red'>Failed when trying to add the experience point spends to the character</p>";
+			echo "<p style='color:red'>Failed when trying to add the experience point spends to the character</p>";
 			return;
 		}
 
@@ -2107,7 +2107,7 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 			}
 		}
 		if ($failed) {
-			"<p style='color:red'>Failed when trying to add the freebie point spends to the character</p>";
+			echo "<p style='color:red'>Failed when trying to add the freebie point spends to the character</p>";
 			return;
 		}
 		
