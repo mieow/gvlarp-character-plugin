@@ -178,7 +178,8 @@ function vtm_get_chargen_content() {
 	$laststep    = isset($_POST['step']) ? $_POST['step'] : 0;
 	$progress    = isset($_POST['progress']) ? $_POST['progress'] : array('0' => 1);
 	$templateID  = vtm_get_templateid($characterID);
-	
+	$emailconfirm = isset($_GET['confirm']);
+		
 	if ($characterID == -1) {
 		$output .= "<div class='gvxp_error'><p>Invalid Reference</p>";
 		if (isset($_POST['chargen_reference']) && $_POST['chargen_reference'] != '') {
@@ -196,6 +197,22 @@ function vtm_get_chargen_content() {
 		$sql = $wpdb->prepare("SELECT cgs.NAME FROM " . VTM_TABLE_PREFIX . "CHARACTER c, " . VTM_TABLE_PREFIX . "CHARGEN_STATUS cgs WHERE c.ID = %s AND c.CHARGEN_STATUS_ID = cgs.ID",$characterID);
 		//echo "<p>SQL: $sql</p>\n";
 		$chargenstatus = $wpdb->get_var($sql);
+		
+		if ($emailconfirm) {
+			$split = explode("/",$_GET['reference']);
+			$chid = $split[0] * 1;
+			$result = $wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_GENERATION",
+					array('EMAIL_CONFIRMED' => 'Y'),
+					array('CHARACTER_ID' => $chid)
+				);
+		
+			if ($result) 
+				echo "<p style='color:green'>Email address confirmed</p>\n";
+			else if ($result !== 0) {
+				$wpdb->print_error();
+				echo "<p style='color:red'>Could not confirm email address</p>\n";
+			}
+		}
 	}
 	
 	if ($step > 0 && isset($chargenstatus)) {
@@ -350,19 +367,27 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 					characters.NATURE_ID,
 					characters.DEMEANOUR_ID,
 					characters.CONCEPT,
-					characters.SECT_ID
+					characters.SECT_ID,
+					chargen.EMAIL_CONFIRMED
 				FROM
-					" . VTM_TABLE_PREFIX . "CHARACTER characters,
+					" . VTM_TABLE_PREFIX . "CHARACTER characters
+					LEFT JOIN (
+						SELECT EMAIL_CONFIRMED, CHARACTER_ID
+						FROM " . VTM_TABLE_PREFIX . "CHARACTER_GENERATION
+						WHERE CHARACTER_ID = %s
+					) chargen
+					ON chargen.CHARACTER_ID = characters.ID,
 					" . VTM_TABLE_PREFIX . "PLAYER players
 				WHERE
 					characters.PLAYER_ID = players.ID
 					AND characters.ID = %s";
-		$sql = $wpdb->prepare($sql, $characterID);
+		$sql = $wpdb->prepare($sql, $characterID, $characterID);
 		//echo "SQL: $sql<br />\n";
 		$result = $wpdb->get_row($sql);
 		//print_r($result);
 		
 		$email      = $result->EMAIL;
+		$confirmed  = $result->EMAIL_CONFIRMED;
 		$login      = $result->WORDPRESS_ID;
 		$playerid   = $result->PLAYER_ID;
 		$sectid     = $result->SECT_ID;
@@ -392,10 +417,11 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 		$natureid    = isset($_POST['nature'])    ? $_POST['nature']    : 0;
 		$demeanourid = isset($_POST['demeanour']) ? $_POST['demeanour'] : 0;
 		$playerset   = 0;
+		$confirmed   = 'N';
 		
 		if (isset($_POST['sect']))
 			$sectid = $_POST['sect'];
-		elseif ($setttings['limit-sect-method'] == 'only')
+		elseif ($settings['limit-sect-method'] == 'only')
 			$sectid = $setttings['limit-sect-id'];
 		else
 			$sectid = $config->HOME_SECT_ID;
@@ -541,6 +567,12 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 		$output .= $email;
 	else
 		$output .= "<input type='text' name='email' value='$email'>\n";
+	if ($confirmed == 'Y') {
+		$output .= "(confirmed)";
+	} 
+	elseif ($characterID > 0) {
+		$output .= "<input type='submit' name='chargen-resend-email' class='' value='Resend confirmation email' />";
+	}
 	$output .= "</td></tr>
 		<tr>
 			<th class='gvthleft'>Concept*:</th>
@@ -2966,6 +2998,12 @@ function vtm_save_basic_info($characterID, $templateID) {
 		
 	}
 	
+	// Resend the character confirmation email if the button was pressed
+	if (isset($_POST['chargen-resend-email'])) {
+		vtm_email_new_character($_POST['email'], $characterID, $playerid, 
+				$_POST['character'], $_POST['priv_clan'], $_POST['player'], $_POST['concept'], $template);
+	}
+	
 	return $characterID;
 } 
 
@@ -3184,6 +3222,7 @@ function vtm_email_new_character($email, $characterID, $playerid, $name, $clanid
 	$toname = get_option( 'vtm_chargen_email_from_name', 'The Storytellers');
 	$toaddr = get_option( 'vtm_chargen_email_from_address', get_bloginfo('admin_email') );
 	$url = add_query_arg('reference', $ref, vtm_get_stlink_url('viewCharGen', true));
+	$url = add_query_arg('confirm', true, $url);
 	$player = stripslashes($player);
 	
 	$subject   = "$tag New Character Created: $name";
@@ -3202,7 +3241,7 @@ Your new character has been created:
 	
 " . stripslashes($concept) . "
 	
-You can return to character generation by following this link: $url";
+Click this link to confirm your email address and to return to character generation: $url";
 	
 	//echo "<pre>$userbody</pre>\n";
 	
@@ -4859,6 +4898,7 @@ function vtm_validate_basic_info($settings, $characterID, $templateID, $usepost 
 	//		- error: login name doesn't already exist (except if it's the currently logged in acct)
 	//		- error: email address is not blank and looks valid
 	//		- error: concept is not blank
+	//		- error: email address not confirmed
 	
 	if (!$usepost) {
 	
@@ -4998,6 +5038,15 @@ function vtm_validate_basic_info($settings, $characterID, $templateID, $usepost 
 
 	if ($currentclanid != $postclanid && $postclanid != 0 && $discspends > 0) {
 		$errormessages .= "<li>WARNING: All spends on Disciplines will be deleted due to the change in Clan</li>\n";
+	}
+	
+	// Email address must be confirmed
+	$confirm = $wpdb->get_var($wpdb->prepare("SELECT EMAIL_CONFIRMED FROM " . VTM_TABLE_PREFIX . "CHARACTER_GENERATION
+		WHERE CHARACTER_ID = %s", $characterID));
+	if ($confirm !== 'Y') {
+		$complete = 0;
+		$errormessages .= "<li>WARNING: You must confirm your email address by clicking the link that was emailed to you before
+							your character can be submitted</li>";
 	}
 						
 	return array($ok, $errormessages, $complete);
