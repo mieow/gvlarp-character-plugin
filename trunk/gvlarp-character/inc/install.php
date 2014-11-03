@@ -6,7 +6,7 @@ register_activation_hook( __FILE__, 'vtm_character_install_data' );
 global $vtm_character_version;
 global $vtm_character_db_version;
 $vtm_character_version = "1.11"; 
-$vtm_character_db_version = "34"; 
+$vtm_character_db_version = "35"; 
 
 function vtm_update_db_check() {
     global $vtm_character_version;
@@ -912,6 +912,7 @@ function vtm_character_install() {
 					NOTE_FROM_ST          TEXT   		NOT NULL,
 					WORDPRESS_ID          VARCHAR(32)	NOT NULL,
 					DATE_OF_APPROVAL	  DATE			NOT NULL,
+					EMAIL_CONFIRMED	  	  VARCHAR(1)	NOT NULL,
 					PRIMARY KEY  (ID),
 					CONSTRAINT `" . $table_prefix . "char_gen_constraint_1` FOREIGN KEY (CHARACTER_ID)  REFERENCES " . $table_prefix . "CHARACTER(ID)
 					) ENGINE=INNODB;";
