@@ -34,6 +34,9 @@ function vtm_character_reports () {
 		case 'activity_report':
 			vtm_render_report(new vtmclass_report_activity());
 			break;
+		case 'sector_report':
+			vtm_render_report(new vtmclass_report_sector());
+			break;
 	
 	}
 	
@@ -70,6 +73,10 @@ function vtm_render_select_report($report) {
 	echo "<option value='sect_report' ";
 	selected($report,'sect_report');
 	echo ">Sect List</option>\n";
+
+	echo "<option value='sector_report' ";
+	selected($report,'sector_report');
+	echo ">Sectors & Backgrounds</option>\n";
 
 	echo "<option value='activity_report' ";
 	selected($report,'activity_report');

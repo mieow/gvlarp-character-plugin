@@ -863,4 +863,144 @@ class vtmclass_report_activity extends vtmclass_Report_ListTable {
 	}
 }
 
+class vtmclass_report_sector extends vtmclass_Report_ListTable {
+
+    function column_default($item, $column_name){
+        switch($column_name){
+            case 'PLAYERNAME':
+                return stripslashes($item->$column_name);
+            case 'CHARACTERNAME':
+                return stripslashes($item->$column_name);
+            case 'BACKGROUND':
+                return stripslashes($item->$column_name);
+            case 'SECTOR':
+                return stripslashes($item->$column_name);
+            case 'COMMENT':
+                return stripslashes($item->$column_name);
+            case 'LEVEL':
+                return $item->$column_name;
+           default:
+                return print_r($item,true); 
+        }
+    }
+
+    function get_columns(){
+        $columns = array(
+            'PLAYERNAME'    => 'Player',
+            'CHARACTERNAME' => 'Character',
+            'BACKGROUND'  => 'Background',
+            'SECTOR'      => 'Sector',
+            'COMMENT'     => 'Comment',
+            'LEVEL'       => 'Level',
+        );
+        return $columns;
+	}
+		
+   function get_sortable_columns() {
+        $sortable_columns = array(
+            'CHARACTERNAME' => array('CHARACTERNAME',true),
+            'PLAYERNAME'    => array('PLAYERNAME',false),
+            'BACKGROUND'  => array('BACKGROUND',false),
+            'SECTOR'  => array('SECTOR',false)
+        );
+        return $sortable_columns;
+    }
+	function extra_tablenav($which) {	
+		if ($which == 'top')  {
+			echo "<div class='gvfilter'>";
+			
+			echo "<span>Background: </span>";
+			echo "<select name='bgfilter'>\n";
+			echo '<option value="all">All</option>';
+			foreach (vtm_get_backgrounds() as $background) {
+				echo '<option value="' . $background->ID . '" ';
+				selected( $this->active_filter_background, $background->ID );
+				echo '>' . $background->NAME , '</option>';
+			}
+			echo '</select>';
+
+			$this->filter_tablenav();
+		
+			echo "</div>";
+		}
+	}
+
+	function prepare_items() {
+        global $wpdb; 
+        
+        $columns  = $this->get_columns();
+        $hidden   = array();
+        $sortable = $this->get_sortable_columns();
+
+		/* filters */
+		$this->load_filters();
+		if ( isset( $_REQUEST['bgfilter'] )) {
+			$this->active_filter_background = sanitize_key( $_REQUEST['bgfilter'] );
+		} else {
+			$this->active_filter_background = 'all';
+		}
+
+		$filterinfo = $this->get_filter_sql();
+		$args = array();
+		if (isset($this->active_filter_background) && $this->active_filter_background != 'all') {
+			$bgfilter = " AND cbg.BACKGROUND_ID = %s";
+			$args = array($this->active_filter_background);
+		} else {
+			$bgfilter = "";
+		}
+		$args = array_merge($args, $filterinfo[1]);
+		
+		$sql = "SELECT characters.NAME as CHARACTERNAME, players.NAME as PLAYERNAME,
+					bg.NAME as BACKGROUND, sectors.NAME as SECTOR,
+					cbg.COMMENT as COMMENT, cbg.LEVEL as LEVEL
+				FROM
+					" . VTM_TABLE_PREFIX . "CHARACTER characters,
+					" . VTM_TABLE_PREFIX . "PLAYER players,
+					" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND cbg
+					LEFT JOIN (
+						SELECT ID, NAME
+						FROM " . VTM_TABLE_PREFIX . "SECTOR
+					) sectors
+					ON sectors.ID = cbg.SECTOR_ID
+					,
+					" . VTM_TABLE_PREFIX . "BACKGROUND bg
+				WHERE
+					characters.PLAYER_ID = players.ID
+					AND cbg.CHARACTER_ID = characters.ID
+					AND cbg.BACKGROUND_ID = bg.ID
+					$bgfilter ";
+					
+		$sql .= $filterinfo[0];
+		
+		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']))
+			$sql .= " ORDER BY {$_REQUEST['orderby']} {$_REQUEST['order']}";
+		else
+			$sql .= " ORDER BY CHARACTERNAME ASC";
+
+		$this->_column_headers = array($columns, $hidden, $sortable);
+        $this->process_bulk_action();
+		
+		/* run query */
+		$sql = $wpdb->prepare($sql,$args);
+		//echo "<p>SQL: $sql (";
+		//print_r($filterinfo[1]);
+		//echo ")</p>";
+		$data = $wpdb->get_results($sql);
+ 		
+        $current_page = $this->get_pagenum();
+        $total_items = count($data);
+
+        $this->items = $data;
+		
+		$this->output_report("Sector and Background", 'P');
+		$this->output_csv();
+        
+        $this->set_pagination_args( array(
+            'total_items' => $total_items,                  
+            'per_page'    => $total_items,                  
+            'total_pages' => 1
+        ) );
+	}
+}
+
 ?>
