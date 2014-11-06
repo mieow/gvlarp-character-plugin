@@ -110,7 +110,7 @@ function vtm_render_meritflaw_add_form($type, $addaction) {
 	/* echo "<p>Creating $type form based on action $addaction</p>"; */
 
 	if ('fix-' . $type == $addaction) {
-		$id = $_REQUEST['merit'];
+		$id = isset($_REQUEST['merit']) ? $_REQUEST['merit'] : 0;
 		$name = $_REQUEST[$type . '_name'];
 		$group = $_REQUEST[$type . '_group'];
 		$bookid = $_REQUEST[$type . '_sourcebook'];
@@ -490,6 +490,7 @@ function vtm_render_book_add_form($addaction) {
 
 
 function vtm_merit_input_validation($type) {
+	global $wpdb;
 
 	$doaction = '';
 
@@ -500,6 +501,17 @@ function vtm_merit_input_validation($type) {
 	
 	
 	if (!empty($_REQUEST[$type . '_name'])){
+	
+		if ($_REQUEST['action'] == 'add') {
+			$sql = $wpdb->prepare("SELECT ID FROM " . VTM_TABLE_PREFIX. "MERIT
+				WHERE NAME = %s", $_REQUEST[$type . '_name']);
+			$match = $wpdb->get_var($sql);
+			//echo "<p>Result: $match, SQL: $sql</p>";
+			if (isset($match) && $match > 0) {
+				$doaction = "fix-$type";
+				echo "<p style='color:red'>ERROR: {$_REQUEST[$type . '_name']} already exists</p>";
+			}
+		}
 
 		$doaction = $_REQUEST['action'] . "-" . $type;
 		
