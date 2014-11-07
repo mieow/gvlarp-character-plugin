@@ -728,7 +728,7 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 							$rowoutput .= "/>\n";
 							$rowoutput .= "<label for='$cbid'>" . $namehtml . " ($cost)</label>\n";
 						}
-						$rowoutput .= "</span></td></tr>\n";
+						$rowoutput .= "</td></tr>\n";
 					
 					} else {
 						//dots row
@@ -932,7 +932,7 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 						$rowoutput .= "/>\n";
 						$rowoutput .= "<label for='$cbid'>" . $namehtml . " ($meritlevel) - $meritcost XP</label>\n";
 					}
-					$rowoutput .= "</span></td></tr>\n";
+					$rowoutput .= "</td></tr>\n";
 				} 
 				elseif ($postvariable == 'xp_ritual') {
 					$cbid = "cb_{$j}_{$key}";
@@ -957,7 +957,7 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 						$rowoutput .= "/>\n";
 						$rowoutput .= "<label for='$cbid'>" . $namehtml . " (level $rituallevel) - $ritualcost XP</label>\n";
 					}
-					$rowoutput .= "</span></td></tr>\n";
+					$rowoutput .= "</td></tr>\n";
 				}
 				else {
 					//dots row
@@ -1058,7 +1058,7 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 		
 		if ($postvariable == 'ritual_value') {
 			$id = "id$key";
-			$output .= "<tr><td $class class=\"gvcol_key\">";
+			$output .= "<tr><td $class>";
 			if (isset($pendingxp[$key])) {
 				$freebiedoturl = plugins_url( 'gvlarp-character/images/cg_freebiedot.jpg' );
 				$output .= "<img src='$freebiedoturl' alt='*' />";
@@ -1066,9 +1066,9 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 			else
 				$output .= "<input id='$id' name='ritual_value[$key]' type='checkbox' " . checked( $item->level, $level, false) . " value='{$item->level}'>";
 			$output .= "<label for='$id'>Level {$item->level} - " . stripslashes($item->name) . "</label>";
-			$output .= "</td>\n";
+			//$output .= "</td>\n";
 		} else {
-			$output .= "<tr><td $class class=\"gvcol_key\">" . stripslashes($item->name) . "</td>\n";
+			$output .= "<tr><td $class>" . stripslashes($item->name) . "</td>\n";
 			$output .= "<td $class>";
 			
 			$pending = isset($pendingfb[$key]->value) ? $pendingfb[$key]->value : 0 ;         // level bought with freebies
@@ -4875,7 +4875,7 @@ function vtm_render_chargen_xp_rituals($characterID, $submitted) {
 		$pendingxp, 'xp_ritual', 1, $submitted, $fbcosts);
 	
 	if ($rowoutput != "")
-		$output .= "<table id='merit_xp_table'>$rowoutput</table>\n";
+		$output .= "<table id='ritual_xp_table'>$rowoutput</table>\n";
 
 	return $output;
 
