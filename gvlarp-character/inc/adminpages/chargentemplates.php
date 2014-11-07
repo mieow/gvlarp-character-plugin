@@ -529,19 +529,19 @@ function vtm_render_template_data(){
 			foreach ($backgrounds as $item) {
 				print "<option value='{$item->ID}'>" . stripslashes($item->NAME) . "</option>\n";
 			}
-			print "</select</td>\n";
+			print "</select></td>\n";
 			print "<td><select name='item_sector[$i]'>\n";
 			print "<option value='0'>[None]</option>\n";
 			foreach ($sectors as $item) {
 				print "<option value='{$item->ID}'>" . stripslashes($item->NAME) . "</option>\n";
 			}
-			print "</select</td>\n";
+			print "</select></td>\n";
 			print "<td><input type='text' name='item_spec[$i]' value=''></td>\n";
 			print "<td><select name='item_level[$i]'>\n";
 			for ($j = 0 ; $j <= 5 ; $j++) {
 				print "<option value='$j'>$j</option>\n";
 			}
-			print "</select</td>\n";
+			print "</select></td>\n";
 			print "<td><input type='hidden' name='item_delete[$i]' value='off'></td>\n";
 			print "</tr>\n";
 		}
@@ -552,7 +552,7 @@ function vtm_render_template_data(){
 	<h5>Abilities</h5>
 	<table>
 	<tr class="template_default_row">
-		<th>Ability</th><th>Speciality</th><th>Level</th>
+		<th>Ability</th><th>Speciality</th><th>Level</th><th>Delete</th>
 	</tr>
 	<?php 
 		$skills = vtm_listSkills("", "Y");
@@ -599,13 +599,13 @@ function vtm_render_template_data(){
 			foreach ($skills as $item) {
 				print "<option value='{$item->id}'>" . stripslashes($item->name) . "</option>\n";
 			}
-			print "</select</td>\n";
+			print "</select></td>\n";
 			print "<td><input type='text' name='item_spec[$i]' value=''></td>\n";
 			print "<td><select name='item_level[$i]'>\n";
 			for ($j = 0 ; $j <= 5 ; $j++) {
 				print "<option value='$j'>$j</option>\n";
 			}
-			print "</select</td>\n";
+			print "</select></td>\n";
 			print "<td><input type='hidden' name='item_delete[$i]' value='off'>
 				<input type='hidden' name='item_sector[$i]' value='0'></td>\n";
 			print "</tr>\n";
@@ -617,7 +617,6 @@ function vtm_render_template_data(){
 	</div>	
 	
 	<br />	
-	</table>
 	<input type="submit" name="do_save_<?php print $type; ?>" class="button-primary" value="Save" />
 	<input type="submit" name="do_new_<?php print $type; ?>" class="button-primary" value="New" />
 	<input type="submit" name="do_delete_<?php print $type; ?>" class="button-primary" value="Delete" />
