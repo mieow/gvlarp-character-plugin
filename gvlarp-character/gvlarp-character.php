@@ -1,10 +1,10 @@
 <?php
-    /*  Plugin Name: GVLarp Character Plugin
-        Plugin URI: http://www.gvlarp.com/character-plugin
-        Description: Management of Characters and Players for Vampire-the Masquerade
+    /*  Plugin Name: Vampire:the Masquerade Character Plugin
+        Plugin URI: http://plugin.gvlarp.com
+        Description: Management of Characters and Players for Vampire:the Masquerade
         Author: Lambert Behnke & Jane Houston
-        Version: 1.10
-        Author URI: http://www.gvlarp.com
+        Version: 1.11
+        Author URI: http://www.mieow.co.uk
     */
 
     /*  Copyright 2014 Lambert Behnke and Jane Houston
@@ -84,6 +84,25 @@
 					  be added to database. Conscience/instinct/etc pull-down boxes only go to 5, and not to the 
 					  generational maximum. For login Widget: Removed download DT link, Pick up page URLs from 
 					  database and Checkbox to set which links to show
+		Version 1.11.0	Characters can now be added if there is an apostrophe in the Player name. Column ‘office’ 
+					  added to backgrounds shortcode output. XP costs are listed on the spend page for the things
+					  you can’t afford yet. You can update your email address from the Profile page. Disciplines 
+					  and Magik paths are now displayed if you already have them. Willpower changes are not 
+					  recorded for characters when the actual change is 0. Paths of Enlightenment can be bought 
+					  with freebie points at character generation. V20 rules for whether you get free dots in 
+					  virtues are now supported in the templates. Descriptions will display when you hover over
+					  Merits/Flaws/skills/etc for freebie and XP spends. Rituals can be bought at character 
+					  generation. 7th generation characters and lower are now supported. Confirm your email 
+					  address by clicking on the link emailed out. free background and abilities can be 
+					  automatically added at character generation (e.g. status 1). Don’t need to set 
+					  Primary/Secondary/Tertiary for Abilities and Attributes any more – they are automatically 
+					  worked out. Character Generation Templates can be set to include/limit specific Sects. 
+					  Character Generation Templates can be set to include/limit specific Paths of Enlightenment.
+					  Only active players are listed on the pull-down on the Edit characters page. Added a report 
+					  for showing background with sectors for characters. Path Changes admin page has added 
+					  filters at the top of the page. Can’t now save merits/flaws if there is another with the 
+					  same name. Fixed issue where decimal number wasn’t accepted in lat/long boxes in Google map 
+					  config settings.
 
         Comments:
 
@@ -92,17 +111,10 @@
     /*
         DB Changes: 
 		
-		Version 1.9.10
-			Table CLAN,					Added column WORDPRESS_ROLE
-			Table CHARACTER,			Added column CHARGEN_STATUS_ID
-			Table CHARACTER,			Added column CONCEPT
-			Table CHARACTER,			Added column EMAIL
-			Added CHARGEN_TEMPLATE Table
-			Added CHARGEN_STATUS Table
-			Added CHARGEN_TEMPLATE_OPTIONS Table
-			Added PENDING_FREEBIE_SPEND Table
-			Added CHARACTER_GENERATION Table
-			
+		Version 1.11.35
+			Added CHARGEN_TEMPLATE_DEFAULTS Table
+			Table ROAD_OR_PATH			Added column COST_MODEL_ID
+				
          */
 global $wpdb;
 
