@@ -315,7 +315,7 @@ function vtm_character_config() {
 		<table>
 		<tr>
 			<td><label>User must be logged in: </label></td>
-			<td><input type="checkbox" name="vtm_chargen_mustbeloggedin" value="1" <?php checked( '1', get_option( 'vtm_chargen_mustbeloggedin' ) ); ?> /></td>
+			<td><input type="checkbox" name="vtm_chargen_mustbeloggedin" value="1" <?php checked( '1', get_option( 'vtm_chargen_mustbeloggedin', '0' ) ); ?> /></td>
 		</tr>
 		<tr>
 			<td><label>Tag to add to the start of notification email subject: </label></td>
