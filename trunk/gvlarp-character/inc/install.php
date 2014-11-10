@@ -475,7 +475,7 @@ function vtm_character_install() {
 					PRIMARY KEY  (ID),
 					CONSTRAINT `" . $table_prefix . "road_constraint_1` FOREIGN KEY (STAT1_ID) REFERENCES " . $table_prefix . "STAT(ID),
 					CONSTRAINT `" . $table_prefix . "road_constraint_2` FOREIGN KEY (STAT2_ID) REFERENCES " . $table_prefix . "STAT(ID),
-					CONSTRAINT `" . $table_prefix . "road_constraint_3` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID)
+					CONSTRAINT `" . $table_prefix . "road_constraint_3` FOREIGN KEY (SOURCE_BOOK_ID) REFERENCES " . $table_prefix . "SOURCE_BOOK(ID),
 					CONSTRAINT `" . $table_prefix . "road_constraint_4` FOREIGN KEY (COST_MODEL_ID)  REFERENCES " . $table_prefix . "COST_MODEL(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
@@ -566,6 +566,7 @@ function vtm_character_install() {
 		// LEVEL 4 TABLES - TABLES WITH A FOREIGN KEY CONSTRAINT TO A LEVEL 3 TABLE
 
 		$current_table_name = $table_prefix . "CHARACTER";
+		//echo "<p>Setting up $current_table_name</p>";
 		$sql = "CREATE TABLE " . $current_table_name . " (
 					ID                        MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
 					NAME                      VARCHAR(60)   NOT NULL,
