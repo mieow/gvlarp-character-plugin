@@ -78,7 +78,7 @@ function vtm_print_background_shortcode($atts, $content = null) {
 		"domain"     => "home",
 		"liststatus" => "Alive",
 		"level"      => "all",
-		"columns"    => "level,character,player,clan,domain,background,sector,offices,comment,level",
+		"columns"    => "level,character,player,clan,domain,background,sector,office,comment,level",
 		"heading"    => 1
 		), $atts)
 	);
@@ -305,7 +305,7 @@ function vtm_print_background_shortcode($atts, $content = null) {
 				if ($name == 'comment')   $output .= "<th>Comment</th>";
 				if ($name == 'sector')   $output .= "<th>Sector</th>";
 				if ($name == 'level')  $output .= "<th>Level</th>";
-				if ($name == 'offices')   $output .= "<th>Office</th>";
+				if ($name == 'office')   $output .= "<th>Office</th>";
 			}
 			$output .= "</tr>\n";
 		}
@@ -315,16 +315,16 @@ function vtm_print_background_shortcode($atts, $content = null) {
 			$output .= "<tr>";
 			foreach ($columnlist as $name) {
 				if ($name == 'character') $output .= "<td class='gvcol_$col gvcol_key'>" . vtm_get_profilelink($tablerow->wordpress_id, $tablerow->charname) . "</td>";
-				if ($name == 'player') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->playername}</td>";
+				if ($name == 'player') $output .= "<td class='gvcol_$col gvcol_val'>" . stripslashes($tablerow->playername) . "</td>";
 				if ($name == 'clan')   $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->publicclan}</td>";
 				if ($name == 'status') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->cstat}</td>";
-				if ($name == 'domain')  $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->domain}</td>";
+				if ($name == 'domain')  $output .= "<td class='gvcol_$col gvcol_val'>" . stripslashes($tablerow->domain) . "</td>";
 				if ($name == 'background') $output .= "<td class='gvcol_$col gvcol_val'>$background</td>";
-				if ($name == 'comment') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->comment}</td>";
+				if ($name == 'comment') $output .= "<td class='gvcol_$col gvcol_val'>" . stripslashes($tablerow->comment) . "</td>";
 				if ($name == 'sector') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->sectorname}</td>";
 				if ($name == 'level')  $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->level}</td>";
-				if ($name == 'offices') {
-					$text = isset($offices[$tablerow->id]) ? $offices[$tablerow->id] : "";
+				if ($name == 'office') {
+					$text = isset($offices[$tablerow->id]) ? stripslashes($offices[$tablerow->id]) : "";
 					$output .= "<td class='gvcol_$col gvcol_val'>$text</td>";
 				}
 				$col++;
