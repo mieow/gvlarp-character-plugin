@@ -156,7 +156,7 @@ function vtm_chargen_flow_steps($characterID, $templateID) {
 function vtm_chargen_content_filter($content) {
 
 	if (is_page(vtm_get_stlink_page('viewCharGen'))) {
-		$mustbeloggedin = get_option('vtm_chargen_mustbeloggedin', '1') ? true : false;
+		$mustbeloggedin = get_option('vtm_chargen_mustbeloggedin', '0') ? true : false;
 		if (!$mustbeloggedin || (is_user_logged_in() && $mustbeloggedin))
 			$content .= vtm_get_chargen_content();
 		else
@@ -1023,8 +1023,12 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 		if ($isPST) {
 			$info = vtm_get_pst($saved, $posted, $items, $pdots, $sdots, $tdots,
 				$freedot, $templatefree);
-			//print_r($info);
+			print_r($info);
 		}
+	} else {
+		$info['pst']     = array();
+		$info['totals']  = array();
+		$info['correct'] = array();
 	}
 
 	//print_r($items);
@@ -1193,6 +1197,7 @@ function vtm_render_chargen_virtues($step, $characterID, $templateID, $submitted
 	else {
 		$output .= "<select name='path'>\n";
 		foreach (vtm_get_chargen_roads() as $path) {
+		//echo "<p>method: {$settings['limit-road-method']}, id: {$settings['limit-road-id']}, pathid: {$path->ID}</p>";
 			if ($settings['limit-road-method'] != 'exclude' || 
 					($settings['limit-road-method'] == 'exclude' && $settings['limit-road-id'] != $path->ID)) {
 				$output .= "<option value='{$path->ID}' " . selected($path->ID, $selectedpath, false) . ">" . stripslashes($path->NAME) . "</option>\n";
@@ -1359,8 +1364,8 @@ function vtm_render_finishing($step, $characterID, $templateID, $submitted) {
 	
 	// Calculate Generation
 	$generationInfo = vtm_calculate_generation($characterID);
-	$generation   = $generationInfo['ID'];
-	$generationID = $generationInfo['Gen'];
+	$generation   = $generationInfo['Gen'];
+	$generationID = $generationInfo['ID'];
 
 	// Calculate Path
 	$pathid    = $wpdb->get_var($wpdb->prepare("SELECT ROAD_OR_PATH_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
@@ -2194,6 +2199,14 @@ function vtm_save_finish($characterID, $templateID) {
 		),
 		array('%s', '%s', '%s', '%d', '%s')
 	);		
+	if (!$result && $result !== 0) {
+		echo "<p style='color:red'>Failed to save:</p>\n";
+		$wpdb->show_errors();
+		$wpdb->print_error();
+		echo "<pre>";
+		print_r($data);
+		echo "</pre>";
+	}
 	
 	// Save CHARACTER_GENERATION information
 	$data = array (
@@ -3032,7 +3045,7 @@ function vtm_get_chargen_characterID() {
 		
 			// Check that wordpress ID is that of the user that created the character
 			//		Or that the current user is an ST 
-			$mustbeloggedin = get_option('vtm_chargen_mustbeloggedin', '1');
+			$mustbeloggedin = get_option('vtm_chargen_mustbeloggedin', '0');
 			$correctlogin = vtm_get_chargenlogin($id);
 			if (empty($correctlogin)) {
 				$correctid = 0;
@@ -5588,17 +5601,15 @@ function vtm_validate_finishing($settings, $characterID, $templateID, $usepost =
 		}
 	}
 	if ($postsire == '') {
-		$errormessages .= "<li>ERROR: Please enter the name of your sire, or enter 'unknown' if your character does not know.</li>\n";
+		$errormessages .= "<li>WARNING: Please enter the name of your sire, or enter 'unknown' if your character does not know.</li>\n";
 		$complete = 0;
 }
 	if ($postday_dob == 0 || $postmonth_dob == 0 || $postyear_dob == '0000') {
-		$errormessages .= "<li>ERROR: Please enter your character's Date of Birth.</li>\n";
-		$ok = 0;
+		$errormessages .= "<li>WARNING: Please enter your character's Date of Birth.</li>\n";
 		$complete = 0;
 	}
 	if ($postday_doe == 0 || $postmonth_doe == 0 || $postyear_doe == '0000') {
-		$errormessages .= "<li>ERROR: Please enter your character's Date of Embrace.</li>\n";
-		$ok = 0;
+		$errormessages .= "<li>WARNING: Please enter your character's Date of Embrace.</li>\n";
 		$complete = 0;
 	}
 	if ($postyear_dob > date("Y") * 1) {
