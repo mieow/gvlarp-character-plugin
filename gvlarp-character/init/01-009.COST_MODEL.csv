@@ -1,11 +1,11 @@
 ID,NAME,DESCRIPTION
-1,Attribute,Attribute
-2,Skill,Abilities
+1,Attribute,Costs for Attributes
+2,Skill,Costs for Abilities
 3,ClanDiscipline,Costs for Clan Disciplines
-4,Background,Background
-5,Path,Path
-6,Virtue,Virtue
-7,Willpower,Willpower
-8,NonClan,Non-Clan Discipline
-9,Caitiff,Caitiff Discipline
-10,RoadOrPath,Paths of Enlightenment
+4,Background,Costs for Backgrounds
+5,Path,Costs for Paths of Magic
+6,Virtue,Costs for Virtues
+7,Willpower,Costs for Willpower
+8,NonClan,Costs for Non-Clan Disciplines
+9,Caitiff,Costs for Caitiff Disciplines
+10,RoadOrPath,Costs for Paths of Enlightenment
