@@ -114,12 +114,6 @@ function vtm_chargen_flow_steps($characterID, $templateID) {
 				'validate'   => 'vtm_validate_freebies',
 				'save'       => 'vtm_save_freebies'));
 	}			
-	if ($settings['rituals-method'] != 'none' && $rituals > 0) {
-		array_push($buttons,array(	'title' => "Rituals", 
-				'function'   => 'vtm_render_chargen_rituals',
-				'validate'   => 'vtm_validate_rituals',
-				'save'       => 'vtm_save_rituals'));
-	}			
 	if ($xp > 0) {
 		array_push($buttons, array(
 				'title'      => "Spend Experience", 
@@ -127,6 +121,12 @@ function vtm_chargen_flow_steps($characterID, $templateID) {
 				'validate'   => 'vtm_validate_xp',
 				'save'       => 'vtm_save_xp'));
 	}
+	if ($settings['rituals-method'] != 'none' && $rituals > 0) {
+		array_push($buttons,array(	'title' => "Rituals", 
+				'function'   => 'vtm_render_chargen_rituals',
+				'validate'   => 'vtm_validate_rituals',
+				'save'       => 'vtm_save_rituals'));
+	}			
 	
 	array_push($buttons,array(
 				'title'      => "Finishing Touches", 
@@ -422,7 +422,7 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 		if (isset($_POST['sect']))
 			$sectid = $_POST['sect'];
 		elseif ($settings['limit-sect-method'] == 'only')
-			$sectid = $setttings['limit-sect-id'];
+			$sectid = $settings['limit-sect-id'];
 		else
 			$sectid = $config->HOME_SECT_ID;
 		
@@ -3448,21 +3448,86 @@ function vtm_get_chargen_merits($characterID = 0, $output_type = OBJECT) {
 function vtm_get_chargen_rituals($characterID = 0, $output_type = OBJECT) {
 	global $wpdb;
 	
+	// get rituals for disciplines bought with discipline points (and possibly
+	// raised with freebie points and XP) and ones only bought with
+	// freebies and/or XP
 	
-	$sql = "SELECT item.NAME as name, item.ID, item.DESCRIPTION as description, item.LEVEL as level, 
-					disc.NAME as grp, cdisc.LEVEL as discipline_level
+	$sql = "(SELECT item.NAME as name, item.ID, item.DESCRIPTION as description, item.LEVEL as level, 
+					disc.NAME as grp, 
+					IFNULL(xp.CHARTABLE_LEVEL, IFNULL(fb.LEVEL_TO,cdisc.LEVEL)) as discipline_level
 			FROM 
 				" . VTM_TABLE_PREFIX . "RITUAL item,
-				" . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE cdisc,
+				" . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE cdisc
+				LEFT JOIN (
+					SELECT ID, CHARTABLE_ID, LEVEL_TO
+					FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
+					WHERE
+						CHARACTER_ID = %s 
+						AND CHARTABLE = 'CHARACTER_DISCIPLINE'
+				) fb
+				ON
+					fb.CHARTABLE_ID = cdisc.ID
+				LEFT JOIN (
+					SELECT ID, CHARTABLE_ID, CHARTABLE_LEVEL
+					FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
+					WHERE
+						CHARACTER_ID = %s 
+						AND CHARTABLE = 'CHARACTER_DISCIPLINE'
+				) xp
+				ON
+					xp.CHARTABLE_ID = cdisc.ID
+				,
 				" . VTM_TABLE_PREFIX . "DISCIPLINE disc
 			WHERE
 				item.VISIBLE = 'Y'
 				AND item.DISCIPLINE_ID = cdisc.DISCIPLINE_ID
 				AND item.DISCIPLINE_ID = disc.ID
 				AND cdisc.CHARACTER_ID = %s
+				AND item.LEVEL <= IFNULL(xp.CHARTABLE_LEVEL, IFNULL(fb.LEVEL_TO,cdisc.LEVEL))
+			) UNION (
+			SELECT item.NAME as name, item.ID, item.DESCRIPTION as description, item.LEVEL as level, 
+					disc.NAME as grp, 
+					IFNULL(xp.CHARTABLE_LEVEL, fb.LEVEL_TO) as discipline_level
+			FROM 
+				" . VTM_TABLE_PREFIX . "RITUAL item,
+				" . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND fb
+				LEFT JOIN (
+					SELECT ID, ITEMTABLE_ID, CHARTABLE_LEVEL
+					FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
+					WHERE
+						CHARACTER_ID = %s 
+						AND ITEMTABLE = 'DISCIPLINE'
+				) xp
+				ON
+					xp.ITEMTABLE_ID = fb.ITEMTABLE_ID
+				,
+				" . VTM_TABLE_PREFIX . "DISCIPLINE disc
+			WHERE
+				item.VISIBLE = 'Y'
+				AND item.DISCIPLINE_ID = disc.ID
+				AND fb.ITEMTABLE_ID = disc.ID
+				AND fb.ITEMTABLE = 'DISCIPLINE'
+				AND fb.CHARACTER_ID = %s 
+				AND item.LEVEL <= IFNULL(xp.CHARTABLE_LEVEL, fb.LEVEL_TO)
+			) UNION (
+			SELECT item.NAME as name, item.ID, item.DESCRIPTION as description, item.LEVEL as level, 
+					disc.NAME as grp, 
+					xp.CHARTABLE_LEVEL as discipline_level
+			FROM 
+				" . VTM_TABLE_PREFIX . "RITUAL item,
+				" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND xp,
+				" . VTM_TABLE_PREFIX . "DISCIPLINE disc
+			WHERE
+				item.VISIBLE = 'Y'
+				AND item.DISCIPLINE_ID = disc.ID
+				AND xp.ITEMTABLE_ID = disc.ID
+				AND xp.ITEMTABLE = 'DISCIPLINE'
+				AND xp.CHARACTER_ID = %s 
+				AND item.LEVEL <= xp.CHARTABLE_LEVEL
+			)
 			ORDER BY grp, LEVEL, NAME";
 			
-	$sql = $wpdb->prepare($sql, $characterID);
+	$sql = $wpdb->prepare($sql, $characterID, $characterID, $characterID, $characterID, $characterID, $characterID);
 	//echo "<p>SQL: $sql</p>\n";
 	$results = vtm_sanitize_array($wpdb->get_results($sql, $output_type));
 	//print_r($results);
