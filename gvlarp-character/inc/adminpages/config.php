@@ -351,9 +351,9 @@ function vtm_character_config() {
 		<h4>View Character Sheet Graphics</h4>
 		<table>
 			<tr>
-				<td>View Background Colour (#RRGGBB)</td><td><input type="color" name="vtm_view_bgcolour" value="<?php echo get_option('vtm_view_bgcolour'); ?>" /></td>
-				<td>View Dot/Box Colour (#RRGGBB)</td><td><input type="color" name="vtm_view_dotcolour" value="<?php echo get_option('vtm_view_dotcolour'); ?>" /></td>
-				<td>View Dot/Box Line Width (mm)</td><td><input type="text" name="vtm_view_dotlinewidth" value="<?php echo get_option('vtm_view_dotlinewidth'); ?>" size=4 /></td>
+				<td>View Background Colour (#RRGGBB)</td><td><input type="color" name="vtm_view_bgcolour" value="<?php echo get_option('vtm_view_bgcolour', '#000000'); ?>" /></td>
+				<td>View Dot/Box Colour (#RRGGBB)</td><td><input type="color" name="vtm_view_dotcolour" value="<?php echo get_option('vtm_view_dotcolour', '#CCCCCC'); ?>" /></td>
+				<td>View Dot/Box Line Width (mm)</td><td><input type="text" name="vtm_view_dotlinewidth" value="<?php echo get_option('vtm_view_dotlinewidth', '2'); ?>" size=4 /></td>
 				<td >
 					<table><tr>
 					<td><img alt="empty dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/viewemptydot.jpg' ); ?>'></td>
@@ -366,9 +366,9 @@ function vtm_character_config() {
 		<h4>Experience Spend Graphics</h4>
 		<table>
 			<tr>
-				<td>XP Spend Background Colour (#RRGGBB)</td><td><input type="color" name="vtm_xp_bgcolour" value="<?php echo get_option('vtm_xp_bgcolour'); ?>" /></td>
-				<td>XP Spend Dot/Box Colour (#RRGGBB)</td><td><input type="color" name="vtm_xp_dotcolour" value="<?php echo get_option('vtm_xp_dotcolour'); ?>" /></td>
-				<td>XP Spend Dot/Box Line Width (mm)</td><td><input type="text" name="vtm_xp_dotlinewidth" value="<?php echo get_option('vtm_xp_dotlinewidth'); ?>" size=4 /></td>
+				<td>XP Spend Background Colour (#RRGGBB)</td><td><input type="color" name="vtm_xp_bgcolour" value="<?php echo get_option('vtm_xp_bgcolour', '#000000'); ?>" /></td>
+				<td>XP Spend Dot/Box Colour (#RRGGBB)</td><td><input type="color" name="vtm_xp_dotcolour" value="<?php echo get_option('vtm_xp_dotcolour'. '#CCCCCC'); ?>" /></td>
+				<td>XP Spend Dot/Box Line Width (mm)</td><td><input type="text" name="vtm_xp_dotlinewidth" value="<?php echo get_option('vtm_xp_dotlinewidth', '2'); ?>" size=4 /></td>
 				<td ><img alt="xp dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/xpdot.jpg' ); ?>'></td>
 			</tr>
 		</table>
@@ -376,9 +376,9 @@ function vtm_character_config() {
 		<h4>Pending Experience Spend Graphics</h4>
 		<table>
 			<tr>
-				<td>Pending Background Colour (#RRGGBB)</td><td><input type="color" name="vtm_pend_bgcolour" value="<?php echo get_option('vtm_pend_bgcolour'); ?>" /></td>
-				<td>Pending Dot/Box Colour (#RRGGBB)</td><td><input type="color" name="vtm_pend_dotcolour" value="<?php echo get_option('vtm_pend_dotcolour'); ?>" /></td>
-				<td>Pending Dot/Box Line Width (mm)</td><td><input type="text" name="vtm_pend_dotlinewidth" value="<?php echo get_option('vtm_pend_dotlinewidth'); ?>" size=4 /></td>
+				<td>Pending Background Colour (#RRGGBB)</td><td><input type="color" name="vtm_pend_bgcolour" value="<?php echo get_option('vtm_pend_bgcolour', '#000000'); ?>" /></td>
+				<td>Pending Dot/Box Colour (#RRGGBB)</td><td><input type="color" name="vtm_pend_dotcolour" value="<?php echo get_option('vtm_pend_dotcolour', '#BE0406'); ?>" /></td>
+				<td>Pending Dot/Box Line Width (mm)</td><td><input type="text" name="vtm_pend_dotlinewidth" value="<?php echo get_option('vtm_pend_dotlinewidth', '2'); ?>" size=4 /></td>
 				<td ><img alt="pending dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/pendingdot.jpg' ); ?>'></td>
 			</tr>
 		</table>
@@ -386,20 +386,20 @@ function vtm_character_config() {
 		<h4>Character Generation Graphics</h4>
 		<table>
 			<tr>
-				<td>Dot/Box Line Width (mm)</td><td><input type="text" name="vtm_chargen_dotlinewidth" value="<?php echo get_option('vtm_chargen_dotlinewidth'); ?>" size=4 /></td>
-				<td>Background Colour (#RRGGBB)</td><td><input type="color" name="vtm_chargen_bgcolour" value="<?php echo get_option('vtm_chargen_bgcolour'); ?>" /></td>
-				<td>Free Dot colour (#RRGGBB)</td><td><input type="color" name="vtm_chargen_freedot" value="<?php echo get_option('vtm_chargen_freedot'); ?>" /></td>
+				<td>Dot/Box Line Width (mm)</td><td><input type="text" name="vtm_chargen_dotlinewidth" value="<?php echo get_option('vtm_chargen_dotlinewidth', '2'); ?>" size=4 /></td>
+				<td>Background Colour (#RRGGBB)</td><td><input type="color" name="vtm_chargen_bgcolour" value="<?php echo get_option('vtm_chargen_bgcolour', '#000000'); ?>" /></td>
+				<td>Free Dot colour (#RRGGBB)</td><td><input type="color" name="vtm_chargen_freedot" value="<?php echo get_option('vtm_chargen_freedot', '#808080'); ?>" /></td>
 			</tr><tr>
-				<td>Select Dot colour (#RRGGBB)</td><td><input type="color" name="vtm_chargen_selectdot" value="<?php echo get_option('vtm_chargen_selectdot'); ?>" /></td>
-				<td>Freebie Dot colour (#RRGGBB)</td><td><input type="color" name="vtm_chargen_freebie" value="<?php echo get_option('vtm_chargen_freebie'); ?>" /></td>
-				<td>Empty Dot colour (#RRGGBB)</td><td><input type="color" name="vtm_chargen_empty" value="<?php echo get_option('vtm_chargen_empty'); ?>" /></td>
+				<td>Select Dot colour (#RRGGBB)</td><td><input type="color" name="vtm_chargen_selectdot" value="<?php echo get_option('vtm_chargen_selectdot', '#FF0000'); ?>" /></td>
+				<td>Freebie Dot colour (#RRGGBB)</td><td><input type="color" name="vtm_chargen_freebie" value="<?php echo get_option('vtm_chargen_freebie', '#00FF00'); ?>" /></td>
+				<td>Empty Dot colour (#RRGGBB)</td><td><input type="color" name="vtm_chargen_empty" value="<?php echo get_option('vtm_chargen_empty', '#CCCCCC'); ?>" /></td>
 			</tr>
 		</table>
 
 		<h4>PDF Character Sheet Options</h4>
 		<table>
 			<tr>
-				<td>Character Sheet Title</td><td><input type="text" name="vtm_pdf_title" value="<?php echo get_option('vtm_pdf_title'); ?>" size=30 /></td>
+				<td>Character Sheet Title</td><td><input type="text" name="vtm_pdf_title" value="<?php echo get_option('vtm_pdf_title', 'Character Sheet'); ?>" size=30 /></td>
 				<td>Title Font</td><td><select name="vtm_pdf_titlefont">
 					<option value="Arial"     <?php if ('Arial' == get_option('vtm_pdf_titlefont')) echo "selected='selected'"; ?>>Arial</option>
 					<option value="Courier"   <?php if ('Courier' == get_option('vtm_pdf_titlefont')) echo "selected='selected'"; ?>>Courier</option>
@@ -407,18 +407,18 @@ function vtm_character_config() {
 					<option value="Times"     <?php if ('Times' == get_option('vtm_pdf_titlefont')) echo "selected='selected'"; ?>>Times New Roman</option>
 					</select>
 				</td>
-				<td>Title Text Colour (#RRGGBB)</td><td><input type="color" name="vtm_pdf_titlecolour" value="<?php echo get_option('vtm_pdf_titlecolour'); ?>" /></td>
+				<td>Title Text Colour (#RRGGBB)</td><td><input type="color" name="vtm_pdf_titlecolour" value="<?php echo get_option('vtm_pdf_titlecolour', '#000000'); ?>" /></td>
 			</tr>
 			<tr>
-				<td>Divider Line Colour (#RRGGBB)</td><td><input type="color" name="vtm_pdf_divcolour" value="<?php echo get_option('vtm_pdf_divcolour'); ?>" /></td>
-				<td>Divider Text Colour (#RRGGBB)</td><td><input type="color" name="vtm_pdf_divtextcolour" value="<?php echo get_option('vtm_pdf_divtextcolour'); ?>" /></td>
-				<td>Divider Line Width (mm)</td><td><input type="text" name="vtm_pdf_divlinewidth" value="<?php echo get_option('vtm_pdf_divlinewidth'); ?>" size=4 /></td>
+				<td>Divider Line Colour (#RRGGBB)</td><td><input type="color" name="vtm_pdf_divcolour" value="<?php echo get_option('vtm_pdf_divcolour', '#000000'); ?>" /></td>
+				<td>Divider Text Colour (#RRGGBB)</td><td><input type="color" name="vtm_pdf_divtextcolour" value="<?php echo get_option('vtm_pdf_divtextcolour', '#000000'); ?>" /></td>
+				<td>Divider Line Width (mm)</td><td><input type="text" name="vtm_pdf_divlinewidth" value="<?php echo get_option('vtm_pdf_divlinewidth', '1'); ?>" size=4 /></td>
 			</tr>
 			<tr>
 				<td>Character Sheet Footer</td><td><input type="text" name="vtm_pdf_footer" value="<?php echo get_option('vtm_pdf_footer'); ?>" size=30 /></td>
 			<?php if (class_exists('Imagick')) { ?>
-				<td>Dot/Box Colour (#RRGGBB)</td><td><input type="color" name="vtm_pdf_dotcolour" value="<?php echo get_option('vtm_pdf_dotcolour'); ?>" /></td>
-				<td>Dot/Box Line Width (mm)</td><td><input type="text" name="vtm_pdf_dotlinewidth" value="<?php echo get_option('vtm_pdf_dotlinewidth'); ?>" size=4 /></td>
+				<td>Dot/Box Colour (#RRGGBB)</td><td><input type="color" name="vtm_pdf_dotcolour" value="<?php echo get_option('vtm_pdf_dotcolour', '#000000'); ?>" /></td>
+				<td>Dot/Box Line Width (mm)</td><td><input type="text" name="vtm_pdf_dotlinewidth" value="<?php echo get_option('vtm_pdf_dotlinewidth', '1'); ?>" size=4 /></td>
 			</tr>
 			<tr>
 				<td colspan = 6>
@@ -574,8 +574,8 @@ function vtm_character_config() {
 
 			/* PDF Dots */
 			$drawbgcolour = '#FFFFFF';
-			$drawcolour   = get_option('vtm_pdf_dotcolour');
-			$drawborder   = get_option('vtm_pdf_dotlinewidth');
+			$drawcolour   = get_option('vtm_pdf_dotcolour', '#000000');
+			$drawborder   = get_option('vtm_pdf_dotlinewidth', '3');
 			
 			if ($drawcolour == '') $drawcolour = '#000000';
 			if ($drawborder == '') $drawborder = 3;

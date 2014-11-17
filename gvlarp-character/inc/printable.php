@@ -457,14 +457,14 @@ class vtmclass_PDFcsheet extends FPDF
 		global $dividertextcolor; /* RGB */
 		global $dividerlinewidth;
 		
-		$printtitle     = get_option('vtm_pdf_title');
-		$printtitlefont = get_option('vtm_pdf_titlefont');
+		$printtitle     = get_option('vtm_pdf_title', 'Character Sheet');
+		$printtitlefont = get_option('vtm_pdf_titlefont', 'Arial');
 		$footer         = get_option('vtm_pdf_footer');
-		$dividerlinewidth = get_option('vtm_pdf_divlinewidth');
+		$dividerlinewidth = get_option('vtm_pdf_divlinewidth', '1');
 		
-		$printtitlecolour = vtm_hex2rgb(get_option('vtm_pdf_titlecolour'));
-		$dividerlinecolor = vtm_hex2rgb(get_option('vtm_pdf_divcolour'));
-		$dividertextcolor = vtm_hex2rgb(get_option('vtm_pdf_divtextcolour'));
+		$printtitlecolour = vtm_hex2rgb(get_option('vtm_pdf_titlecolour', '#000000'));
+		$dividerlinecolor = vtm_hex2rgb(get_option('vtm_pdf_divcolour', '#000000'));
+		$dividertextcolor = vtm_hex2rgb(get_option('vtm_pdf_divtextcolour', '#000000'));
 	
 	}
 
