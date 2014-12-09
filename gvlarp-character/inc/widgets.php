@@ -413,14 +413,17 @@ function vtm_get_clan_link() {
 			echo $before_widget;
 /*			echo $before_title.'Daily Sunrise/Sunset'.$after_title;	
 */
+			$instance['offset'] = isset($instance['offset']) ? $instance['offset'] : 0;
+			$instance['lat'] = isset($instance['lat']) ? $instance['lat'] : 0;
+			$instance['long'] = isset($instance['long']) ? $instance['long'] : 0;
 			
-			if ($instance['dst']=='on') {
+			if (isset($instance['dst']) && $instance['dst']=='on') {
 				$timeGMT =  gmdate("H:i", time() + 3600*($instance['offset']+1));  //  with Daylight Savings Time
 			}
 			else {
 				$timeGMT =  gmdate("H:i", time() + 3600*$instance['offset']);  //  without Daylight Savings Time
 			}
-				
+			
 			$sunrisetime = date_sunrise(time(), SUNFUNCS_RET_STRING, $instance['lat'], $instance['long'], 90.83, $instance['offset']);
 			$sunsettime = date_sunset(time(), SUNFUNCS_RET_STRING, $instance['lat'], $instance['long'], 90.83, $instance['offset']);
 			$civilstart = date_sunrise(time(), SUNFUNCS_RET_STRING, $instance['lat'], $instance['long'], 96, $instance['offset']);  //  96 replaces $zenith

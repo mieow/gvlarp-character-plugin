@@ -615,6 +615,17 @@ table.feedingmapkey {width:auto;}
     line-height:1.2;
 }
 
+#chargen-main fieldset {
+	padding: 0;
+	margin: 0;
+	border: none;
+}
+#chargen-main fieldset.dotselect label {
+	padding: 0;
+	margin: 0;
+	border: none;
+}
+
 #chargen-main .dotselect > label:active {
     content: url('/wp-content/plugins/gvlarp-character/images/cg_selectdot.jpg');
 }
