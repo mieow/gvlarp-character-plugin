@@ -66,11 +66,11 @@ function vtm_get_profile_content() {
 	// Update display name
 	if (vtm_isST() || $currentCharacter == $character) {
 		$user = get_user_by('login', $character);
-		$displayName = $user->display_name;
-		$userID = $user->ID;
+		$displayName = isset($user->display_name) ? $user->display_name : $mycharacter->name;
+		$userID = isset($user->ID) ? $user->ID : 0;
 	
 		if (isset($_POST['VTM_FORM']) && $_POST['VTM_FORM'] == 'updateDisplayName' && isset($_POST['displayName']) 
-			&& !empty($_POST['displayName']) && $_POST['displayName'] != $displayName) {
+			&& !empty($_POST['displayName']) && $_POST['displayName'] != $displayName && $userID > 0) {
 			
 			$newDisplayName = stripslashes($_POST['displayName']);
 			
@@ -241,8 +241,8 @@ function vtm_get_profile_content() {
 	// change password and display name form
 	if (vtm_isST() || $currentCharacter == $character) {
 		$user = get_user_by('login', $character);
-		$displayName = $user->display_name;
-		$userID = $user->ID;
+		$displayName = isset($user->display_name) ? $user->display_name : $mycharacter->name;
+		$userID = isset($user->ID) ? $user->ID : 0;
 		
 		$output .= "<div class='displayNameForm'><strong>Update Display Name:</strong>";
 		$output .= "<form name=\"DISPLAY_NAME_UPDATE_FORM\" method='post'>";

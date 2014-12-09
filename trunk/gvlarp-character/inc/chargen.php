@@ -1023,7 +1023,7 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 		if ($isPST) {
 			$info = vtm_get_pst($saved, $posted, $items, $pdots, $sdots, $tdots,
 				$freedot, $templatefree);
-			print_r($info);
+			//print_r($info);
 		}
 	} else {
 		$info['pst']     = array();
