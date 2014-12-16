@@ -650,7 +650,14 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 					$loop++; 
 			
 				// Base level from free dots from template
-				$levelfrom = isset($templatefree[$key]->LEVEL) ? $templatefree[$key]->LEVEL : 0;
+				if (isset($templatefree[$key]->LEVEL))
+					$levelfrom = $templatefree[$key]->LEVEL; 
+				elseif (isset($templatefree[$name]->LEVEL) && $j == 1)
+					// special case where there is only 1 free of a multiple skill so the key
+					// was guessed wrongly by vtm_get_free_levels()
+					$levelfrom = $templatefree[$name]->LEVEL; 
+				else
+					$levelfrom = 0;
 			
 				// Over-ridden by level from main table in database
 				$levelfrom = isset($saved[$key]->level_from) ? $saved[$key]->level_from : $levelfrom;
@@ -658,17 +665,23 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 				// Over-ridden by freebie point spends saved
 				$current = isset($pendingfb[$key]) ? $pendingfb[$key]->value : $levelfrom;
 				// Over-ridden by freebie point spends submitted
-				$current = $submitted ? (isset($posted[$key]) ? $posted[$key] : 0) : $current;
+				$current = $submitted ? (isset($posted[$key]) ? $posted[$key] : $levelfrom) : $current;
 				
 				// xp point spends saved
 				$levelxp = isset($pendingxp[$key]) ? $pendingxp[$key]->value : 0;
-				//echo "<li>$key: from: $levelfrom, current: $current, xp: $levelxp</li>\n";
+				
+				// echo "<li>$key: from: $levelfrom, current: $current, xp: $levelxp, saved from: " .
+				// (isset($saved[$key]->level_from) ? $saved[$key]->level_from : "not-set") . ", pendingfb: " .
+				// (isset($pendingfb[$key]->value) ? $pendingfb[$key]->value : "not-set") . ", posted: " .
+				// (isset($posted[$key]) ? $posted[$key] : "not-set") . ", submitted: $submitted</li>\n";
 				
 				// Specialisation
 				if (isset($pendingfb[$key]) && $pendingfb[$key]->specialisation != '')
 					$specialisation = $pendingfb[$key]->specialisation;
 				elseif (isset($templatefree[$key]->SPECIALISATION)) 
 					$specialisation = $templatefree[$key]->SPECIALISATION;
+				elseif (isset($templatefree[$name]->SPECIALISATION) && $j == 1) 
+					$specialisation = $templatefree[$name]->SPECIALISATION;
 				else
 					$specialisation = '';
 				$specialisation = stripslashes($specialisation);
@@ -1242,7 +1255,7 @@ function vtm_render_chargen_freebies($step, $characterID, $templateID, $submitte
 	
 	// Work out how much points are currently available
 	$points = $settings['freebies-points'];
-	$spent = vtm_get_freebies_spent($characterID);
+	$spent = vtm_get_freebies_spent($characterID, $templateID);
 	$remaining = $points - $spent;
 	
 	$output .= "<h3>Step $step: Freebie Points</h3>\n";
@@ -1811,6 +1824,7 @@ function vtm_validate_chargen($laststep, $templateID, $characterID) {
 	$settings = vtm_get_chargen_settings($templateID);
 	$flow = vtm_chargen_flow_steps($characterID, $templateID);
 	
+	
 	if ($laststep == 0) {
 		$ok = 1;
 		$errormessages = "";
@@ -1819,6 +1833,7 @@ function vtm_validate_chargen($laststep, $templateID, $characterID) {
 		$ok = $status[0];
 		$errormessages = $status[1];
 	}
+	//echo "<p>Do Validate ($laststep, $characterID, $ok, $errormessages, {$flow[$laststep-1]['validate']})</p>";
 	
 	if (!$ok)
 		$errormessages .= "<li>Please correct the errors before continuing</li>\n";
@@ -2028,7 +2043,7 @@ function vtm_save_freebies($characterID, $templateID) {
 	
 	foreach ($bought as $type => $items) {
 		foreach ($items as $key => $levelto) {
-			$levelfrom   = isset($templatefree[$key]->LEVEL)         ? $templatefree[$key]->LEVEL         : 0;
+			$levelfrom   = isset($templatefree[$type][$key]->LEVEL)  ? $templatefree[$type][$key]->LEVEL  : 0;
 			$levelfrom   = isset($current[$type][$key]->level_from)  ? $current[$type][$key]->level_from  : $levelfrom;
 			$itemtable = $type;
 			
@@ -2042,6 +2057,8 @@ function vtm_save_freebies($characterID, $templateID) {
 				}
 							
 				$chartableid = isset($current[$type][$key]->chartableid) ? $current[$type][$key]->chartableid : 0;
+				
+				// no cost for free stuff
 				if ($type == 'MERIT')
 					$amount = isset($freebiecosts[$type][$key][0][1]) ? $freebiecosts[$type][$key][0][1] : 0;
 				elseif ($type == 'STAT' && $key == 'pathrating') {
@@ -2063,7 +2080,7 @@ function vtm_save_freebies($characterID, $templateID) {
 				else
 					$spec = '';
 					
-				//echo "<li>itemname: $itemname, key: $key, from level $levelfrom to $levelto, spec: $spec</li>\n";
+				//echo "<li>itemname: $itemname, key: $key, from level $levelfrom to $levelto, spec: $spec, cost: $amount</li>\n";
 				
 				if ($levelto > $levelfrom || $type == 'MERIT') {
 					$data = array (
@@ -4631,7 +4648,7 @@ function vtm_get_current_paths($characterID) {
 	return $items;
 }
 
-function vtm_get_freebies_spent($characterID) {
+function vtm_get_freebies_spent($characterID, $templateID) {
 	global $wpdb;
 
 	$spent = 0;
@@ -4639,7 +4656,7 @@ function vtm_get_freebies_spent($characterID) {
 	if (isset($_POST['freebie_stat'])       || isset($_POST['freebie_skill']) ||
 		isset($_POST['freebie_discipline']) || isset($_POST['freebie_background']) ||
 		isset($_POST['freebie_merit'])      || isset($_POST['freebie_path'])) {
-	
+			
 		$freebiecosts['STAT']       = vtm_get_freebie_costs('STAT', $characterID);
 		$freebiecosts['SKILL']      = vtm_get_freebie_costs('SKILL', $characterID);
 		$freebiecosts['DISCIPLINE'] = vtm_get_freebie_costs('DISCIPLINE', $characterID);
@@ -4709,6 +4726,39 @@ function vtm_get_freebies_spent($characterID) {
 				WHERE CHARACTER_ID = %s";
 		$sql = $wpdb->prepare($sql, $characterID);
 		$spent = $wpdb->get_var($sql) * 1;
+		
+		// // Exclude freebie costs for free skills from template
+		// $sql = "SELECT SUM(cms.FREEBIE_COST)
+				// FROM 
+				// " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_DEFAULTS def,
+				// " . VTM_TABLE_PREFIX . "SKILL sk,
+				// " . VTM_TABLE_PREFIX . "COST_MODEL_STEP cms
+				// WHERE
+					// sk.COST_MODEL_ID = cms.COST_MODEL_ID
+					// AND cms.CURRENT_VALUE = 0
+					// AND cms.NEXT_VALUE = def.LEVEL
+					// AND def.ITEMTABLE = 'SKILL'
+					// AND def.ITEMTABLE_ID = sk.ID 
+					// AND def.TEMPLATE_ID = %s";
+		// $sql = $wpdb->prepare($sql, $templateID);
+		// $spent = $spent - $wpdb->get_var($sql) * 1;
+		
+		// // Exclude freebie costs for free backgrounds from template
+		// $sql = "SELECT SUM(cms.FREEBIE_COST)
+				// FROM 
+				// " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_DEFAULTS def,
+				// " . VTM_TABLE_PREFIX . "BACKGROUND bg,
+				// " . VTM_TABLE_PREFIX . "COST_MODEL_STEP cms
+				// WHERE
+					// bg.COST_MODEL_ID = cms.COST_MODEL_ID
+					// AND cms.CURRENT_VALUE = 0
+					// AND cms.NEXT_VALUE = def.LEVEL
+					// AND def.ITEMTABLE = 'BACKGROUND'
+					// AND def.ITEMTABLE_ID = bg.ID 
+					// AND def.TEMPLATE_ID = %s";
+		// $sql = $wpdb->prepare($sql, $templateID);
+		// $spent = $spent - $wpdb->get_var($sql) * 1;
+
 	}
 
 	return $spent;
@@ -5487,7 +5537,7 @@ function vtm_validate_freebies($settings, $characterID, $templateID, $usepost = 
 	
 	$spent = 0;
 	
-	$spent += vtm_get_freebies_spent($characterID);
+	$spent += vtm_get_freebies_spent($characterID, $templateID);
 	
 	if ($spent == 0) {
 		$errormessages .= "<li>WARNING: You have not spent any dots</li>\n";
@@ -5645,13 +5695,13 @@ function vtm_validate_finishing($settings, $characterID, $templateID, $usepost =
 	$postcomments = $usepost ? 
 				(isset($_POST['comment']) ? $_POST['comment'] : array()) :
 				$dbcomments;
-	$postsire      = $usepost ? (isset($_POST['sire']) ? $_POST['sire'] : '') : $dbsire;
-	$postday_dob   = $usepost ? (isset($_POST['day_dob']) ? $_POST['day_dob'] : '') : $dbday_dob;
-	$postmonth_dob = $usepost ? (isset($_POST['month_dob']) ? $_POST['month_dob'] : '') : $dbmonth_dob;
-	$postyear_dob  = $usepost ? (isset($_POST['year_dob']) ? $_POST['year_dob'] : '0000') : $dbmonth_dob;
-	$postday_doe   = $usepost ? (isset($_POST['day_doe']) ? $_POST['day_doe'] : '') : $dbday_doe;
-	$postmonth_doe = $usepost ? (isset($_POST['month_doe']) ? $_POST['month_doe'] : '') : $dbmonth_doe;
-	$postyear_doe  = $usepost ? (isset($_POST['year_doe']) ? $_POST['year_doe'] : '0000') : $dbmonth_dob;
+	$postsire      = $usepost ? (isset($_POST['sire'])      ? $_POST['sire']      : '')     : $dbsire;
+	$postday_dob   = $usepost ? (isset($_POST['day_dob'])   ? $_POST['day_dob']   : '')     : $dbday_dob;
+	$postmonth_dob = $usepost ? (isset($_POST['month_dob']) ? $_POST['month_dob'] : '')     : $dbmonth_dob;
+	$postyear_dob  = $usepost ? (isset($_POST['year_dob'])  ? $_POST['year_dob']  : '0000') : $dbyear_dob;
+	$postday_doe   = $usepost ? (isset($_POST['day_doe'])   ? $_POST['day_doe']   : '')     : $dbday_doe;
+	$postmonth_doe = $usepost ? (isset($_POST['month_doe']) ? $_POST['month_doe'] : '')     : $dbmonth_doe;
+	$postyear_doe  = $usepost ? (isset($_POST['year_doe'])  ? $_POST['year_doe']  : '0000') : $dbyear_doe;
 
 	// All specialities are entered
 	// Sire name is entered
@@ -5697,6 +5747,12 @@ function vtm_validate_finishing($settings, $characterID, $templateID, $usepost =
 		$ok = 0;
 		$complete = 0;
 	}
+	if ($postyear_doe < $postyear_dob) {
+		$errormessages .= "<li>ERROR: Your character's Date of Embrace cannot be before their Date of Birth.</li>\n";
+		$ok = 0;
+		$complete = 0;
+	}
+	
 
 	return array($ok, $errormessages, $complete);
 }
