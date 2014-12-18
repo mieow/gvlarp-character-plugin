@@ -445,7 +445,7 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 					$player      = vtm_get_player_from_login($other->user_login);
 					if (isset($player)) {
 						$shownew    = 'off';
-						$playername = $player->NAME;
+						$playername = stripslashes(htmlspecialchars($player->NAME, ENT_QUOTES));
 						$playerid   = $player->ID;
 					}
 				}
@@ -1424,10 +1424,6 @@ function vtm_render_finishing($step, $characterID, $templateID, $submitted) {
 	$sire = $wpdb->get_var($wpdb->prepare("SELECT SIRE FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
 	$sire = isset($_POST['sire']) ? $_POST['sire'] : $sire;
 	
-	// Specialities Data
-	$specialities = vtm_get_chargen_specialties($characterID);
-	$freespecialities = vtm_get_free_levels('SKILL', $templateID);
-	
 	$output .= "<h4>Calculated Values</h4>\n";
 	$output .= "<table>\n";
 	$output .= "<tr><td>Generation:</td><td>$generation";
@@ -1450,52 +1446,103 @@ function vtm_render_finishing($step, $characterID, $templateID, $submitted) {
 	$output .= "</td></tr>\n";
 	$output .= "</table>\n";
 
-	$i = 0;
-	$title = "";
-	
 	// Notes to ST
 	$stnotes = $wpdb->get_var($wpdb->prepare("SELECT NOTE_TO_ST FROM " . VTM_TABLE_PREFIX . "CHARACTER_GENERATION WHERE CHARACTER_ID = %s", $characterID));
 	$stnotes = htmlspecialchars(stripslashes(isset($_POST['noteforST']) ? $_POST['noteforST'] : $stnotes), ENT_QUOTES);
 	
+	// Specialities Data
+	
+	// Get the list of things needing specialities
+	$specialities = vtm_get_chargen_specialties($characterID);
+	$freespecialities = vtm_get_free_levels('SKILL', $templateID);
+	$specfinal = array();
+	
+	//print_r($specialities);
+	
 	$spec_output = "";
+	$i = 0;
 	foreach ($specialities as $item) {
+		$hasinput = !$submitted;
+	
+		//echo "<li>Key: {$item['key']}, Name: {$item['name']}</li>";
+	
+		if (isset($freespecialities[sanitize_key($item['key'])]->SPECIALISATION)) {
+			$spec = $freespecialities[sanitize_key($item['key'])]->SPECIALISATION;
+			$freespecialities[sanitize_key($item['key'])]->LISTED = 'Y';
+			$hasinput = 0;
+		}
+		elseif (isset($freespecialities[sanitize_key($item['name'])]->SPECIALISATION) && $freespecialities[sanitize_key($item['name'])]->MULTIPLE == 'N') {
+			$spec = $freespecialities[sanitize_key($item['name'])]->SPECIALISATION;
+			$freespecialities[sanitize_key($item['name'])]->LISTED = 'Y';
+			$hasinput = 0;
+		}
+		elseif (isset($_POST['comment'][$i]))
+			$spec = $_POST['comment'][$i];
+		else
+			$spec = $item['comment'];
+		
+		$specfinal[] = array (
+			'title'     => htmlspecialchars($item['title'],     ENT_QUOTES),
+			'tablename' => htmlspecialchars($item['updatetable'], ENT_QUOTES),
+			'tableid'   => htmlspecialchars($item['tableid'],   ENT_QUOTES),
+			'itemname'  => htmlspecialchars($item['key'],       ENT_QUOTES),
+			'spec'      => htmlspecialchars(stripslashes($spec), ENT_QUOTES),
+			'level'     => $item['level'],
+			'name'      => htmlspecialchars($item['name'], ENT_QUOTES),
+			'hasinput'  => $hasinput
+		);
+		$i++;
+	}
+	// And any free stuff we haven't bought already
+	//print_r($freespecialities);
+	foreach ($freespecialities as $key => $row) {
+		if (!isset($row->LISTED)) {
+		
+			$specfinal[] = array (
+				'title'     => htmlspecialchars('Additional Free', ENT_QUOTES),
+				'tablename' => htmlspecialchars($row->ITEMTABLE, ENT_QUOTES),
+				'tableid'   => htmlspecialchars($row->ITEMTABLE_ID, ENT_QUOTES),
+				'itemname'  => htmlspecialchars($key, ENT_QUOTES),
+				'spec'      => htmlspecialchars(stripslashes($row->SPECIALISATION), ENT_QUOTES),
+				'level'     => $row->LEVEL,
+				'name'      => htmlspecialchars($row->NAME, ENT_QUOTES),
+				'hasinput'  => 0
+			);
+		}
+	}
+	
+	// Output specialities
+	$title = "";
+	foreach ($specfinal as $item) {
 		if ($title != $item['title']) {
 			$title = htmlspecialchars($item['title'], ENT_QUOTES);
 			$spec_output .= "<tr><th colspan=3>$title</th></tr>\n";
 		}
-	
-		// Only show specialities that haven't been pre-set from the
+		
+		// have a hidden row with the tablename and tableid info
+		$spec_output .= "<tr style='display:none'><td colspan=3>
+					<input type='hidden' name='tablename[]' value='{$item['tablename']}' />
+					<input type='hidden' name='tableid[]' value='{$item['tableid']}' />
+					<input type='hidden' name='fullname[]' value='{$item['name']}' />
+					</td></tr>\n";
+					
+		$spec_output .= "<tr><td>{$item['name']}</td>
+					<td>{$item['level']}</td>
+					<td>\n";
+			
+		// Only have an entry box for specialities that haven't been pre-set from the
 		// character generation template
-		if (!isset($freespecialities[sanitize_key($item['key'])])) {
-	
-			// have a hidden row with the tablename and tableid info
-			$spec_output .= "<tr style='display:none'><td colspan=3>
-						<input type='hidden' name='tablename[]' value='" . htmlspecialchars($item['updatetable'], ENT_QUOTES) . "' />
-						<input type='hidden' name='tableid[]' value='" . htmlspecialchars($item['tableid'], ENT_QUOTES) . "' />
-						<input type='hidden' name='itemname[]' value='" . htmlspecialchars($item['name'], ENT_QUOTES) . "' />
-						</td></tr>\n";
-			
-			if (isset($_POST['comment'][$i]))
-				$spec = $_POST['comment'][$i];
-			else
-				$spec = $item['comment'];
-			$spec = htmlspecialchars(stripslashes($spec), ENT_QUOTES);
-			
-			$spec_output .= "<tr><td>" . htmlspecialchars($item['name'], ENT_QUOTES) . "</td>
-						<td>{$item['level']}</td>
-						<td>\n";
-			if ($submitted)
-				$spec_output .= $spec;
-			if (isset($freespecialities[sanitize_key($item['name'])]))
-				$spec_output .= "$spec<input type='hidden' name='comment[]' value='$spec' />\n";
-			else
-				$spec_output .= "<input type='text' name='comment[]' value='$spec' maxlength='25' />\n";
-			//$spec_output .= "{$item['updatetable']} / {$item['tableid']}";
-			$spec_output .= "</td></tr>\n";
-						
-			$i++;
-		}
+		if ($submitted)
+			$spec_output .= $item['spec'];
+		elseif ($item['hasinput']) 
+			$spec_output .= "<input type='text' name='comment[]' value='{$item['spec']}' maxlength='25' />\n";
+		else
+			$spec_output .= "{$item['spec']}<input type='hidden' name='comment[]' value='{$item['spec']}' />\n";
+		
+		$spec_output .= "</td></tr>\n";
+											
 	}
+
 	if ($spec_output != '') {
 		$output .= "<h4>Specialities</h4>\n";
 		$output .= "<p>Please enter specialities for the indicated Attributes and Abilities and provide
@@ -2346,10 +2393,13 @@ function vtm_save_xp($characterID, $templateID) {
 	foreach ($templatefree as $type => $data) {
 		foreach ($data as $key => $row) {
 		
+			//echo "<li>$key - {$row ->LEVEL} {$row->SPECIALISATION}</li>";
+		
 			// Ensure you have the free dot as a minimum value if 
 			// addition spend on this item has been cancelled and it wasn't bought
 			// with freebies
 			if (isset($bought[$type][$key])) {
+				//echo "<li>Bought level {$bought[$type][$key]} of $key</li>";
 				if ($bought[$type][$key] < $row->LEVEL) {
 					if (!isset($freebies[$type][$key])) {
 						if (!isset($current[$type][$key]) || (isset($current[$type][$key]) && $current[$type][$key]->level_from < $row->LEVEL)) {
@@ -2363,7 +2413,11 @@ function vtm_save_xp($characterID, $templateID) {
 			elseif (!isset($current[$type][$key]) && !isset($freebies[$type][$key])) {
 				//echo "<li>Adding $type $key to level {$row->LEVEL}</li>";
 				$bought[$type][$key] = $row->LEVEL;
+				$comments[$type][$key] = $row->SPECIALISATION;
 			} 
+			else {
+				//echo "<li>Not bought $key</li>";
+			}
 		}
 	}
 
@@ -5688,8 +5742,10 @@ function vtm_validate_finishing($settings, $characterID, $templateID, $usepost =
 		$dbsire = $wpdb->get_var($wpdb->prepare("SELECT SIRE FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID));
 	}
 	
+	//print_r($_POST);
+	
 	$postvalues = $usepost ? 
-				(isset($_POST['itemname']) ? $_POST['itemname'] : array()) :
+				(isset($_POST['fullname']) ? $_POST['fullname'] : array()) :
 				$dbvalues;
 	$postcomments = $usepost ? 
 				(isset($_POST['comment']) ? $_POST['comment'] : array()) :
@@ -5708,6 +5764,7 @@ function vtm_validate_finishing($settings, $characterID, $templateID, $usepost =
 	
 	if (count($postvalues) > 0) {
 		foreach ($postvalues as $index => $name) {
+		//print "<li>Speciality for $index/$name is $postcomments[$index]</li>";
 			if (!isset($postcomments[$index]) || $postcomments[$index] == '') {
 				$errormessages .= "<li>WARNING: Please specify a speciality for $name</li>\n";
 				$complete = 0;
@@ -6099,6 +6156,8 @@ function vtm_get_chargen_specialties($characterID) {
 				AND freebie.CHARTABLE_ID = 0";
 	$sql = $wpdb->prepare($sql, $characterID, $characterID);
 	$results2 = $wpdb->get_results($sql);
+	
+	//echo "<p>SQL: $sql</p>\n";
 	
 	// SKILLS from pending XP
 	$sql = "SELECT 				
@@ -6575,8 +6634,10 @@ function vtm_get_free_levels($table,$templateID) {
 	$duplicates = array();
 	
 	$sql = "SELECT item.NAME, item.ID, ctd.SPECIALISATION, ctd.LEVEL,
+				ctd.ITEMTABLE, ctd.ITEMTABLE_ID,
 				IFNULL(sector.ID,0) as SECTOR_ID, 
-				IFNULL(sector.NAME,'') as SECTOR
+				IFNULL(sector.NAME,'') as SECTOR,
+				ctd.MULTIPLE
 			FROM 
 				" . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_DEFAULTS ctd
 				LEFT JOIN (
@@ -6594,29 +6655,11 @@ function vtm_get_free_levels($table,$templateID) {
 	
 	//print_r($results);
 	
-	$checkdups = array();
-	foreach ($results as $row) {
-		$key = sanitize_key($row->NAME);
-		if (isset($duplicates[$key])) {
-			$duplicates[$key]++;
-		}
-		elseif (isset($checkdups[$key])) {
-			$duplicates[$key] = 1;
-		}
-		
-		$checkdups[$key] = 1;
-	}
-	
-	//print_r($checkdups);
-	
-	// Final output - to have a unique key if multiple skills have been
-	// added with the same name. Can't use the MULTIPLE field from the database
-	// as BACKGROUNDs don't have that column
 	$out = array();
 	$indexes = array();
 	foreach ($results as $row) {
 		$key = sanitize_key($row->NAME);
-		if (isset($duplicates[$key])) {
+		if ($row->MULTIPLE == 'Y') {
 			if (isset($indexes[$key])) {
 				$indexes[$key]++;
 			} else {
@@ -6628,6 +6671,42 @@ function vtm_get_free_levels($table,$templateID) {
 		}
 		
 	}
+	
+	//print_r($out);
+	// $checkdups = array();
+	// foreach ($results as $row) {
+		// $key = sanitize_key($row->NAME);
+		// if (isset($duplicates[$key])) {
+			// $duplicates[$key]++;
+		// }
+		// elseif (isset($checkdups[$key])) {
+			// $duplicates[$key] = 1;
+		// }
+		
+		// $checkdups[$key] = 1;
+	// }
+	
+	// //print_r($checkdups);
+	
+	// // Final output - to have a unique key if multiple skills have been
+	// // added with the same name. Can't use the MULTIPLE field from the database
+	// // as BACKGROUNDs don't have that column
+	// $out = array();
+	// $indexes = array();
+	// foreach ($results as $row) {
+		// $key = sanitize_key($row->NAME);
+		// if (isset($duplicates[$key])) {
+			// if (isset($indexes[$key])) {
+				// $indexes[$key]++;
+			// } else {
+				// $indexes[$key] = 1;
+			// }
+			// $out[$key . "_" . $indexes[$key]] = $row;
+		// } else {
+			// $out[$key] = $row;
+		// }
+		
+	// }
 	
 	return $out;
 }
