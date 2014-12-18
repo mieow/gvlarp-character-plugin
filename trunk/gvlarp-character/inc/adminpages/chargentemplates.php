@@ -61,11 +61,12 @@ function vtm_render_template_data(){
 					}
 					
 					// save template defaults
-					$tables   = $_REQUEST['table'];
-					$items    = $_REQUEST['item'];
-					$sectors  = $_REQUEST['item_sector'];
-					$comments = $_REQUEST['item_spec'];
-					$levels   = $_REQUEST['item_level'];
+					$tables    = $_REQUEST['table'];
+					$items     = $_REQUEST['item'];
+					$sectors   = $_REQUEST['item_sector'];
+					$comments  = $_REQUEST['item_spec'];
+					$levels    = $_REQUEST['item_level'];
+					$multiples = $_REQUEST['multiple'];
 					for ($i = 0 ; $i < count($items) ; $i++) {
 						if ($levels[$i] > 0 && $items[$i] != 0) {
 						
@@ -76,13 +77,14 @@ function vtm_render_template_data(){
 									'ITEMTABLE_ID' => $items[$i],
 									'SECTOR_ID'      => isset($sectors[$i]) ? $sectors[$i] : 0,
 									'SPECIALISATION' => isset($comments[$i]) ? $comments[$i] : '',
-									'LEVEL'          => $levels[$i]
+									'LEVEL'          => $levels[$i],
+									'MULTIPLE'       => $multiples[$i]
 								);
 						
 							//print_r($data);
 							$wpdb->insert(VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_DEFAULTS",
 								$data,
-								array('%d', '%s', '%s', '%d', '%d', '%s', '%d')
+								array('%d', '%s', '%s', '%d', '%d', '%s', '%d', '%s')
 							);
 						}
 					}
@@ -178,12 +180,13 @@ function vtm_render_template_data(){
 				$result = $wpdb->get_results($wpdb->prepare($sql, $id));
 
 				// then re-add
-				$tables   = $_REQUEST['table'];
-				$items    = $_REQUEST['item'];
-				$sectors  = $_REQUEST['item_sector'];
-				$comments = $_REQUEST['item_spec'];
-				$levels   = $_REQUEST['item_level'];
-				$delete   = $_REQUEST['item_delete'];
+				$tables    = $_REQUEST['table'];
+				$items     = $_REQUEST['item'];
+				$sectors   = $_REQUEST['item_sector'];
+				$comments  = $_REQUEST['item_spec'];
+				$levels    = $_REQUEST['item_level'];
+				$multiples = $_REQUEST['multiple'];
+				$delete    = $_REQUEST['item_delete'];
 				//print_r($_REQUEST);
 				for ($i = 0 ; $i < count($items) ; $i++) {
 					if ($levels[$i] > 0 && $items[$i] != 0 && (!isset($delete[$i]) || (isset($delete[$i]) && $delete[$i] != 'on'))) {
@@ -194,13 +197,14 @@ function vtm_render_template_data(){
 								'ITEMTABLE_ID' => $items[$i],
 								'SECTOR_ID'      => isset($sectors[$i]) ? $sectors[$i] : 0,
 								'SPECIALISATION' => isset($comments[$i]) ? $comments[$i] : '',
-								'LEVEL'          => $levels[$i]
+								'LEVEL'          => $levels[$i],
+								'MULTIPLE'       => $multiples[$i]
 							);
 					
 						//print_r($data);
 						$wpdb->insert(VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_DEFAULTS",
 							$data,
-							array('%d', '%s', '%s', '%d', '%d', '%s', '%d')
+							array('%d', '%s', '%s', '%d', '%d', '%s', '%d', '%s')
 						);
 					}
 				}
@@ -475,11 +479,11 @@ function vtm_render_template_data(){
 	<?php 
 		$backgrounds = vtm_get_backgrounds();
 		$sectors = vtm_get_sectors(true);
-		
+				
 		if ($id > 0) {
 			$sql = "SELECT bg.NAME, bg.ID, ctd.SPECIALISATION, ctd.LEVEL,
 						IFNULL(sector.ID,0) as SECTOR_ID, 
-						IFNULL(sector.NAME,'') as SECTOR
+						IFNULL(sector.NAME,'') as SECTOR, 'N' as MULTIPLE
 					FROM 
 						" . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_DEFAULTS ctd
 						LEFT JOIN (
@@ -505,6 +509,7 @@ function vtm_render_template_data(){
 			print "<td>
 				<input type='hidden' name='table[$offset]' value='BACKGROUND'>
 				<input type='hidden' name='item[$offset]' value='{$item->ID}'>
+				<input type='hidden' name='multiple[$offset]' value='{$item->MULTIPLE}'>
 				" . stripslashes($item->NAME) . "</td>\n";
 			print "<td>
 				<input type='hidden' name='item_sector[$offset]' value='{$item->SECTOR_ID}'>
@@ -558,7 +563,7 @@ function vtm_render_template_data(){
 		$skills = vtm_listSkills("", "Y");
 		
 		if ($id > 0) {
-			$sql = "SELECT skill.NAME, skill.ID, ctd.SPECIALISATION, ctd.LEVEL
+			$sql = "SELECT skill.NAME, skill.ID, ctd.SPECIALISATION, ctd.LEVEL, skill.MULTIPLE
 					FROM 
 						" . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_DEFAULTS ctd,
 						" . VTM_TABLE_PREFIX . "SKILL skill
@@ -578,6 +583,7 @@ function vtm_render_template_data(){
 			print "<td>
 				<input type='hidden' name='table[$offset]' value='SKILL'>
 				<input type='hidden' name='item[$offset]' value='{$item->ID}'>
+				<input type='hidden' name='multiple[$offset]' value='{$item->MULTIPLE}'>
 				" . stripslashes($item->NAME) . "</td>\n";
 			print "<td><input type='hidden' name='item_spec[$offset]' value='{$item->SPECIALISATION}'>
 				" . stripslashes($item->SPECIALISATION) . "</td>\n";
