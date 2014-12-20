@@ -28,6 +28,11 @@ svn export http://gvlarp-character-plugin.googlecode.com/svn/tags/version1-10 gv
   # Go to Characters->Configuration. Check any new options and click \[save options\] and any other save button with new options/sections
   # Go through version log and make any appropriate page content/data table/menu updates
 
+
+== V1.10 to V1.11 ==
+
+  * Review each of the character generation templates and update settings
+
 == V1.9 to V1.10 ==
 
   * Fix lost PDF colours on Config page
