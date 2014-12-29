@@ -111,7 +111,7 @@
     /*
         DB Changes: 
 		
-		Version 1.11.35
+		Version 1.11.36
 			Added CHARGEN_TEMPLATE_DEFAULTS Table
 			Table ROAD_OR_PATH			Added column COST_MODEL_ID
 				
