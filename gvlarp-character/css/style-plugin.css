@@ -521,6 +521,7 @@ table.feedingmapkey {width:auto;}
 }
 #chargen-main .dotselect {
     float:left;
+    white-space:nowrap;
 }
 
 #chargen-main .dotselect label.freedot {

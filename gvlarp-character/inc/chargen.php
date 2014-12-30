@@ -2290,9 +2290,9 @@ function vtm_save_finish($characterID, $templateID) {
 		),
 		array('%s')
 	);		
-	
+	//print_r($_POST);
 	// Save Specialities
-	if (isset($_POST['itemname'])) {
+	if (isset($_POST['fullname'])) {
 	
 		// Remove anything with a speciality to ensure that skills haven't dropped
 		// since the last time the specialities were saved
@@ -2303,10 +2303,15 @@ function vtm_save_finish($characterID, $templateID) {
 		$wpdb->update(VTM_TABLE_PREFIX . "PENDING_XP_SPEND",      array('SPECIALISATION' => ''), array('CHARACTER_ID' => $characterID));
 		
 		// Then re-add the ones we need
-		foreach ($_POST['itemname'] as $index => $name) {
+		foreach ($_POST['fullname'] as $index => $name) {
 			$comment = $_POST['comment'][$index];
 			$id      = $_POST['tableid'][$index];
 			$table   = $_POST['tablename'][$index];
+			
+			// for one of these tables, it is a free spend so there is nowhere to save
+			// the specialisation to
+			if ($table == 'SKILL' || $table == 'BACKGROUND')
+				continue;
 			
 			switch($table) {
 				Case 'PENDING_FREEBIE_SPEND': $colname = 'SPECIALISATION'; break;
@@ -2318,10 +2323,11 @@ function vtm_save_finish($characterID, $templateID) {
 				$colname => $comment
 			);
 			$result = $wpdb->update(VTM_TABLE_PREFIX . $table, $data, array ('ID' => $id),array('%s'));		
+
 			/*if ($result) 			echo "<p style='color:green'>Updated $name speciality with $comment</p>\n";
-			if ($result) 			echo "<p style='color:green'>Updated $name speciality with $comment</p>\n";
 			else if ($result === 0) echo "<p style='color:orange'>No updates made to $name speciality</p>\n";
 			else {
+				$wpdb->show_errors();
 				$wpdb->print_error();
 				echo "<p style='color:red'>Could not update $name speciality</p>\n";
 			}*/
