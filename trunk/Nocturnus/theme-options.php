@@ -18,7 +18,7 @@ function register_nocturnus_settings() {
 	add_settings_field('nocturnus_copyright', __('Copyright Notice', 'nocturnus'), 'nocturnus_options_input_copyright', 'nocturnus_admin_slug', 'nocturnus_options_section_main');
 	add_settings_field('nocturnus_credits',   __('Website Credits', 'nocturnus'),  'nocturnus_options_input_credits',   'nocturnus_admin_slug', 'nocturnus_options_section_main');
 	add_settings_field('nocturnus_colours',   __('Theme Colour', 'nocturnus'),     'nocturnus_options_input_colour',    'nocturnus_admin_slug', 'nocturnus_options_section_main');
-	add_settings_field('nocturnus_gradient',  __('Button/Nav Gradient, 'nocturnus')', 'nocturnus_options_input_gradient', 'nocturnus_admin_slug', 'nocturnus_options_section_main');
+	add_settings_field('nocturnus_gradient',  __('Button/Nav Gradient', 'nocturnus'), 'nocturnus_options_input_gradient', 'nocturnus_admin_slug', 'nocturnus_options_section_main');
 	add_settings_field('nocturnus_corners',   __('Corners', 'nocturnus'),          'nocturnus_options_input_corners',   'nocturnus_admin_slug', 'nocturnus_options_section_main');
 	add_settings_field('nocturnus_sidebar',   __( 'Sidebar Location', 'nocturnus'),'nocturnus_options_input_sidebar',   'nocturnus_admin_slug', 'nocturnus_options_section_main');
 		

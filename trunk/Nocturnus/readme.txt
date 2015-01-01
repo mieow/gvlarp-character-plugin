@@ -29,6 +29,11 @@ As standard
 
 == Changelog ==
 
+= 2.4 =
+* TODO: Update for latest WP version
+* TODO: Check for where red CSS showing through for other colour choices
+* TODO: Fix things reported by Theme Check
+
 = 2.3 = 
 * Internationalization added
 * Replaced <hgroup> in header with <div> for HTML5 support
