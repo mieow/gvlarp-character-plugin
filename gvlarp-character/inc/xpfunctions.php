@@ -544,8 +544,8 @@ function vtm_render_skills($characterID, $maxRating, $pendingSpends, $xp_avail) 
 					cha_skill.id as id,
 					skill.specialisation_at as spec_at, 
 					skill.id as item_id,
-					skill.grouping as grp,
-					CASE skill.grouping WHEN 'Talents' THEN 3 WHEN 'Skills' THEN 2 WHEN 'Knowledges' THEN 1 ELSE 0 END as ordering,
+					skilltype.name as grp,
+					skilltype.ordering ordering,
 					pending.CHARTABLE_LEVEL,
 					steps.XP_COST,
 					steps.NEXT_VALUE, 
@@ -565,13 +565,15 @@ function vtm_render_skills($characterID, $maxRating, $pendingSpends, $xp_avail) 
 					ON
 						pending.CHARTABLE_ID = cha_skill.ID,
 					" . VTM_TABLE_PREFIX . "SKILL skill,
+					" . VTM_TABLE_PREFIX . "SKILL_TYPE skilltype,
 					" . VTM_TABLE_PREFIX . "COST_MODEL_STEP steps,
 					" . VTM_TABLE_PREFIX . "COST_MODEL models
 				WHERE
 					cha_skill.CHARACTER_ID = %s
 					AND cha_skill.SKILL_ID = skill.ID
 					AND steps.COST_MODEL_ID = models.ID
-					AND skill.COST_MODEL_ID  = models.ID
+					AND skill.COST_MODEL_ID = models.ID
+					AND skill.SKILL_TYPE_ID = skilltype.ID
 					AND steps.CURRENT_VALUE = cha_skill.level";
 	$sqlPending = "SELECT
 					skill.name as name, 
@@ -580,8 +582,8 @@ function vtm_render_skills($characterID, $maxRating, $pendingSpends, $xp_avail) 
 					0 as id,
 					skill.specialisation_at as spec_at, 
 					skill.id as item_id,
-					skill.grouping as grp,
-					CASE skill.grouping WHEN 'Talents' THEN 3 WHEN 'Skills' THEN 2 WHEN 'Knowledges' THEN 1 ELSE 0 END as ordering,
+					skilltype.name as grp,
+					skilltype.ordering ordering,
 					pending.CHARTABLE_LEVEL,
 					steps.XP_COST,
 					steps.NEXT_VALUE, 
@@ -590,6 +592,7 @@ function vtm_render_skills($characterID, $maxRating, $pendingSpends, $xp_avail) 
 					pending.ID as pending_id
 				FROM
 					" . VTM_TABLE_PREFIX . "SKILL skill,
+					" . VTM_TABLE_PREFIX . "SKILL_TYPE skilltype,
 					" . VTM_TABLE_PREFIX . "COST_MODEL_STEP steps,
 					" . VTM_TABLE_PREFIX . "COST_MODEL models,
 					" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND pending
@@ -600,12 +603,13 @@ function vtm_render_skills($characterID, $maxRating, $pendingSpends, $xp_avail) 
 					AND pending.CHARTABLE_ID = 0
 					AND steps.COST_MODEL_ID = models.ID
 					AND skill.COST_MODEL_ID  = models.ID
+					AND skill.SKILL_TYPE_ID = skilltype.ID
 					AND steps.CURRENT_VALUE = 0";					
 	
 	$sql = "$sqlCharacterSkill
 			UNION
 			$sqlPending
-			ORDER BY ordering DESC, grp, name, level DESC, comment";
+			ORDER BY ordering, grp, name, level DESC, comment";
 	
 	
 	$sql = $wpdb->prepare($sql, $characterID, $characterID, $characterID, $characterID, $characterID);
@@ -619,8 +623,8 @@ function vtm_render_skills($characterID, $maxRating, $pendingSpends, $xp_avail) 
 				0 as id,
 				skill.specialisation_at as spec_at, 
 				skill.id as item_id,
-				skill.grouping as grp,
-				CASE skill.grouping WHEN 'Talents' THEN 3 WHEN 'Skills' THEN 2 WHEN 'Knowledges' THEN 1 ELSE 0 END as ordering,
+				skilltype.name as grp,
+				skilltype.ordering ordering,
 				0 as CHARTABLE_LEVEL,
 				steps.XP_COST,
 				steps.NEXT_VALUE, 
@@ -631,13 +635,15 @@ function vtm_render_skills($characterID, $maxRating, $pendingSpends, $xp_avail) 
 				skill.MULTIPLE
 			FROM
 				" . VTM_TABLE_PREFIX . "SKILL skill,
+				" . VTM_TABLE_PREFIX . "SKILL_TYPE skilltype,
 				" . VTM_TABLE_PREFIX . "COST_MODEL_STEP steps,
 				" . VTM_TABLE_PREFIX . "COST_MODEL models
 			WHERE
 				steps.CURRENT_VALUE = 0
 				AND steps.COST_MODEL_ID = models.ID
 				AND skill.COST_MODEL_ID  = models.ID
-			ORDER BY ordering DESC, grp, name";
+				AND skill.SKILL_TYPE_ID = skilltype.ID
+			ORDER BY ordering, grp, name";
 	$skills_list = $wpdb->get_results($sql);
 	
     //echo "<p>SQL: $sql</p>";

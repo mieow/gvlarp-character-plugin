@@ -241,13 +241,14 @@ class vtmclass_character {
 		/* Abilities */
 		// Abilities from skill table + freebie points with pending XP
 		$sql = "SELECT skill.name		skillname,
-					skill.grouping		grouping,
+					skilltype.name		grouping,
 					IFNULL(freebie.SPECIALISATION,charskill.comment)	specialty,
 					IFNULL(freebie.LEVEL_TO,charskill.level) level,
 					xp.CHARTABLE_LEVEL  pending,
 					skill.multiple      multiple
 				FROM
 					" . VTM_TABLE_PREFIX . "SKILL skill,
+					" . VTM_TABLE_PREFIX . "SKILL_TYPE skilltype,
 					" . VTM_TABLE_PREFIX . "CHARACTER_SKILL charskill
 					LEFT JOIN (
 						SELECT CHARTABLE_ID, LEVEL_TO, SPECIALISATION
@@ -271,6 +272,7 @@ class vtmclass_character {
 				WHERE
 					charskill.CHARACTER_ID = chara.ID
 					AND charskill.SKILL_ID = skill.ID
+					AND skilltype.ID = skill.SKILL_TYPE_ID
 					AND chara.id = '%s'
 				ORDER BY skill.name ASC;";
 		$sql = $wpdb->prepare($sql, $characterID, $characterID, $characterID);
@@ -280,7 +282,7 @@ class vtmclass_character {
 		
 		// freebie points spend with pending xp
 		$sql = "SELECT skill.NAME		skillname,
-					skill.grouping			grouping,
+					skilltype.name		grouping,
 					freebie.SPECIALISATION	specialty,
 					freebie.LEVEL_TO 		level,
 					xp.CHARTABLE_LEVEL      pending,
@@ -298,10 +300,12 @@ class vtmclass_character {
 					) xp
 					ON
 						xp.CHARTABLE_ID = freebie.ID,
-				" . VTM_TABLE_PREFIX . "SKILL skill
+				" . VTM_TABLE_PREFIX . "SKILL skill,
+				" . VTM_TABLE_PREFIX . "SKILL_TYPE skilltype
 			WHERE
 				freebie.CHARACTER_ID = %s
 				AND skill.ID = freebie.ITEMTABLE_ID
+				AND skilltype.ID = skill.SKILL_TYPE_ID
 				AND freebie.ITEMTABLE = 'SKILL'
 				AND freebie.CHARTABLE_ID = 0";
 		$sql = $wpdb->prepare($sql, $characterID, $characterID);
@@ -311,7 +315,7 @@ class vtmclass_character {
 		
 		// pending xp for new skills
 		$sql = "SELECT skill.NAME			skillname,
-					skill.grouping			grouping,
+					skilltype.name		grouping,
 					xp.SPECIALISATION		specialty,
 					0 						level,
 					xp.CHARTABLE_LEVEL      pending,
@@ -319,10 +323,12 @@ class vtmclass_character {
 					0						chartableid
 			FROM
 				" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND xp,
-				" . VTM_TABLE_PREFIX . "SKILL skill
+				" . VTM_TABLE_PREFIX . "SKILL skill,
+				" . VTM_TABLE_PREFIX . "SKILL_TYPE skilltype
 			WHERE
 				xp.CHARACTER_ID = %s
 				AND skill.ID = xp.ITEMTABLE_ID
+				AND skilltype.ID = skill.SKILL_TYPE_ID
 				AND xp.ITEMTABLE = 'SKILL'
 				AND xp.CHARTABLE_ID = 0";
 		$sql = $wpdb->prepare($sql, $characterID);
