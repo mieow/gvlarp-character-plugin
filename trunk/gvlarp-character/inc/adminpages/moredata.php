@@ -67,7 +67,7 @@ function vtm_render_skill_add_form($type, $addaction) {
 	if ('fix-' . $type == $addaction) {
 		$name = $_REQUEST[$type . "_name"];
 		$desc = $_REQUEST[$type . "_desc"];
-		$grouping = $_REQUEST[$type . "_group"];
+		$skilltype_id = $_REQUEST[$type . "_skilltype"];
 		$costmodel_id = $_REQUEST[$type . "_costmodel"];
 		$specialise_at = $_REQUEST[$type . "_spec_at"];
 		$multiple = $_REQUEST[$type . "_multiple"];
@@ -84,7 +84,7 @@ function vtm_render_skill_add_form($type, $addaction) {
 		
 		$name = $data[0]->NAME;
 		$desc = $data[0]->DESCRIPTION;
-		$grouping = $data[0]->GROUPING;
+		$skilltype_id = $data[0]->SKILL_TYPE_ID;
 		$costmodel_id = $data[0]->COST_MODEL_ID;
 		$specialise_at = $data[0]->SPECIALISATION_AT;
 		$multiple = $data[0]->MULTIPLE;
@@ -96,7 +96,7 @@ function vtm_render_skill_add_form($type, $addaction) {
 	
 		$name = "";
 		$desc = "";
-		$grouping = "";
+		$skilltype_id = 0;
 		$costmodel_id = 0;
 		$specialise_at = 4;
 		$multiple = 'N';
@@ -117,8 +117,17 @@ function vtm_render_skill_add_form($type, $addaction) {
 		<tr>
 			<td>Name:</td>
 			<td><input type="text" name="<?php print $type; ?>_name" value="<?php print $name; ?>" size=20 /></td>
-			<td>Grouping:</td>
-			<td><input type="text" name="<?php print $type; ?>_group" value="<?php print $grouping; ?>" size=20 /></td>
+			<td>Skill Type:</td>
+			<td><select name="<?php print $type; ?>_skilltype">
+					<?php
+						foreach (vtm_get_skilltypes() as $skilltype) {
+							print "<option value='{$skilltype->ID}' ";
+							selected($skilltype->ID, $skilltype_id);
+							echo ">{$skilltype->NAME}</option>";
+						}
+					?>
+				</select>
+			</td>
 			<td>Specialise at level:  </td>
 			<td><input type="text" name="<?php print $type; ?>_spec_at" value="<?php print $specialise_at; ?>" size=10 /></td>
 		</tr>
@@ -269,10 +278,6 @@ function vtm_skill_input_validation($type) {
 		if (empty($_REQUEST[$type . '_desc']) || $_REQUEST[$type . '_desc'] == "") {
 			$doaction = "fix-$type";
 			echo "<p style='color:red'>ERROR: Description is missing</p>";
-		}
-		if (empty($_REQUEST[$type . '_group']) || $_REQUEST[$type . '_group'] == "") {
-			$doaction = "fix-$type";
-			echo "<p style='color:red'>ERROR: Grouping is missing</p>";
 		}
 		if (empty($_REQUEST[$type . '_spec_at']) || $_REQUEST[$type . '_spec_at'] == "") {
 			$doaction = "fix-$type";
@@ -479,7 +484,7 @@ class vtmclass_admin_skills_table extends vtmclass_MultiPage_ListTable {
 		$dataarray = array(
 						'NAME'        => $_REQUEST['skill_name'],
 						'DESCRIPTION' => $_REQUEST['skill_desc'],
-						'GROUPING'    => $_REQUEST['skill_group'],
+						'SKILL_TYPE_ID'    => $_REQUEST['skill_skilltype'],
 						'COST_MODEL_ID' => $_REQUEST['skill_costmodel'],
 						'MULTIPLE'    => $_REQUEST['skill_multiple'],
 						'VISIBLE'     => $_REQUEST['skill_visible'],
@@ -493,7 +498,7 @@ class vtmclass_admin_skills_table extends vtmclass_MultiPage_ListTable {
 					array (
 						'%s',
 						'%s',
-						'%s',
+						'%d',
 						'%d',
 						'%s',
 						'%s',
@@ -506,7 +511,7 @@ class vtmclass_admin_skills_table extends vtmclass_MultiPage_ListTable {
 			$wpdb->print_error();
 			echo ")</p>";
 		} else {
-			echo "<p style='color:green'>Added " . stripslashes($_REQUEST['skill_group']) . " '" . stripslashes($_REQUEST['skill_name']) . "' (ID: {$wpdb->insert_id})</p>";
+			echo "<p style='color:green'>Added " . stripslashes($_REQUEST['skill_name']) . "' (ID: {$wpdb->insert_id})</p>";
 		}
 	}
 
@@ -518,7 +523,7 @@ class vtmclass_admin_skills_table extends vtmclass_MultiPage_ListTable {
 		$dataarray = array(
 						'NAME'        => $_REQUEST['skill_name'],
 						'DESCRIPTION' => $_REQUEST['skill_desc'],
-						'GROUPING'    => $_REQUEST['skill_group'],
+						'SKILL_TYPE_ID'    => $_REQUEST['skill_skilltype'],
 						'COST_MODEL_ID' => $_REQUEST['skill_costmodel'],
 						'MULTIPLE'    => $_REQUEST['skill_multiple'],
 						'VISIBLE'     => $_REQUEST['skill_visible'],
@@ -578,7 +583,7 @@ class vtmclass_admin_skills_table extends vtmclass_MultiPage_ListTable {
         switch($column_name){
             case 'DESCRIPTION':
                 return $item->$column_name;
-            case 'GROUPING':
+            case 'SKILL_TYPE':
                 return $item->$column_name;
             case 'COST_MODEL':
                 return $item->$column_name;
@@ -615,7 +620,7 @@ class vtmclass_admin_skills_table extends vtmclass_MultiPage_ListTable {
             'cb'                => '<input type="checkbox" />', 
             'NAME'              => 'Name',
             'DESCRIPTION'       => 'Description',
-            'GROUPING'          => 'Grouping',
+            'SKILL_TYPE'        => 'Ability Type',
             'COST_MODEL'        => 'Cost Model',
             'SPECIALISATION_AT' => 'Specialise at level',
             'MULTIPLE'          => 'Can be bought multiple times?',
@@ -628,7 +633,7 @@ class vtmclass_admin_skills_table extends vtmclass_MultiPage_ListTable {
     function get_sortable_columns() {
         $sortable_columns = array(
             'NAME'        => array('NAME',true),
-            'GROUPING'    => array('GROUPING',false)
+            'SKILL_TYPE'  => array('SKILL_TYPE',false)
         );
         return $sortable_columns;
     }
@@ -671,12 +676,14 @@ class vtmclass_admin_skills_table extends vtmclass_MultiPage_ListTable {
         $this->process_bulk_action();
 		
 		/* Get the data from the database */
-		$sql = "select skills.ID, skills.NAME, skills.DESCRIPTION, skills.GROUPING, skills.MULTIPLE,
+		$sql = "select skills.ID, skills.NAME, skills.DESCRIPTION, skilltype.NAME as SKILL_TYPE, skills.MULTIPLE,
 					models.NAME as COST_MODEL, skills.SPECIALISATION_AT, skills.VISIBLE
 				from 
 					" . VTM_TABLE_PREFIX . "SKILL skills,
-					" . VTM_TABLE_PREFIX . "COST_MODEL models
-				where models.ID = skills.COST_MODEL_ID";
+					" . VTM_TABLE_PREFIX . "COST_MODEL models,
+					" . VTM_TABLE_PREFIX . "SKILL_TYPE skilltype
+				where models.ID = skills.COST_MODEL_ID
+					AND skills.SKILL_TYPE_ID = skilltype.ID";
 				
 		/* order the data according to sort columns */
 		if (!empty($_REQUEST['orderby']) && !empty($_REQUEST['order']))

@@ -2,8 +2,8 @@
     /*  Plugin Name: Vampire:the Masquerade Character Plugin
         Plugin URI: http://plugin.gvlarp.com
         Description: Management of Characters and Players for Vampire:the Masquerade
-        Author: Lambert Behnke & Jane Houston
-        Version: 1.11
+        Author: Jane Houston
+        Version: 1.12
         Author URI: http://www.mieow.co.uk
     */
 
@@ -193,6 +193,15 @@ function vtm_get_costmodels() {
 	global $wpdb;
 
 	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "COST_MODEL;";
+	$list = $wpdb->get_results($sql);
+	
+	return $list;
+}
+function vtm_get_skilltypes() {
+
+	global $wpdb;
+
+	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "SKILL_TYPE;";
 	$list = $wpdb->get_results($sql);
 	
 	return $list;
@@ -714,35 +723,35 @@ function vtm_get_sects() {
         global $wpdb;
         $table_prefix = VTM_TABLE_PREFIX;
         $grouping_sector = "";
-        $visible_sector  = " VISIBLE = 'Y' ";
+        $visible_sector  = " AND skill.VISIBLE = 'Y' ";
 
         if ($group != "") {
-            $grouping_sector = " grouping = %s ";
+            $grouping_sector = " skilltype.name = %s ";
         }
         if ($showNotVisible == "Y") {
             $visible_sector = "";
         }
 
-        $sql = "SELECT id, name, description, grouping, visible
-                        FROM  " . $table_prefix . "SKILL ";
-        if ($grouping_sector != "" || $visible_sector != "") {
-            $sql .= "WHERE ";
-            if ($grouping_sector != "" && $visible_sector != "") {
-                $sql .= $grouping_sector . " AND " . $visible_sector;
-            }
-            elseif ($grouping_sector != "") {
-                $sql .= $grouping_sector;
-            }
-            else {
-                $sql .= $visible_sector;
-            }
-        }
-        $sql .= " ORDER BY name";
+        $sql = "SELECT skill.id, skill.name, skill.description, skilltype.name as grouping, skill.visible
+                        FROM  " . $table_prefix . "SKILL skill,
+							 " . $table_prefix . "SKILL_TYPE skilltype";
+        $sql .= " WHERE skill.skill_type_id = skilltype.id";
+		if ($grouping_sector != "" && $visible_sector != "") {
+			$sql .= " AND " . $grouping_sector . " AND " . $visible_sector;
+		}
+		elseif ($grouping_sector != "") {
+			$sql .= " AND " . $grouping_sector;
+		}
+		else {
+			$sql .= $visible_sector;
+		}
+        $sql .= " ORDER BY skill.name";
 
         if ($grouping_sector != "") {
             $sql = $wpdb->prepare($sql, $group);
         }
-
+		
+		//echo "<p>SQL: $sql</p>";
         $skills = $wpdb->get_results($sql);
         return $skills;
     }

@@ -699,16 +699,18 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 		$output .= "</table></td></tr></table><hr />";
 
 		$sql = "SELECT skill.name,
-							   skill.grouping,
+							   skilltype.name as grouping,
 							   skill.id skillid,
 							   cskill.level,
 							   cskill.comment,
 							   cskill.id cskillid
 						FROM " . $table_prefix . "CHARACTER_SKILL cskill,
-							 " . $table_prefix . "SKILL skill
+							 " . $table_prefix . "SKILL skill,
+							 " . $table_prefix . "SKILL_TYPE skilltype
 						WHERE cskill.skill_id = skill.id
 						  AND character_id = %d
-						ORDER BY skill.grouping DESC, skill.name";
+						  AND skilltype.ID = skill.skill_type_id
+						ORDER BY skilltype.ordering, skill.name";
 
 		$characterSkills = $wpdb->get_results($wpdb->prepare($sql, $characterID));
 

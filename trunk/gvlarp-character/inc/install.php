@@ -5,8 +5,8 @@ register_activation_hook( __FILE__, 'vtm_character_install_data' );
 
 global $vtm_character_version;
 global $vtm_character_db_version;
-$vtm_character_version = "1.11"; 
-$vtm_character_db_version = "36"; 
+$vtm_character_version = "1.12"; 
+$vtm_character_db_version = "38"; 
 
 function vtm_update_db_check() {
     global $vtm_character_version;
@@ -261,6 +261,17 @@ function vtm_character_install() {
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 		
+		$current_table_name = $table_prefix . "SKILL_TYPE";
+		$sql = "CREATE TABLE " . $current_table_name . " (
+					ID              MEDIUMINT(9)	NOT NULL   AUTO_INCREMENT,
+					NAME            VARCHAR(60)		NOT NULL,
+					PARENT_ID       MEDIUMINT(9)	NOT NULL,
+					DESCRIPTION     TINYTEXT      	NOT NULL,
+					ORDERING        SMALLINT(4)     NOT NULL,
+					PRIMARY KEY  (ID)
+					) ENGINE=INNODB;";
+		dbDelta($sql);
+		
 		// LEVEL 2 TABLES - TABLES WITH A FOREIGN KEY CONSTRAINT TO A LEVEL 1 TABLE
 		
 		$current_table_name = $table_prefix . "CHARGEN_TEMPLATE_OPTIONS";
@@ -353,13 +364,14 @@ function vtm_character_install() {
 					ID              	MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
 					NAME            	VARCHAR(30)   NOT NULL,
 					DESCRIPTION     	TINYTEXT      NOT NULL,
-					GROUPING        	VARCHAR(30)   NOT NULL,
 					COST_MODEL_ID   	MEDIUMINT(9)  NOT NULL,
+					SKILL_TYPE_ID   	MEDIUMINT(9)  NOT NULL,
 					MULTIPLE			VARCHAR(1)	  NOT NULL,
 					SPECIALISATION_AT	SMALLINT(2)	  NOT NULL,
 					VISIBLE         	VARCHAR(1)    NOT NULL,
 					PRIMARY KEY  (ID),
-					CONSTRAINT `" . $table_prefix . "skill_constraint_1` FOREIGN KEY (COST_MODEL_ID) REFERENCES " . $table_prefix . "COST_MODEL(ID)
+					CONSTRAINT `" . $table_prefix . "skill_constraint_1` FOREIGN KEY (COST_MODEL_ID) REFERENCES " . $table_prefix . "COST_MODEL(ID),
+					CONSTRAINT `" . $table_prefix . "skill_constraint_2` FOREIGN KEY (SKILL_TYPE_ID) REFERENCES " . $table_prefix . "SKILL_TYPE(ID)
 					) ENGINE=INNODB;";
 
 		
@@ -370,7 +382,6 @@ function vtm_character_install() {
 					ID              MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
 					NAME            VARCHAR(30)   NOT NULL,
 					DESCRIPTION     TINYTEXT      NOT NULL,
-					GROUPING        VARCHAR(30)   NOT NULL,
 					COST_MODEL_ID   MEDIUMINT(9)  NOT NULL,
 					HAS_SECTOR      VARCHAR(1)    NOT NULL,
 					VISIBLE         VARCHAR(1)    NOT NULL,
@@ -378,7 +389,6 @@ function vtm_character_install() {
 					PRIMARY KEY  (ID),
 					CONSTRAINT `" . $table_prefix . "background_constraint_1` FOREIGN KEY (COST_MODEL_ID) REFERENCES " . $table_prefix . "COST_MODEL(ID)
 					) ENGINE=INNODB;";
-
 		
 		dbDelta($sql);
 			
@@ -1042,6 +1052,7 @@ function vtm_character_update($beforeafter) {
 		//--- FROM VERSION 1.9 -------------------------------------------------
 		case "1.9":  $errors += vtm_character_update_1_9($beforeafter);
 		case "1.10": $errors += vtm_character_update_1_10($beforeafter);
+		case "1.11": $errors += vtm_character_update_1_11($beforeafter);
 	}
 	
 	// Incremental database updates, during development
@@ -1050,6 +1061,7 @@ function vtm_character_update($beforeafter) {
 		switch ($installed_version) {
 			case "1.10": $errors += vtm_character_update_1_9($beforeafter);
 			case "1.11": $errors += vtm_character_update_1_10($beforeafter);
+			case "1.12": $errors += vtm_character_update_1_11($beforeafter);
 		}
 	
 	}
@@ -1128,6 +1140,16 @@ function vtm_table_exists($table, $prefix = VTM_TABLE_PREFIX) {
 	return $tableExists;
 }
 
+function vtm_column_exists($table, $column) {
+	global $wpdb;
+
+	$sql = "SHOW INDEX FROM $table WHERE Key_name != 'PRIMARY';";
+	$existing_columns = $wpdb->get_col("DESC $table", 0);
+	print_r($existing_columns);
+	$match_columns = array_intersect(array($column), $existing_columns);
+	
+	return !empty($match_columns);
+}
 function vtm_rename_column($columninfo) {
 	global $wpdb;
 
@@ -1343,7 +1365,59 @@ function vtm_character_update_1_10($beforeafter) {
 	}
 
 }
+function vtm_character_update_1_11($beforeafter) {
+	global $wpdb;
+	
+	if ( $beforeafter == 'before') {
+		//echo "<p>Setting up tables</p>";
 
+	} else {
+	
+		// Go through SKILL table and work out what the skill type is
+		// from the GROUPING. Use 'Other Traits' if no match
+		
+		// if grouping column exists
+		if (vtm_column_exists(VTM_TABLE_PREFIX . "SKILL","GROUPING")) {
+			$sql = "SELECT NAME, ID, PARENT_ID FROM " . VTM_TABLE_PREFIX . "SKILL_TYPE";
+			$types = $wpdb->get_results($sql, OBJECT_K);
+			$types = vtm_sanitize_array($types);
+			//print_r($types);
+			
+			$sql = "SELECT ID, GROUPING, NAME FROM " . VTM_TABLE_PREFIX . "SKILL";
+			$result = $wpdb->get_results($sql);
+			//print_r($result);
+			//echo "<li>Updating...</li>";
+			if (count($result) > 0) {
+				foreach ($result as $row) {
+					$grp = sanitize_key($row->GROUPING);
+					if (isset($types[$grp])) {
+						$typeid = $types[$grp]->ID;
+					}
+					// remove 's' at the end of the line
+					elseif (isset($types[chop($grp,'s')])) {
+						$typeid = $types[chop($grp,'s')]->ID;
+					}
+					else {
+						$typeid = $types["othertraits"]->ID;
+					}
+					//echo "<li>Update {$row->NAME}, ID: {$row->ID} with skill type {$grp}, type ID: $typeid</li>";
+					$wpdb->update(VTM_TABLE_PREFIX . "SKILL",
+						array('SKILL_TYPE_ID' => $typeid),
+						array('ID' => $row->ID)
+					);
+				}
+			}
+		
+			// Remove SKILL column
+			//GROUPING        VARCHAR(30)   NOT NULL,
+			$remove = array (
+				'GROUPING' => '',
+			);
+			vtm_remove_columns(VTM_TABLE_PREFIX . "SKILL", $remove);
+		} 
+	}
+
+}
 add_action('activated_plugin','save_error');
 function save_error(){
     update_option('vtm_plugin_error',  ob_get_contents());

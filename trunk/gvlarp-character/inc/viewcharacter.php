@@ -150,13 +150,13 @@ function vtm_get_viewcharacter_content() {
 	$backgrounds = $mycharacter->getBackgrounds();
 	$disciplines = $mycharacter->getDisciplines();
 	
-	$sql = "SELECT DISTINCT GROUPING FROM " . VTM_TABLE_PREFIX . "SKILL skills;";
+	$sql = "SELECT NAME, PARENT_ID FROM " . VTM_TABLE_PREFIX . "SKILL_TYPE;";
 	$allgroups = $wpdb->get_results($sql);	
 	
 	$secondarygroups = array();
 	foreach ($allgroups as $group) {
-		if ($group->GROUPING != 'Talents' && $group->GROUPING != 'Skills' && $group->GROUPING != 'Knowledges')
-			array_push($secondarygroups, $group->GROUPING);
+		if ($group->PARENT_ID > 0)
+			array_push($secondarygroups, $group->NAME);
 	}	
 
 	$secondary = array();
