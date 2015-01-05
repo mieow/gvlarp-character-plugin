@@ -27,7 +27,12 @@ function vtm_render_template_data(){
 			$id = $_REQUEST['template'];			
 			break;
 		case "save":
+		
 			if (isset($_REQUEST['do_new_' . $type]) || (isset($_REQUEST['do_save_' . $type]) && $_REQUEST['template'] == 0) ) {
+				if (empty($_REQUEST["template_name"])) {
+					echo "<p style='color:red'><b>Error: </b>Enter a template name</p>";
+					break;
+				}
 				/* insert */
 				$dataarray = array (
 					'NAME'        => $_REQUEST["template_name"],
@@ -123,6 +128,11 @@ function vtm_render_template_data(){
 			else {
 				/* update */
 				$id = $_REQUEST['template'];
+				
+				if (empty($_REQUEST["template_name"])) {
+					echo "<p style='color:red'><b>Error: </b>Enter a template name before saving</p>";
+					break;
+				}
 				
 				$updates = 0;
 				$fail    = 0;
