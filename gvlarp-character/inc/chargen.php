@@ -606,10 +606,10 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 		$postvariable, $showzeros, $issubmitted, $max2display = 5,
 		$templatefree = array()) {
 	
-	$fulldoturl    = plugins_url( 'gvlarp-character/images/cg_freedot.jpg' );
-	$emptydoturl   = plugins_url( 'gvlarp-character/images/cg_emptydot.jpg' );
-	$freebiedoturl = plugins_url( 'gvlarp-character/images/cg_freebiedot.jpg' );
-	$doturl        = plugins_url( 'gvlarp-character/images/cg_selectdot.jpg' );
+	$fulldoturl    = plugins_url( 'gvlarp-character/images/dot1full.jpg' );
+	$emptydoturl   = plugins_url( 'gvlarp-character/images/dot1empty.jpg' );
+	$freebiedoturl = plugins_url( 'gvlarp-character/images/dot3.jpg' );
+	$doturl        = plugins_url( 'gvlarp-character/images/dot2.jpg' );
 
 	$columns     = 3;
 	$rowoutput   = "";
@@ -817,10 +817,10 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 
 	$rowoutput = "";
 	$columns = 3;
-	$fulldoturl = plugins_url( 'gvlarp-character/images/cg_freedot.jpg' );
-	$freebiedoturl = plugins_url( 'gvlarp-character/images/cg_freebiedot.jpg' );
-	$emptydoturl   = plugins_url( 'gvlarp-character/images/cg_emptydot.jpg' );
-	$doturl        = plugins_url( 'gvlarp-character/images/cg_selectdot.jpg' );
+	$fulldoturl = plugins_url( 'gvlarp-character/images/dot1full.jpg' );
+	$freebiedoturl = plugins_url( 'gvlarp-character/images/dot3.jpg' );
+	$emptydoturl   = plugins_url( 'gvlarp-character/images/dot1empty.jpg' );
+	$doturl        = plugins_url( 'gvlarp-character/images/dot2.jpg' );
 	
 	// Get Posted data
 	if (isset($_POST[$postvariable])) {
@@ -3686,19 +3686,23 @@ function vtm_get_chargen_abilities($characterID = 0, $showsecondary = 0, $output
 	if ($showsecondary)
 		$filter = "";
 	else
-		$filter = "AND (GROUPING = 'Talents' OR GROUPING = 'Skills' OR GROUPING = 'Knowledges')";
+		$filter = "AND (skilltypes.PARENT_ID = 0)";
 	
-	$sql = "SELECT NAME as name, ID, DESCRIPTION as description, GROUPING as grp, 
-				SPECIALISATION_AT as specialisation_at, MULTIPLE as multiple,
-				CASE GROUPING WHEN 'Talents' THEN 3 WHEN 'Skills' THEN 2 WHEN 'Knowledges' THEN 1 ELSE 0 END as ORDERING,
-				MULTIPLE
-			FROM " . VTM_TABLE_PREFIX . "SKILL
+	$sql = "SELECT skills.NAME as name, skills.ID, skills.DESCRIPTION as description, skilltypes.NAME as grp, 
+				skills.SPECIALISATION_AT as specialisation_at, skills.MULTIPLE as multiple,
+				skilltypes.ORDERING, skills.MULTIPLE
+			FROM 
+				" . VTM_TABLE_PREFIX . "SKILL skills,
+				" . VTM_TABLE_PREFIX . "SKILL_TYPE skilltypes
 			WHERE
-				VISIBLE = 'Y'
+				skills.VISIBLE = 'Y'
+				AND skills.SKILL_TYPE_ID = skilltypes.ID
 				$filter
-			ORDER BY ORDERING DESC, NAME";
+			ORDER BY skilltypes.ORDERING, skills.NAME";
 	//echo "<p>SQL: $sql</p>\n";
 	$results = $wpdb->get_results($sql, $output_type);
+	
+	//print_r($results);
 	
 	return $results;
 
@@ -3719,10 +3723,10 @@ function vtm_get_chargen_roads() {
 function vtm_render_dot_select($type, $itemid, $current, $pending, $free, $max, $submitted) {
 
 	$output = "";
-	$fulldoturl    = plugins_url( 'gvlarp-character/images/cg_freedot.jpg' );
-	$doturl        = plugins_url( 'gvlarp-character/images/cg_selectdot.jpg' );
-	$emptydoturl   = plugins_url( 'gvlarp-character/images/cg_emptydot.jpg' );
-	$freebiedoturl = plugins_url( 'gvlarp-character/images/cg_freebiedot.jpg' );
+	$fulldoturl    = plugins_url( 'gvlarp-character/images/dot1full.jpg' );
+	$doturl        = plugins_url( 'gvlarp-character/images/dot2.jpg' );
+	$emptydoturl   = plugins_url( 'gvlarp-character/images/dot1empty.jpg' );
+	$freebiedoturl = plugins_url( 'gvlarp-character/images/dot3.jpg' );
 	
 	if ($pending || $submitted) {
 		$output .= "<input type='hidden' name='" . $type . "[" . $itemid . "]' value='$current' />\n";
@@ -4520,8 +4524,8 @@ function vtm_get_current_skills($characterID) {
 				IFNULL(cha_skill.LEVEL,0) as level_from,
 				IFNULL(cha_skill.ID,0) 	  as chartableid, 
 				skill.ID 		as itemid, 
-				skill.GROUPING 	as grp,
-				CASE skill.grouping WHEN 'Talents' THEN 3 WHEN 'Skills' THEN 2 WHEN 'Knowledges' THEN 1 ELSE 0 END as ordering,
+				skilltypes.NAME 	as grp,
+				skilltypes.ORDERING as ordering,
 				skill.MULTIPLE  as multiple
 			FROM 
 				" . VTM_TABLE_PREFIX . "SKILL skill
@@ -4533,10 +4537,12 @@ function vtm_get_current_skills($characterID) {
 						CHARACTER_ID = %s
 					) as cha_skill
 				ON
-					cha_skill.SKILL_ID = skill.ID
+					cha_skill.SKILL_ID = skill.ID,
+				" . VTM_TABLE_PREFIX . "SKILL_TYPE skilltypes
 			WHERE 
 				skill.VISIBLE = 'Y'
-		    ORDER BY ordering DESC, skill.name";
+				AND skill.SKILL_TYPE_ID = skilltypes.ID
+		    ORDER BY skilltypes.ordering, skill.name";
 	$sql   = $wpdb->prepare($sql, $characterID);
 	$items = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K));
 	
@@ -6080,7 +6086,7 @@ function vtm_get_chargen_specialties($characterID) {
 				'SKILL'					as type,
 				'Abilities' 			as typename,
 				skill.NAME 				as itemname, 
-				skill.GROUPING 			as grp, 
+				skilltypes.NAME 			as grp, 
 				cs.LEVEL 					as level,
 				cs.id						as id,
 				cs.comment					as spec,
@@ -6093,9 +6099,10 @@ function vtm_get_chargen_specialties($characterID) {
 				pendingxp.SPECIALISATION 	as xpspec,
 				pendingxp.ITEMNAME          as xpkey,
 				skill.SPECIALISATION_AT 	as specialisation_at,
-				CASE skill.GROUPING WHEN 'Talents' THEN 3 WHEN 'Skills' THEN 2 WHEN 'Knowledges' THEN 1 ELSE 0 END as ORDERING
+				skilltypes.ORDERING
 			FROM
 				" . VTM_TABLE_PREFIX . "SKILL skill,
+				" . VTM_TABLE_PREFIX . "SKILL_TYPE skilltypes,
 				" . VTM_TABLE_PREFIX . "CHARACTER_SKILL cs
 				LEFT JOIN (
 					SELECT ID, CHARTABLE_LEVEL, CHARTABLE_ID, SPECIALISATION, ITEMNAME
@@ -6115,9 +6122,10 @@ function vtm_get_chargen_specialties($characterID) {
 					pendingfreebie.CHARTABLE_ID = cs.ID
 			WHERE
 				cs.SKILL_ID = skill.ID
+				AND skill.SKILL_TYPE_ID = skilltypes.ID
 				AND cs.CHARACTER_ID = %s
 			ORDER BY
-				skill.ORDERING DESC, skill.NAME)";
+				skilltypes.ORDERING, skill.NAME)";
 	$sql = $wpdb->prepare($sql, $characterID, $characterID, $characterID, $characterID, $characterID, $characterID, $characterID);
 	$results1 = $wpdb->get_results($sql);
 	
@@ -6128,7 +6136,7 @@ function vtm_get_chargen_specialties($characterID) {
 				'SKILL'					as type,
 				'Abilities' 			as typename,
 				skill.NAME 				as itemname, 
-				skill.GROUPING 			as grp, 
+				skilltypes.NAME			as grp, 
 				0 					    as level,
 				0						as id,
 				''					    as spec,
@@ -6141,7 +6149,7 @@ function vtm_get_chargen_specialties($characterID) {
 				pendingxp.SPECIALISATION 	as xpspec,
 				pendingxp.ITEMNAME          as xpkey,
 				skill.SPECIALISATION_AT 	as specialisation_at,
-				CASE skill.GROUPING WHEN 'Talents' THEN 3 WHEN 'Skills' THEN 2 WHEN 'Knowledges' THEN 1 ELSE 0 END as ORDERING
+				skilltypes.ORDERING
 			FROM
 				" . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND freebie
 					LEFT JOIN (
@@ -6154,10 +6162,12 @@ function vtm_get_chargen_specialties($characterID) {
 					) pendingxp
 					ON
 						pendingxp.CHARTABLE_ID = freebie.ID,
-				" . VTM_TABLE_PREFIX . "SKILL skill
+				" . VTM_TABLE_PREFIX . "SKILL skill,
+				" . VTM_TABLE_PREFIX . "SKILL_TYPE skilltypes
 			WHERE
 				freebie.CHARACTER_ID = %s
 				AND skill.ID = freebie.ITEMTABLE_ID
+				AND skill.SKILL_TYPE_ID = skilltypes.ID
 				AND freebie.ITEMTABLE = 'SKILL'
 				AND freebie.CHARTABLE_ID = 0";
 	$sql = $wpdb->prepare($sql, $characterID, $characterID);
@@ -6170,7 +6180,7 @@ function vtm_get_chargen_specialties($characterID) {
 				'SKILL'					as type,
 				'Abilities' 			as typename,
 				skill.NAME 				as itemname, 
-				skill.GROUPING 			as grp, 
+				skilltypes.NAME			as grp, 
 				0 					    as level,
 				0						as id,
 				''					    as spec,
@@ -6183,13 +6193,15 @@ function vtm_get_chargen_specialties($characterID) {
 				pendingxp.SPECIALISATION 	as xpspec,
 				pendingxp.ITEMNAME          as xpkey,
 				skill.SPECIALISATION_AT 	as specialisation_at,
-				CASE skill.GROUPING WHEN 'Talents' THEN 3 WHEN 'Skills' THEN 2 WHEN 'Knowledges' THEN 1 ELSE 0 END as ORDERING
+				skilltypes.ORDERING
 			FROM
 				" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND pendingxp,
-				" . VTM_TABLE_PREFIX . "SKILL skill
+				" . VTM_TABLE_PREFIX . "SKILL skill,
+				" . VTM_TABLE_PREFIX . "SKILL_TYPE skilltypes
 			WHERE
 				pendingxp.CHARACTER_ID = %s
 				AND skill.ID = pendingxp.ITEMTABLE_ID
+				AND skill.SKILL_TYPE_ID = skilltypes.ID
 				AND pendingxp.ITEMTABLE = 'SKILL'
 				AND pendingxp.CHARTABLE_ID = 0";
 	$sql = $wpdb->prepare($sql, $characterID, $characterID);

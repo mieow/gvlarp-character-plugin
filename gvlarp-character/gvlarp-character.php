@@ -1089,16 +1089,20 @@ function vtm_get_sects() {
         vtm_handleGVLarpForm();
     }
 
-    /*
-            function vtm_numberToDots($base, $input) {
-                $number = (int) $input;
-                if ($number > -1 && $number < 11) {
-                    $basepath = WP_PLUGIN_URL . '/' . str_replace(basename( __FILE__), "", plugin_basename(__FILE__));
-                    return "<img src=\"" . $basepath . "images/reddot-" . $base . "-" .$number . ".gif\" />";
-                }
-                else {
-                    return "Illegal number of dots (" . $input . ")";
-                }
-            }
-        */
+function vtm_numberToDots($base, $input) {
+	$number = (int) $input;
+	$full  = plugins_url( 'gvlarp-character/images/dot1full.jpg' );
+	$empty = plugins_url( 'gvlarp-character/images/dot1empty.jpg' );
+	
+	$output = "";
+	
+	for ($i = 1 ; $i <= $base ; $i++) {
+		if ($i <= $input)
+			$output .= "<img alt='$i' width=16 src='$full' />";
+		else
+			$output .= "<img alt='$i' width=16 src='$empty' />";
+	}
+	
+	return $output;
+}
 ?>

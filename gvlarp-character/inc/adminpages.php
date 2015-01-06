@@ -56,25 +56,29 @@ function vtm_register_character_settings() {
 	register_setting( 'vtm_options_group', 'vtm_pdf_dotlinewidth' );
 
 	register_setting( 'vtm_options_group', 'vtm_view_bgcolour' );
-	register_setting( 'vtm_options_group', 'vtm_view_dotcolour' );
 	register_setting( 'vtm_options_group', 'vtm_view_dotlinewidth' );
-	register_setting( 'vtm_options_group', 'vtm_pend_bgcolour' );
-	register_setting( 'vtm_options_group', 'vtm_pend_dotcolour' );
-	register_setting( 'vtm_options_group', 'vtm_pend_dotlinewidth' );
-	register_setting( 'vtm_options_group', 'vtm_xp_bgcolour' );
-	register_setting( 'vtm_options_group', 'vtm_xp_dotcolour' );
-	register_setting( 'vtm_options_group', 'vtm_xp_dotlinewidth' );
-	register_setting( 'vtm_options_group', 'vtm_chargen_dotlinewidth' );
-	register_setting( 'vtm_options_group', 'vtm_chargen_bgcolour' );
-	register_setting( 'vtm_options_group', 'vtm_chargen_freedot' );
-	register_setting( 'vtm_options_group', 'vtm_chargen_selectdot' );
-	register_setting( 'vtm_options_group', 'vtm_chargen_freebie' );
-	register_setting( 'vtm_options_group', 'vtm_chargen_empty' );
+	register_setting( 'vtm_options_group', 'vtm_dot1colour' );
+	register_setting( 'vtm_options_group', 'vtm_dot2colour' );
+	register_setting( 'vtm_options_group', 'vtm_dot3colour' );
+	register_setting( 'vtm_options_group', 'vtm_dot4colour' );
+	register_setting( 'vtm_options_group', 'vtm_view_dotcolour' ); // depreciated
+	register_setting( 'vtm_options_group', 'vtm_pend_dotcolour' ); // depreciated
+	register_setting( 'vtm_options_group', 'vtm_xp_dotcolour' ); // depreciated
+	register_setting( 'vtm_options_group', 'vtm_chargen_freebie' ); // depreciated
+	//register_setting( 'vtm_options_group', 'vtm_pend_bgcolour' );
+	//register_setting( 'vtm_options_group', 'vtm_pend_dotlinewidth' );
+	//register_setting( 'vtm_options_group', 'vtm_xp_bgcolour' );
+	//register_setting( 'vtm_options_group', 'vtm_xp_dotlinewidth' );
+	//register_setting( 'vtm_options_group', 'vtm_chargen_dotlinewidth' );
+	//register_setting( 'vtm_options_group', 'vtm_chargen_bgcolour' );
+	//register_setting( 'vtm_options_group', 'vtm_chargen_freedot' );
+	//register_setting( 'vtm_options_group', 'vtm_chargen_selectdot' );
+	//register_setting( 'vtm_options_group', 'vtm_chargen_empty' );
 	
 	register_setting( 'vtm_options_group', 'vtm_signin_columns' );
+	register_setting( 'vtm_options_group', 'vtm_web_columns' );
 
 	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_mustbeloggedin' );
-	//register_setting( 'vtm_chargen_options_group', 'vtm_chargen_wpaccount' );
 	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_emailtag' );
 	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_email_from_name' );
 	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_email_from_address' );
