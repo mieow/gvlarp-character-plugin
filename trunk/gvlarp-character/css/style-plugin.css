@@ -56,8 +56,8 @@ div#csheet {
    border-bottom: none;
    width: 1px;  
 }
-#csheet .gvdotwide {
-   background-size:auto;
+#csheet .gvdotwide img {
+   width:32px;
 }
 #csheet #gvid_cstb_Willpower .gvcol_key {
    font-size:12pt;
@@ -177,144 +177,11 @@ div#csheet {
 
 /* =DOTS
 -------------------------------------------------------------- */
-
-.gvdot_5_1 {
-    width:90px;
-    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-5-1.gif');
-    background-repeat:no-repeat;
-    background-size:76px;
-    background-position:center;
+.gvdot_5 img {
+    width:16px;
 }
-.gvdot_5_2 {
-    width:90px;
-    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-5-2.gif');
-    background-repeat:no-repeat;
-    background-size:76px;
-    background-position:center;
-}
-.gvdot_5_3 {
-    width:90px;
-    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-5-3.gif');
-    background-repeat:no-repeat;
-    background-size:76px;
-    background-position:center; 
-}
-.gvdot_5_4 {
-    width:90px;
-    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-5-4.gif');
-    background-repeat:no-repeat;
-    background-size:76px;
-    background-position:center; 
-}
-.gvdot_5_5 {
-    width:90px;
-    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-5-5.gif');
-    background-size:76px;
-    background-repeat:no-repeat;
-    background-position:center; 
-}
-.gvdot_10_1 {
-    width:90px;
-    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-1.gif');
-    background-repeat:no-repeat;
-    background-size:76px;
-    background-position:center; 
-}
-.gvdot_10_2 {
-    width:90px;
-    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-2.gif');
-    background-repeat:no-repeat;
-    background-size:76px;
-    background-position:center; 
-}
-.gvdot_10_3 {
-    width:90px;
-    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-3.gif');
-    background-repeat:no-repeat;
-    background-size:76px;
-    background-position:center; 
-}
-.gvdot_10_4 {
-    width:90px;
-    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-4.gif');
-    background-repeat:no-repeat;
-    background-size:76px;
-    background-position:center; 
-}
-.gvdot_10_5 {
-    width:90px;
-    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-5.gif');
-    background-repeat:no-repeat;
-    background-size:76px;
-    background-position:center; 
-}
-.gvdot_10_6 {
-    width:90px;
-    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-6.gif');
-    background-repeat:no-repeat;
-    background-size:76px;
-    background-position:center; 
-}
-.gvdot_10_7 {
-    width:90px;
-    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-7.gif');
-    background-repeat:no-repeat;
-    background-size:76px;
-    background-position:center; 
-}
-.gvdot_10_8 {
-    width:90px;
-    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-8.gif');
-    background-repeat:no-repeat;
-    background-size:76px;
-    background-position:center; 
-}.gvdot_10_9 {
-    width:90px;
-    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-9.gif');
-    background-repeat:no-repeat;
-    background-size:76px;
-    background-position:center; }
-.gvdot_10_10 {
-    width:90px;
-    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-10.gif');
-    background-repeat:no-repeat;
-    background-size:76px;
-    background-position:center; 
-}
-.gvdot_5_6 {
-    width:90px;
-    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-6.gif');
-    background-repeat:no-repeat;
-    background-size:76px;
-    background-position:center; 
-}
-.gvdot_5_7 {
-    width:90px;
-    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-7.gif');
-    background-repeat:no-repeat;
-    background-size:76px;
-    background-position:center; 
-}
-.gvdot_5_8 {
-    width:90px;
-    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-8.gif');
-    background-repeat:no-repeat;
-    background-size:76px;
-    background-position:center; 
-}
-.gvdot_5_9 {
-    width:90px;
-    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-9.gif');
-    background-repeat:no-repeat;
-    background-size:76px;
-    background-position:center; 
-}
-.gvdot_5_10 {
-    width:90px;
-    background-image:url('/wp-content/plugins/gvlarp-character/images/whitedot-10-10.gif');
-    background-repeat:no-repeat;
-    background-size:76px;
-    background-position:center; 
+.gvdot_10 img {
+    width:8px;
 }
 
 /* PROFILE 
@@ -525,7 +392,7 @@ table.feedingmapkey {width:auto;}
 }
 
 #chargen-main .dotselect label.freedot {
-    background-image: url('/wp-content/plugins/gvlarp-character/images/xpdot.jpg') !important;
+    background-image: url('/wp-content/plugins/gvlarp-character/images/dot1full.jpg') !important;
 }
 #chargen-main .dotselect label.cleardot {
     background-image: url('/wp-content/plugins/gvlarp-character/images/crossclear.jpg') !important;
@@ -571,31 +438,19 @@ table.feedingmapkey {width:auto;}
 }
 
 #chargen-main .dotselect:not(:checked) > label {
-    background-image: url('/wp-content/plugins/gvlarp-character/images/cg_emptydot.jpg');
+    background-image: url('/wp-content/plugins/gvlarp-character/images/dot1empty.jpg');
 }
 
 #chargen-main .dotselect > input:checked ~ label {
-    /*background-image: url('/wp-content/plugins/gvlarp-character/images/viewfulldot.jpg'); */
-    background-image: url('/wp-content/plugins/gvlarp-character/images/cg_selectdot.jpg');
+    background-image: url('/wp-content/plugins/gvlarp-character/images/dot2.jpg');
 }
 
 #chargen-main .dotselect:not(:checked) > label:hover,
 #chargen-main .dotselect:not(:checked) > label:hover ~ label {
-    background-image: url('/wp-content/plugins/gvlarp-character/images/cg_selectdot.jpg');
+    background-image: url('/wp-content/plugins/gvlarp-character/images/dot2.jpg');
 }
 
-/* .dotselect > input:checked + label:hover,
-.dotselect > input:checked + label:hover ~ label,
-.dotselect > input:checked ~ label:hover,
-.dotselect > input:checked ~ label:hover ~ label,
-.dotselect > label:hover ~ input:checked ~ label {
-    background-image: url('/wp-content/plugins/gvlarp-character/images/pendingdot.jpg');
-} */
 
-/*.vtm_ritual_table input[type="checkbox"]:checked + label { 
-	font-style: italic;
-	background-color: #770506;
-}*/
 .ritrowselect input[type="checkbox"]:checked + label  { 
 	font-style: italic;
 	background-color: #770506;

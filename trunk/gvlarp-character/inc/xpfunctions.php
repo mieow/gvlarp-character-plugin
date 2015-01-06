@@ -194,9 +194,9 @@ function vtm_render_select_spends($character) {
 	$xp_total      = vtm_get_total_xp($playerID, $characterID);
 	$xp_pending    = vtm_get_pending_xp($playerID, $characterID);
 	$xp_avail      = $xp_total - $xp_pending;
-	$fulldoturl    = plugins_url( 'gvlarp-character/images/viewfulldot.jpg' );
-	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
-	$pendingdoturl = plugins_url( 'gvlarp-character/images/pendingdot.jpg' );
+	$fulldoturl    = plugins_url( 'gvlarp-character/images/dot1full.jpg' );
+	$emptydoturl   = plugins_url( 'gvlarp-character/images/dot1empty.jpg' );
+	$pendingdoturl = plugins_url( 'gvlarp-character/images/dot2.jpg' );
 	
 	$sectioncontent = array();
 	$sectionheading = array();
@@ -664,9 +664,9 @@ function vtm_render_skills($characterID, $maxRating, $pendingSpends, $xp_avail) 
 
 function vtm_render_skills_row($type, $rownum, $max2display, $maxRating, $datarow, $levelsdata, $xp_avail) {
 
-	$fulldoturl    = plugins_url( 'gvlarp-character/images/xpdot.jpg' );
-	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
-	$pendingdoturl = plugins_url( 'gvlarp-character/images/pendingdot.jpg' );
+	$fulldoturl    = plugins_url( 'gvlarp-character/images/dot1full.jpg' );
+	$emptydoturl   = plugins_url( 'gvlarp-character/images/dot1empty.jpg' );
+	$pendingdoturl = plugins_url( 'gvlarp-character/images/dot2.jpg' );
 
 	$rowoutput = "";
 		// Hidden fields
@@ -1189,9 +1189,9 @@ function vtm_render_merits($characterID, $pendingSpends, $xp_avail) {
 
 function vtm_render_spend_table($type, $allxpdata, $maxRating, $columns, $xp_avail) {
 
-	$fulldoturl    = plugins_url( 'gvlarp-character/images/xpdot.jpg' );
-	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
-	$pendingdoturl = plugins_url( 'gvlarp-character/images/pendingdot.jpg' );
+	$fulldoturl    = plugins_url( 'gvlarp-character/images/dot1full.jpg' );
+	$emptydoturl   = plugins_url( 'gvlarp-character/images/dot1empty.jpg' );
+	$pendingdoturl = plugins_url( 'gvlarp-character/images/dot2.jpg' );
 	$levelsdata    = isset($_REQUEST[$type . '_level']) ? $_REQUEST[$type . '_level'] : array();
 
 	$max2display = vtm_get_max_dots($allxpdata, $maxRating);
@@ -1421,9 +1421,9 @@ function vtm_render_skill_spend_table($type, $list, $allxpdata, $maxRating, $col
 
 function vtm_render_ritual_spend_table($type, $allxpdata, $columns, $xp_avail) {
 
-	$fulldoturl    = plugins_url( 'gvlarp-character/images/xpdot.jpg' );
-	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
-	$pendingdoturl = plugins_url( 'gvlarp-character/images/pendingdot.jpg' );
+	$fulldoturl    = plugins_url( 'gvlarp-character/images/dot1full.jpg' );
+	$emptydoturl   = plugins_url( 'gvlarp-character/images/dot1empty.jpg' );
+	$pendingdoturl = plugins_url( 'gvlarp-character/images/dot2.jpg' );
 	$levelsdata    = isset($_REQUEST[$type . '_level']) ? $_REQUEST[$type . '_level'] : array();
 
 	$max2display = vtm_get_max_dots($allxpdata, 5);
@@ -1525,9 +1525,9 @@ function vtm_render_ritual_spend_table($type, $allxpdata, $columns, $xp_avail) {
 }
 function vtm_render_combo_spend_table($type, $allxpdata, $xp_avail) {
 
-	$fulldoturl    = plugins_url( 'gvlarp-character/images/xpdot.jpg' );
-	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
-	$pendingdoturl = plugins_url( 'gvlarp-character/images/pendingdot.jpg' );
+	$fulldoturl    = plugins_url( 'gvlarp-character/images/dot1full.jpg' );
+	$emptydoturl   = plugins_url( 'gvlarp-character/images/dot1empty.jpg' );
+	$pendingdoturl = plugins_url( 'gvlarp-character/images/dot2.jpg' );
 	$levelsdata    = isset($_REQUEST[$type . '_level']) ? $_REQUEST[$type . '_level'] : array();
 
 	$max2display = 1;
@@ -1672,9 +1672,9 @@ function vtm_render_merit_spend_table($type, $list, $allxpdata, $columns, $xp_av
 
 function vtm_render_merits_row($type, $id, $xpdata, $levelsdata, $xp_avail) {
 
-	$fulldoturl    = plugins_url( 'gvlarp-character/images/xpdot.jpg' );
-	$emptydoturl   = plugins_url( 'gvlarp-character/images/viewemptydot.jpg' );
-	$pendingdoturl = plugins_url( 'gvlarp-character/images/pendingdot.jpg' );
+	$fulldoturl    = plugins_url( 'gvlarp-character/images/dot1full.jpg' );
+	$emptydoturl   = plugins_url( 'gvlarp-character/images/dot1empty.jpg' );
+	$pendingdoturl = plugins_url( 'gvlarp-character/images/dot2.jpg' );
 
 	$rowoutput = "";
 	

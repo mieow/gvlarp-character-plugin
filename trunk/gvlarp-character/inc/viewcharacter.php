@@ -68,10 +68,11 @@ function vtm_get_viewcharacter_content() {
 		$statname = isset($physical[$i]->name)      ? $physical[$i]->name : '';
 		$statspec = isset($physical[$i]->specialty) ? stripslashes($physical[$i]->specialty) : '';
 		$statlvl  = isset($physical[$i]->level)     ? $physical[$i]->level : '';
+		$max = max($statlvl, $maxrating);
 		$content .= "<tr>
 				<td class='gvcol_key'>$statname</td>
 				<td class='gvcol_spec'>$statspec </td>
-				<td class='gvdot_{$maxrating}_$statlvl'>&nbsp;</td>
+				<td class='gvdot_{$maxrating}'>" . vtm_numberToDots($max, $statlvl) . "</td>
 			</tr>";
 	}
 	$content .= "</table></td><td colspan=2><table>";
@@ -79,10 +80,11 @@ function vtm_get_viewcharacter_content() {
 		$statname = isset($social[$i]->name)      ? $social[$i]->name : '';
 		$statspec = isset($social[$i]->specialty) ? stripslashes($social[$i]->specialty) : '';
 		$statlvl  = isset($social[$i]->level)     ? $social[$i]->level : '';
+		$max = max($statlvl, $maxrating);
 		$content .= "<tr>
 				<td class='gvcol_key'>$statname</td>
 				<td class='gvcol_spec'>$statspec </td>
-				<td class='gvdot_{$maxrating}_$statlvl'>&nbsp;</td>
+				<td class='gvdot_{$maxrating}'>" . vtm_numberToDots($max, $statlvl) . "</td>
 			</tr>";
 	}
 	$content .= "</table></td><td colspan=2><table>";
@@ -90,10 +92,11 @@ function vtm_get_viewcharacter_content() {
 		$statname = isset($mental[$i]->name)      ? $mental[$i]->name : '';
 		$statspec = isset($mental[$i]->specialty) ? stripslashes($mental[$i]->specialty) : '';
 		$statlvl  = isset($mental[$i]->level)     ? $mental[$i]->level : '';
+		$max = max($statlvl, $maxrating);
 		$content .= "<tr>
 				<td class='gvcol_key'>$statname</td>
 				<td class='gvcol_spec'>$statspec </td>
-				<td class='gvdot_{$maxrating}_$statlvl'>&nbsp;</td>
+				<td class='gvdot_{$maxrating}'>" . vtm_numberToDots($max, $statlvl) . "</td>
 			</tr>";
 	}
 	$content .= "</table></td></tr>";
@@ -117,29 +120,32 @@ function vtm_get_viewcharacter_content() {
 
 	$content .= "<tr><td colspan=2><table>\n";
 	for ($i=0;$i<count($talent);$i++) {
+		$max = max($talent[$i]->level, $maxrating);
 		if ($talent[$i]->level > 0)
 			$content .= "<tr>
 					<td class='gvcol_key'>" . $talent[$i]->skillname               . "</td>
 					<td class='gvcol_spec'>" . stripslashes($talent[$i]->specialty) . "</td>
-					<td class='gvdot_{$maxrating}_{$talent[$i]->level}'>&nbsp;</td>
+					<td class='gvdot_{$maxrating}'>" . vtm_numberToDots($max, $talent[$i]->level) . "</td>
 				</tr>";
 	}
 	$content .= "</table></td><td colspan=2><table>";
 	for ($i=0;$i<count($skill);$i++) {
+		$max = max($skill[$i]->level, $maxrating);
 		if ($skill[$i]->level > 0)
 			$content .= "<tr>
 				<td class='gvcol_key'>" . $skill[$i]->skillname               . "</td>
 				<td class='gvcol_spec'>" . stripslashes($skill[$i]->specialty) . "</td>
-				<td class='gvdot_{$maxrating}_{$skill[$i]->level}'>&nbsp;</td>
+				<td class='gvdot_{$maxrating}'>" . vtm_numberToDots($max, $skill[$i]->level) . "</td>
 			</tr>";
 	}
 	$content .= "</table></td><td colspan=2><table>";
 	for ($i=0;$i<count($knowledge);$i++) {
+		$max = max($knowledge[$i]->level, $maxrating);
 		if ($knowledge[$i]->level > 0)
 			$content .= "<tr>
 				<td class='gvcol_key'>" . $knowledge[$i]->skillname               . "</td>
 				<td class='gvcol_spec'>" . stripslashes($knowledge[$i]->specialty) . "</td>
-				<td class='gvdot_{$maxrating}_{$knowledge[$i]->level}'>&nbsp;</td>
+				<td class='gvdot_{$maxrating}'>" . vtm_numberToDots($max, $knowledge[$i]->level) . "</td>
 			</tr>";
 	}
 	$content .= "</table></td></tr>";
@@ -174,19 +180,21 @@ function vtm_get_viewcharacter_content() {
 			<td colspan=2><h4>Secondary</h4></td>
 		</tr><tr><td colspan=2><table>\n";
 	for ($i=0;$i<count($backgrounds);$i++) {
+		$max = max($backgrounds[$i]->level, $maxrating);
 		$content .= "<tr>
 				<td class='gvcol_key'>" . $backgrounds[$i]->background               . "</td>
 				<td class='gvcol_spec'>" . (!empty($backgrounds[$i]->sector) ?  $backgrounds[$i]->sector : stripslashes($backgrounds[$i]->comment)) . "</td>
-				<td class='gvdot_{$maxrating}_{$backgrounds[$i]->level}'>&nbsp;</td>
+				<td class='gvdot_{$maxrating}'>" . vtm_numberToDots($max, $backgrounds[$i]->level) . "</td>
 			</tr>";
 	}
 	$content .= "</table></td><td colspan=2><table>";
 	for ($i=0;$i<count($disciplines);$i++) {
+		$max = max($disciplines[$i]->level, $maxrating);
 		if ($disciplines[$i]->level > 0)
 			$content .= "<tr>
 				<td class='gvcol_key'>" . $disciplines[$i]->name               . "</td>
 				<td class='gvcol_spec'>&nbsp;</td>
-				<td class='gvdot_{$maxrating}_{$disciplines[$i]->level}'>&nbsp;</td>
+				<td class='gvdot_{$maxrating}'>" . vtm_numberToDots($max, $disciplines[$i]->level) . "</td>
 			</tr>";
 	}
 	// COMBO DISCIPLINES
@@ -198,11 +206,12 @@ function vtm_get_viewcharacter_content() {
 	
 	$content .= "</table></td><td colspan=2><table>";
 	for ($i=0;$i<count($secondary);$i++) {
+		$max = max($secondary[$i]->level, $maxrating);
 		if ($secondary[$i]->level > 0)
 			$content .= "<tr>
 				<td class='gvcol_key'>" . $secondary[$i]->skillname               . "</td>
 				<td class='gvcol_spec'>" . stripslashes($secondary[$i]->specialty) . "</td>
-				<td class='gvdot_{$maxrating}_{$secondary[$i]->level}'>&nbsp;</td>
+				<td class='gvdot_{$maxrating}'>" . vtm_numberToDots($max, $secondary[$i]->level) . "</td>
 			</tr>";
 	}
 	$content .= "</table></td></tr>";
@@ -236,12 +245,12 @@ function vtm_get_viewcharacter_content() {
 		$content .= "<tr>
 				<td class='gvcol_key'>" . $statname . "</td>
 				<td class='gvcol_spec'>&nbsp;</td>
-				<td class='gvdot_{$maxrating}_$statlvl'>&nbsp;</td>
+				<td class='gvdot_5'>" . vtm_numberToDots(5, $statlvl) . "</td>
 			</tr>\n";
 	}
 	$content .= "<tr><td colspan=3><hr /></td></tr>\n";
 	$content .= "<tr><td colspan=3><h4>Willpower</h4></td></tr>\n";
-	$content .= "<tr><td colspan=3 class='gvdot_10_{$mycharacter->willpower} gvdotwide'>&nbsp;</td></tr>\n";
+	$content .= "<tr><td colspan=3 class='gvdot_10 gvdotwide'>" . vtm_numberToDots(10, $mycharacter->willpower) . "</td></tr>\n";
 	$content .= "<tr><td colspan=2 class='gvcol_key'>Current</td><td>" . $mycharacter->current_willpower . "</td></tr>\n";
 	$content .= "<tr><td colspan=3><hr /></td></tr>\n";
 	$content .= "<tr><td colspan=2><h4>" . $mycharacter->path_of_enlightenment . "</h4></td><td><h4>" . $mycharacter->path_rating . "</h4></td></tr>\n";
@@ -278,7 +287,7 @@ function vtm_get_viewcharacter_content() {
 			$content .= "<tr><td colspan=2><strong>$discipline</strong></td></tr>\n";
 			foreach ($paths as $path => $info) {
 				if ($info[0] > 0)
-					$content .= "<tr><td class='gvcol_key'>$path</td><td class='gvdot_5_{$info[0]}'>&nbsp;</td></tr>";
+					$content .= "<tr><td class='gvcol_key'>$path</td><td class='gvdot_5'>" . vtm_numberToDots(5, $info[0]) . "</td></tr>";
 			}
 		}
 		$content .= "</table>\n";

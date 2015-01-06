@@ -17,7 +17,51 @@ function vtm_character_config() {
 			}
 		?>
 		<h2>Configuration</h2>
-		<h3>Options</h3>
+		<div class="gvadmin_nav">
+			<ul>
+				<li><?php echo vtm_get_tablink('general',   'General'); ?></li>
+				<li><?php echo vtm_get_tablink('pagelinks', 'Page Links'); ?></li>
+				<li><?php echo vtm_get_tablink('maps',      'Map Options'); ?></li>
+				<li><?php echo vtm_get_tablink('chargen',   'Character Generation'); ?></li>
+				<li><?php echo vtm_get_tablink('skinning',  'Skinning'); ?></li>
+			</ul>
+		</div>
+		<div class="gvadmin_content">
+		<?php
+		
+		$tabselect = isset($_REQUEST['tab']) ? $_REQUEST['tab'] : '';
+		
+		switch ($tabselect) {
+			case 'general':
+				vtm_render_config_general();
+				break;
+			case 'pagelinks':
+				vtm_render_config_pagelinks();
+				break;
+			case 'maps':
+				vtm_render_config_maps();
+				break;
+			case 'chargen':
+				vtm_render_config_chargen();
+				break;
+			case 'skinning':
+				vtm_render_config_skinning();
+				break;
+			default:
+				vtm_render_config_general();
+		}
+		
+		?>
+		</div>
+	</div>
+	<?php
+}
+
+function vtm_render_config_general() {	
+	global $wpdb;
+	
+		?>
+		<h3>General Options</h3>
 		<?php 
 		
 			if (isset($_REQUEST['save_options'])) {
@@ -141,7 +185,12 @@ function vtm_character_config() {
 			<input type="submit" name="save_options" class="button-primary" value="Save Options" />
 		</form>
 		
-		<h3>Page Links</h3>
+	<?php 
+}
+function vtm_render_config_pagelinks() {	
+	global $wpdb;
+
+		?><h3>Page Links</h3>
 		<?php 
 			if (isset($_REQUEST['save_st_links'])) {
 				for ($i=0; $i<$_REQUEST['linecount']; $i++) {
@@ -149,7 +198,7 @@ function vtm_character_config() {
 						$link = $_REQUEST['link' . $i];
 					else if ($_REQUEST['selectpage' . $i] == "vtmnewpage") {
 					
-						/* check if page with name $_REQUEST['value' . $i] exists */
+						//check if page with name $_REQUEST['value' . $i] exists 
 					
 						$my_page = array(
 							  'post_status'           => 'publish', 
@@ -264,7 +313,12 @@ function vtm_character_config() {
 			<input type="submit" name="save_st_links" class="button-primary" value="Save Links" />
 		</form>
 
-		<h3>Feeding Map Options</h3>
+	<?php 
+}
+function vtm_render_config_maps() {	
+	global $wpdb;
+
+		?><h3>Feeding Map Options</h3>
 		<form method="post" action="options.php">
 			<?php
 			settings_fields( 'feedingmap_options_group' );
@@ -304,7 +358,13 @@ function vtm_character_config() {
 		
 		</form>
 
-		<h3>Character Generation Options</h3>
+		
+	<?php 
+}
+function vtm_render_config_chargen() {	
+	global $wpdb;
+
+		?><h3>Character Generation Options</h3>
 		<form method="post" action="options.php">
 		<?php
 		
@@ -333,7 +393,12 @@ function vtm_character_config() {
 		<?php submit_button("Save Character Generation Options", "primary", "save_chargen_button"); ?>
 		</form>
 		
-		<h3>General Options</h3>
+	<?php 
+}
+function vtm_render_config_skinning() {	
+	global $wpdb;
+	
+		?><h3>Skinning</h3>
 		<form method="post" action="options.php">
 		<?php
 		
@@ -348,52 +413,45 @@ function vtm_character_config() {
 			</tr>
 		</table>
 		
-		<h4>View Character Sheet Graphics</h4>
+		<h4>Web Page Layout</h4>
 		<table>
 			<tr>
-				<td>View Background Colour (#RRGGBB)</td><td><input type="color" name="vtm_view_bgcolour" value="<?php echo get_option('vtm_view_bgcolour', '#000000'); ?>" /></td>
-				<td>View Dot/Box Colour (#RRGGBB)</td><td><input type="color" name="vtm_view_dotcolour" value="<?php echo get_option('vtm_view_dotcolour', '#CCCCCC'); ?>" /></td>
-				<td>View Dot/Box Line Width (mm)</td><td><input type="text" name="vtm_view_dotlinewidth" value="<?php echo get_option('vtm_view_dotlinewidth', '2'); ?>" size=4 /></td>
-				<td >
-					<table><tr>
-					<td><img alt="empty dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/viewemptydot.jpg' ); ?>'></td>
-					<td><img alt="full dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/viewfulldot.jpg' ); ?>'></td>
-					</tr></table>
-				</td>
+				<td>Number of columns:</td>
+				<td><input type="text" name="vtm_web_columns" value="<?php echo get_option('vtm_web_columns', 3); ?>" /></td>
 			</tr>
 		</table>
 		
-		<h4>Experience Spend Graphics</h4>
+		<h4>Web Page Graphics</h4>
+		<?php 
+			$drawbgcolour = get_option('vtm_view_bgcolour', '#000000');
+			$drawborder   = get_option('vtm_view_dotlinewidth', '2');
+			$dot1colour   = get_option('vtm_dot1colour', get_option('vtm_view_dotcolour', '#FFFFFF'));
+			$dot2colour   = get_option('vtm_dot2colour', get_option('vtm_xp_dotcolour',   '#FF0000'));
+			$dot3colour   = get_option('vtm_dot3colour', get_option('vtm_pend_dotcolour', '#00FF00'));
+			$dot4colour   = get_option('vtm_dot4colour', get_option('vtm_chargen_freebie', '#0000FF'));
+		?>
+		
 		<table>
 			<tr>
-				<td>XP Spend Background Colour (#RRGGBB)</td><td><input type="color" name="vtm_xp_bgcolour" value="<?php echo get_option('vtm_xp_bgcolour', '#000000'); ?>" /></td>
-				<td>XP Spend Dot/Box Colour (#RRGGBB)</td><td><input type="color" name="vtm_xp_dotcolour" value="<?php echo get_option('vtm_xp_dotcolour'. '#CCCCCC'); ?>" /></td>
-				<td>XP Spend Dot/Box Line Width (mm)</td><td><input type="text" name="vtm_xp_dotlinewidth" value="<?php echo get_option('vtm_xp_dotlinewidth', '2'); ?>" size=4 /></td>
-				<td ><img alt="xp dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/xpdot.jpg' ); ?>'></td>
-			</tr>
-		</table>
-
-		<h4>Pending Experience Spend Graphics</h4>
-		<table>
-			<tr>
-				<td>Pending Background Colour (#RRGGBB)</td><td><input type="color" name="vtm_pend_bgcolour" value="<?php echo get_option('vtm_pend_bgcolour', '#000000'); ?>" /></td>
-				<td>Pending Dot/Box Colour (#RRGGBB)</td><td><input type="color" name="vtm_pend_dotcolour" value="<?php echo get_option('vtm_pend_dotcolour', '#BE0406'); ?>" /></td>
-				<td>Pending Dot/Box Line Width (mm)</td><td><input type="text" name="vtm_pend_dotlinewidth" value="<?php echo get_option('vtm_pend_dotlinewidth', '2'); ?>" size=4 /></td>
-				<td ><img alt="pending dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/pendingdot.jpg' ); ?>'></td>
-			</tr>
-		</table>
-
-		<h4>Character Generation Graphics</h4>
-		<table>
-			<tr>
-				<td>Dot/Box Line Width (mm)</td><td><input type="text" name="vtm_chargen_dotlinewidth" value="<?php echo get_option('vtm_chargen_dotlinewidth', '2'); ?>" size=4 /></td>
-				<td>Background Colour (#RRGGBB)</td><td><input type="color" name="vtm_chargen_bgcolour" value="<?php echo get_option('vtm_chargen_bgcolour', '#000000'); ?>" /></td>
-				<td>Free Dot colour (#RRGGBB)</td><td><input type="color" name="vtm_chargen_freedot" value="<?php echo get_option('vtm_chargen_freedot', '#808080'); ?>" /></td>
+				<td>Background Colour (#RRGGBB)</td><td><input type="color" name="vtm_view_bgcolour" value="<?php echo $drawbgcolour; ?>" /></td>
+				<td>Dot/Box Line Width (mm)</td><td><input type="text" name="vtm_view_dotlinewidth" value="<?php echo $drawborder; ?>" size=4 /></td>
 			</tr><tr>
-				<td>Select Dot colour (#RRGGBB)</td><td><input type="color" name="vtm_chargen_selectdot" value="<?php echo get_option('vtm_chargen_selectdot', '#FF0000'); ?>" /></td>
-				<td>Freebie Dot colour (#RRGGBB)</td><td><input type="color" name="vtm_chargen_freebie" value="<?php echo get_option('vtm_chargen_freebie', '#00FF00'); ?>" /></td>
-				<td>Empty Dot colour (#RRGGBB)</td><td><input type="color" name="vtm_chargen_empty" value="<?php echo get_option('vtm_chargen_empty', '#CCCCCC'); ?>" /></td>
+				<td>Dot1 colour (#RRGGBB)</td><td><input type="color" name="vtm_dot1colour" value="<?php echo $dot1colour; ?>" /></td>
+				<td>Dot2 Colour (#RRGGBB)</td><td><input type="color" name="vtm_dot2colour" value="<?php echo $dot2colour; ?>" /></td>
+			</tr><tr>
+				<td>Dot3 Colour (#RRGGBB)</td><td><input type="color" name="vtm_dot3colour" value="<?php echo $dot3colour; ?>" /></td>
+				<td>Dot4 Colour (#RRGGBB)</td><td><input type="color" name="vtm_dot4colour" value="<?php echo $dot4colour; ?>" /></td>
 			</tr>
+		</table>
+		<table>
+		<tr>
+		<td><img alt="empty dot1" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/dot1empty.jpg' ); ?>'></td>
+		<td><img alt="full dot1"  width=16 src='<?php echo plugins_url( 'gvlarp-character/images/dot1full.jpg' ); ?>'></td>
+		<td><img alt="dot2"       width=16 src='<?php echo plugins_url( 'gvlarp-character/images/dot2.jpg' ); ?>'></td>
+		<td><img alt="dot3"       width=16 src='<?php echo plugins_url( 'gvlarp-character/images/dot3.jpg' ); ?>'></td>
+		<td><img alt="dot4"       width=16 src='<?php echo plugins_url( 'gvlarp-character/images/dot4.jpg' ); ?>'></td>
+		<td><img alt="crossclear" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/crossclear.jpg' ); ?>'></td>
+		</tr>
 		</table>
 
 		<h4>PDF Character Sheet Options</h4>
@@ -401,10 +459,10 @@ function vtm_character_config() {
 			<tr>
 				<td>Character Sheet Title</td><td><input type="text" name="vtm_pdf_title" value="<?php echo get_option('vtm_pdf_title', 'Character Sheet'); ?>" size=30 /></td>
 				<td>Title Font</td><td><select name="vtm_pdf_titlefont">
-					<option value="Arial"     <?php if ('Arial' == get_option('vtm_pdf_titlefont')) echo "selected='selected'"; ?>>Arial</option>
-					<option value="Courier"   <?php if ('Courier' == get_option('vtm_pdf_titlefont')) echo "selected='selected'"; ?>>Courier</option>
+					<option value="Arial"     <?php if ('Arial'     == get_option('vtm_pdf_titlefont')) echo "selected='selected'"; ?>>Arial</option>
+					<option value="Courier"   <?php if ('Courier'   == get_option('vtm_pdf_titlefont')) echo "selected='selected'"; ?>>Courier</option>
 					<option value="Helvetica" <?php if ('Helvetica' == get_option('vtm_pdf_titlefont')) echo "selected='selected'"; ?>>Helvetica</option>
-					<option value="Times"     <?php if ('Times' == get_option('vtm_pdf_titlefont')) echo "selected='selected'"; ?>>Times New Roman</option>
+					<option value="Times"     <?php if ('Times'     == get_option('vtm_pdf_titlefont')) echo "selected='selected'"; ?>>Times New Roman</option>
 					</select>
 				</td>
 				<td>Title Text Colour (#RRGGBB)</td><td><input type="color" name="vtm_pdf_titlecolour" value="<?php echo get_option('vtm_pdf_titlecolour', '#000000'); ?>" /></td>
@@ -416,240 +474,109 @@ function vtm_character_config() {
 			</tr>
 			<tr>
 				<td>Character Sheet Footer</td><td><input type="text" name="vtm_pdf_footer" value="<?php echo get_option('vtm_pdf_footer'); ?>" size=30 /></td>
-			<?php if (class_exists('Imagick')) { ?>
 				<td>Dot/Box Colour (#RRGGBB)</td><td><input type="color" name="vtm_pdf_dotcolour" value="<?php echo get_option('vtm_pdf_dotcolour', '#000000'); ?>" /></td>
 				<td>Dot/Box Line Width (mm)</td><td><input type="text" name="vtm_pdf_dotlinewidth" value="<?php echo get_option('vtm_pdf_dotlinewidth', '1'); ?>" size=4 /></td>
 			</tr>
-			<tr>
-				<td colspan = 6>
-					<table><tr>
-					<td><img alt="empty dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/emptydot.jpg' ); ?>'></td>
-					<td><img alt="full dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/fulldot.jpg' ); ?>'></td>
-					<td><img alt="box dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/box.jpg' ); ?>'></td>
-					<td><img alt="box2 dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/boxcross1.jpg' ); ?>'></td>
-					<td><img alt="box3 dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/boxcross2.jpg' ); ?>'></td>
-					<td><img alt="box4 dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/boxcross3.jpg' ); ?>'></td>
-					</tr></table>
-				</td>
-				<?php } else { ?>
-				
-			<tr>
-				
-				<td colspan=4>&nbsp;</td>
-				<?php } ?>
-			</tr>
+		</table>
+		<table>
+		<tr>
+		<td><img alt="empty dot"  width=16 src='<?php echo plugins_url( 'gvlarp-character/images/emptydot.jpg' ); ?>'></td>
+		<td><img alt="full dot"  width=16 src='<?php echo plugins_url( 'gvlarp-character/images/fulldot.jpg' ); ?>'></td>
+		<td><img alt="xp dot"  width=16 src='<?php echo plugins_url( 'gvlarp-character/images/pdfxpdot.jpg' ); ?>'></td>
+		<td><img alt="box dot"  width=16 src='<?php echo plugins_url( 'gvlarp-character/images/box.jpg' ); ?>'></td>
+		<td><img alt="box2 dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/boxcross1.jpg' ); ?>'></td>
+		<td><img alt="box3 dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/boxcross2.jpg' ); ?>'></td>
+		<td><img alt="box4 dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/boxcross3.jpg' ); ?>'></td>
+		</tr>
 		</table>
 		
 		<?php submit_button("Save General Options", "primary", "save_general_button"); ?>
 		</form>
 		
 		<?php
-					
-		if (class_exists('Imagick')) {
-				
-			$drawwidth    = 32;
-			$drawheight   = 32;
-			$drawmargin   = 1;
-			$imagetype    = 'jpg';
-			
-			$image = new Imagick();
-			
-			/* View Character Sheet Dots */
-			$drawbgcolour = get_option('vtm_view_bgcolour');
-			$drawcolour   = get_option('vtm_view_dotcolour');
-			$drawborder   = get_option('vtm_view_dotlinewidth');
-			
-			if (!$drawcolour)   $drawcolour = '#CCCCCC';
-			if (!$drawborder)   $drawborder = 2;
-			if (!$drawbgcolour) $drawbgcolour = '#000000';
-			
-			$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
-			$draw = new ImagickDraw();
-			$draw->setStrokeColor($drawcolour);
-			$draw->setStrokeWidth($drawborder);
-			$draw->setFillColor($drawbgcolour);
-			$draw->circle( ceil($drawwidth / 2), ceil($drawheight / 2), ceil($drawwidth / 2), $drawborder + $drawmargin);
-			$image->drawImage($draw);
-			$image->writeImage(VTM_CHARACTER_URL . 'images/viewemptydot.' . $imagetype);
-			
-			$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
-			$draw = new ImagickDraw();
-			$draw->setStrokeColor($drawcolour);
-			$draw->setStrokeWidth($drawborder);
-			$draw->setFillColor($drawcolour);
-			$draw->circle( ceil($drawwidth / 2), ceil($drawheight / 2), ceil($drawwidth / 2), $drawborder + $drawmargin);
-			$image->drawImage($draw);
-			$image->writeImage(VTM_CHARACTER_URL . 'images/viewfulldot.' . $imagetype);
-
-			$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
-			$draw = new ImagickDraw();
-			$draw->setStrokeColor($drawcolour);
-			$draw->setStrokeWidth($drawborder);
-			$draw->setFillColor($drawbgcolour);
-			$draw->rectangle( $drawborder, $drawborder, $drawwidth - $drawborder - 1, $drawheight - $drawborder - 1);
-			$draw->line( $drawborder, $drawborder, $drawwidth - $drawborder - 1, $drawheight - $drawborder - 1);
-			$draw->line( $drawborder, $drawheight - $drawborder - 1, $drawwidth - $drawborder - 1, $drawborder);
-			$image->drawImage($draw);
-			$image->writeImage(VTM_CHARACTER_URL . 'images/crossclear.' . $imagetype);
-
-			/* Character Generation Dots */
-			$drawbgcolour = get_option('vtm_chargen_bgcolour', '#000000');
-			$drawborder   = get_option('vtm_chargen_dotlinewidth', 2);
-			// Empty
-			$drawcolour   = get_option('vtm_chargen_empty', '#CCCCCC');
-			$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
-			$draw = new ImagickDraw();
-			$draw->setStrokeColor($drawcolour);
-			$draw->setStrokeWidth($drawborder);
-			$draw->setFillColor($drawbgcolour);
-			$draw->circle( ceil($drawwidth / 2), ceil($drawheight / 2), ceil($drawwidth / 2), $drawborder + $drawmargin);
-			$image->drawImage($draw);
-			$image->writeImage(VTM_CHARACTER_URL . 'images/cg_emptydot.' . $imagetype);
-			// Free
-			$drawcolour   = get_option('vtm_chargen_freedot', '#808080');
-			$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
-			$draw = new ImagickDraw();
-			$draw->setStrokeColor($drawcolour);
-			$draw->setStrokeWidth($drawborder);
-			$draw->setFillColor($drawcolour);
-			$draw->circle( ceil($drawwidth / 2), ceil($drawheight / 2), ceil($drawwidth / 2), $drawborder + $drawmargin);
-			$image->drawImage($draw);
-			$image->writeImage(VTM_CHARACTER_URL . 'images/cg_freedot.' . $imagetype);
-			// Select
-			$drawcolour   = get_option('vtm_chargen_selectdot', '#FF0000');
-			$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
-			$draw = new ImagickDraw();
-			$draw->setStrokeColor($drawcolour);
-			$draw->setStrokeWidth($drawborder);
-			$draw->setFillColor($drawcolour);
-			$draw->circle( ceil($drawwidth / 2), ceil($drawheight / 2), ceil($drawwidth / 2), $drawborder + $drawmargin);
-			$image->drawImage($draw);
-			$image->writeImage(VTM_CHARACTER_URL . 'images/cg_selectdot.' . $imagetype);
-			// Freebie
-			$drawcolour   = get_option('vtm_chargen_freebie', '#CCCCCC');
-			$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
-			$draw = new ImagickDraw();
-			$draw->setStrokeColor($drawcolour);
-			$draw->setStrokeWidth($drawborder);
-			$draw->setFillColor($drawcolour);
-			$draw->circle( ceil($drawwidth / 2), ceil($drawheight / 2), ceil($drawwidth / 2), $drawborder + $drawmargin);
-			$image->drawImage($draw);
-			$image->writeImage(VTM_CHARACTER_URL . 'images/cg_freebiedot.' . $imagetype);
-
-			/* Pending XP Dots */
-			$drawbgcolour = get_option('vtm_pend_bgcolour');
-			$drawcolour   = get_option('vtm_pend_dotcolour');
-			$drawborder   = get_option('vtm_pend_dotlinewidth');
-			
-			if (!$drawcolour)   $drawcolour = '#BB0506';
-			if (!$drawborder)   $drawborder = 2;
-			if (!$drawbgcolour) $drawbgcolour = '#000000';
-			
-			$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
-			$draw = new ImagickDraw();
-			$draw->setStrokeColor($drawcolour);
-			$draw->setStrokeWidth($drawborder);
-			$draw->setFillColor($drawcolour);
-			$draw->circle( ceil($drawwidth / 2), ceil($drawheight / 2), ceil($drawwidth / 2), $drawborder + $drawmargin);
-			$image->drawImage($draw);
-			$image->writeImage(VTM_CHARACTER_URL . 'images/pendingdot.' . $imagetype);
-			
-			/* Spend XP Dots */
-			$drawbgcolour = get_option('vtm_xp_bgcolour');
-			$drawcolour   = get_option('vtm_xp_dotcolour');
-			$drawborder   = get_option('vtm_xp_dotlinewidth');
-			
-			if (!$drawcolour)   $drawcolour = '#BB0506';
-			if (!$drawborder)   $drawborder = 2;
-			if (!$drawbgcolour) $drawbgcolour = '#000000';
-			
-			$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
-			$draw = new ImagickDraw();
-			$draw->setStrokeColor($drawcolour);
-			$draw->setStrokeWidth($drawborder);
-			$draw->setFillColor($drawcolour);
-			$draw->circle( ceil($drawwidth / 2), ceil($drawheight / 2), ceil($drawwidth / 2), $drawborder + $drawmargin);
-			$image->drawImage($draw);
-			$image->writeImage(VTM_CHARACTER_URL . 'images/xpdot.' . $imagetype);
-
-			/* PDF Dots */
-			$drawbgcolour = '#FFFFFF';
-			$drawcolour   = get_option('vtm_pdf_dotcolour', '#000000');
-			$drawborder   = get_option('vtm_pdf_dotlinewidth', '3');
-			
-			if ($drawcolour == '') $drawcolour = '#000000';
-			if ($drawborder == '') $drawborder = 3;
-			
-			$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
-			$draw = new ImagickDraw();
-			$draw->setStrokeColor($drawcolour);
-			$draw->setStrokeWidth($drawborder);
-			$draw->setFillColor($drawbgcolour);
-			$draw->circle( ceil($drawwidth / 2), ceil($drawheight / 2), ceil($drawwidth / 2), $drawborder + $drawmargin);
-			$image->drawImage($draw);
-			$image->writeImage(VTM_CHARACTER_URL . 'images/emptydot.' . $imagetype);
-			
-			$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
-			$draw = new ImagickDraw();
-			$draw->setStrokeColor($drawcolour);
-			$draw->setStrokeWidth($drawborder);
-			$draw->setFillColor($drawcolour);
-			$draw->circle( ceil($drawwidth / 2), ceil($drawheight / 2), ceil($drawwidth / 2), $drawborder + $drawmargin);
-			$image->drawImage($draw);
-			$image->writeImage(VTM_CHARACTER_URL . 'images/fulldot.' . $imagetype);
-			
-			$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
-			$draw = new ImagickDraw();
-			$draw->setStrokeColor($drawcolour);
-			$draw->setStrokeWidth($drawborder);
-			$draw->setFillColor($drawbgcolour);
-			$draw->circle( ceil($drawwidth / 2), ceil($drawheight / 2), ceil($drawwidth / 2), $drawborder + $drawmargin);
-			$draw->setFillColor($drawcolour);
-			$draw->circle( ceil($drawwidth / 2), ceil($drawheight / 2), ceil($drawwidth / 2), ceil($drawwidth / 4));
-			$image->drawImage($draw);
-			$image->writeImage(VTM_CHARACTER_URL . 'images/pdfxpdot.' . $imagetype);
-			
-			$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
-			$draw = new ImagickDraw();
-			$draw->setStrokeColor($drawcolour);
-			$draw->setStrokeWidth($drawborder);
-			$draw->setFillColor($drawbgcolour);
-			$draw->rectangle( $drawborder, $drawborder, $drawwidth - $drawborder - 1, $drawheight - $drawborder - 1);
-			$image->drawImage($draw);
-			$image->writeImage(VTM_CHARACTER_URL . 'images/box.' . $imagetype);
-			
-			/* Add a line */
-			$draw = new ImagickDraw();
-			$draw->setStrokeColor($drawcolour);
-			$draw->setStrokeWidth($drawborder);
-			$draw->setFillColor($drawbgcolour);
-			$draw->line( $drawborder, $drawborder, $drawwidth - $drawborder - 1, $drawheight - $drawborder - 1);
-			$image->drawImage($draw);
-			$image->writeImage(VTM_CHARACTER_URL . 'images/boxcross1.' . $imagetype);
-			/* Add another line */
-			$draw = new ImagickDraw();
-			$draw->setStrokeColor($drawcolour);
-			$draw->setStrokeWidth($drawborder);
-			$draw->setFillColor($drawbgcolour);
-			$draw->line( $drawborder, $drawheight - $drawborder - 1, $drawwidth - $drawborder - 1, $drawborder);
-			$image->drawImage($draw);
-			$image->writeImage(VTM_CHARACTER_URL . 'images/boxcross2.' . $imagetype);
-			/* Add last line */
-			$draw = new ImagickDraw();
-			$draw->setStrokeColor($drawcolour);
-			$draw->setStrokeWidth($drawborder);
-			$draw->setFillColor($drawbgcolour);
-			$draw->line( $drawborder, $drawheight/2, $drawwidth - $drawborder - 1, $drawheight / 2);
-			$image->drawImage($draw);
-			$image->writeImage(VTM_CHARACTER_URL . 'images/boxcross3.' . $imagetype);
-			
-
-		}
-	?>
 		
-	</div>
-	<?php
+		// Webpage dots
+		vtm_draw_dot("dot1empty", $dot1colour, $drawbgcolour, $drawborder, 0);
+		vtm_draw_dot("dot1full",  $dot1colour, $drawbgcolour, $drawborder, 1);
+		vtm_draw_box("crossclear", $dot1colour, $drawbgcolour, $drawborder, 2);
+		vtm_draw_dot("dot2",  $dot2colour, $drawbgcolour, $drawborder, 1);
+		vtm_draw_dot("dot3",  $dot3colour, $drawbgcolour, $drawborder, 1);
+		vtm_draw_dot("dot4",  $dot4colour, $drawbgcolour, $drawborder, 1);
+		
+		// PDF dots
+		$drawborder   = get_option('vtm_pdf_dotlinewidth', '3');
+		$drawcolour   = get_option('vtm_pdf_dotcolour', '#000000');
+		$drawbgcolour = '#FFFFFF';
+		vtm_draw_dot("emptydot", $drawcolour, $drawbgcolour, $drawborder, 0);
+		vtm_draw_dot("fulldot",  $drawcolour, $drawbgcolour, $drawborder, 1);
+		vtm_draw_dot("pdfxpdot", $drawcolour, $drawbgcolour, $drawborder, 0, 1);
+		
+		vtm_draw_box("box", $drawcolour, $drawbgcolour, $drawborder, 0);
+		vtm_draw_box("boxcross1", $drawcolour, $drawbgcolour, $drawborder, 1);
+		vtm_draw_box("boxcross2", $drawcolour, $drawbgcolour, $drawborder, 2);
+		vtm_draw_box("boxcross3", $drawcolour, $drawbgcolour, $drawborder, 3);
+		
 }
 
+function vtm_draw_dot($name, $drawcolour, $drawbgcolour, $drawborder, $fill = 1, $filldot = 0) {
 
+	if (class_exists('Imagick')) {
+		$drawwidth    = 32;
+		$drawheight   = 32;
+		$drawmargin   = 1;
+		$imagetype    = 'jpg';
+
+		$image = new Imagick();
+
+		$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
+		$draw = new ImagickDraw();
+		$draw->setStrokeColor($drawcolour);
+		$draw->setStrokeWidth($drawborder);
+		if ($fill)
+			$draw->setFillColor($drawcolour);
+		else
+			$draw->setFillColor($drawbgcolour);
+		$draw->circle( ceil($drawwidth / 2), ceil($drawheight / 2), ceil($drawwidth / 2), $drawborder + $drawmargin);
+		
+		if ($filldot) {
+			$draw->setFillColor($drawcolour);
+			$draw->circle( ceil($drawwidth / 2), ceil($drawheight / 2), ceil($drawwidth / 2), ceil($drawwidth / 4));
+		}
+		
+		$image->drawImage($draw);
+		$image->writeImage(VTM_CHARACTER_URL . "images/{$name}." . $imagetype);
+
+		$image = "";
+	}
+}
+function vtm_draw_box($name, $drawcolour, $drawbgcolour, $drawborder, $crosses) {
+	if (class_exists('Imagick')) {
+		$drawwidth    = 32;
+		$drawheight   = 32;
+		$drawmargin   = 1;
+		$imagetype    = 'jpg';
+
+		$image = new Imagick();
+		
+		$image->newImage($drawwidth, $drawheight, new ImagickPixel($drawbgcolour), $imagetype);
+		$draw = new ImagickDraw();
+		$draw->setStrokeColor($drawcolour);
+		$draw->setStrokeWidth($drawborder);
+		$draw->setFillColor($drawbgcolour);
+		$draw->rectangle( $drawborder, $drawborder, $drawwidth - $drawborder - 1, $drawheight - $drawborder - 1);
+		
+		if ($crosses >= 1)
+			$draw->line( $drawborder, $drawborder, $drawwidth - $drawborder - 1, $drawheight - $drawborder - 1);
+		if ($crosses >= 2)
+			$draw->line( $drawborder, $drawheight - $drawborder - 1, $drawwidth - $drawborder - 1, $drawborder);
+		if ($crosses >= 3)
+			$draw->line( $drawborder, $drawheight/2, $drawwidth - $drawborder - 1, $drawheight / 2);
+		
+		$image->drawImage($draw);
+		$image->writeImage(VTM_CHARACTER_URL . "images/{$name}." . $imagetype);
+
+		$image = "";
+	}
+	
+}
 ?>
