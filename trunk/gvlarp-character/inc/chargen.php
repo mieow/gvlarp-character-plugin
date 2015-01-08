@@ -611,7 +611,8 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 	$freebiedoturl = plugins_url( 'gvlarp-character/images/dot3.jpg' );
 	$doturl        = plugins_url( 'gvlarp-character/images/dot2.jpg' );
 
-	$columns     = 3;
+	$config = vtm_getConfig();
+	$columns     = $config->WEB_COLUMNS;
 	$rowoutput   = "";
 	
 	// Get Posted data
@@ -816,8 +817,9 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 	$max2display = 5, $templatefree = array()) {
 
 	$rowoutput = "";
-	$columns = 3;
-	$fulldoturl = plugins_url( 'gvlarp-character/images/dot1full.jpg' );
+	$config    = vtm_getConfig();
+	$columns       = $config->WEB_COLUMNS;
+	$fulldoturl    = plugins_url( 'gvlarp-character/images/dot1full.jpg' );
 	$freebiedoturl = plugins_url( 'gvlarp-character/images/dot3.jpg' );
 	$emptydoturl   = plugins_url( 'gvlarp-character/images/dot1empty.jpg' );
 	$doturl        = plugins_url( 'gvlarp-character/images/dot2.jpg' );
