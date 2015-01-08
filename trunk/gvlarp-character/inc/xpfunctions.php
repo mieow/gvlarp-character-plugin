@@ -148,8 +148,8 @@ function vtm_render_supply_details($character) {
 	$output .= "<p>Spending $spent experience points.</p>\n";
 	$output .= "<p>Please enter specialisations, if available, and enter a description of your learning method</p>";
 	
-	$output .= "<div class='gvplugin' id=\"gvid_xpst\">\n";
-	$output .= "<form name=\"SPEND_XP_FORM\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">\n";
+	$output .= "<div class='gvplugin' id='gvid_xpst'>\n";
+	$output .= "<form name='SPEND_XP_FORM' method='post' action='" . $_SERVER['REQUEST_URI'] . "'>\n";
 	
 	if (isset($_REQUEST['stat_level'])) {
 		$output .= vtm_render_details_section('stat');
@@ -172,14 +172,14 @@ function vtm_render_supply_details($character) {
 	if (isset($_REQUEST['merit_level'])) {
 		$output .= vtm_render_details_section('merit');
 	}
-	$output .= "<input class='gvxp_submit' type='submit' name=\"xSubmit\" value=\"Spend XP\">\n";
-	$output .= "<input class='gvxp_submit' type='submit' name=\"xCancel\" value=\"Back\">\n";
+	$output .= "<input class='gvxp_submit' type='submit' name='xSubmit' value='Spend XP'>\n";
+	$output .= "<input class='gvxp_submit' type='submit' name='xCancel' value='Back'>\n";
 
 	if (isset($_POST['VTM_CHARACTER']) && $_POST['VTM_CHARACTER'] != "")
-		$output .= "<input type='HIDDEN' name=\"VTM_CHARACTER\" value=\"" . $_POST['VTM_CHARACTER'] . "\" />\n";
-	$output .= "<input type='HIDDEN' name=\"character\" value=\"" . $character . "\">\n";
-	$output .= "<input type='HIDDEN' name=\"step\" value=\"submit_spend\">\n";
-	$output .= "<input type='HIDDEN' name=\"VTM_FORM\" value=\"applyXPSpend\" />\n";
+		$output .= "<input type='HIDDEN' name='VTM_CHARACTER' value='" . $_POST['VTM_CHARACTER'] . "' />\n";
+	$output .= "<input type='HIDDEN' name='character' value='" . $character . "'>\n";
+	$output .= "<input type='HIDDEN' name='step' value='submit_spend'>\n";
+	$output .= "<input type='HIDDEN' name='VTM_FORM' value='applyXPSpend' />\n";
 	$output .= "</form></div>\n";
 	
 	return $output;
@@ -233,8 +233,8 @@ function vtm_render_select_spends($character) {
 	
 	/* DISPLAY TABLES 
 	-------------------------------*/
-	$output .= "<div class='gvplugin' id=\"gvid_xpst\">\n";
-	$output .= "<form name=\"SPEND_XP_FORM\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">\n";
+	$output .= "<div class='gvplugin' id='gvid_xpst'>\n";
+	$output .= "<form name='SPEND_XP_FORM' method='post' action='" . $_SERVER['REQUEST_URI'] . "'>\n";
 	$output .= "<p>Hover over items with <span class='gvxp_spec'>this formatting</span> to show more information on the item.</p>\n";
 
 
@@ -254,21 +254,21 @@ function vtm_render_select_spends($character) {
 			$output .= "$outputJump\n";
 			//$output .= $sectionheading[$section];
 			$output .= $sectioncontent[$section];
-			$output .= "<input class='gvxp_submit' type='submit' name=\"xSubmit\" value=\"Next >\">\n";
+			$output .= "<input class='gvxp_submit' type='submit' name='xSubmit' value='Next >'>\n";
 		} 
 		
 	}
 
 
 	if (isset($_POST['VTM_CHARACTER']) && $_POST['VTM_CHARACTER'] != "") {
-		$output .= "<input type='HIDDEN' name=\"VTM_CHARACTER\" value=\"" . $_POST['VTM_CHARACTER'] . "\" />\n";
+		$output .= "<input type='HIDDEN' name='VTM_CHARACTER' value='" . $_POST['VTM_CHARACTER'] . "' />\n";
 	}
 
 	if (isset($_POST['VTM_CHARACTER']) && $_POST['VTM_CHARACTER'] != "")
-		$output .= "<input type='HIDDEN' name=\"VTM_CHARACTER\" value=\"" . $_POST['VTM_CHARACTER'] . "\" />\n";
-	$output .= "<input type='HIDDEN' name=\"character\" value=\"" . $character . "\">\n";
-	$output .= "<input type='HIDDEN' name=\"step\" value=\"supply_details\">\n";
-	$output .= "<input type='HIDDEN' name=\"VTM_FORM\" value=\"applyXPSpend\" />\n";
+		$output .= "<input type='HIDDEN' name='VTM_CHARACTER' value='" . $_POST['VTM_CHARACTER'] . "' />\n";
+	$output .= "<input type='HIDDEN' name='character' value='" . $character . "'>\n";
+	$output .= "<input type='HIDDEN' name='step' value='supply_details'>\n";
+	$output .= "<input type='HIDDEN' name='VTM_FORM' value='applyXPSpend' />\n";
 	$output .= "</form></div>\n";
 	
 	return $output;
@@ -619,7 +619,7 @@ function vtm_render_skills($characterID, $maxRating, $pendingSpends, $xp_avail) 
 	$sql = "SELECT
 				skill.name as name, 
 				0 as level, 
-				\"\" as comment, 
+				'' as comment, 
 				0 as id,
 				skill.specialisation_at as spec_at, 
 				skill.id as item_id,
@@ -747,7 +747,7 @@ function vtm_render_skills_row($type, $rownum, $max2display, $maxRating, $dataro
 	$xpcost = ($datarow->NEXT_VALUE <= $maxRating) ? "(" . $datarow->XP_COST . " XP)" : "";
 	if ($datarow->has_pending)
 		//$rowoutput .= "<td class='gvxp_checkbox'><input type='CHECKBOX' name='{$type}_cancel[$rownum]' value='{$datarow->pending_id}'><label>clear</label></td>";
-		$rowoutput .= "<td class='gvcol_cost'><input class='gvxp_clear' type='submit' name=\"{$type}_cancel[{$datarow->pending_id}]\" value=\"Clear\"></td>";
+		$rowoutput .= "<td class='gvcol_cost'><input class='gvxp_clear' type='submit' name='{$type}_cancel[{$datarow->pending_id}]' value='Clear'></td>";
 	else
 		$rowoutput .= "<td class='gvcol_cost'>$xpcost</td>";
 	$rowoutput .= "</tr>\n";
@@ -1163,7 +1163,7 @@ function vtm_render_merits($characterID, $pendingSpends, $xp_avail) {
 				merit.ID as item_id,
 				merit.name,
 				merit.value as level,
-				\"\" as comment,
+				'' as comment,
 				merit.has_specialisation,
 				IF(merit.value < 0,'Remove Flaws','Buy Merits') as grp,
 				merit.XP_COST,
@@ -1323,7 +1323,7 @@ function vtm_render_spend_table($type, $allxpdata, $maxRating, $columns, $xp_ava
 			$xpcost = ($xpdata->NEXT_VALUE <= $maxRating) ? "(" . $xpdata->XP_COST . " XP)" : "";
 			if ($xpdata->has_pending)
 				//$rowoutput .= "<td class='gvxp_checkbox'><input type='CHECKBOX' name='{$type}_cancel[$id]' value='{$xpdata->pending_id}'><label>clear</label></td>";
-				$rowoutput .= "<td class='gvcol_cost'><input class='gvxp_clear' type='submit' name=\"{$type}_cancel[{$xpdata->pending_id}]\" value=\"Clear\"></td>";
+				$rowoutput .= "<td class='gvcol_cost'><input class='gvxp_clear' type='submit' name='{$type}_cancel[{$xpdata->pending_id}]' value='Clear'></td>";
 			else
 				$rowoutput .= "<td class='gvcol_cost'>$xpcost</td>";
 				
@@ -1465,7 +1465,7 @@ function vtm_render_ritual_spend_table($type, $allxpdata, $columns, $xp_avail) {
 			$rowoutput .= "<input type='hidden' name='{$type}_curr[" . $id . "]'    value='" . $xpdata->level . "' >\n";
 			$rowoutput .= "<input type='hidden' name='{$type}_itemid[" . $id . "]'  value='" . $xpdata->item_id . "' >\n";
 			$rowoutput .= "<input type='hidden' name='{$type}_id[" . $id . "]'      value='" . $xpid . "' >\n";
-			$rowoutput .= "<input type='hidden' name='{$type}_name[" . $id . "]'    value=\"" . htmlentities($xpdata->name) . "\" >\n";
+			$rowoutput .= "<input type='hidden' name='{$type}_name[" . $id . "]'    value='" . htmlentities($xpdata->name) . "' >\n";
 			$rowoutput .= "</td></tr>\n";
 			
 			
@@ -1485,7 +1485,7 @@ function vtm_render_ritual_spend_table($type, $allxpdata, $columns, $xp_avail) {
 				
 					$rowoutput .= "<td class='gvxp_checkbox'>\n";
 					$rowoutput .= "<input type='hidden'   name='{$type}_cost[" . $id . "]'    value='" . $xpcost . "' >";
-					$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $id . "]' value=\"$comment\" >";
+					$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $id . "]' value='$comment' >";
 					$rowoutput .= "<input type='CHECKBOX' name='{$type}_level[" . $id . "]'   value='{$xpdata->rituallevel}' ";
 					if (isset($levelsdata[$id]))
 						$rowoutput .= "checked";
@@ -1500,7 +1500,7 @@ function vtm_render_ritual_spend_table($type, $allxpdata, $columns, $xp_avail) {
 				
 			$xpcost = ($xpcost) ? "(" . $xpcost . " XP)" : "";
 			if ($xpdata->has_pending)
-				$rowoutput .= "<td class='gvcol_cost'><input class='gvxp_clear' type='submit' name=\"{$type}_cancel[{$xpdata->pending_id}]\" value=\"Clear\"></td>";
+				$rowoutput .= "<td class='gvcol_cost'><input class='gvxp_clear' type='submit' name='{$type}_cancel[{$xpdata->pending_id}]' value='Clear'></td>";
 			else
 				$rowoutput .= "<td class='gvcol_cost'>$xpcost</td>\n";
 			$rowoutput .= "</tr>\n";
@@ -1588,7 +1588,7 @@ function vtm_render_combo_spend_table($type, $allxpdata, $xp_avail) {
 	
 			$xpcost = ($xpcost) ? "(" . $xpcost . " XP)" : "";
 			if ($xpdata->has_pending)
-				$rowoutput .= "<td class='gvcol_cost'><input class='gvxp_clear' type='submit' name=\"{$type}_cancel[{$xpdata->pending_id}]\" value=\"Clear\"></td>";
+				$rowoutput .= "<td class='gvcol_cost'><input class='gvxp_clear' type='submit' name='{$type}_cancel[{$xpdata->pending_id}]' value='Clear'></td>";
 			else
 				$rowoutput .= "<td class='gvcol_cost'>$xpcost</td>";
 			$rowoutput .= "</tr>\n";
@@ -1739,7 +1739,7 @@ function vtm_render_merits_row($type, $id, $xpdata, $levelsdata, $xp_avail) {
 		
 	$xpcost = ($xpdata->XP_COST) ? "(" . $xpdata->XP_COST . " XP)" : "";
 	if (isset($xpdata->has_pending) && $xpdata->has_pending)
-		$rowoutput .= "<td class='gvcol_cost'><input class='gvxp_clear' type='submit' name=\"{$type}_cancel[{$xpdata->pending_id}]\" value=\"Clear\"></td>\n";
+		$rowoutput .= "<td class='gvcol_cost'><input class='gvxp_clear' type='submit' name='{$type}_cancel[{$xpdata->pending_id}]' value='Clear'></td>\n";
 	elseif ($cha_id && $xpdata->level >= 0)
 		$rowoutput .= "<td class='gvcol_cost'></td>\n";
 	else

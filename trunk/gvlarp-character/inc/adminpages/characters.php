@@ -227,7 +227,7 @@ function vtm_character_options() {
 				$name = stripslashes($character->charactername);
 			
 				echo "<tr";
-				if ($i % 2) echo " class=\"alternate\"";
+				if ($i % 2) echo " class='alternate'";
 				echo ">\n";
 				echo "<th>";
 				
@@ -456,167 +456,169 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 			}
 		}
 
-		$output  = "<form name=\"CHARACTER_UPDATE_FORM\" method='post' action=\"" . $_SERVER['REQUEST_URI'] . "\">";
-		$output .= "<input type='HIDDEN' name=\"VTM_FORM\" value=\"displayUpdateCharacter\" />";
-		$output .= "<table class='gvplugin' id=\"gvid_ucti\">
-					<tr><td class=\"gvcol_1 gvcol_val\">
-						<input type='submit' name=\"cSubmit\" value=\"Submit character changes\" /></td>
-					</tr></table>";
-
-		if ((int) ($characterID) > 0) { $output .= "<input type='HIDDEN' name=\"characterID\" value=\"" . $characterID . "\" />"; }
-		$output .= "<table class='gvplugin' id=\"gvid_uctu\">
-						<tr><td class=\"gvcol_1 gvcol_key\">Character Name*</td>
-							<td class=\"gvcol_2 gvcol_val\" colspan=2><input type='text' maxlength=60 name=\"charName\" value=\"" . $characterName . "\"></td>
-							<td class=\"gvcol_4 gvcol_key\">Player Name</td>
-							<td class='gvcol_5 gvcol_val' colspan=2><select name=\"charPlayer\">";
+		$jumpto = "<span><a href='#gvid_ucti'>top</a> | 
+			<a href='#gvid_uctsto'>attributes</a> |
+			<a href='#gvid_uctskg'>abilities</a> |
+			<a href='#gvid_uctskn'>new abilities</a> |
+			<a href='#gvid_uctdi'>disciplines</a> |
+			<a href='#gvid_uctba'>backgrounds</a> |
+			<a href='#gvid_uctme'>merits</a> |
+			<a href='#gvid_uctcd'>combo disciplines</a> |
+			<a href='#gvid_uctpa'>paths</a> |
+			<a href='#gvid_uctri'>rituals</a> |
+			<a href='#gvid_uctof'>offices</a>
+		</span>";
+		
+		$output  = "<div class='gvplugin' id='vtmeditsheet'><form name='CHARACTER_UPDATE_FORM' method='post' action='" . $_SERVER['REQUEST_URI'] . "'>
+					<input type='HIDDEN' name='VTM_FORM' value='displayUpdateCharacter' />
+					<table id='gvid_ucti'>
+					<tr><td><input type='submit' name='cSubmit' value='Submit character changes' /></td></tr></table>";
+		if ((int) ($characterID) > 0) { $output .= "<input type='HIDDEN' name='characterID' value='" . $characterID . "' />"; }
+		
+		
+		$output .= $jumpto;
+		$output .= "<table id='gvid_uctu'>\n";
+		
+		$output .= "<tr><td>Character Name*</td><td><input type='text' maxlength=60 name='charName' value='" . $characterName . "'></td><tr>\n";
+		$output .= "<tr><td>Player Name</td><td><select name='charPlayer'>\n";
 		foreach ($players as $player) {
-			$output .= "<option value=\"" . $player->ID . "\" ";
+			$output .= "<option value='" . $player->ID . "' ";
 			if ($player->ID == $characterPlayerId) {
 				$output .= "SELECTED";
 			}
 			$output .= ">" . stripslashes($player->name) . "</option>";
 		}
 		$output .= "</select></td></tr>";
-
-		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Public Clan</td>
-						<td class=\"gvcol_2 gvcol_val\" colspan=2><select name=\"charPubClan\">";
+		$output .= "<tr><td>WordPress Account</td>
+			<td><input type='text' maxlength=30 name='charWordPress' value='" . $characterWordpressName . "' /></td></tr>";
+		$output .= "<tr><td>Public Clan</td><td><select name='charPubClan'>";
 		foreach ($clans as $clan) {
-			$output .= "<option value=\"" . $clan->ID . "\" ";
+			$output .= "<option value='" . $clan->ID . "' ";
 			if ($clan->ID == $characterPublicClanId) {
 				$output .= "SELECTED";
 			}
 			$output .= ">" . $clan->name . "</option>";
 		}
-		$output .= "</select></td><td class=\"gvcol_4 gvcol_key\">Private Clan</td>
-								  <td class='gvcol_5 gvcol_val' colspan=2><select name=\"charPrivClan\">";
+		$output .= "</select></td></tr>";	
+		$output .= "<tr><td>Private Clan</td><td><select name='charPrivClan'>";
 		foreach ($clans as $clan) {
-			$output .= "<option value=\"" . $clan->ID . "\" ";
+			$output .= "<option value='" . $clan->ID . "' ";
 			if ($clan->ID == $characterPrivateClanId) {
 				$output .= "SELECTED";
 			}
 			$output .= ">" . $clan->name . "</option>";
 		}
 		$output .= "</select></td></tr>";
-		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Generation</td>
-						<td class=\"gvcol_2 gvcol_val\" colspan=2><select name=\"charGen\">";
+		$output .= "<tr><td>Generation</td><td colspan=2><select name='charGen'>";
 		foreach ($generations as $generation) {
-			$output .= "<option value=\"" . $generation->ID . "\" ";
+			$output .= "<option value='" . $generation->ID . "' ";
 			if ($generation->ID == $characterGenerationId) {
 				$output .= "SELECTED";
 			}
 			$output .= ">" . $generation->name . "th</option>";
 		}
-		$output .= "</select></td><td class=\"gvcol_4 gvcol_key\">Sire</td>
-						   <td class='gvcol_5 gvcol_val' colspan=2><input type='text' maxlength=60 name=\"charSire\" value=\"" . $characterSire . "\" /></td></tr>";
-		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Date of birth</td>
-						   <td class=\"gvcol_2 gvcol_val\" colspan=2><input type='text' maxlength=10 name=\"charDoB\" value=\"" . $characterDateOfBirth . "\" /> YYYY-MM-DD</td>
-								<td class=\"gvcol_4 gvcol_key\">Date of Embrace</td>
-						   <td class='gvcol_5 gvcol_val' colspan=2><input type='text' maxlength=10 name=\"charDoE\" value=\"" . $characterDateOfEmbrace . "\" /> YYYY-MM-DD</td></tr>";
-		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Road or Path*</td>
-							<td class=\"gvcol_2 gvcol_val\">";
-		$output .= "<select name=\"charRoadOrPath\">";
+		$output .= "</select></td></tr>";	
+		$output .= "<tr><td>Character Type</td><td colspan=2><select name='charType'>";
+		foreach ($characterTypes as $characterType) {
+			$output .= "<option value='" . $characterType->ID . "' ";
+			if ($characterType->ID == $characterTypeId || ($characterID == 0 && $characterType->name == 'PC')) {
+				$output .= "SELECTED";
+			}
+			$output .= ">" . $characterType->name . "</option>";
+		}
+		$output .= "</select></td></tr>";	
+		$output .= "<tr><td>Character Status</td><td><select name='charStatus'>";
+		foreach ($characterStatuses as $characterStatus) {
+			$output .= "<option value='" . $characterStatus->ID . "' ";
+			if ($characterStatus->ID == $characterStatusId) {
+				$output .= "SELECTED";
+			}
+			$output .= ">" . $characterStatus->name . "</option>";
+		}
+		$output .= "</select></td></tr>";
+		$output .= "<tr><td>Character Status Comment</td><td><input type='text' maxlength=30 name='charStatusComment' value='" . $characterStatusComment . "' /></td></tr>";
+		$output .= "<tr><td>Visible</td><td colspan=2><select name='charVisible'><option value='Y' ";
+		if ($characterVisible == "Y" ) $output .= "SELECTED";
+		$output .= ">Yes</option><option value='N' ";
+		if ($characterVisible != "Y") $output .= "SELECTED";
+		$output .= ">No</option></select></td></tr>";
+		
+		$output .= "<tr><td>Road or Path*</td><td><select name='charRoadOrPath'>";
 		foreach ($roadsOrPaths as $roadOrPath) {
-			$output .= "<option value=\"" . $roadOrPath->ID . "\" ";
+			$output .= "<option value='" . $roadOrPath->ID . "' ";
 			if ($roadOrPath->ID == $characterRoadOrPathId || ($characterID == 0 && $roadOrPath->name == 'Humanity')) {
 				$output .= "SELECTED";
 			}
 			$output .= ">" . $roadOrPath->name . "</option>";
 		}
 		$output .= "</select>";
-		$output .= "</td><td class=\"gvcol_3 gvcol_val\">";
+		$output .= "</td></tr>";
 		
+		$output .= "<tr><td>Road or Path Rating</td><td>";
 		$sql = "SELECT SUM(AMOUNT) FROM " . VTM_TABLE_PREFIX . "CHARACTER_ROAD_OR_PATH WHERE CHARACTER_ID = %d";
 		$sql = $wpdb->prepare($sql, $characterID);
 		$result = $wpdb->get_var($sql);
 		if ($result > 0) {
 			$sql = "SELECT NAME FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s";
 			$pathname = $wpdb->get_var($wpdb->prepare($sql, $characterRoadOrPathId));
-			$output .= "<input type='hidden' name=\"charRoadOrPathRating\" value=\"" . $result . "\" />";
+			$output .= "<input type='hidden' name='charRoadOrPathRating' value='" . $result . "' />";
 			$output .= "<span>$result</span>";
 		} else {
-			$output .= "<input type='text' maxlength=3 name=\"charRoadOrPathRating\" value=\"" . $characterRoadOrPathRating . "\" />";
+			$output .= "<input type='text' maxlength=3 name='charRoadOrPathRating' value='" . $characterRoadOrPathRating . "' />";
 		}
 		
-		$output .= "</td><td class=\"gvcol_4 gvcol_key\">Domain</td>
-						<td class='gvcol_5 gvcol_val' colspan=2><select name=\"charDomain\">";
+		$output .= "</td></tr>";		
+		if ($config->USE_NATURE_DEMEANOUR == 'Y') {
+			$output .= "<tr><td>Nature</td><td>";
+			$output .= "<select name = 'charNature'>";
+			$output .= "<option value='0'>[Select]</option>";
+			foreach (vtm_get_natures() as $nature) {
+				$output .= "<option value='" . $nature->ID . "' ";
+				if ($nature->ID == $characterNatureId) {
+					$output .= "SELECTED";
+				}
+				$output .= ">" . $nature->NAME . "</option>";
+			}
+			$output .= "</select></td></tr><tr><td>Demeanour</td><td>";
+			$output .= "<select name = 'charDemeanour'>";
+			$output .= "<option value='0'>[Select]</option>";
+			foreach (vtm_get_natures() as $nature) {
+				$output .= "<option value='" . $nature->ID . "' ";
+				if ($nature->ID == $characterDemeanourId) {
+					$output .= "SELECTED";
+				}
+				$output .= ">" . $nature->NAME . "</option>";
+			}
+			$output .= "</select></td></tr>";
+		}
+		$output .= "<tr><td>Sect</td><td>\n";
+		$output .= "<select name = 'charSect'>";
+		foreach ($sects as $sect) {
+			$output .= "<option value='" . $sect->ID . "' ";
+			if ($sect->ID == $characterSectId || ($characterID == 0 && $sect->NAME == 'Camarilla')) {
+				$output .= "SELECTED";
+			}
+			$output .= ">" . $sect->NAME . "</option>";
+		}
+		$output .= "</select></td></tr>";		
+		$output .= "<tr><td>Domain</td><td><select name='charDomain'>";
 		foreach ($domains as $domain) {
-			$output .= "<option value=\"" . $domain->ID . "\" ";
+			$output .= "<option value='" . $domain->ID . "' ";
 			if ($domain->ID == $characterDomainId) {
 				$output .= "SELECTED";
 			}
 			$output .= ">" . $domain->name . "</option>";
 		}
 		$output .= "</select></td></tr>";
-		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Character Type</td>
-							<td class=\"gvcol_2 gvcol_val\" colspan=2><select name=\"charType\">";
-		foreach ($characterTypes as $characterType) {
-			$output .= "<option value=\"" . $characterType->ID . "\" ";
-			if ($characterType->ID == $characterTypeId || ($characterID == 0 && $characterType->name == 'PC')) {
-				$output .= "SELECTED";
-			}
-			$output .= ">" . $characterType->name . "</option>";
-		}
-		$output .= "</select></td><td class=\"gvcol_4 gvcol_key\">Character Status</td>
-									  <td class='gvcol_5 gvcol_val'><select name=\"charStatus\">";
-		foreach ($characterStatuses as $characterStatus) {
-			$output .= "<option value=\"" . $characterStatus->ID . "\" ";
-			if ($characterStatus->ID == $characterStatusId) {
-				$output .= "SELECTED";
-			}
-			$output .= ">" . $characterStatus->name . "</option>";
-		}
-		$output .= "</select></td><td class='gvcol_6 gvcol_val'><input type='text' maxlength=30 name=\"charStatusComment\" value=\"" . $characterStatusComment . "\" /></td></tr>";
-
-		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Harpy Quote</td><td class=\"gvcol_2 gvcol_val\" colspan=5><textarea name=\"charHarpyQuote\" rows=\"5\" cols=\"100\">" . $characterHarpyQuote . "</textarea></td></tr>";
-		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Portrait URL</td><td class=\"gvcol_2 gvcol_val\" colspan=5><input type='text' maxlength=250 size=100 name=\"charPortraitURL\" value=\"" . $characterPortraitURL . "\" /></td></tr>";
-
-		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Visible</td><td class=\"gvcol_2 gvcol_val\" colspan=2><select name=\"charVisible\"><option value=\"Y\" ";
-		if ($characterVisible == "Y" ) {
-			$output .= "SELECTED";
-		}
-		$output .= ">Yes</option><option value=\"N\" ";
-		if ($characterVisible != "Y") {
-			$output .= "SELECTED";
-		}
-		$output .= ">No</option></select></td><td class=\"gvcol_4 gvcol_key\">WordPress Account</td>
-												  <td class='gvcol_5 gvcol_val' colspan=2><input type='text' maxlength=30 name=\"charWordPress\" value=\"" . $characterWordpressName . "\" /></td></tr>";
-		
-		$output .= "<tr><td class='gvcol_key'>Sect</td><td class='gvcol_val'>\n";
-		$output .= "<select name = \"charSect\">";
-		foreach ($sects as $sect) {
-			$output .= "<option value=\"" . $sect->ID . "\" ";
-			if ($sect->ID == $characterSectId || ($characterID == 0 && $sect->NAME == 'Camarilla')) {
-				$output .= "SELECTED";
-			}
-			$output .= ">" . $sect->NAME . "</option>";
-		}
-		$output .= "</select></td><td></td></tr>";
-		
-		if ($config->USE_NATURE_DEMEANOUR == 'Y') {
-			$output .= "<tr><td>Nature</td><td colspan=2>";
-			$output .= "<select name = \"charNature\">";
-			$output .= "<option value=\"0\">[Select]</option>";
-			foreach (vtm_get_natures() as $nature) {
-				$output .= "<option value=\"" . $nature->ID . "\" ";
-				if ($nature->ID == $characterNatureId) {
-					$output .= "SELECTED";
-				}
-				$output .= ">" . $nature->NAME . "</option>";
-			}
-			$output .= "</select></td><td>Demeanour</td><td colspan=2>";
-			$output .= "<select name = \"charDemeanour\">";
-			$output .= "<option value=\"0\">[Select]</option>";
-			foreach (vtm_get_natures() as $nature) {
-				$output .= "<option value=\"" . $nature->ID . "\" ";
-				if ($nature->ID == $characterDemeanourId) {
-					$output .= "SELECTED";
-				}
-				$output .= ">" . $nature->NAME . "</option>";
-			}
-			$output .= "</select></td></td>";
-		}
-		
+		$output .= "<tr><td>Sire</td><td><input type='text' maxlength=60 name='charSire' value='" . $characterSire . "' /></td></tr>";
+		$output .= "<tr><td>Date of birth</td>
+						<td><input type='text' maxlength=10 name='charDoB' value='" . $characterDateOfBirth . "' /> YYYY-MM-DD</td></tr>
+					<tr><td>Date of Embrace</td>
+						<td><input type='text' maxlength=10 name='charDoE' value='" . $characterDateOfEmbrace . "' /> YYYY-MM-DD</td></tr>";
+		$output .= "<tr><td>Portrait URL</td><td><input type='text' maxlength=250 size=50 name='charPortraitURL' value='" . $characterPortraitURL . "' /></td></tr>";
+		$output .= "<tr><td>Harpy Quote</td><td><textarea name='charHarpyQuote' rows='5' cols='50'>" . $characterHarpyQuote . "</textarea></td></tr>";
 		$output .= "</table>";
+
 
 		// Initialise Stat information for new characters
 		$sql = "SELECT name, grouping, id FROM " . $table_prefix . "STAT";
@@ -648,55 +650,40 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 		}
 		$stats = vtm_listStats();
 
-		$i = 0;
-		$head = "<tr><th class=\"gvthead gvcol_1\">Stat Name</th>
-										  <th class=\"gvthead gvcol_2\">Value</th>
-										  <th class=\"gvthead gvcol_3\">Comment</th>
-										  <th class=\"gvthead gvcol_4\">Delete</th></tr>";
+		$head = "<tr><th>Name</th><th>Value</th><th>Comment</th><th>Delete</th></tr>";
 
-		$output .= "<hr /><table class='gvplugin' id=\"gvid_uctsto\">
-							  <tr><td class=\"gvcol_1 gvcol_val\"><table class='gvplugin' id=\"gvid_uctsti$i\">$head";
-		$lastgroup;
-		$thisgroup;
+		$output .= "<hr />$jumpto<table id='gvid_uctsto'>";
+		$lastgroup = "";
+		$thisgroup = "";
 		$col = 0;
 		foreach ($stats as $stat) {
 			$thisgroup = $stat->grouping;
 			
-			if ($i > 0 && $thisgroup != $lastgroup) {
-				$output .= "</table></td>";
-				
-				if ($col == 1) {
-					$output .= "</tr><tr>";
-					$col = 0;
-				} else {
-					$col++;
-				}
-				
-				$output .= "<td class=\"gvcol\"><table class='gvplugin' id=\"gvid_uctsti$i\">$head";
+			if ($thisgroup != $lastgroup) {
+				$output .= "<tr><td colspan=4><h4>$thisgroup</h4></td></tr>$head";
 			}
 
 			$statName = $stat->name;
 			$currentStat = $arr[$statName];
-			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $stat->name;
+			$output .= "<tr><td>" . $stat->name;
 			switch($stat->name) {
 				case 'Willpower': $output .= "*"; break;
 			}
 			
 			$output .= "</td>"
-				. "<td class=\"gvcol_2 gvcol_val\">" . vtm_printSelectCounter($statName, $currentStat->level, 0, 10) . "</td>"
-				. "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\"" . $statName . "Comment\" value=\"" . htmlspecialchars(stripslashes($currentStat->comment), ENT_QUOTES) . "\" /></td>"
-				. "<td class='gvcol_4 gvcol_val'>";
+				. "<td>" . vtm_printSelectCounter($statName, $currentStat->level, 0, 10) . "</td>"
+				. "<td><input type='text' name='" . $statName . "Comment' value='" . htmlspecialchars(stripslashes($currentStat->comment), ENT_QUOTES) . "' /></td>"
+				. "<td>";
 
 			if ($currentStat->grouping == "Virtue"  && $statName != "Courage") {
-				$output .= "<input type=\"checkbox\" name=\"" . $statName . "Delete\" value=\"" . $currentStat->cstatid . "\" />";
+				$output .= "<input type='checkbox' name='" . $statName . "Delete' value='" . $currentStat->cstatid . "' />";
 			}
 
-			$output .= "<input type='HIDDEN' name=\"" . $statName . "ID\" value=\"" . $currentStat->cstatid . "\" />"
+			$output .= "<input type='HIDDEN' name='" . $statName . "ID' value='" . $currentStat->cstatid . "' />"
 				. "</td></tr>";
-			$i++;
 			$lastgroup = $thisgroup;
 		}
-		$output .= "</table></td></tr></table><hr />";
+		$output .= "</table>";
 
 		$sql = "SELECT skill.name,
 							   skilltype.name as grouping,
@@ -714,59 +701,51 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 
 		$characterSkills = $wpdb->get_results($wpdb->prepare($sql, $characterID));
 
-		$lastGroup = "Something";
-		$currentGroup = "";
+		$lastgroup = "";
+		$thisgroup = "";
+		$output .= "<hr />$jumpto<table id='gvid_uctskg'>";
 
 		$skillCount = 0;
 		$arr = array();
 		foreach($characterSkills as $characterSkill) {
-			$currentGroup = $characterSkill->grouping;
-			if ($currentGroup != $lastGroup) {
-				if ($lastGroup != "Something") {
-					$output .= "</table><br />";
-				}
-				$output .= "<table class='gvplugin' id=\"gvid_uctskg\"><tr><th class=\"gvthead gvcol_1\">" . $characterSkill->grouping . " name</th>
-																				 <th class=\"gvthead gvcol_2\">Value</th>
-																				 <th class=\"gvthead gvcol_3\">Comment</th>
-																				 <th class=\"gvthead gvcol_4\">Delete</th></tr>";
-				$lastGroup = $currentGroup;
+			$thisgroup = $characterSkill->grouping;
+			if ($thisgroup != $lastgroup) {
+				$output .= "<tr><td colspan=4><h4>$thisgroup</h4></td></tr>$head";
 			}
 
 			$skillName = "skill" . $skillCount;
-			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $characterSkill->name . "</td>"
-				. "<td class=\"gvcol_2 gvcol_val\">" . vtm_printSelectCounter($skillName, $characterSkill->level, 0, 10) . "</td>"
-				. "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $skillName . "Comment\" value=\"" . htmlspecialchars(stripslashes($characterSkill->comment), ENT_QUOTES)  . "\" /></td>"
-				. "<td class='gvcol_4 gvcol_val'><input type=\"checkbox\" name=\"" . $skillName . "Delete\" value=\""  . $characterSkill->cskillid . "\" />"
-				.     "<input type='HIDDEN' name=\""   . $skillName . "ID\" value=\""      . $characterSkill->cskillid . "\" /></td></tr>";
+			$output .= "<tr><td>" . $characterSkill->name . "</td>"
+				. "<td>" . vtm_printSelectCounter($skillName, $characterSkill->level, 0, 10) . "</td>"
+				. "<td><input type='text' name='"     . $skillName . "Comment' value='" . htmlspecialchars(stripslashes($characterSkill->comment), ENT_QUOTES)  . "' /></td>"
+				. "<td><input type='checkbox' name='" . $skillName . "Delete' value='"  . $characterSkill->cskillid . "' />"
+				.     "<input type='HIDDEN' name='"   . $skillName . "ID' value='"      . $characterSkill->cskillid . "' /></td></tr>";
 
 			$skillCount++;
+			$lastgroup = $thisgroup;
 		}
-		$output .= "</table><br />";
-		$output .= "<input type='HIDDEN' name=\"maxOldSkillCount\" value=\"" . $skillCount . "\" />";
+		$output .= "</table>\n";
+		$output .= "<input type='HIDDEN' name='maxOldSkillCount' value='" . $skillCount . "' />";
 
-		$output .= "<table class='gvplugin' id=\"gvid_uctskn\"><tr><th class=\"gvthead gvcol_1\">New skill name</th>
-																		 <th class=\"gvthead gvcol_2\">Value</th>
-																		 <th class=\"gvthead gvcol_3\">Comment</th>
-																		 <th class=\"gvthead gvcol_4\">Delete</th></tr>";
+		$output .= "<table id='gvid_uctskn'><tr><td colspan=4><h4>New Abilities</h4></td></tr>$head";
 
 		$skillBlock = "";
 		$skills = vtm_listSkills("", "Y");
 		foreach ($skills as $skill) {
-			$skillBlock .= "<option value=\"" . $skill->id . "\">" . $skill->name . "</option>";
+			$skillBlock .= "<option value='" . $skill->id . "'>" . $skill->name . "</option>";
 		}
 
 		for ($i = 0; $i < 20; ) {
 			$skillName = "skill" . $skillCount;
-			$output .= "<tr><td class=\"gvcol_1 gvcol_key\"><select name=\"" . $skillName . "SID\">" . $skillBlock . "</select></td>"
-				. "<td class=\"gvcol_2 gvcol_val\">" . vtm_printSelectCounter($skillName, "", 0, 10) . "</td>"
-				. "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\"" . $skillName . "Comment\" /></td>"
-				. "<td class='gvcol_4 gvcol_val'></td></tr>";
+			$output .= "<tr><td><select name='" . $skillName . "SID'>" . $skillBlock . "</select></td>"
+				. "<td>" . vtm_printSelectCounter($skillName, "", 0, 10) . "</td>"
+				. "<td><input type='text' name='" . $skillName . "Comment' /></td>"
+				. "<td></td></tr>";
 
 			$i++;
 			$skillCount++;
 		}
-		$output .= "<input type='HIDDEN' name=\"maxNewSkillCount\" value=\"" . $skillCount . "\" />";
-		$output .= "</table><hr />";
+		$output .= "<input type='HIDDEN' name='maxNewSkillCount' value='" . $skillCount . "' />";
+		$output .= "</table><hr />$jumpto";
 
 		/*******************************************************************************************/
 		/*******************************************************************************************/
@@ -784,67 +763,48 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 
 		$characterDisciplines = $wpdb->get_results($wpdb->prepare($sql, $characterID));
 
-		$output .= "<table class='gvplugin' id=\"gvid_uctdi\"><tr><th class=\"gvthead gvcol_1\">Discipline name</th>
-																		<th class=\"gvthead gvcol_2\">Value</th>
-																		<th class=\"gvthead gvcol_3\">Comment</th>
-																		<th class=\"gvthead gvcol_4\">Delete</th>
-																		<th class=\"gvthead gvcol_5\">Discipline name</th>
-																		<th class=\"gvthead gvcol_6\">Value</th>
-																		<th class=\"gvthead gvcol_7\">Comment</th>
-																		<th class=\"gvthead gvcol_8\">Delete</th></tr>";
+		$output .= "<table id='gvid_uctdi'>$head";
 		$colOffset = 0;
 		$i = 0;
 		$disciplineCount = 0;
 		$arr = array();
 		foreach($characterDisciplines as $characterDiscipline) {
-			if ($i % 2 == 0) {
-				$output .= "<tr>";
-			}
-			$colOffset = 4 * ($i % 2);
+			$output .= "<tr>";
 
 			$disciplineName = "discipline" . $disciplineCount;
-			$output .= "<td class=\"gvcol_" . (1 + $colOffset) . " gvcol_key\">" . $characterDiscipline->name . "</td>"
-				. "<td class=\"gvcol_" . (2 + $colOffset) . " gvcol_val\">" . vtm_printSelectCounter($disciplineName, $characterDiscipline->level, 0, 10) . "</td>"
-				. "<td class=\"gvcol_" . (3 + $colOffset) . " gvcol_val\"><input type='text' name=\""     . $disciplineName . "Comment\" value=\"" . stripslashes($characterDiscipline->comment)  . "\" /></td>"
-				. "<td class=\"gvcol_" . (4 + $colOffset) . " gvcol_val\"><input type=\"checkbox\" name=\"" . $disciplineName . "Delete\" value=\""  . $characterDiscipline->cdisciplineid . "\" />"
-				.     "<input type='HIDDEN' name=\""   . $disciplineName . "ID\" value=\""      . $characterDiscipline->cdisciplineid . "\" /></td>";
+			$output .= "<td class='vtmcol_key'>" . $characterDiscipline->name . "</td>"
+				. "<td>" . vtm_printSelectCounter($disciplineName, $characterDiscipline->level, 0, 10) . "</td>"
+				. "<td><input type='text' name='"     . $disciplineName . "Comment' value='" . stripslashes($characterDiscipline->comment)  . "' /></td>"
+				. "<td><input type='checkbox' name='" . $disciplineName . "Delete' value='"  . $characterDiscipline->cdisciplineid . "' />"
+				.     "<input type='HIDDEN' name='"   . $disciplineName . "ID' value='"      . $characterDiscipline->cdisciplineid . "' /></td>";
 
 			$i++;
 			$disciplineCount++;
-			if ($i % 2 == 0) {
-				$output .= "</tr>";
-			}
-		}
-		if ($i % 2 != 0) {
 			$output .= "</tr>";
 		}
 
-		$output .= "<tr style='display:none'><td colspan=8><input type='HIDDEN' name=\"maxOldDisciplineCount\" value=\"" . $disciplineCount . "\" /></td></tr>";
+		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name='maxOldDisciplineCount' value='" . $disciplineCount . "' /></td></tr>";
 
 		$disciplineBlock = "";
 		$disciplines = vtm_listDisciplines("Y");
 		foreach ($disciplines as $discipline) {
-			$disciplineBlock .= "<option value=\"" . $discipline->id . "\">" . $discipline->name . "</option>";
+			$disciplineBlock .= "<option value='" . $discipline->id . "'>" . $discipline->name . "</option>";
 		}
 
 		for ($i = 0; $i < 4; ) {
-			if ($i % 2 == 0) {
-				$output .= "<tr>";
-			}
+			$output .= "<tr>";
 			$disciplineName = "discipline" . $disciplineCount;
-			$output .= "<td class=\"gvcol_" . (1 + $colOffset) . " gvcol_key\"><select name=\"" . $disciplineName . "SID\">" . $disciplineBlock . "</select></td>"
-				. "<td class=\"gvcol_" . (2 + $colOffset) . " gvcol_val\">" . vtm_printSelectCounter($disciplineName, "", 0, 10) . "</td>"
-				. "<td class=\"gvcol_" . (3 + $colOffset) . " gvcol_val\"><input type='text' name=\""     . $disciplineName . "Comment\" /></td>"
-				. "<td class=\"gvcol_" . (4 + $colOffset) . " gvcol_val\"></td>";
+			$output .= "<td><select name='" . $disciplineName . "SID'>" . $disciplineBlock . "</select></td>"
+				. "<td>" . vtm_printSelectCounter($disciplineName, "", 0, 10) . "</td>"
+				. "<td><input type='text' name='"     . $disciplineName . "Comment' /></td>"
+				. "<td></td>";
 
 			$i++;
 			$disciplineCount++;
-			if ($i % 2 == 0) {
-				$output .= "</tr>";
-			}
+			$output .= "</tr>";
 		}
-		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxNewDisciplineCount\" value=\"" . $disciplineCount . "\" /></td></tr>";
-		$output .= "</table><hr />";
+		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name='maxNewDisciplineCount' value='" . $disciplineCount . "' /></td></tr>";
+		$output .= "</table><hr />$jumpto";
 
 		/*******************************************************************************************/
 		/*******************************************************************************************/
@@ -863,66 +823,47 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 
 		$characterBackgrounds = $wpdb->get_results($wpdb->prepare($sql, $characterID));
 
-		$output .= "<table class='gvplugin' id=\"gvid_uctdi\"><tr><th class=\"gvthead gvcol_1\">Background name</th>
-																		<th class=\"gvthead gvcol_2\">Value</th>
-																		<th class=\"gvthead gvcol_3\">Comment</th>
-																		<th class=\"gvthead gvcol_4\">Delete</th>
-																		<th class=\"gvthead gvcol_5\">Background name</th>
-																		<th class=\"gvthead gvcol_6\">Value</th>
-																		<th class=\"gvthead gvcol_7\">Comment</th>
-																		<th class=\"gvthead gvcol_8\">Delete</th></tr>";
+		$output .= "<table id='gvid_uctba'>$head";
 		$i = 0;
 		$backgroundCount = 0;
 		$arr = array();
 		foreach($characterBackgrounds as $characterBackground) {
-			if ($i % 2 == 0) {
-				$output .= "<tr>";
-			}
-			$colOffset = 4 * ($i % 2);
+			$output .= "<tr>";
 
 			$backgroundName = "background" . $backgroundCount;
-			$output .= "<td class=\"gvcol_" . (1 + $colOffset) . " gvcol_key\">" . $characterBackground->name . "</td>"
-				. "<td class=\"gvcol_" . (2 + $colOffset) . " gvcol_val\">" . vtm_printSelectCounter($backgroundName, $characterBackground->level, 0, 10) . "</td>"
-				. "<td class=\"gvcol_" . (3 + $colOffset) . " gvcol_val\"><input type='text' name=\""     . $backgroundName . "Comment\" value=\"" . stripslashes($characterBackground->comment)  . "\" /></td>"
-				. "<td class=\"gvcol_" . (4 + $colOffset) . " gvcol_val\"><input type=\"checkbox\" name=\"" . $backgroundName . "Delete\" value=\""  . $characterBackground->cbackgroundid . "\" />"
-				.     "<input type='HIDDEN' name=\""   . $backgroundName . "ID\" value=\""      . $characterBackground->cbackgroundid . "\" /></td>";
+			$output .= "<td>" . $characterBackground->name . "</td>"
+				. "<td>" . vtm_printSelectCounter($backgroundName, $characterBackground->level, 0, 10) . "</td>"
+				. "<td><input type='text' name='"     . $backgroundName . "Comment' value='" . stripslashes($characterBackground->comment)  . "' /></td>"
+				. "<td><input type='checkbox' name='" . $backgroundName . "Delete' value='"  . $characterBackground->cbackgroundid . "' />"
+				.     "<input type='HIDDEN' name='"   . $backgroundName . "ID' value='"      . $characterBackground->cbackgroundid . "' /></td>";
 
 			$i++;
 			$backgroundCount++;
-			if ($i % 2 == 0) {
-				$output .= "</tr>";
-			}
-		}
-		if ($i % 2 != 0) {
 			$output .= "</tr>";
 		}
 
-		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxOldBackgroundCount\" value=\"" . $backgroundCount . "\" /></td></tr>";
+		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name='maxOldBackgroundCount' value='" . $backgroundCount . "' /></td></tr>";
 
 		$backgroundBlock = "";
 		$backgrounds = vtm_listBackgrounds("", "Y");
 		foreach ($backgrounds as $background) {
-			$backgroundBlock .= "<option value=\"" . $background->id . "\">" . $background->name . "</option>";
+			$backgroundBlock .= "<option value='" . $background->id . "'>" . $background->name . "</option>";
 		}
 
 		for ($i = 0; $i < 6; ) {
-			if ($i % 2 == 0) {
-				$output .= "<tr>";
-			}
+			$output .= "<tr>";
 			$backgroundName = "background" . $backgroundCount;
-			$output .= "<td class=\"gvcol_" . (1 + $colOffset) . " gvcol_key\"><select name=\"" . $backgroundName . "SID\">" . $backgroundBlock . "</select></td>"
-				. "<td class=\"gvcol_" . (2 + $colOffset) . " gvcol_val\">" . vtm_printSelectCounter($backgroundName, "", 0, 10) . "</td>"
-				. "<td class=\"gvcol_" . (3 + $colOffset) . " gvcol_val\"><input type='text' name=\""     . $backgroundName . "Comment\" /></td>"
-				. "<td class=\"gvcol_" . (4 + $colOffset) . " gvcol_val\"></td>";
+			$output .= "<td><select name='" . $backgroundName . "SID'>" . $backgroundBlock . "</select></td>"
+				. "<td>" . vtm_printSelectCounter($backgroundName, "", 0, 10) . "</td>"
+				. "<td><input type='text' name='"     . $backgroundName . "Comment' /></td>"
+				. "<td></td>";
 
 			$i++;
 			$backgroundCount++;
-			if ($i % 2 == 0) {
-				$output .= "</tr>";
-			}
+			$output .= "</tr>";
 		}
-		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxNewBackgroundCount\" value=\"" . $backgroundCount . "\" /></td></tr>";
-		$output .= "</table><hr />";
+		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name='maxNewBackgroundCount' value='" . $backgroundCount . "' /></td></tr>";
+		$output .= "</table><hr />$jumpto";
 
 		/*******************************************************************************************/
 
@@ -941,43 +882,40 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 
 		$characterMerits = $wpdb->get_results($wpdb->prepare($sql, $characterID));
 
-		$output .= "<table class='gvplugin' id=\gvid_uctme\"><tr><th class=\"gvthead gvcol_1\">Merit name</th>
-																	   <th class=\"gvthead gvcol_2\">Value</th>
-																	   <th class=\"gvthead gvcol_3\">Comment</th>
-																	   <th class=\"gvthead gvcol_4\">Delete</th></tr>";
+		$output .= "<table id='gvid_uctme'>$head";
 		$meritCount = 0;
 		$arr = array();
 		foreach($characterMerits as $characterMerit) {
 			$meritName = "merit" . $meritCount;
-			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $characterMerit->name . " (" . $characterMerit->value . ")</td>"
-				. "<td class=\"gvcol_2 gvcol_val\">" . vtm_printSelectCounter($meritName, $characterMerit->level, -7, 7) . "</td>"
-				. "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $meritName . "Comment\" value=\"" . stripslashes($characterMerit->comment)  . "\" /></td>"
-				. "<td class='gvcol_4 gvcol_val'><input type=\"checkbox\" name=\"" . $meritName . "Delete\" value=\""  . $characterMerit->cmeritid . "\" />"
-				.     "<input type='HIDDEN' name=\""   . $meritName . "ID\" value=\""      . $characterMerit->cmeritid . "\" /></td></tr>";
+			$output .= "<tr><td>" . $characterMerit->name . " (" . $characterMerit->value . ")</td>"
+				. "<td>" . vtm_printSelectCounter($meritName, $characterMerit->level, -7, 7) . "</td>"
+				. "<td><input type='text' name='"     . $meritName . "Comment' value='" . stripslashes($characterMerit->comment)  . "' /></td>"
+				. "<td><input type='checkbox' name='" . $meritName . "Delete' value='"  . $characterMerit->cmeritid . "' />"
+				.     "<input type='HIDDEN' name='"   . $meritName . "ID' value='"      . $characterMerit->cmeritid . "' /></td></tr>";
 
 			$i++;
 			$meritCount++;
 		}
 
-		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxOldMeritCount\" value=\"" . $meritCount . "\" /></td></tr>";
+		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name='maxOldMeritCount' value='" . $meritCount . "' /></td></tr>";
 
 		$meritBlock = "";
 		$merits = vtm_listMerits("", "Y");
 		foreach ($merits as $merit) {
-			$meritBlock .= "<option value=\"" . $merit->id . "\">" . $merit->name . " (" . $merit->value . ")</option>";
+			$meritBlock .= "<option value='" . $merit->id . "'>" . $merit->name . " (" . $merit->value . ")</option>";
 		}
 
 		for ($i = 0; $i < 6; $i++) {
 			$meritName = "merit" . $meritCount;
-			$output .= "<tr><td class=\"gvcol_1 gvcol_key\"><select name=\"" . $meritName . "SID\">" . $meritBlock . "</select></td>"
-				. "<td class=\"gvcol_2 gvcol_val\">" . vtm_printSelectCounter($meritName, "", -7, 7) . "</td>"
-				. "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $meritName . "Comment\" /></td>"
-				. "<td class='gvcol_4 gvcol_val'></td></tr>";
+			$output .= "<tr><td><select name='" . $meritName . "SID'>" . $meritBlock . "</select></td>"
+				. "<td>" . vtm_printSelectCounter($meritName, "", -7, 7) . "</td>"
+				. "<td><input type='text' name='"     . $meritName . "Comment' /></td>"
+				. "<td></td></tr>";
 
 			$meritCount++;
 		}
-		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxNewMeritCount\" value=\"" . $meritCount . "\" /></td></tr>";
-		$output .= "</table><hr />";
+		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name='maxNewMeritCount' value='" . $meritCount . "' /></td></tr>";
+		$output .= "</table><hr />$jumpto";
 
 		/*******************************************************************************************/
 
@@ -994,40 +932,37 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 
 		$characterComboDisciplines = $wpdb->get_results($wpdb->prepare($sql, $characterID));
 
-		$output .= "<table class='gvplugin' id=\"gvid_uctcd\"><tr><th class=\"gvthead gvcol_1\">Combo Discipline name</th>
-																		<th class=\"gvthead gvcol_2\">Value</th>
-																		<th class=\"gvthead gvcol_3\">Comment</th>
-																		<th class=\"gvthead gvcol_4\">Delete</th></tr>";
+		$output .= "<table id='gvid_uctcd'>$head";
 
 		$comboDisciplineCount = 0;
 		$arr = array();
 		foreach($characterComboDisciplines as $characterComboDiscipline) {
 			$comboDisciplineName = "comboDiscipline" . $comboDisciplineCount;
-			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $characterComboDiscipline->name . "</td>"
-				. "<td class=\"gvcol_2 gvcol_val\">Learned<input type='HIDDEN' name=\"" . $comboDisciplineName . "\" value=\"0\" /></td>"
-				. "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $comboDisciplineName . "Comment\" value=\"" . stripslashes($characterComboDiscipline->comment)  . "\" /></td>"
-				. "<td class='gvcol_4 gvcol_val'><input type=\"checkbox\" name=\"" . $comboDisciplineName . "Delete\" value=\""  . $characterComboDiscipline->ccombo_disciplineid . "\" />"
-				.     "<input type='HIDDEN' name=\""   . $comboDisciplineName . "ID\" value=\""      . $characterComboDiscipline->ccombo_disciplineid . "\" /></td></tr>";
+			$output .= "<tr><td>" . $characterComboDiscipline->name . "</td>"
+				. "<td>Learned<input type='HIDDEN' name='" . $comboDisciplineName . "' value='0' /></td>"
+				. "<td><input type='text' name='"     . $comboDisciplineName . "Comment' value='" . stripslashes($characterComboDiscipline->comment)  . "' /></td>"
+				. "<td><input type='checkbox' name='" . $comboDisciplineName . "Delete' value='"  . $characterComboDiscipline->ccombo_disciplineid . "' />"
+				.     "<input type='HIDDEN' name='"   . $comboDisciplineName . "ID' value='"      . $characterComboDiscipline->ccombo_disciplineid . "' /></td></tr>";
 
 			$comboDisciplineCount++;
 		}
-		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxOldComboDisciplineCount\" value=\"" . $comboDisciplineCount . "\" /></td></tr>";
+		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name='maxOldComboDisciplineCount' value='" . $comboDisciplineCount . "' /></td></tr>";
 
 		$comboDisciplineBlock = "";
 		$comboDisciplines = vtm_listComboDisciplines("Y");
 		foreach ($comboDisciplines as $comboDiscipline) {
-			$comboDisciplineBlock .= "<option value=\"" . $comboDiscipline->id . "\">" . $comboDiscipline->name . "</option>";
+			$comboDisciplineBlock .= "<option value='" . $comboDiscipline->id . "'>" . $comboDiscipline->name . "</option>";
 		}
 
 		$comboDisciplineName = "comboDiscipline" . $comboDisciplineCount;
-		$output .= "<tr><td class=\"gvcol_1 gvcol_key\"><select name=\"" . $comboDisciplineName . "SID\">" . $comboDisciplineBlock . "</select></td>"
-			. "<td class=\"gvcol_2 gvcol_val\"><select name=\"" . $comboDisciplineName . "\"><option value=\"-100\">Not Learned</option><option value=\"1\">Learned</option></select></td>"
-			. "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\"" . $comboDisciplineName . "Comment\" /></td>"
-			. "<td class='gvcol_4 gvcol_val'></td></tr>";
+		$output .= "<tr><td><select name='" . $comboDisciplineName . "SID'>" . $comboDisciplineBlock . "</select></td>"
+			. "<td><select name='" . $comboDisciplineName . "'><option value='-100'>Not Learned</option><option value='1'>Learned</option></select></td>"
+			. "<td><input type='text' name='" . $comboDisciplineName . "Comment' /></td>"
+			. "<td></td></tr>";
 		$comboDisciplineCount++;
 
-		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxNewComboDisciplineCount\" value=\"" . $comboDisciplineCount . "\" /></td></tr>";
-		$output .= "</table><hr />";
+		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name='maxNewComboDisciplineCount' value='" . $comboDisciplineCount . "' /></td></tr>";
+		$output .= "</table><hr />$jumpto";
 
 		/*******************************************************************************************/
 		/*******************************************************************************************/
@@ -1048,43 +983,40 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 
 		$characterPaths = $wpdb->get_results($wpdb->prepare($sql, $characterID));
 
-		$output .= "<table class='gvplugin' id=\"gvid_uctpa\"><tr><th class=\"gvthead gvcol_1\">Path name</th>
-																		<th class=\"gvthead gvcol_2\">Value</th>
-																		<th class=\"gvthead gvcol_3\">Comment</th>
-																		<th class=\"gvthead gvcol_4\">Delete</th></tr>";
+		$output .= "<table id='gvid_uctpa'>$head";
 
 		$pathCount = 0;
 		$arr = array();
 		foreach($characterPaths as $characterPath) {
 			$pathName = "path" . $pathCount;
-			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $characterPath->name . " (" . substr($characterPath->disname, 0, 5)  .")</td>"
-				. "<td class=\"gvcol_2 gvcol_val\">" . vtm_printSelectCounter($pathName, $characterPath->level, 0, 10) . "</td>"
-				. "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $pathName . "Comment\" value=\"" . stripslashes($characterPath->comment)  . "\" /></td>"
-				. "<td class='gvcol_4 gvcol_val'><input type=\"checkbox\" name=\"" . $pathName . "Delete\" value=\""  . $characterPath->cpathid . "\" />"
-				.     "<input type='HIDDEN' name=\""   . $pathName . "ID\" value=\""      . $characterPath->cpathid . "\" /></td></tr>";
+			$output .= "<tr><td>" . $characterPath->name . " (" . substr($characterPath->disname, 0, 5)  .")</td>"
+				. "<td>" . vtm_printSelectCounter($pathName, $characterPath->level, 0, 10) . "</td>"
+				. "<td><input type='text' name='"     . $pathName . "Comment' value='" . stripslashes($characterPath->comment)  . "' /></td>"
+				. "<td><input type='checkbox' name='" . $pathName . "Delete' value='"  . $characterPath->cpathid . "' />"
+				.     "<input type='HIDDEN' name='"   . $pathName . "ID' value='"      . $characterPath->cpathid . "' /></td></tr>";
 
 			$i++;
 			$pathCount++;
 		}
 
-		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxOldPathCount\" value=\"" . $pathCount . "\" /></td></tr>";
+		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name='maxOldPathCount' value='" . $pathCount . "' /></td></tr>";
 
 		$pathBlock = "";
 		$paths = vtm_listPaths("Y");
 		foreach ($paths as $path) {
-			$pathBlock .= "<option value=\"" . $path->id . "\">" . $path->name . " (" . substr($path->disname, 0, 5)  .")</option>";
+			$pathBlock .= "<option value='" . $path->id . "'>" . $path->name . " (" . substr($path->disname, 0, 5)  .")</option>";
 		}
 
 		for ($i = 0; $i < 2; $i++) {
 			$pathName = "path" . $pathCount;
-			$output .= "<tr><td class=\"gvcol_1 gvcol_key\"><select name=\"" . $pathName . "SID\">" . $pathBlock . "</select></td>"
-				. "<td class=\"gvcol_2 gvcol_val\">" . vtm_printSelectCounter($pathName, "", 0, 10) . "</td>"
-				. "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $pathName . "Comment\" /></td>"
-				. "<td class='gvcol_4 gvcol_val'></td></tr>";
+			$output .= "<tr><td><select name='" . $pathName . "SID'>" . $pathBlock . "</select></td>"
+				. "<td>" . vtm_printSelectCounter($pathName, "", 0, 10) . "</td>"
+				. "<td><input type='text' name='"     . $pathName . "Comment' /></td>"
+				. "<td></td></tr>";
 			$pathCount++;
 		}
-		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxNewPathCount\" value=\"" . $pathCount . "\" /></td></tr>";
-		$output .= "</table><hr />";
+		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name='maxNewPathCount' value='" . $pathCount . "' /></td></tr>";
+		$output .= "</table><hr />$jumpto";
 
 		/*******************************************************************************************/
 		/*******************************************************************************************/
@@ -1106,43 +1038,40 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 
 		$characterRituals = $wpdb->get_results($wpdb->prepare($sql, $characterID));
 
-		$output .= "<table class='gvplugin' id=\"gvid_uctri\"><tr><th class=\"gvthead gvcol_1\">Ritual name</th>
-																		<th class=\"gvthead gvcol_2\">Value</th>
-																		<th class=\"gvthead gvcol_3\">Comment</th>
-																		<th class=\"gvthead gvcol_4\">Delete</th></tr>";
+		$output .= "<table id='gvid_uctri'>$head</tr>";
 
 		$ritualCount = 0;
 		$arr = array();
 		foreach($characterRituals as $characterRitual) {
 			$ritualName = "ritual" . $ritualCount;
-			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $characterRitual->name . " (" . substr($characterRitual->disname, 0, 5)  . " " . $characterRitual->ritlevel .")</td>"
-				. "<td class=\"gvcol_2 gvcol_val\">Learned<input type='HIDDEN' name=\"" . $ritualName . "\" value=\"0\" /></td>"
-				. "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $ritualName . "Comment\" value=\"" . stripslashes($characterRitual->comment)  . "\" /></td>"
-				. "<td class='gvcol_4 gvcol_val'><input type=\"checkbox\" name=\"" . $ritualName . "Delete\" value=\""  . $characterRitual->critualid . "\" />"
-				.     "<input type='HIDDEN' name=\""   . $ritualName . "ID\" value=\""      . $characterRitual->critualid . "\" /></td></tr>";
+			$output .= "<tr><td>" . $characterRitual->name . " (" . substr($characterRitual->disname, 0, 5)  . " " . $characterRitual->ritlevel .")</td>"
+				. "<td>Learned<input type='HIDDEN' name='" . $ritualName . "' value='0' /></td>"
+				. "<td><input type='text' name='"     . $ritualName . "Comment' value='" . stripslashes($characterRitual->comment)  . "' /></td>"
+				. "<td><input type='checkbox' name='" . $ritualName . "Delete' value='"  . $characterRitual->critualid . "' />"
+				.     "<input type='HIDDEN' name='"   . $ritualName . "ID' value='"      . $characterRitual->critualid . "' /></td></tr>";
 
 			$i++;
 			$ritualCount++;
 		}
 
-		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxOldRitualCount\" value=\"" . $ritualCount . "\" /></td></tr>";
+		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name='maxOldRitualCount' value='" . $ritualCount . "' /></td></tr>";
 
 		$ritualBlock = "";
 		$rituals = vtm_listRituals("Y");
 		foreach ($rituals as $ritual) {
-			$ritualBlock .= "<option value=\"" . $ritual->id . "\">" . $ritual->name . " (" . substr($ritual->disname, 0, 5)  . " " . $ritual->level . ")</option>";
+			$ritualBlock .= "<option value='" . $ritual->id . "'>" . $ritual->name . " (" . substr($ritual->disname, 0, 5)  . " " . $ritual->level . ")</option>";
 		}
 
 		for ($i = 0; $i < 5; $i++) {
 			$ritualName = "ritual" . $ritualCount;
-			$output .= "<tr><td class=\"gvcol_1 gvcol_key\"><select name=\"" . $ritualName . "SID\">" . $ritualBlock . "</select></td>"
-				. "<td class=\"gvcol_2 gvcol_val\"><select name=\"" . $ritualName . "\"><option value=\"-100\">Not Learned</option><option value=\"1\">Learned</option></select></td>"
-				. "<td class=\"gvcol_3 gvcol_val\"><input type='text' name=\""     . $ritualName . "Comment\" /></td>"
-				. "<td class='gvcol_4 gvcol_val'></td></tr>";
+			$output .= "<tr><td><select name='" . $ritualName . "SID'>" . $ritualBlock . "</select></td>"
+				. "<td><select name='" . $ritualName . "'><option value='-100'>Not Learned</option><option value='1'>Learned</option></select></td>"
+				. "<td><input type='text' name='"     . $ritualName . "Comment' /></td>"
+				. "<td></td></tr>";
 			$ritualCount++;
 		}
-		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxNewRitualCount\" value=\"" . $ritualCount . "\" /></td></tr>";
-		$output .= "</table><hr />";
+		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name='maxNewRitualCount' value='" . $ritualCount . "' /></td></tr>";
+		$output .= "</table><hr />$jumpto";
 
 		/*******************************************************************************************/
 		/*******************************************************************************************/
@@ -1162,59 +1091,59 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 
 		$characterOffices = $wpdb->get_results($wpdb->prepare($sql, $characterID));
 
-		$output .= "<table class='gvplugin' id=\"gvid_uctof\"><tr><th class=\"gvthead gvcol_1\">Office name</th>
-																		<th class=\"gvthead gvcol_2\">Domain</th>
-																		<th class=\"gvthead gvcol_3\">Status</th>
-																		<th class=\"gvthead gvcol_4\">Comment</th>
-																		<th class=\"gvthead gvcol_5\">Delete</th></tr>";
+		$output .= "<table id='gvid_uctof'><tr><th>Office name</th>
+												<th>Domain</th>
+												<th>Status</th>
+												<th>Comment</th>
+												<th>Delete</th></tr>";
 
 		$officeCount = 0;
 		$arr = array();
 		foreach($characterOffices as $characterOffice) {
 			$officeName = "office" . $officeCount;
-			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $characterOffice->name . "</td>"
-				. "<td class=\"gvcol_2 gvcol_val\">" . $characterOffice->domainname . "</td>"
-				. "<td class=\"gvcol_3 gvcol_val\">In office<input type='HIDDEN' name=\"" . $officeName . "\" value=\"0\" /></td>"
-				. "<td class='gvcol_4 gvcol_val'><input type='text' name=\""     . $officeName . "Comment\" value=\"" . stripslashes($characterOffice->comment)  . "\" /></td>"
-				. "<td class='gvcol_5 gvcol_val'><input type=\"checkbox\" name=\"" . $officeName . "Delete\" value=\""  . $characterOffice->cofficeid . "\" />"
-				.     "<input type='HIDDEN' name=\""   . $officeName . "ID\" value=\""      . $characterOffice->cofficeid . "\" /></td></tr>";
+			$output .= "<tr><td>" . $characterOffice->name . "</td>"
+				. "<td>" . $characterOffice->domainname . "</td>"
+				. "<td>In office<input type='HIDDEN' name='" . $officeName . "' value='0' /></td>"
+				. "<td><input type='text' name='"     . $officeName . "Comment' value='" . stripslashes($characterOffice->comment)  . "' /></td>"
+				. "<td><input type='checkbox' name='" . $officeName . "Delete' value='"  . $characterOffice->cofficeid . "' />"
+				.     "<input type='HIDDEN' name='"   . $officeName . "ID' value='"      . $characterOffice->cofficeid . "' /></td></tr>";
 			$i++;
 			$officeCount++;
 		}
 
-		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name=\"maxOldOfficeCount\" value=\"" . $officeCount . "\" /></td></tr>";
+		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name='maxOldOfficeCount' value='" . $officeCount . "' /></td></tr>";
 
 		$officeBlock = "";
 		$offices = vtm_listOffices("Y");
 		foreach ($offices as $office) {
-			$officeBlock .= "<option value=\"" . $office->ID . "\">" . $office->name . "</option>";
+			$officeBlock .= "<option value='" . $office->ID . "'>" . $office->name . "</option>";
 		}
 
 		$domainBlock = "";
 		$domains = vtm_listDomains();
 		foreach ($domains as $domain) {
-			$domainBlock .= "<option value=\"" . $domain->ID ."\">" . $domain->name . "</option>";
+			$domainBlock .= "<option value='" . $domain->ID ."'>" . $domain->name . "</option>";
 		}
 
 		for ($i = 0; $i < 2; $i++) {
 			$officeName = "office" . $officeCount;
-			$output .= "<tr><td class=\"gvcol_1 gvcol_key\"><select name=\"" . $officeName . "OID\">" . $officeBlock . "</select></td>"
-				. "<td class=\"gvcol_2 gvcol_val\"><select name=\"" . $officeName . "CID\">" . $domainBlock . "</select></td>"
-				. "<td class=\"gvcol_3 gvcol_val\"><select name=\"" . $officeName . "\"><option value=\"-100\">Not in office</option><option value=\"1\">In office</option></select></td>"
-				. "<td class='gvcol_4 gvcol_val'><input type='text' name=\""     . $officeName . "Comment\" /></td>"
-				. "<td class='gvcol_5 gvcol_val'></td></tr>";
+			$output .= "<tr><td><select name='" . $officeName . "OID'>" . $officeBlock . "</select></td>"
+				. "<td><select name='" . $officeName . "CID'>" . $domainBlock . "</select></td>"
+				. "<td><select name='" . $officeName . "'><option value='-100'>Not in office</option><option value='1'>In office</option></select></td>"
+				. "<td><input type='text' name='"     . $officeName . "Comment' /></td>"
+				. "<td></td></tr>";
 			$officeCount++;
 		}
-		$output .= "<tr style='display:none'><td colspan=5><input type='HIDDEN' name=\"maxNewOfficeCount\" value=\"" . $officeCount . "\" /></td></tr>";
-		$output .= "</table><hr />";
+		$output .= "<tr style='display:none'><td colspan=5><input type='HIDDEN' name='maxNewOfficeCount' value='" . $officeCount . "' /></td></tr>";
+		$output .= "</table><hr />$jumpto";
 
 		/*******************************************************************************************/
 		/*******************************************************************************************/
 
-		$output .= "<table class='gvplugin' id=\"gvid_scc\"><tr><td class=\"gvcol_1 gvcol_val\">
-					<input type='submit' name=\"cSubmit\" value=\"Submit character changes\" /></td>
+		$output .= "<table id='gvid_scc'><tr><td>
+					<input type='submit' name='cSubmit' value='Submit character changes' /></td>
 					</tr></table>";
-		$output .= "</form>";
+		$output .= "</form></div>";
 	}
 	else {
 		$output .= "We encountered an illegal Character ID (". $characterID . ")";
@@ -1266,17 +1195,17 @@ function vtm_processCharacterUpdate($characterID) {
 	
 	if (isset($characterWordPress) && $characterWordPress != "") {
 		if (!username_exists( $characterWordPress )) {
-			echo "<p class=\"vtm_warn\">Warning: Wordpress username $characterWordPress does not exist and will need to be created</p>";
+			echo "<p class='vtm_warn'>Warning: Wordpress username $characterWordPress does not exist and will need to be created</p>";
 		}
 		if (vtm_wordpressid_used($characterWordPress, $characterID)) {
-			echo "<p class=\"vtm_error\">Error: Wordpress username $characterWordPress is used for another character</p>";
+			echo "<p class='vtm_error'>Error: Wordpress username $characterWordPress is used for another character</p>";
 			$characterWordPress = "";
 		}
 	} else {
-			echo "<p class=\"vtm_warn\">Warning: No Wordpress username has been specified</p>";
+			echo "<p class='vtm_warn'>Warning: No Wordpress username has been specified</p>";
 	}
 	if (vtm_charactername_used($characterName, $characterID)) {
-			echo "<p class=\"vtm_error\">Error: Character name " . stripslashes($characterName) . " already exists</p>";
+			echo "<p class='vtm_error'>Error: Character name " . stripslashes($characterName) . " already exists</p>";
 			$characterName .= "(duplicate)";
 	}
 
@@ -1308,18 +1237,18 @@ function vtm_processCharacterUpdate($characterID) {
 	else {
 		$fail = 0;
 		if (!isset($characterName) || $characterName == "New Name") {
-			echo "<p class=\"vtm_error\">Error: You must specify a name for the character</p>";
+			echo "<p class='vtm_error'>Error: You must specify a name for the character</p>";
 			$fail = 1;
 		}
 		if (!isset($characterRoadOrPathRating) || $characterRoadOrPathRating == "") {
 			$sql = "SELECT NAME FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s";
 			$pathname = $wpdb->get_var($wpdb->prepare($sql, $characterRoadOrPath));
 			
-			echo "<p class=\"vtm_error\">Error: You must enter a $pathname rating for the character</p>";
+			echo "<p class='vtm_error'>Error: You must enter a $pathname rating for the character</p>";
 			$fail = 1;
 		}
 		if (!isset($_POST['Willpower']) || $_POST['Willpower'] == ""  || $_POST['Willpower'] == -100) {
-			echo "<p class=\"vtm_error\">Error: You must enter a Willpower rating for the character</p>";
+			echo "<p class='vtm_error'>Error: You must enter a Willpower rating for the character</p>";
 			$fail = 1;
 		}
 		if ($fail)
@@ -2420,13 +2349,13 @@ function vtm_email_chargen_denied($characterID, $denyMessage) {
 	$fromaddr = get_option( 'vtm_chargen_email_from_address', get_bloginfo('admin_email') );
 	
 	$subject   = "$tag Review Character Generation: $name";
-	$headers[] = "From: \"$fromname\" <$fromaddr>";
+	$headers[] = "From: '$fromname' <$fromaddr>";
 	
 	$userbody = "Hello $player,
 	
 The Storytellers have provided feedback on $name. Please review the comments and resubmit your character once any issues have been resolved.
 	
-\"" . stripslashes($denyMessage) . "\"
+'" . stripslashes($denyMessage) . "'
 	
 You can return to character generation by following this link: $url";
 	
@@ -2467,7 +2396,7 @@ function vtm_email_chargen_approved($characterID, $wpid, $password) {
 	$url4 = vtm_get_stlink_url('viewXPSpend', true);
 
 	$subject   = "$tag Character Approved: $name";
-	$headers[] = "From: \"$fromname\" <$fromaddr>";
+	$headers[] = "From: '$fromname' <$fromaddr>";
 	
 	$userbody = "Hello $player,\n\nThe Storytellers have approved your character.  ";
 	

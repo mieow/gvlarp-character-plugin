@@ -417,7 +417,10 @@ function vtm_render_config_skinning() {
 		<table>
 			<tr>
 				<td>Number of columns:</td>
-				<td><input type="text" name="vtm_web_columns" value="<?php echo get_option('vtm_web_columns', 3); ?>" /></td>
+				<td>
+					<input type="radio" name="vtm_web_columns" value="1" <?php if (get_option('vtm_web_columns', 3) == 1) print "checked"; ?>>1 Column
+					<input type="radio" name="vtm_web_columns" value="3" <?php if (get_option('vtm_web_columns', 3) == 3) print "checked"; ?>>3 Columns	
+				</td>
 			</tr>
 		</table>
 		
@@ -451,6 +454,7 @@ function vtm_render_config_skinning() {
 		<td><img alt="dot3"       width=16 src='<?php echo plugins_url( 'gvlarp-character/images/dot3.jpg' ); ?>'></td>
 		<td><img alt="dot4"       width=16 src='<?php echo plugins_url( 'gvlarp-character/images/dot4.jpg' ); ?>'></td>
 		<td><img alt="crossclear" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/crossclear.jpg' ); ?>'></td>
+		<td><img alt="box"        width=16 src='<?php echo plugins_url( 'gvlarp-character/images/webbox.jpg' ); ?>'></td>
 		</tr>
 		</table>
 
@@ -499,9 +503,10 @@ function vtm_render_config_skinning() {
 		vtm_draw_dot("dot1empty", $dot1colour, $drawbgcolour, $drawborder, 0);
 		vtm_draw_dot("dot1full",  $dot1colour, $drawbgcolour, $drawborder, 1);
 		vtm_draw_box("crossclear", $dot1colour, $drawbgcolour, $drawborder, 2);
-		vtm_draw_dot("dot2",  $dot2colour, $drawbgcolour, $drawborder, 1);
-		vtm_draw_dot("dot3",  $dot3colour, $drawbgcolour, $drawborder, 1);
-		vtm_draw_dot("dot4",  $dot4colour, $drawbgcolour, $drawborder, 1);
+		vtm_draw_box("webbox", $dot1colour, $drawbgcolour, $drawborder, 0);
+		vtm_draw_dot("dot2",   $dot2colour, $drawbgcolour, $drawborder, 1);
+		vtm_draw_dot("dot3",   $dot3colour, $drawbgcolour, $drawborder, 1);
+		vtm_draw_dot("dot4",   $dot4colour, $drawbgcolour, $drawborder, 1);
 		
 		// PDF dots
 		$drawborder   = get_option('vtm_pdf_dotlinewidth', '3');

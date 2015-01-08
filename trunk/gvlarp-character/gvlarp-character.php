@@ -1031,13 +1031,13 @@ function vtm_get_sects() {
 
     function vtm_getConfig() {
         global $wpdb;
-        $table_prefix = VTM_TABLE_PREFIX;
-        $sql = "SELECT * FROM " . $table_prefix . "CONFIG";
 
-        $configs = $wpdb->get_results($sql);
-        foreach ($configs as $config) {
-            return $config;
-        }
+        $sql = "SELECT * FROM " . VTM_TABLE_PREFIX . "CONFIG";
+        $configs = $wpdb->get_row($sql);
+		
+        $configs->WEB_COLUMNS = get_option('vtm_web_columns', 3);
+				
+		return $configs;
     }
 
     function vtm_changeDisplayNameByID($userID, $newDisplayName) {
@@ -1098,9 +1098,28 @@ function vtm_numberToDots($base, $input) {
 	
 	for ($i = 1 ; $i <= $base ; $i++) {
 		if ($i <= $input)
-			$output .= "<img alt='$i' width=16 src='$full' />";
+			$output .= "<img alt='$i' src='$full' />";
 		else
-			$output .= "<img alt='$i' width=16 src='$empty' />";
+			$output .= "<img alt='$i' src='$empty' />";
+	}
+	
+	return $output;
+}
+function vtm_numberToBoxes($base, $input) {
+	$number = (int) $input;
+	$full  = plugins_url( 'gvlarp-character/images/crossclear.jpg' );
+	$empty = plugins_url( 'gvlarp-character/images/webbox.jpg' );
+	
+	$output = "";
+	
+	for ($i = 1 ; $i <= $base ; $i++) {
+		if ($i <= $input)
+			$output .= "<img alt='$i' src='$full' />";
+		else
+			$output .= "<img alt='$i' src='$empty' />";
+			
+		if ($i == 10)
+			$output .= "<br />";
 	}
 	
 	return $output;
