@@ -11,6 +11,13 @@ div.gvspendbutton  {
 div.gvspendbutton input.gvxp_submit {
 	float: none;
 }
+
+.vtm_warn {
+	color:orange;
+}
+.vtm_error {
+	color:red;
+}
 /* =Character Sheet
 -------------------------------------------------------------- */
 div#csheet {
@@ -28,76 +35,66 @@ div#csheet {
     text-align:center;
 }
 
-#csheet .gvhr hr {
+#csheet .vtmhr hr {
     margin-bottom: 10px;
     margin-top: 20px;
 	padding:1px;
 	border: 1px solid #666666;
 }
+/* To remove */
+#csheet .gvhr hr {
+    color:red;
+}
 
 #csheet td {
     font-size:10pt;
     padding:1px;
+	margin:0px;
 	border:none;
 	vertical-align:top;
+	outline: 0;
+	line-height: 1em;
 }
 
-#csheet .gvcol_spec {
+/* column layout */
+#csheet td.vtm_colfull {
+	width:auto;
+}
+#csheet td.vtm_colwide {
+	width:66%;
+}
+#csheet td.vtm_colnarrow {
+	width:33%;
+}
+
+/* sub-tables */
+#csheet td.vtmdot_5 {
+	width:80px;
+	text-align:center;
+}
+#csheet td.vtmdot_10 {
+	width:80px;
+	text-align:center;
+}
+#csheet .vtmcol_spec {
 	border-bottom: 1px dashed #999999;
 	font-size:8pt;
 	text-align:center;
 }
-#csheet .gvcol_key {
-    width: 100px;
+#csheet td.vtmcol_key {
+	width: 33%;
 }
 
 /* Willpower */
-#csheet #gvid_cstb_Willpower .gvcol_spec {
-   border-bottom: none;
-   width: 1px;  
-}
-#csheet .gvdotwide img {
-   width:32px;
-}
-#csheet #gvid_cstb_Willpower .gvcol_key {
-   font-size:12pt;
-   text-align: left;
-}
-#csheet #gvid_cstb_Willpower .gvcol_3 {
-   width: 145px;
-   background-size:140px;
-   background-position:right;
+#csheet td.vtmdotwide img {
+   width:30px;
 }
 
-/* Combined Discipline */
-#csheet #gvid_ccb .gvcol_spec {
-    border-bottom: none;
+/* = New/Edit Character Sheet
+-------------------------------------------------------------- */
+#vtmeditsheet table {
+	width: auto;
 }
-#csheet #gvid_ccb .gvcol_key {
-	width: 100%;
-}
-
-/* Merits & Flaws */
-#csheet #gvid_cmb td.gvcol_key {
-   width: auto;
-}
-#csheet #gvid_cmb td.gvcol_val {
-   width: 10%;
-}
-
-/* Rituals */
-#csheet #gvid_crb td.gvcol_key {
-   width: auto;
-}
-#csheet #gvid_crb td.gvcol_val {
-   width: 10%;
-}
-
-/* Paths */
-#csheet #gvid_cpb td.gvcol_key {
-   width: auto;
-}
-
 
 /* =EXTENDED BACKGROUNDS
 -------------------------------------------------------------- */
@@ -177,10 +174,10 @@ div#csheet {
 
 /* =DOTS
 -------------------------------------------------------------- */
-.gvdot_5 img {
+.vtmdot_5 img {
     width:16px;
 }
-.gvdot_10 img {
+.vtmdot_10 img {
     width:8px;
 }
 
