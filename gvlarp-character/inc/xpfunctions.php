@@ -172,8 +172,8 @@ function vtm_render_supply_details($character) {
 	if (isset($_REQUEST['merit_level'])) {
 		$output .= vtm_render_details_section('merit');
 	}
-	$output .= "<input class='gvxp_submit' type='submit' name='xSubmit' value='Spend XP'>\n";
-	$output .= "<input class='gvxp_submit' type='submit' name='xCancel' value='Back'>\n";
+	$output .= "<input class='vtmxp_submit' type='submit' name='xSubmit' value='Spend XP'>\n";
+	$output .= "<input class='vtmxp_submit' type='submit' name='xCancel' value='Back'>\n";
 
 	if (isset($_POST['VTM_CHARACTER']) && $_POST['VTM_CHARACTER'] != "")
 		$output .= "<input type='HIDDEN' name='VTM_CHARACTER' value='" . $_POST['VTM_CHARACTER'] . "' />\n";
@@ -254,7 +254,7 @@ function vtm_render_select_spends($character) {
 			$output .= "$outputJump\n";
 			//$output .= $sectionheading[$section];
 			$output .= $sectioncontent[$section];
-			$output .= "<input class='gvxp_submit' type='submit' name='xSubmit' value='Next >'>\n";
+			$output .= "<input class='vtmxp_submit' type='submit' name='xSubmit' value='Next >'>\n";
 		} 
 		
 	}
