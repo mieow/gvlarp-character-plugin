@@ -286,80 +286,10 @@ input[type="submit"].vtmxp_clear {
 #vtmid_xpst .vtmdots > input[type="checkbox"]:checked + label {
     background-image: url('/wp-content/plugins/gvlarp-character/images/check.jpg');
 }
-
-/*
-#vtmid_xpst . {
-	padding: 5px;
-}
-
-#vtmid_xpst .vtmcol_key {
-    text-align: left;
-    background-color: inherit;
-    padding: 0px 3px 0px 3px;
-	width: auto;
-} 
-#vtmid_xpst .gvcol_val {
-	width: 40px;
-	padding: 0px 5px 0px 5px;
-}
-#vtmid_xpst .gvxp_dot {
-    width:15px;
-	font-size: 0.7em;
-	margin: 0px;
-	padding: 0px;
-}
-.gvxp_dot {
-    width:15px;
-	font-size: 0.7em;
-	margin: 0px;
-	padding: 0px;
-}
-.gvxp_checkbox {
-    width:15px;
-	font-size: 0.7em;
-	margin: 0px;
-	padding: 0px;
-}
-#vtmid_xpst td.gvxp_dot img{
-	width:12px;
-}
-
-input[type="submit"].gvxp_submit {
+input[type="submit"].vtmxp_submit {
 	float:right;
-	margin: 5px;
+	/*margin: 5px;*/
 }
-
-div.gvxp_error {
-	border: 2px solid red;
-	padding: 10px;
-}
-.gvxp_error li {
-	list-style: none;
-}
-
-p.gvxp_xpstatus {
-	padding-top: 10px !important;
-	margin: 0px;
-}
-
-h4.gvxp_head  {
-	padding-top:15px;
-	
-}
-
-
-
-.gvxp_radio {
-    font-size:10px;
-	margin: 0px;
-	padding: 0px;
-
-}
-.gvcol_radiohead {
-    width:20px;
-
-}
-*/
 
 /* =Feeding Map
 -------------------------------------------------------------- */
