@@ -203,41 +203,106 @@ div#csheet {
 /* =XP Spend Page
 -------------------------------------------------------------- */
 
-#gvid_xpst td {
-    padding: 0px;
-	text-align: center;
-	border: none;
-}
-#gvid_xpst th {
+#vtmid_xpst th {
     font-weight: bold;
     background-color: #222;
     padding: 3px;
 	margin: 5px 1px 0px 0px;
 }
+#vtmid_xpst td {
+    font-size:10pt;
+    padding:1px;
+	margin:0px;
+	border:none;
+	vertical-align:top;
+	outline: 0;
+	/*line-height: 1em; */
+}
+/* column layout */
+#vtmid_xpst .vtm_colfull {
+	width:auto;
+}
+#vtmid_xpst .vtm_colwide {
+	width:50%;
+}
+#vtmid_xpst .vtm_colnarrow {
+	width:33%;
+}
 
-#gvid_xpst .gvxp_col {
+#vtmid_xpst .vtmdot_5 img {
+    width:16px;
+}
+#vtmid_xpst .vtmdot_10 img {
+    width:16px;
+}
+#vtmid_xpst .vtmdot_1 img {
+    width:16px;
+}
+#vtmid_xpst .vtmdot_10 {
+    width:160px;
+}
+#vtmid_xpst .vtmdot_5 {
+    width:160px;
+}
+#vtmid_xpst .vtmdot_1 {
+    width:16px;
+}
+#vtmid_xpst .vtmxp_spec {
+	border-bottom: 1px dashed red;
+}
+#vtmid_xpst .vtmxp_cost {
+	font-size:0.7em;
+}
+#vtmid_xpst .vtmcol_key {
+	width: 33%;
+    padding: 0px 3px 0px 3px;
+} 
+#vtmid_xpst .vtmcol_key_wide {
+    padding: 0px 3px 0px 3px;
+} 
+input[type="submit"].vtmxp_clear {
+	/*margin: 0px 0px 2px 0px;*/
+	margin: 0px;
+	padding: 0px 2px 0px 2px;
+	font-size: 0.9em;
+}
+#vtmid_xpst .vtmcol_error {
+	background-color: #ff0000;
+}
+
+/* check box */
+#vtmid_xpst .vtmdots > input {
+	display: none;
+}
+#vtmid_xpst .vtmdots img {
+	vertical-align:top;
+}
+#vtmid_xpst .vtmdots > input[type="checkbox"] + label {
+    display:inline-block;
+    background:url('/wp-content/plugins/gvlarp-character/images/webbox.jpg') no-repeat 0 0;
+	background-size:16px 16px;
+	width: 16px;
+}
+#vtmid_xpst .vtmdots > input[type="checkbox"]:checked + label {
+    background-image: url('/wp-content/plugins/gvlarp-character/images/check.jpg');
+}
+
+/*
+#vtmid_xpst . {
 	padding: 5px;
 }
-#gvid_xpst .gvthleft {
+
+#vtmid_xpst .vtmcol_key {
     text-align: left;
     background-color: inherit;
     padding: 0px 3px 0px 3px;
 	width: auto;
-	font-size:0.9em;
-}
-#gvid_xpst .gvcol_cost {
-	font-size:0.7em;
-	width: 52px;
-}
-
-#gvid_xpst .gvcol_val {
+} 
+#vtmid_xpst .gvcol_val {
 	width: 40px;
 	padding: 0px 5px 0px 5px;
 }
-#gvid_xpst .gvxp_spec {
-	border-bottom: 1px dashed red;
-}
-#gvid_xpst .gvxp_dot {
+#vtmid_xpst .gvxp_dot {
     width:15px;
 	font-size: 0.7em;
 	margin: 0px;
@@ -255,14 +320,10 @@ div#csheet {
 	margin: 0px;
 	padding: 0px;
 }
-#gvid_xpst td.gvxp_dot img{
+#vtmid_xpst td.gvxp_dot img{
 	width:12px;
 }
-input[type="submit"].gvxp_clear {
-	margin: 0px 0px 2px 0px;
-	padding: 0px 2px 0px 2px;
-	font-size: 0.9em;
-}
+
 input[type="submit"].gvxp_submit {
 	float:right;
 	margin: 5px;
@@ -286,9 +347,7 @@ h4.gvxp_head  {
 	
 }
 
-.gvcol_error {
-	background-color: #ff0000;
-}
+
 
 .gvxp_radio {
     font-size:10px;
@@ -300,6 +359,7 @@ h4.gvxp_head  {
     width:20px;
 
 }
+*/
 
 /* =Feeding Map
 -------------------------------------------------------------- */

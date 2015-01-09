@@ -351,7 +351,7 @@ function vtm_get_viewcharacter_content() {
 			$c_tableright .= "<tr><td colspan=2><strong>$discipline</strong></td></tr>\n";
 			foreach ($paths as $path => $info) {
 				if ($info[0] > 0)
-					$c_tableright .= "<tr><td class='vtmcol_key'>$path</td><td class='vtmdot_5'>" . vtm_numberToDots(5, $info[0]) . "</td></tr>";
+					$c_tableright .= "<tr><td class='vtmcol_key_wide'>$path</td><td class='vtmdot_5'>" . vtm_numberToDots(5, $info[0]) . "</td></tr>";
 			}
 		}
 		$c_tableright .= "</table>\n";
