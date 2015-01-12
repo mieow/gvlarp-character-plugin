@@ -671,7 +671,7 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 			}
 			
 			$output .= "</td>"
-				. "<td>" . vtm_printSelectCounter($statName, $currentStat->level, 0, 10) . "</td>"
+				. "<td>" . vtm_printSelectCounter($statName, $currentStat->level, 1, 10) . "</td>"
 				. "<td><input type='text' name='" . $statName . "Comment' value='" . htmlspecialchars(stripslashes($currentStat->comment), ENT_QUOTES) . "' /></td>"
 				. "<td>";
 
@@ -715,7 +715,7 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 
 			$skillName = "skill" . $skillCount;
 			$output .= "<tr><td>" . $characterSkill->name . "</td>"
-				. "<td>" . vtm_printSelectCounter($skillName, $characterSkill->level, 0, 10) . "</td>"
+				. "<td>" . vtm_printSelectCounter($skillName, $characterSkill->level, 1, 10) . "</td>"
 				. "<td><input type='text' name='"     . $skillName . "Comment' value='" . htmlspecialchars(stripslashes($characterSkill->comment), ENT_QUOTES)  . "' /></td>"
 				. "<td><input type='checkbox' name='" . $skillName . "Delete' value='"  . $characterSkill->cskillid . "' />"
 				.     "<input type='HIDDEN' name='"   . $skillName . "ID' value='"      . $characterSkill->cskillid . "' /></td></tr>";
@@ -737,7 +737,7 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 		for ($i = 0; $i < 20; ) {
 			$skillName = "skill" . $skillCount;
 			$output .= "<tr><td><select name='" . $skillName . "SID'>" . $skillBlock . "</select></td>"
-				. "<td>" . vtm_printSelectCounter($skillName, "", 0, 10) . "</td>"
+				. "<td>" . vtm_printSelectCounter($skillName, "", 1, 10) . "</td>"
 				. "<td><input type='text' name='" . $skillName . "Comment' /></td>"
 				. "<td></td></tr>";
 
@@ -773,7 +773,7 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 
 			$disciplineName = "discipline" . $disciplineCount;
 			$output .= "<td class='vtmcol_key'>" . $characterDiscipline->name . "</td>"
-				. "<td>" . vtm_printSelectCounter($disciplineName, $characterDiscipline->level, 0, 10) . "</td>"
+				. "<td>" . vtm_printSelectCounter($disciplineName, $characterDiscipline->level, 1, 10) . "</td>"
 				. "<td><input type='text' name='"     . $disciplineName . "Comment' value='" . stripslashes($characterDiscipline->comment)  . "' /></td>"
 				. "<td><input type='checkbox' name='" . $disciplineName . "Delete' value='"  . $characterDiscipline->cdisciplineid . "' />"
 				.     "<input type='HIDDEN' name='"   . $disciplineName . "ID' value='"      . $characterDiscipline->cdisciplineid . "' /></td>";
@@ -795,7 +795,7 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 			$output .= "<tr>";
 			$disciplineName = "discipline" . $disciplineCount;
 			$output .= "<td><select name='" . $disciplineName . "SID'>" . $disciplineBlock . "</select></td>"
-				. "<td>" . vtm_printSelectCounter($disciplineName, "", 0, 10) . "</td>"
+				. "<td>" . vtm_printSelectCounter($disciplineName, "", 1, 10) . "</td>"
 				. "<td><input type='text' name='"     . $disciplineName . "Comment' /></td>"
 				. "<td></td>";
 
@@ -832,7 +832,7 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 
 			$backgroundName = "background" . $backgroundCount;
 			$output .= "<td>" . $characterBackground->name . "</td>"
-				. "<td>" . vtm_printSelectCounter($backgroundName, $characterBackground->level, 0, 10) . "</td>"
+				. "<td>" . vtm_printSelectCounter($backgroundName, $characterBackground->level, 1, 10) . "</td>"
 				. "<td><input type='text' name='"     . $backgroundName . "Comment' value='" . stripslashes($characterBackground->comment)  . "' /></td>"
 				. "<td><input type='checkbox' name='" . $backgroundName . "Delete' value='"  . $characterBackground->cbackgroundid . "' />"
 				.     "<input type='HIDDEN' name='"   . $backgroundName . "ID' value='"      . $characterBackground->cbackgroundid . "' /></td>";
@@ -854,7 +854,7 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 			$output .= "<tr>";
 			$backgroundName = "background" . $backgroundCount;
 			$output .= "<td><select name='" . $backgroundName . "SID'>" . $backgroundBlock . "</select></td>"
-				. "<td>" . vtm_printSelectCounter($backgroundName, "", 0, 10) . "</td>"
+				. "<td>" . vtm_printSelectCounter($backgroundName, "", 1, 10) . "</td>"
 				. "<td><input type='text' name='"     . $backgroundName . "Comment' /></td>"
 				. "<td></td>";
 
