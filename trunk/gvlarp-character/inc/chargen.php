@@ -728,7 +728,7 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 						$cost = $freebiecosts[$name][0][1];
 						$cbid = "cb_{$key}_{$j}";
 						//$rowoutput .= "<tr><td><span class='mfdotselect'>\n";
-						$rowoutput .= "<tr><td class='mfdotselect'>\n";
+						$rowoutput .= "<tr><td class='mfdotselect'>";
 						if ($issubmitted) {
 							if ($current == $cost) {
 								$rowoutput .= "<img src='$doturl' alt='X' /> ";
@@ -739,8 +739,8 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 						} else {
 							$rowoutput .= "<input type='checkbox' name='{$postvariable}[" . $key . "]' id='$cbid' value='$cost' ";
 							$rowoutput .= checked($current, $cost, false);
-							$rowoutput .= "/>\n";
-							$rowoutput .= "<label for='$cbid'>" . $namehtml . " ($cost)</label>\n";
+							$rowoutput .= "/>";
+							$rowoutput .= "<div><label for='$cbid'>" . $namehtml . " ($cost)</label></div>";
 						}
 						$rowoutput .= "</td></tr>\n";
 					

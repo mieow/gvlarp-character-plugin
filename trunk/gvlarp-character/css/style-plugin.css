@@ -435,27 +435,33 @@ table.feedingmapkey {width:auto;}
 }
 
 /* Merits and Flaws */
-#chargen-main .mfdotselect > input[type="checkbox"] + label {
-    display:inline-block;
-    background:url('/wp-content/plugins/gvlarp-character/images/webbox.jpg') no-repeat 0 0;
-	background-size:16px 16px;
-	/* width: 16px; */
-}
-#chargen-main .mfdotselect > input[type="checkbox"]:checked + label {
-    background-image: url('/wp-content/plugins/gvlarp-character/images/check.jpg');
-}
 #chargen-main .mfdotselect > input {
 	display: none;
 }
+#chargen-main .mfdotselect > input[type="checkbox"] + div {
+	display:block;
+	padding: 1px;
+}
+
+#chargen-main .mfdotselect > input[type="checkbox"]:checked + div {
+    background-image: url('/wp-content/plugins/gvlarp-character/images/fill.jpg');
+}
+
+#chargen-main .mfdotselect > input[type="checkbox"]:checked + div label  {
+    background-image: url('/wp-content/plugins/gvlarp-character/images/check.jpg');
+}
+#chargen-main .mfdotselect > input[type="checkbox"] + div label {
+    /*display:inline-block;*/
+    background:url('/wp-content/plugins/gvlarp-character/images/webbox.jpg') no-repeat 0 0;
+	background-size:16px 16px;
+}
+
+
 #chargen-main .mfdotselect img {
 	vertical-align:top;
 }
 #chargen-main .mfdotselect span {
 	padding-left:17px;
-}
-#chargen-main td.mfdotselect { 
-	font-style: italic;
-	background-image: url('/wp-content/plugins/gvlarp-character/images/fill.jpg');
 }
 
 /* misc */
