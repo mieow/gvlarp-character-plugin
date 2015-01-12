@@ -300,66 +300,175 @@ table.feedingmapkey {width:auto;}
 
 /* =Character Generation
 -------------------------------------------------------------- */
+#chargen_form th {
+    font-weight: bold;
+    background-color: #222;
+    padding: 3px;
+	margin: 5px 1px 0px 0px;
+}
+#chargen_form td {
+    font-size:10pt;
+    padding:1px;
+	margin:0px;
+	border:none;
+	vertical-align:top;
+	outline: 0;
+}
 
+/* FLOW */
 #vtm-chargen-flow {
 	clear: both;
 	display: block;
 	margin-top: 10px;
 	margin-bottom: 10px;
 }
+#chargen_form #vtm-chargen-flow ul {
+	list-style: none;
+	z-index:1;
+}
+
 #chargen_form #vtm-chargen-flow li.step-button {
 	width: 75px;
-	font-size: 10px;
-	color: black;
-	min-height: 60px;
 	float: left;
-	border: none;
-}
-#chargen_form #vtm-chargen-flow .step-button input[type="submit"] {
-	padding: 5px;
 	min-height: 60px;
+	font-size:0.8em;
+	padding-right:10px;
+	padding-top:5px;
+ 	padding-bottom:5px;
+    background-image: url('/wp-content/plugins/gvlarp-character/images/arrowright.jpg');
+    background-repeat: no-repeat;
+	background-size:10px 10px;
+	background-position:right center;
+}
+
+
+#chargen_form #vtm-chargen-flow .step-button input[type="submit"] {
+	min-height: 60px;
+	padding:0px;
+	border: none;
+	white-space: normal;
+	/*background: inherit;*/
+	width: 75px;
+	border: 2px solid;
+	border-radius: 5px;
 }
 #chargen_form #vtm-chargen-flow .step-button span {
 	display: block;
-	padding: 5px;
-	background: darkgrey;
-	border: 1px solid grey;
-	min-height: 48px; /* 60 - padding - border */
-}
-#chargen_form #vtm-chargen-flow  li{
-}
-
-#chargen_form #vtm-chargen-flow li.step-selected {
-}
-#chargen_form #vtm-chargen-flow li.step-disable {
-	color: grey;
-}
-#chargen_form #vtm-chargen-flow li.step-enable {
-	/* width: 75px; */
-}
-#chargen_form #vtm-chargen-flow input.button-chargen-step  {
-	background: grey;
-	border: 1px solid darkgrey;
-	white-space: normal;
-	border-radius: 0;
-	margin: 0px;
-	padding: 5px;
-	width: 75px;
-}
-#chargen_form #vtm-chargen-flow input.button-chargen-step:hover {
-	background: #444444;
-}
-
-#chargen_form #vtm-chargen-flow ul {
-	list-style: none;
-	margin: 0;
-	z-index:1;
+	min-height: 55px; 
+	width: 70px;
+	vertical-align:middle;
+	text-align: center;
+	border: 2px solid;
+	border-radius: 5px;
 }
 #chargen-main {
 	clear: both;
 	padding-top: 10px;
 }
 
+/* DOTS */
+/* :not(:checked) is a filter, so that browsers that don’t support :checked don’t 
+   follow these rules. Every browser that supports :checked also supports :not(), so
+   it doesn’t make the test unnecessarily selective */
+
+#chargen-main .dotselect {
+    float:left;
+    white-space:nowrap;
+}
+#chargen-main .dotselect label.freedot {
+    background-image: url('/wp-content/plugins/gvlarp-character/images/dot1full.jpg') !important;
+}
+#chargen-main .dotselect label.cleardot {
+    background-image: url('/wp-content/plugins/gvlarp-character/images/crossclear.jpg') !important;
+}
+#chargen-main .dotselect img {
+	width:14px;
+}
+#chargen-main .dotselect:not(:checked) > input {
+	display: none;
+}
+#chargen-main .dotselect:not(:checked) > label {
+    float:right;
+    width:14px;
+    height:14px;
+    padding:0 .1em;
+    overflow:hidden;
+    white-space:nowrap;
+    cursor:pointer;
+    color:#ddd;
+    background-repeat:no-repeat;
+    background-position:center; 
+	background-size: 14px;
+}
+#chargen-main .dotselect:not(:checked) > img {
+    float:right;
+    width:14px;
+    padding:0 .1em;
+    line-height:1.2;
+}
+#chargen-main .dotselect:not(:checked) > label {
+    background-image: url('/wp-content/plugins/gvlarp-character/images/dot1empty.jpg');
+}
+
+#chargen-main .dotselect > input:checked ~ label {
+    background-image: url('/wp-content/plugins/gvlarp-character/images/dot2.jpg');
+}
+
+#chargen-main .dotselect:not(:checked) > label:hover,
+#chargen-main .dotselect:not(:checked) > label:hover ~ label {
+    background-image: url('/wp-content/plugins/gvlarp-character/images/dot2.jpg');
+}
+#chargen-main fieldset {
+	padding: 0;
+	margin: 0;
+	border: none;
+}
+#chargen-main fieldset.dotselect label {
+	padding: 0;
+	margin: 0;
+	border: none;
+	vertical-align:top;
+}
+
+#chargen-main .dotselect > label:active {
+    content: url('/wp-content/plugins/gvlarp-character/images/cg_selectdot.jpg');
+}
+
+/* Merits and Flaws */
+#chargen-main .mfdotselect > input[type="checkbox"] + label {
+    display:inline-block;
+    background:url('/wp-content/plugins/gvlarp-character/images/webbox.jpg') no-repeat 0 0;
+	background-size:16px 16px;
+	/* width: 16px; */
+}
+#chargen-main .mfdotselect > input[type="checkbox"]:checked + label {
+    background-image: url('/wp-content/plugins/gvlarp-character/images/check.jpg');
+}
+#chargen-main .mfdotselect > input {
+	display: none;
+}
+#chargen-main .mfdotselect img {
+	vertical-align:top;
+}
+#chargen-main .mfdotselect span {
+	padding-left:17px;
+}
+#chargen-main td.mfdotselect { 
+	font-style: italic;
+	background-image: url('/wp-content/plugins/gvlarp-character/images/fill.jpg');
+}
+
+/* misc */
+#chargen-main td.vtmcg_col {
+	width: 33%;
+}
+
+/*
+#chargen-main .mfdotselect > img {
+    width:12px;
+    padding:0 .1em;
+    line-height:1.2;
+}
 #chargen-main th {
     font-weight: bold;
     background-color: #222;
@@ -373,69 +482,7 @@ table.feedingmapkey {width:auto;}
 	width: auto;
 	font-size:0.9em;
 }
-#chargen-main .dotselect {
-    float:left;
-    white-space:nowrap;
-}
 
-#chargen-main .dotselect label.freedot {
-    background-image: url('/wp-content/plugins/gvlarp-character/images/dot1full.jpg') !important;
-}
-#chargen-main .dotselect label.cleardot {
-    background-image: url('/wp-content/plugins/gvlarp-character/images/crossclear.jpg') !important;
-}
-
-#chargen-main .dotselect img {
-	width:12px;
-}
-
-/* :not(:checked) is a filter, so that browsers that don’t support :checked don’t 
-   follow these rules. Every browser that supports :checked also supports :not(), so
-   it doesn’t make the test unnecessarily selective */
-#chargen-main .dotselect:not(:checked) > input {
-    /*position:absolute;
-    top:-9999px;
-    clip:rect(0,0,0,0); */
-	display: none;
-}
-
-#chargen-main .dotselect:not(:checked) > label {
-    float:right;
-    width:12px;
-    padding:0 .1em;
-    overflow:hidden;
-    white-space:nowrap;
-    cursor:pointer;
-    color:#ddd;
-    line-height:1.2;
-    background-repeat:no-repeat;
-    background-position:center; 
-	background-size: 12px;
-}
-#chargen-main .dotselect:not(:checked) > img {
-    float:right;
-    width:12px;
-    padding:0 .1em;
-    line-height:1.2;
-}
-#chargen-main .mfdotselect > img {
-    width:12px;
-    padding:0 .1em;
-    line-height:1.2;
-}
-
-#chargen-main .dotselect:not(:checked) > label {
-    background-image: url('/wp-content/plugins/gvlarp-character/images/dot1empty.jpg');
-}
-
-#chargen-main .dotselect > input:checked ~ label {
-    background-image: url('/wp-content/plugins/gvlarp-character/images/dot2.jpg');
-}
-
-#chargen-main .dotselect:not(:checked) > label:hover,
-#chargen-main .dotselect:not(:checked) > label:hover ~ label {
-    background-image: url('/wp-content/plugins/gvlarp-character/images/dot2.jpg');
-}
 
 
 .ritrowselect input[type="checkbox"]:checked + label  { 
@@ -458,20 +505,7 @@ table.feedingmapkey {width:auto;}
     line-height:1.2;
 }
 
-#chargen-main fieldset {
-	padding: 0;
-	margin: 0;
-	border: none;
-}
-#chargen-main fieldset.dotselect label {
-	padding: 0;
-	margin: 0;
-	border: none;
-}
 
-#chargen-main .dotselect > label:active {
-    content: url('/wp-content/plugins/gvlarp-character/images/cg_selectdot.jpg');
-}
 
 #chargen-main #merit_freebie_table label {
 	display: block;
@@ -511,3 +545,4 @@ table.feedingmapkey {width:auto;}
 	font-style: italic;
 	background-color: #770506;
 }
+*/

@@ -460,7 +460,7 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 	$output .= "<input type='hidden' name='playerID' value='$playerid'>\n";
 	$output .= "<table>
 		<tr>
-			<th class='gvthleft'>Character Name*:</th>
+			<td class='vtmcol_key'>Character Name*:</th>
 			<td>\n";
 	if ($submitted)
 		$output .= $character;
@@ -469,7 +469,7 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 	$output .= " (ID: $characterID)</td>
 		</tr>
 		<tr>
-			<th class='gvthleft'>Player Name*:</th>\n";
+			<td class='vtmcol_key'>Player Name*:</th>\n";
 	if ($playerset) {
 		$output .= "<td>$playername<input type='hidden' name='player' value='$playername'>\n";
 	
@@ -481,7 +481,7 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 	$output .= "</td>
 		</tr>
 		<tr>
-			<th class='gvthleft'>Actual Clan*:</th>
+			<td class='vtmcol_key'>Actual Clan*:</th>
 			<td>\n";
 	if ($submitted) {
 		$output .= $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "CLAN WHERE ID = %s", $priv_clan));
@@ -495,7 +495,7 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 	$output .= "</td>
 		</tr>
 		<tr>
-			<th class='gvthleft'>Public Clan:</th>
+			<td class='vtmcol_key'>Public Clan:</th>
 			<td>\n";
 	if ($submitted) {
 		$output .= $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "CLAN WHERE ID = %s", $pub_clan));
@@ -507,7 +507,7 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 		$output .= "</select>\n";
 	}
 	$output .= "</td></tr><tr>
-			<th class='gvthleft'>Sect:</th>
+			<td class='vtmcol_key'>Sect:</th>
 			<td>\n";
 	if ($submitted) {
 		$output .= $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "SECT WHERE ID = %s", $sectid));
@@ -528,7 +528,7 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 	$output .= "</td></tr>\n";
 	
 	if ($config->USE_NATURE_DEMEANOUR == 'Y') {
-		$output .= "<tr><th class='gvthleft'>Nature*:</th><td>\n";
+		$output .= "<tr><td class='vtmcol_key'>Nature*:</th><td>\n";
 		if ($submitted) {
 			$output .= $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "NATURE WHERE ID = %s", $natureid));
 		} else {
@@ -539,7 +539,7 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 			$output .= "</select>\n";
 		}
 		$output .= "</td></tr>
-		<tr><th class='gvthleft'>Demeanour*:</th><td>\n";
+		<tr><td class='vtmcol_key'>Demeanour*:</th><td>\n";
 		if ($submitted) {
 			$output .= $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "NATURE WHERE ID = %s", $demeanourid));
 		} else {
@@ -552,7 +552,7 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 		$output .= "</td></tr>\n";
 	}	
 	$output .= "<tr>
-			<th class='gvthleft'>Login name*:</th>
+			<td class='vtmcol_key'>Login name*:</th>
 			<td>\n";
 	if ($submitted)
 		$output .= $login;
@@ -561,7 +561,7 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 	$output .= "</td>
 		</tr>
 		<tr>
-			<th class='gvthleft'>Email Address*:</th>
+			<td class='vtmcol_key'>Email Address*:</th>
 			<td>\n";
 	if ($submitted)
 		$output .= $email;
@@ -575,7 +575,7 @@ function vtm_render_basic_info($step, $characterID, $templateID, $submitted) {
 	}
 	$output .= "</td></tr>
 		<tr>
-			<th class='gvthleft'>Concept*:</th>
+			<td class='vtmcol_key'>Concept*:</th>
 			<td>\n";
 	if ($submitted)
 		$output .= $concept;
@@ -700,15 +700,15 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 						if ($grp != $item->grp) {
 							$grpcount++;
 							if (empty($grp)) {
-								$rowoutput .= "<tr><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
+								$rowoutput .= "<tr><td class='vtmcg_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
 								$col++;
 							} 
 							elseif ($col == $columns) {
-								$rowoutput .= "</table>\n</td></tr>\n<tr><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
+								$rowoutput .= "</table>\n</td></tr>\n<tr><td class='vtmcg_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
 								$col = 1;
 							}
 							else {
-								$rowoutput .= "</table>\n</td><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
+								$rowoutput .= "</table>\n</td><td class='vtmcg_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
 								$col++;
 							}
 							$grp = $item->grp;
@@ -747,7 +747,7 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 					} else {
 						//dots row
 						$flag = 0;
-						$rowoutput .= "<tr><th class='gvthleft'>" . $namehtml . "</th><td>\n";
+						$rowoutput .= "<tr><td class='vtmcol_key'>" . $namehtml . "</th><td>\n";
 						$rowoutput .= "<fieldset class='dotselect'>\n";
 						for ($i=$max2display;$i>=1;$i--) {
 							$radioid = "dot_{$key}_{$i}_{$j}";
@@ -804,7 +804,7 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 	if ($rowoutput != "") {
 		$rowoutput .= "</table></td>";
 		if ($col != $columns && $grpcount > $columns) {
-			$rowoutput .= "<td class='gvxp_col' colspan='" . ($columns - $col) . "'></td>";
+			$rowoutput .= "<td class='vtmcg_col' colspan='" . ($columns - $col) . "'></td>";
 		}
 		$rowoutput .= "</tr>\n";
 	}
@@ -914,15 +914,15 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 					if ($grp != $item->grp) {
 						$grpcount++;
 						if (empty($grp)) {
-							$rowoutput .= "<tr><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
+							$rowoutput .= "<tr><td class='vtmcg_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
 							$col++;
 						} 
 						elseif ($col == $columns) {
-							$rowoutput .= "</table>\n</td></tr>\n<tr><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
+							$rowoutput .= "</table>\n</td></tr>\n<tr><td class='vtmcg_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
 							$col = 1;
 						}
 						else {
-							$rowoutput .= "</table>\n</td><td class='gvxp_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
+							$rowoutput .= "</table>\n</td><td class='vtmcg_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
 							$col++;
 						}
 						$grp = $item->grp;
@@ -983,7 +983,7 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 				}
 				else {
 					//dots row
-					$rowoutput .= "<tr><th class='gvthleft'>" . $namehtml . "</th><td>\n";
+					$rowoutput .= "<tr><td class='vtmcol_key'>" . $namehtml . "</th><td>\n";
 					$rowoutput .= "<fieldset class='dotselect'>\n";
 					for ($i=$max2display;$i>=1;$i--) {
 						$radioid = "dot_{$key}_{$i}_{$j}";
@@ -1023,7 +1023,7 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 	if ($rowoutput != "") {
 		$rowoutput .= "</table></td>";
 		if ($col != $columns && $grpcount > $columns) {
-			$rowoutput .= "<td class='gvxp_col' colspan='" . ($columns - $col) . "'></td>";
+			$rowoutput .= "<td class='vtmcg_col' colspan='" . ($columns - $col) . "'></td>";
 		}
 		$rowoutput .= "</tr>\n";
 	}
@@ -3729,6 +3729,7 @@ function vtm_render_dot_select($type, $itemid, $current, $pending, $free, $max, 
 	$doturl        = plugins_url( 'gvlarp-character/images/dot2.jpg' );
 	$emptydoturl   = plugins_url( 'gvlarp-character/images/dot1empty.jpg' );
 	$freebiedoturl = plugins_url( 'gvlarp-character/images/dot3.jpg' );
+	$spacerblock   = plugins_url( 'gvlarp-character/images/spacer.jpg' );
 	
 	if ($pending || $submitted) {
 		$output .= "<input type='hidden' name='" . $type . "[" . $itemid . "]' value='$current' />\n";
@@ -3745,13 +3746,13 @@ function vtm_render_dot_select($type, $itemid, $current, $pending, $free, $max, 
 		//echo "<li>$radioid: current:$current / index:$index / free:$free (" . ($index - $free) . ")</li>\n";
 		if ($pending || $submitted) {
 			if ($index <= $free)
-				$output .= "<img src='$fulldoturl' alt='*' id='$radioid' />\n";
+				$output .= "<img src='$fulldoturl' alt='*' id='$radioid' />";
 			elseif ($index <= $current )
-				$output .= "<img src='$doturl' alt='*' id='$radioid' />\n";
+				$output .= "<img src='$doturl' alt='*' id='$radioid' />";
 			elseif ($index <= $pending)
-				$output .= "<img src='$freebiedoturl' alt='*' id='$radioid' />\n";
+				$output .= "<img src='$freebiedoturl' alt='*' id='$radioid' />";
 			else
-				$output .= "<img src='$emptydoturl' alt='*' id='$radioid' />\n";
+				$output .= "<img src='$emptydoturl' alt='*' id='$radioid' />";
 		} else {
 			$output .= "<input type='radio' id='$radioid' name='" . $type . "[" . $itemid . "]' value='$index' ";
 			$output .= checked($current, $index, false);
@@ -3760,7 +3761,7 @@ function vtm_render_dot_select($type, $itemid, $current, $pending, $free, $max, 
 			if ($index <= $free)
 				$output .= " class='freedot'";
 			
-			$output .= ">&nbsp;</label>\n";
+			$output .= ">&nbsp;</label>";
 		}
 	}
 	
@@ -3768,7 +3769,9 @@ function vtm_render_dot_select($type, $itemid, $current, $pending, $free, $max, 
 		$radioid = "dot_{$type}_{$itemid}_clear";
 		$output .= "<input type='radio' id='$radioid' name='" . $type . "[" . $itemid . "]' value='0' ";
 		$output .= checked($current, 0, false);
-		$output .= " /><label for='$radioid' title='Clear' class='cleardot'>&nbsp;</label>\n";
+		$output .= " /><label for='$radioid' title='Clear' class='cleardot'>&nbsp;</label>";
+	} else {
+		$output .= "<img src='$spacerblock' alt='' />";
 	}
 	
 	$output .= "</fieldset>\n";
