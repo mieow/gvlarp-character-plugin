@@ -40,6 +40,22 @@ function vtm_get_loggedinclan($characterID) {
 	
 	return $result;
 }
+function vtm_get_loggedinsect($characterID) {
+	global $wpdb;
+
+	$sql = "SELECT sect.name
+			FROM 
+				" . VTM_TABLE_PREFIX . "CHARACTER chara,
+				" . VTM_TABLE_PREFIX . "SECT sect
+			WHERE 
+				chara.ID = %s
+				AND chara.SECT_ID = sect.ID";
+	$sql = $wpdb->prepare($sql, $characterID);
+	//echo "<p>SQL: $sql</p>";
+	$result = $wpdb->get_var($sql);
+	
+	return $result;
+}
 function vtm_get_loggedindomain($characterID) {
 	global $wpdb;
 
@@ -78,7 +94,7 @@ function vtm_print_background_shortcode($atts, $content = null) {
 		"domain"     => "home",
 		"liststatus" => "Alive",
 		"level"      => "all",
-		"columns"    => "level,character,player,clan,domain,background,sector,office,comment,level",
+		"columns"    => "level,character,player,clan,domain,background,sector,office,comment,level",  // also sect
 		"heading"    => 1
 		), $atts)
 	);
@@ -86,8 +102,9 @@ function vtm_print_background_shortcode($atts, $content = null) {
 	/* Match comment in background to: 
 		sector					- matchtype = sector
 		comment (e.g. sector)	- matchtype = comment
+		sect                    - matchtype = characteristic
 		
-		match = <value> or loggedinclan
+		match = <value> or loggedinclan or loggedinsect
 		
 		domain = "" or <value> or loggedin or home
 		
@@ -110,7 +127,8 @@ function vtm_print_background_shortcode($atts, $content = null) {
 				char_bg.comment as comment,
 				domains.name as domain,
 				sector.name as sectorname,
-				cgstatus.name as chargenstat
+				cgstatus.name as chargenstat,
+				sects.name as sect
 			FROM
 				" . VTM_TABLE_PREFIX . "CHARACTER chara,
 				" . VTM_TABLE_PREFIX . "PLAYER player,
@@ -120,6 +138,7 @@ function vtm_print_background_shortcode($atts, $content = null) {
 				" . VTM_TABLE_PREFIX . "CLAN privclan,
 				" . VTM_TABLE_PREFIX . "BACKGROUND background,
 				" . VTM_TABLE_PREFIX . "CHARGEN_STATUS cgstatus,
+				" . VTM_TABLE_PREFIX . "SECT sects,
 				" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND char_bg
 				LEFT JOIN
 					" . VTM_TABLE_PREFIX . "SECTOR sector
@@ -138,6 +157,7 @@ function vtm_print_background_shortcode($atts, $content = null) {
 				AND background.ID = char_bg.BACKGROUND_ID
 				AND domains.ID = chara.DOMAIN_ID
 				AND cgstatus.ID = chara.CHARGEN_STATUS_ID
+				AND chara.SECT_ID = sects.ID
 				AND chara.VISIBLE = 'Y'
 				AND chara.DELETED = 'N'
 				AND cgstatus.NAME = 'Approved'
@@ -157,7 +177,8 @@ function vtm_print_background_shortcode($atts, $content = null) {
 				\"\" as comment,
 				domains.name as domain,
 				\"\" as sectorname,
-				cgstatus.name as chargenstat
+				cgstatus.name as chargenstat,
+				sects.name as sect
 			FROM
 				" . VTM_TABLE_PREFIX . "CHARACTER chara
 				LEFT JOIN
@@ -178,7 +199,8 @@ function vtm_print_background_shortcode($atts, $content = null) {
 				" . VTM_TABLE_PREFIX . "CHARGEN_STATUS cgstatus,
 				" . VTM_TABLE_PREFIX . "CLAN pubclan,
 				" . VTM_TABLE_PREFIX . "CLAN privclan,
-				" . VTM_TABLE_PREFIX . "DOMAIN domains
+				" . VTM_TABLE_PREFIX . "DOMAIN domains,
+				" . VTM_TABLE_PREFIX . "SECT sects
 			WHERE
 				chara.PLAYER_ID = player.ID
                 AND player.PLAYER_STATUS_ID = pstatus.ID
@@ -188,6 +210,7 @@ function vtm_print_background_shortcode($atts, $content = null) {
 				AND chara.PRIVATE_CLAN_ID = privclan.ID
 				AND domains.ID = chara.DOMAIN_ID
 				AND cgstatus.ID = chara.CHARGEN_STATUS_ID
+				AND chara.SECT_ID = sects.ID
 				AND chara.VISIBLE = 'Y'
 				AND chara.DELETED = 'N'
 				AND cgstatus.NAME = 'Approved'
@@ -210,12 +233,22 @@ function vtm_print_background_shortcode($atts, $content = null) {
 			$clans = vtm_get_loggedinclan($characterID);
 			$sqlmain .= " AND (char_bg.comment = %s OR char_bg.comment = %s)";
 			array_push($sqlmainargs, $clans[0]->priv, $clans[0]->pub);
-		} else {
+		} 
+		else {
 			$sqlmain .= " AND char_bg.comment = %s";
 			array_push($sqlmainargs, $match);
 		}
 	}
-	if ($matchtype == 'sector') {
+	elseif ($matchtype == 'characteristic') {
+		if ($match == 'loggedinsect') {
+			$sect = vtm_get_loggedinsect($characterID);
+			$sqlmain .= " AND sects.name = %s";
+			$sqlzero .= " AND sects.name = %s";
+			array_push($sqlmainargs, $sect);
+			array_push($sqlzeroargs, $sect);
+		}
+	}
+	elseif ($matchtype == 'sector') {
 		$sqlmain .= " AND sector.NAME = %s";
 		array_push($sqlmainargs, $match);
 	}
@@ -306,6 +339,7 @@ function vtm_print_background_shortcode($atts, $content = null) {
 				if ($name == 'sector')   $output .= "<th>Sector</th>";
 				if ($name == 'level')  $output .= "<th>Level</th>";
 				if ($name == 'office')   $output .= "<th>Office</th>";
+				if ($name == 'sect')   $output .= "<th>Sect</th>";
 			}
 			$output .= "</tr>\n";
 		}
@@ -327,6 +361,7 @@ function vtm_print_background_shortcode($atts, $content = null) {
 					$text = isset($offices[$tablerow->id]) ? stripslashes($offices[$tablerow->id]) : "";
 					$output .= "<td class='gvcol_$col gvcol_val'>$text</td>";
 				}
+				if ($name == 'sect')  $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->sect}</td>";
 				$col++;
 			}
 			$output .= "</tr>\n";
@@ -412,7 +447,7 @@ function vtm_print_merit_shortcode($atts, $content = null) {
 	);
 	
 	/* 
-		match = <value> or loggedinclan
+		match = <value>, loggedinclan or loggedinsect
 		
 		domain = "" or <value> or loggedin or home
 		
@@ -433,7 +468,8 @@ function vtm_print_merit_shortcode($atts, $content = null) {
 				merit.name as meritname,
 				char_merit.level as level,
 				char_merit.comment as comment,
-				domains.name as domain
+				domains.name as domain,
+				sects.name as sect
 			FROM
 				" . VTM_TABLE_PREFIX . "CHARACTER chara,
 				" . VTM_TABLE_PREFIX . "PLAYER player,
@@ -443,7 +479,8 @@ function vtm_print_merit_shortcode($atts, $content = null) {
 				" . VTM_TABLE_PREFIX . "CLAN privclan,
 				" . VTM_TABLE_PREFIX . "MERIT merit,
 				" . VTM_TABLE_PREFIX . "CHARACTER_MERIT char_merit,
-				" . VTM_TABLE_PREFIX . "DOMAIN domains
+				" . VTM_TABLE_PREFIX . "DOMAIN domains,
+				" . VTM_TABLE_PREFIX . "SECT sects
 			WHERE
 				chara.PLAYER_ID = player.ID
 				AND chara.ID = char_merit.CHARACTER_ID
@@ -454,6 +491,7 @@ function vtm_print_merit_shortcode($atts, $content = null) {
 				AND chara.PRIVATE_CLAN_ID = privclan.ID
 				AND merit.ID = char_merit.MERIT_ID
 				AND domains.ID = chara.DOMAIN_ID
+				AND sects.ID = chara.SECT_ID
 				AND chara.VISIBLE = 'Y'
 				AND chara.DELETED = 'N'
 				AND merit.name = %s";
@@ -473,7 +511,13 @@ function vtm_print_merit_shortcode($atts, $content = null) {
 			$clans = vtm_get_loggedinclan($characterID);
 			$sqlmain .= " AND (char_merit.comment = %s OR char_merit.comment = %s)";
 			array_push($sqlmainargs, $clans[0]->priv, $clans[0]->pub);
-		} else {
+		} 
+		elseif ($match == 'loggedinsect') {
+			$sect = vtm_get_loggedinsect($characterID);
+			$sqlmain .= " AND char_merit.comment = %s";
+			array_push($sqlmainargs, $sect);
+		}
+		else {
 			$sqlmain .= " AND char_merit.comment = %s";
 			array_push($sqlmainargs, $match);
 		}
@@ -516,6 +560,7 @@ function vtm_print_merit_shortcode($atts, $content = null) {
 				if ($name == 'merit')   $output .= "<th>Merit</th>";
 				if ($name == 'comment')   $output .= "<th>Comment</th>";
 				if ($name == 'level')  $output .= "<th>Level</th>";
+				if ($name == 'sect')  $output .= "<th>Sect</th>";
 			}
 			$output .= "</tr>\n";
 		}
@@ -534,6 +579,7 @@ function vtm_print_merit_shortcode($atts, $content = null) {
 				if ($name == 'merit') $output .= "<td class='gvcol_$col gvcol_val'>$merit</td>";
 				if ($name == 'comment') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->comment}</td>";
 				if ($name == 'level')  $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->level}</td>";
+				if ($name == 'sect')  $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->sect}</td>";
 				$col++;
 			}
 			$output .= "</tr>\n";
