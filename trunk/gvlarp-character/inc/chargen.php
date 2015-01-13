@@ -181,7 +181,7 @@ function vtm_get_chargen_content() {
 	$emailconfirm = isset($_GET['confirm']);
 		
 	if ($characterID == -1) {
-		$output .= "<div class='gvxp_error'><p>Invalid Reference</p>";
+		$output .= "<div class='vtm_error'><p>Invalid Reference</p>";
 		if (isset($_POST['chargen_reference']) && $_POST['chargen_reference'] != '') {
 			$split = explode("/",$_POST['chargen_reference']);
 			if ($split[3] != '0000') {
@@ -747,7 +747,7 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 					} else {
 						//dots row
 						$flag = 0;
-						$rowoutput .= "<tr><td class='vtmcol_key'>" . $namehtml . "</th><td>\n";
+						$rowoutput .= "<tr><td class='vtmcol_key'>" . $namehtml . "</th><td class='vtmdot_$max2display'>\n";
 						$rowoutput .= "<fieldset class='dotselect'>\n";
 						for ($i=$max2display;$i>=1;$i--) {
 							$radioid = "dot_{$key}_{$i}_{$j}";
@@ -816,13 +816,14 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 	$pendingxp, $postvariable, $showzeros, $issubmitted, $fbcosts = array(),
 	$max2display = 5, $templatefree = array()) {
 
-	$rowoutput = "";
-	$config    = vtm_getConfig();
-	$columns       = $config->WEB_COLUMNS;
 	$fulldoturl    = plugins_url( 'gvlarp-character/images/dot1full.jpg' );
 	$freebiedoturl = plugins_url( 'gvlarp-character/images/dot3.jpg' );
 	$emptydoturl   = plugins_url( 'gvlarp-character/images/dot1empty.jpg' );
 	$doturl        = plugins_url( 'gvlarp-character/images/dot2.jpg' );
+	
+	$config    = vtm_getConfig();
+	$columns       = $config->WEB_COLUMNS;
+	$rowoutput = "";
 	
 	// Get Posted data
 	if (isset($_POST[$postvariable])) {
@@ -952,7 +953,7 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 							$rowoutput .= checked($current, $current, false);
 						}
 						$rowoutput .= "/>\n";
-						$rowoutput .= "<label for='$cbid'>" . $namehtml . " ($meritlevel) - $meritcost XP</label>\n";
+						$rowoutput .= "<div><label for='$cbid'>" . $namehtml . " ($meritlevel) - $meritcost XP</label></div>\n";
 					}
 					$rowoutput .= "</td></tr>\n";
 				} 
@@ -977,33 +978,33 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 							$rowoutput .= checked($current, $current, false);
 						}
 						$rowoutput .= "/>\n";
-						$rowoutput .= "<label for='$cbid'>" . $namehtml . " (level $rituallevel) - $ritualcost XP</label>\n";
+						$rowoutput .= "<div><label for='$cbid'>" . $namehtml . " (level $rituallevel) - $ritualcost XP</label></div>\n";
 					}
 					$rowoutput .= "</td></tr>\n";
 				}
 				else {
 					//dots row
-					$rowoutput .= "<tr><td class='vtmcol_key'>" . $namehtml . "</th><td>\n";
-					$rowoutput .= "<fieldset class='dotselect'>\n";
+					$rowoutput .= "<tr><td class='vtmcol_key>" . $namehtml . "</th><td class='vtmdot_$max2display'>\n";
+					$rowoutput .= "<fieldset class='dotselect'>";
 					for ($i=$max2display;$i>=1;$i--) {
 						$radioid = "dot_{$key}_{$i}_{$j}";
 						
 						if ($levelfrom >= $i)
-							$rowoutput .= "<img src='$fulldoturl' alt='*' id='$radioid' />\n";
+							$rowoutput .= "<img src='$fulldoturl' alt='*' id='$radioid' />";
 						elseif (isset($pendingfb[$key]) && $levelfb >= $i)
-							$rowoutput .= "<img src='$freebiedoturl' alt='*' id='$radioid' />\n";
+							$rowoutput .= "<img src='$freebiedoturl' alt='*' id='$radioid' />";
 						elseif ($issubmitted) {
 							if ($current >= $i)
-								$rowoutput .= "<img src='$doturl' alt='*' id='$radioid' />\n";
+								$rowoutput .= "<img src='$doturl' alt='*' id='$radioid' />";
 							else
-								$rowoutput .= "<img src='$emptydoturl' alt='*' id='$radioid' />\n";
+								$rowoutput .= "<img src='$emptydoturl' alt='*' id='$radioid' />";
 						}
 						elseif (isset($xpcosts[$name][$levelfb][$i])) {
 							$cost = $xpcosts[$name][$levelfb][$i];
 							$rowoutput .= "<input type='radio' id='$radioid' name='{$postvariable}[$key]' value='$i' ";
 							$rowoutput .= checked($current, $i, false);
 							$rowoutput .= " /><label for='$radioid' title='Level $i ($cost xp)'";
-							$rowoutput .= ">&nbsp;</label>\n";
+							$rowoutput .= ">&nbsp;</label>";
 						}
 						else {
 							$rowoutput .= "<img src='$emptydoturl' alt='X' id='$radioid' />\n";
@@ -1038,7 +1039,7 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 
 	$output = "";
 
-	$class = $postvariable == 'ritual_value' ? "class='ritrowselect'" : "";
+	$class = $postvariable == 'ritual_value' ? "class='ritrowselect mfdotselect'" : "";
 	
 	// Make a guess from saved levels which is Primary/Secondary/Tertiary
 	if (count($saved) > 0 || count($posted) > 0) {
@@ -1091,7 +1092,7 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 			}
 			else
 				$output .= "<input id='$id' name='ritual_value[$key]' type='checkbox' " . checked( $item->level, $level, false) . " value='{$item->level}'>";
-			$output .= "<label for='$id'>Level {$item->level} - " . stripslashes($item->name) . "</label>";
+			$output .= "<div><label for='$id'>Level {$item->level} - " . stripslashes($item->name) . "</label></div>";
 			//$output .= "</td>\n";
 		} else {
 			$output .= "<tr><td $class>" . stripslashes($item->name) . "</td>\n";
@@ -1663,12 +1664,12 @@ function vtm_render_chargen_submit($step, $characterID, $templateID, $submitted)
 		if ($index < (count($progress) - 1)) {
 			$output .= "<tr>\n";
 			if ($result[2]) $status = "Complete";
-			elseif ($result[0]) $status = "In progress: {$result[1]}";
+			elseif ($result[0]) $status = "In progress: <ul class='vtm_warn'>{$result[1]}</ul>";
 			else $status = "Error";
 			
 			if ($flow[$index]['title'] == 'Spend Experience' && $status != "Error") $status = "N/A";
 			
-			if ($status == "Error") $errinfo = "<ul>{$result[1]}</ul>"; else $errinfo = "";
+			if ($status == "Error") $errinfo = "<ul class='vtm_error'>{$result[1]}</ul>"; else $errinfo = "";
 			If ($status == "Complete" || $status == "N/A") $done++;
 			
 			$output .= "<td>Step " . ($index +1) .": {$flow[$index]['title']}</td>\n";
@@ -1895,7 +1896,7 @@ function vtm_validate_chargen($laststep, $templateID, $characterID) {
 		$errormessages .= "<li>Please correct the errors before continuing</li>\n";
 	
 	if ($errormessages != "") {
-		echo "<div class='gvxp_error'><ul>$errormessages</ul></div>\n";
+		echo "<div class='vtm_error'><ul>$errormessages</ul></div>\n";
 	}
 	
 	return $ok;

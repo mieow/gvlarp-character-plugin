@@ -33,14 +33,14 @@ function vtm_get_extbackgrounds_content() {
 				document.getElementById('gvm-'+tab).className = show ? 'shown' : '';
 			}
 		</script>
-		<div class='gvbgmenu'>
+		<div class='vtmbgmenu'>
 			<ul>
 			<li>" . vtm_get_tabanchor('backgrounds', 'Backgrounds') . "</li>
 			<li>" . vtm_get_tabanchor('meritflaw', 'Merits and Flaws') . "</li>
 			<li>" . vtm_get_tabanchor('misc', 'Miscellaneous') . "</li>
 			</ul>
 		</div>
-		<div class='gvbgmain'>
+		<div class='vtmbgmain'>
 			<div id='gv-backgrounds' " . vtm_get_tabdisplay('backgrounds') . ">
 				" . vtm_get_editbackgrounds_tab($characterID) . "
 				
@@ -138,12 +138,12 @@ function vtm_get_editbackgrounds_tab($characterID) {
 	$content .= "<input type='hidden' name='charID' value='$characterID' />";
 	
 	foreach ($backgrounds as $background) {
-		$content .= "<p class='gvext_name'>" . $background->NAME . ": " . $background->LEVEL;
+		$content .= "<p class='vtmext_name'>" . $background->NAME . ": " . $background->LEVEL;
 		$content .= ($background->COMMENT) ? " ({$background->COMMENT})" : "";
 		$content .= "</p>\n";
 		if (!empty($background->BACKGROUND_QUESTION))
-			$content .= "<div class='gvext_ques'>" . wpautop(stripslashes($background->BACKGROUND_QUESTION)) . "</div>\n";
-		$content .= "<div class='gvext_section'>";
+			$content .= "<div class='vtmext_ques'>" . wpautop(stripslashes($background->BACKGROUND_QUESTION)) . "</div>\n";
+		$content .= "<div class='vtmext_section'>";
 		$content .= "<input type='hidden' name='charbgID[$i]' value='{$background->charbgsID}' />\n";
 		$content .= "<input type='hidden' name='charbgName[$i]' value='{$background->NAME}' />\n";
 		
@@ -177,9 +177,9 @@ function vtm_get_editbackgrounds_tab($characterID) {
 		
 		if ($background->BACKGROUND_QUESTION != '') {
 			if (!empty($background->APPROVED_DETAIL))
-				$content .= "<tr><th>Approved Description</th></tr><tr><td class='gvext_approved'>" . wpautop(stripslashes($background->APPROVED_DETAIL)) . "</td></tr>";
+				$content .= "<tr><th>Approved Description</th></tr><tr><td class='vtmext_approved'>" . wpautop(stripslashes($background->APPROVED_DETAIL)) . "</td></tr>";
 			if ($background->DENIED_DETAIL != "") {
-				$content .= "<tr><th>Description Denied</th></tr><tr><td class='gvext_denied'>" . wpautop(stripslashes($background->DENIED_DETAIL)) . "</td></tr>\n";
+				$content .= "<tr><th>Description Denied</th></tr><tr><td class='vtmext_denied'>" . wpautop(stripslashes($background->DENIED_DETAIL)) . "</td></tr>\n";
 			}
 			$content .= "<tr><th>Update Description";
 			if ($background->DENIED_DETAIL != "")
@@ -258,18 +258,18 @@ function vtm_get_editmerits_tab($characterID) {
 	
 	foreach ($merits as $merit) {
 	
-		$content .= "<p class='gvext_name'>" . $merit->NAME;
+		$content .= "<p class='vtmext_name'>" . $merit->NAME;
 		$content .= ($merit->COMMENT) ? " ({$merit->COMMENT})" : "";
-		$content .= "</p>\n<div class='gvext_ques'>" . wpautop(stripslashes($merit->BACKGROUND_QUESTION)) . "</div>\n";
-		$content .= "<div class='gvext_section'>";
+		$content .= "</p>\n<div class='vtmext_ques'>" . wpautop(stripslashes($merit->BACKGROUND_QUESTION)) . "</div>\n";
+		$content .= "<div class='vtmext_section'>";
 		$content .= "<input type='hidden' name='meritID[$i]' value='{$merit->meritID}' />\n";
 		$content .= "<input type='hidden' name='charmeritName[$i]' value='{$merit->NAME}' />\n";
 		$content .= "<table>";
 
 		if (!empty($merit->APPROVED_DETAIL))
-			$content .= "<tr><th>Approved Description</th></tr><tr><td class='gvext_approved'>" . wpautop(stripslashes($merit->APPROVED_DETAIL)) . "</td></tr>";
+			$content .= "<tr><th>Approved Description</th></tr><tr><td class='vtmext_approved'>" . wpautop(stripslashes($merit->APPROVED_DETAIL)) . "</td></tr>";
 		if ($merit->DENIED_DETAIL != "") {
-			$content .= "<tr><th>Description Denied</th></tr><tr><td class='gvext_denied'>" . wpautop(stripslashes($merit->DENIED_DETAIL)) . "</td></tr>\n";
+			$content .= "<tr><th>Description Denied</th></tr><tr><td class='vtmext_denied'>" . wpautop(stripslashes($merit->DENIED_DETAIL)) . "</td></tr>\n";
 		}
 		$content .= "<tr><th>Update Description";
 		if ($merit->DENIED_DETAIL != "")
@@ -384,9 +384,9 @@ function vtm_get_editmisc_tab($characterID) {
 	
 	foreach ($questions as $question) {
 	
-		$content .= "<p class='gvext_name'>" . $question->TITLE . "</p>\n";
-		$content .= "<div class='gvext_ques'>" . wpautop(stripslashes($question->BACKGROUND_QUESTION)) . "</div>\n";
-		$content .= "<div class='gvext_section'>";
+		$content .= "<p class='vtmext_name'>" . $question->TITLE . "</p>\n";
+		$content .= "<div class='vtmext_ques'>" . wpautop(stripslashes($question->BACKGROUND_QUESTION)) . "</div>\n";
+		$content .= "<div class='vtmext_section'>";
 		$content .= "<input type='hidden' name='miscID[$i]' value='{$question->miscID}' />\n";
 		$content .= "<input type='hidden' name='miscformID[$i]' value='{$i}' />\n";
 		$content .= "<input type='hidden' name='questID[$i]' value='{$question->questID}' />\n";
@@ -394,9 +394,9 @@ function vtm_get_editmisc_tab($characterID) {
 		$content .= "<table>";
 
 		if (!empty($question->APPROVED_DETAIL))
-			$content .= "<tr><th>Approved Description</th></tr><tr><td class='gvext_approved'>" . wpautop(stripslashes($question->APPROVED_DETAIL)) . "</td></tr>";
+			$content .= "<tr><th>Approved Description</th></tr><tr><td class='vtmext_approved'>" . wpautop(stripslashes($question->APPROVED_DETAIL)) . "</td></tr>";
 		if ($question->DENIED_DETAIL != "") {
-			$content .= "<tr><th>Description Denied</th></tr><tr><td class='gvext_denied'>" . wpautop(stripslashes($question->DENIED_DETAIL)) . "</td></tr>\n";
+			$content .= "<tr><th>Description Denied</th></tr><tr><td class='vtmext_denied'>" . wpautop(stripslashes($question->DENIED_DETAIL)) . "</td></tr>\n";
 		}
 		$content .= "<tr><th>Update Description";
 		if ($question->DENIED_DETAIL != "")

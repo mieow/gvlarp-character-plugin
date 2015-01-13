@@ -18,6 +18,17 @@ div.gvspendbutton input.gvxp_submit {
 .vtm_error {
 	color:red;
 }
+ul.vtm_warn {
+	list-style: none;
+}
+div.vtm_error {
+	border: 2px solid red;
+}
+div.vtm_error ul {
+	list-style: none;
+}
+
+
 /* =Character Sheet
 -------------------------------------------------------------- */
 div#csheet {
@@ -98,79 +109,69 @@ div#csheet {
 
 /* =EXTENDED BACKGROUNDS
 -------------------------------------------------------------- */
-.gvext_name {
-    font-weight:bold;
-	font-size:1.1em;
-	padding-top:20px;
-	margin-bottom: 0;
-}
-.gvext_ques {
-    font-style:italic;
-	margin-bottom: 0;
-}
-.gvext_section {
-	background-color:#111;
-	border-radius:5px;
-	border: 1px solid #222;
-	margin:10px 10px 10px 10px;
-	padding:10px;
-}
-.gvext_section th {
-	font-weight:bold;
-	text-align:left;
-}
-.gvext_approved {
-	color:green;
-}
-.gvext_denied {
-	color:red;
-}
 
-.gvbgmenu {
+/* menu bar */
+.vtmbgmenu {
 	clear: both;
 	display: block;
 	float: left;
 	width: 100%;
 	margin-bottom: 10px;
-	padding: 0px;
-	
+	border-bottom: 1px dotted;
 }
-.gvbgmenu ul {
+.vtmbgmenu ul {
 	list-style: none;
 	z-index:1;
-	margin: 0;
-	padding: 0;
+	padding:0;
+	margin:0;
 }
-.gvbgmenu li {
+.vtmbgmenu li {
 	float: left;
 	position: relative;
 }
-.gvbgmenu a {
+.vtmbgmenu a {
 	display: block;
 	text-decoration: none;
 	font-weight:bold;
+	border-left: 2px solid;
+	border-right: 2px solid;
+	border-top: 2px solid;
+	border-radius: 5px 5px 0px 0px;
 	padding: 5px;
-	border: 1px solid #666666;
-	border-top-left-radius: 5px;
-	border-top-right-radius: 5px;
 }
-.gvbgmenu li:hover > a,.gvbgmenu ul ul :hover > a,.gvbgmenu a:focus {
-	/* background: #BB0506;
-	border-top-left-radius: 0px;
-	border-top-right-radius: 0px;
-	background: -moz-linear-gradient(#770506, #BB0506);
-	background: -o-linear-gradient(#770506, #BB0506);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#770506), to(#BB0506)); 
-	background: -webkit-linear-gradient(#770506, #BB0506); */
+.vtmbgmenu .shown,.vtmbgmenu a:focus  {
+    background-image: url('/wp-content/plugins/gvlarp-character/images/fill.jpg');
+	color: inherit;
 }
-.gvbgmenu  li:hover > a {
-	background: #222;
-}
-.gvbgmenu  ul ul :hover > ul,.gvbgmenu ul li:hover > ul {	display: block;}
-.gvbgmenu .shown,.gvbgmenu a:focus  {
-	border-bottom: none;
+.vtmbgmain {
+	clear: both;
 }
 
+/* misc */
+.vtmext_name {
+    font-weight:bold;
+	font-size:1.1em;
+	margin-top: 20px;
+}
+.vtmext_ques {
+    font-style:italic;
+}
+.vtmext_section {
+	border-radius:5px;
+	border: 1px dotted;
+	margin-left: 20px;
+	padding: 5px;
+}
+.vtmext_section th {
+	font-weight:bold;
+	text-align:left;
+}
+/*.vtmext_approved {
+	color:green;
+} */
+.vtmext_denied {
+	color:red;
+}
 
 /* =DOTS
 -------------------------------------------------------------- */
@@ -314,6 +315,10 @@ table.feedingmapkey {width:auto;}
 	vertical-align:top;
 	outline: 0;
 }
+#chargen-main {
+	clear: both;
+	padding-top: 10px;
+}
 
 /* FLOW */
 #vtm-chargen-flow {
@@ -361,15 +366,19 @@ table.feedingmapkey {width:auto;}
 	border: 2px solid;
 	border-radius: 5px;
 }
-#chargen-main {
-	clear: both;
-	padding-top: 10px;
-}
+
 
 /* DOTS */
 /* :not(:checked) is a filter, so that browsers that don’t support :checked don’t 
    follow these rules. Every browser that supports :checked also supports :not(), so
    it doesn’t make the test unnecessarily selective */
+#chargen-main td.vtmdot_5 {
+	width:50%;
+}
+#chargen-main td.vtmdot_10 {
+	width:76%;
+	text-align:center;
+}
 
 #chargen-main .dotselect {
     float:left;
@@ -422,6 +431,14 @@ table.feedingmapkey {width:auto;}
 	padding: 0;
 	margin: 0;
 	border: none;
+	
+	/* no select */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 #chargen-main fieldset.dotselect label {
 	padding: 0;
@@ -441,6 +458,14 @@ table.feedingmapkey {width:auto;}
 #chargen-main .mfdotselect > input[type="checkbox"] + div {
 	display:block;
 	padding: 1px;
+
+	/* no select */
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 #chargen-main .mfdotselect > input[type="checkbox"]:checked + div {
@@ -463,92 +488,10 @@ table.feedingmapkey {width:auto;}
 #chargen-main .mfdotselect span {
 	padding-left:17px;
 }
-
+#chargen-main .ritrowselect  label {
+	padding-left:17px;
+}
 /* misc */
 #chargen-main td.vtmcg_col {
 	width: 33%;
 }
-
-/*
-#chargen-main .mfdotselect > img {
-    width:12px;
-    padding:0 .1em;
-    line-height:1.2;
-}
-#chargen-main th {
-    font-weight: bold;
-    background-color: #222;
-    padding: 3px;
-	margin: 5px 1px 0px 0px;
-}
-#chargen-main .gvthleft {
-    text-align: left;
-    background-color: inherit;
-    padding: 0px 3px 0px 3px;
-	width: auto;
-	font-size:0.9em;
-}
-
-
-
-.ritrowselect input[type="checkbox"]:checked + label  { 
-	font-style: italic;
-	background-color: #770506;
-}
-.ritrowselect input[type="checkbox"],
-.ritrowselect img { 
-	float: left;
-	margin-top: 5px;
-	margin-left: 5px;
-}
-.ritrowselect label { 
-	display: block;
-	padding-left: 25px;
-}
-.ritrowselect img { 
-	width:12px;
-    padding:0 .1em;
-    line-height:1.2;
-}
-
-
-
-#chargen-main #merit_freebie_table label {
-	display: block;
-	padding-left: 20px;
-}
-
-#chargen-main #merit_freebie_table td {
-	padding-bottom: 0;
-	padding-top: 0;
-}
-
-#chargen-main #merit_freebie_table input[type="checkbox"] { 
-	float: left;
-	margin-top: 5px;
-}
-
-#chargen-main #merit_freebie_table input[type="checkbox"]:checked + label { 
-	font-style: italic;
-	background-color: #770506;
-}
-#chargen-main #merit_xp_table label {
-	display: block;
-	padding-left: 20px;
-}
-
-#chargen-main #merit_xp_table td {
-	padding-bottom: 0;
-	padding-top: 0;
-}
-
-#chargen-main #merit_xp_table input[type="checkbox"] { 
-	float: left;
-	margin-top: 5px;
-}
-
-#chargen-main #merit_xp_table input[type="checkbox"]:checked + label { 
-	font-style: italic;
-	background-color: #770506;
-}
-*/
