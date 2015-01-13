@@ -102,7 +102,7 @@ function vtm_print_background_shortcode($atts, $content = null) {
 	/* Match comment in background to: 
 		sector					- matchtype = sector
 		comment (e.g. sector)	- matchtype = comment
-		sect                    - matchtype = characteristic
+		sect                    - matchtype = characteristic or comment
 		
 		match = <value> or loggedinclan or loggedinsect
 		
@@ -234,6 +234,11 @@ function vtm_print_background_shortcode($atts, $content = null) {
 			$sqlmain .= " AND (char_bg.comment = %s OR char_bg.comment = %s)";
 			array_push($sqlmainargs, $clans[0]->priv, $clans[0]->pub);
 		} 
+		elseif ($match == 'loggedinsect') {
+			$sect = vtm_get_loggedinsect($characterID);
+			$sqlmain .= " AND char_bg.comment = %s";
+			array_push($sqlmainargs, $sect);
+		}
 		else {
 			$sqlmain .= " AND char_bg.comment = %s";
 			array_push($sqlmainargs, $match);
