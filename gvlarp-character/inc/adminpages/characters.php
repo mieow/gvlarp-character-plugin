@@ -170,9 +170,20 @@ function vtm_character_options() {
 						cstatus.name as character_status,
 						chara.visible,
 						chara.wordpress_id,
-						cgstat.name as chargen_status
+						cgstat.name as chargen_status, 
+						tinfo.name as template
 					FROM
-						" . VTM_TABLE_PREFIX. "CHARACTER chara,
+						" . VTM_TABLE_PREFIX. "CHARACTER chara
+						LEFT JOIN (
+							SELECT cgt.name, cg.CHARACTER_ID
+							FROM
+								" . VTM_TABLE_PREFIX. "CHARACTER_GENERATION cg,
+								" . VTM_TABLE_PREFIX. "CHARGEN_TEMPLATE cgt
+							WHERE
+								cg.TEMPLATE_ID = cgt.ID
+						) as tinfo
+						ON
+							tinfo.CHARACTER_ID = chara.ID,
 						" . VTM_TABLE_PREFIX. "CLAN clans,
 						" . VTM_TABLE_PREFIX. "PLAYER players,
 						" . VTM_TABLE_PREFIX. "PLAYER_STATUS pstatus,
@@ -232,7 +243,7 @@ function vtm_character_options() {
 				echo "<th>";
 				
 				if ($character->chargen_status != 'Approved')
-					echo htmlspecialchars($name,ENT_QUOTES);
+					echo htmlspecialchars($name,ENT_QUOTES) . " [" . htmlspecialchars(stripslashes($character->template),ENT_QUOTES) . "]";
 				elseif (!empty($character->wordpress_id))
 					echo '<a href="' . $stlinks['viewCharSheet']->LINK . '?CHARACTER='. urlencode($character->wordpress_id) . '">' . $name . '</a>';
 				else
