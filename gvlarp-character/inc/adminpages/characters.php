@@ -2438,4 +2438,76 @@ function vtm_email_chargen_approved($characterID, $wpid, $password) {
 		
 	return $result;
 }
+
+function vtm_purge_character($characterID, $name) {
+
+	$tables = array(
+		'CHARACTER_OFFICE',
+		'CHARACTER_ROAD_OR_PATH',
+		'CHARACTER_TEMPORARY_STAT',
+		'CHARACTER_STAT',
+		'CHARACTER_RITUAL',
+		'CHARACTER_DISCIPLINE',
+		'CHARACTER_PATH',
+		'CHARACTER_MERIT',
+		'CHARACTER_SKILL',
+		'CHARACTER_BACKGROUND',
+		'CHARACTER_COMBO_DISCIPLINE',
+		'CHARACTER_PROFILE',
+		'CHARACTER_EXTENDED_BACKGROUND',
+		'CHARACTER_GENERATION',
+		'PLAYER_XP',
+		'CHARACTER',
+	);
+	
+	$done = 0;
+	$ok = 1;
+	while(!$done && $ok) {
+	
+		if (count($tables) == 0) {
+			$done = 1;
+		} else {
+			$table = array_shift($tables);
+			$column = $table == 'CHARACTER' ? 'ID' : 'CHARACTER_ID';
+			$ok = vtm_purge_table($characterID, $table, $column);
+		}
+	}
+	
+	if ($ok)
+		$result = "<li>Deleted $name, ID: $characterID</li>";
+	else
+		$result = "<li style='color:red;'>Failed to delete $name, ID: $characterID</li>";
+		
+	return $result;
+}
+function vtm_purge_table($characterID, $table, $column) {
+	global $wpdb;
+	$ok = 1;
+	
+	$sql = "SELECT COUNT(ID) FROM " . VTM_TABLE_PREFIX . $table . " WHERE $column = %s";
+	$count = $wpdb->get_var($wpdb->prepare($sql, $characterID));
+	
+	if ($count > 0) {
+		$result = $wpdb->delete( VTM_TABLE_PREFIX . $table, 
+			array ($column => $characterID), 
+			array ('%d')
+		);
+		if ($result) {
+			//echo "<li>Delete OK for $table for ID $characterID</li>";
+		}
+		elseif ($result === 0) {
+			echo "<li>Delete failed (0) for $table for ID $characterID</li>";
+			$ok = 0;
+		}
+		else {
+			echo "<li>Delete failed for $table for ID $characterID</li>";
+			$ok = 0;
+		}
+	} //else {
+	//	echo "<li>No rows in $table for ID $characterID</li>";
+	//}
+	
+
+	return $ok;
+}
 ?>

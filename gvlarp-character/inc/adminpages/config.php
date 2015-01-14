@@ -103,6 +103,42 @@ function vtm_render_config_general() {
 				}
 				
 			}
+			elseif (isset($_REQUEST['purge_deleted'])) {
+				?>
+				<form id='options_form' method='post'>
+				<table>
+				<tr><th>ID</th><th>Character</th><th>Player</th><th>Deleted on</th><th>Select</th></tr>
+				<?php 
+				$list = vtm_listDeletedCharacters();
+				foreach ($list as $chID => $row) {
+					echo "<tr><td>$chID</td><td>{$row->NAME}</td><td>{$row->PLAYER}</td><td>{$row->LAST_UPDATED}</td><td>";
+					echo "<input type='checkbox' name='characters[{$chID}]' " . checked( 1, 1, 0) . ">";
+					echo "<input type='hidden'   name='names[{$chID}]' value='{$row->NAME}'>";
+					echo "</td></tr>";
+				}
+				?>
+				</table>
+				<input type="submit" name="comfirm_purge" class="button-primary" value="Confirm" />
+				<input type="submit" name="cancel_purge" class="button-primary" value="Cancel" />
+				</form>
+				<?php
+			}
+			elseif (isset($_REQUEST['comfirm_purge'])) {
+				echo "<ul>";
+				foreach ($_REQUEST['characters'] as $chID => $selected) {
+					if ($selected) {
+						echo vtm_purge_character($chID, $_REQUEST['names'][$chID]);
+					}
+				}
+				?>
+				</ul>
+				<form id='options_form' method='post'>
+				<input type="submit" name="return_purge" class="button-primary" value="Done" />
+				</form>
+				<?php
+			}
+			else {
+			
 			$sql = "select * from " . VTM_TABLE_PREFIX . "CONFIG;";
 			$options = $wpdb->get_results($sql);
 		?>
@@ -187,9 +223,16 @@ function vtm_render_config_general() {
 			</tr>
 			</table>
 			<input type="submit" name="save_options" class="button-primary" value="Save Options" />
+			
+			<h3>Purge deleted characters</h3>
+			<p>Click this button to completely remove all deleted characters from the database.</p>
+			<input type="submit" name="purge_deleted" class="button-primary" value="Purge" />
 		</form>
 		
+		
+		
 	<?php 
+	}
 }
 function vtm_render_config_pagelinks() {	
 	global $wpdb;
@@ -700,5 +743,21 @@ function vtm_render_config_features() {
 		</form>
 		
 	<?php 
+}
+
+function vtm_listDeletedCharacters() {
+	global $wpdb;
+
+	$sql = "SELECT ch.ID, ch.NAME as NAME, pl.NAME as PLAYER, ch.LAST_UPDATED
+		FROM 
+			" . VTM_TABLE_PREFIX . "CHARACTER ch,
+			" . VTM_TABLE_PREFIX . "PLAYER pl
+		WHERE 
+			ch.PLAYER_ID = pl.ID
+			AND ch.DELETED = 'Y'";
+	$results =  $wpdb->get_results($sql, OBJECT_K);
+	
+	return $results;
+	
 }
 ?>
