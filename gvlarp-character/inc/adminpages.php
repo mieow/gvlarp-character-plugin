@@ -78,6 +78,10 @@ function vtm_register_character_settings() {
 	register_setting( 'vtm_options_group', 'vtm_signin_columns' );
 	register_setting( 'vtm_options_group', 'vtm_web_columns' );
 
+	register_setting( 'vtm_features_group', 'vtm_feature_temp_stats' );
+	register_setting( 'vtm_features_group', 'vtm_feature_maps' );
+	register_setting( 'vtm_features_group', 'vtm_feature_reports' );
+	
 	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_mustbeloggedin' );
 	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_emailtag' );
 	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_email_from_name' );
@@ -118,8 +122,10 @@ function vtm_register_character_menu() {
 	add_submenu_page( "character-plugin", "XP Approval",         "XP Approval",         "manage_options", "vtmcharacter-xp",     "vtm_character_experience" );  
 	add_submenu_page( "character-plugin", "Backgrounds",         "Backgrounds",         "manage_options", "vtmcharacter-bg",     "vtm_character_backgrounds" );  
 	add_submenu_page( "character-plugin", "Path Changes",        "Path Changes",        "manage_options", "vtmcharacter-paths",  "vtm_character_master_path" );  
-	add_submenu_page( "character-plugin", "Stat Changes",        "Stat Changes",        "manage_options", "vtmcharacter-stats",  "vtm_character_temp_stats" );  
-	add_submenu_page( "character-plugin", "Reports",             "Reports",             "manage_options", "vtmcharacter-report", "vtm_character_reports" );  
+	if (get_option( 'vtm_feature_maps', '0' ) == 1)
+		add_submenu_page( "character-plugin", "Stat Changes",        "Stat Changes",        "manage_options", "vtmcharacter-stats",  "vtm_character_temp_stats" );  
+	if (get_option( 'vtm_feature_reports', '0' ) == 1)
+		add_submenu_page( "character-plugin", "Reports",             "Reports",             "manage_options", "vtmcharacter-report", "vtm_character_reports" );  
 	add_submenu_page( "character-plugin", "Database Tables",     "Data Tables",         "manage_options", "vtmcharacter-data",   "vtm_character_datatables" );  
 	add_submenu_page( "character-plugin", "Configuration",       "Configuration",       "manage_options", "vtmcharacter-config", "vtm_character_config" );  
 }
@@ -213,8 +219,8 @@ function vtm_character_datatables() {
 				<li><?php echo vtm_get_tablink('office',  'Offices'); ?></li>
 				<li><?php echo vtm_get_tablink('combo',   'Combination Disciplines'); ?></li>
 				<li><?php echo vtm_get_tablink('generation', 'Generation'); ?></li>
-				<li><?php echo vtm_get_tablink('mapowner', 'Map Domain Owners'); ?></li>
-				<li><?php echo vtm_get_tablink('mapdomain','Map Domains'); ?></li>
+				<li><?php if (get_option( 'vtm_feature_maps', '0' ) == 1) echo vtm_get_tablink('mapowner', 'Map Domain Owners'); ?></li>
+				<li><?php if (get_option( 'vtm_feature_maps', '0' ) == 1) echo vtm_get_tablink('mapdomain','Map Domains'); ?></li>
 				<li><?php echo vtm_get_tablink('template', 'Character Templates'); ?></li>
 			</ul>
 		</div>

@@ -151,15 +151,16 @@ function vtm_toolbar_link_admin( $wp_admin_bar ) {
 		); 
 		$wp_admin_bar->add_node( $args );
 
-
-		$args = array(
-			'id'    => 'vtmreport',
-			'title' => 'Reports',
-			'href'  => admin_url('admin.php?page=vtmcharacter-report'),
-			'parent' => 'vtmcharacters',
-			'meta'  => array( 'class' => 'vtm-toolbar-page' )
-		);
-		$wp_admin_bar->add_node( $args );
+		if ( get_option( 'vtm_feature_reports', '0' ) == 1) {
+			$args = array(
+				'id'    => 'vtmreport',
+				'title' => 'Reports',
+				'href'  => admin_url('admin.php?page=vtmcharacter-report'),
+				'parent' => 'vtmcharacters',
+				'meta'  => array( 'class' => 'vtm-toolbar-page' )
+			);
+			$wp_admin_bar->add_node( $args );
+		}
 		
 		$args = array(
 			'id'    => 'vtmconfig',

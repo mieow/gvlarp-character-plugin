@@ -717,6 +717,8 @@ function vtm_print_map($atts, $content = null) {
 	global $wpdb;
 
 	$output = "";
+	
+	if (get_option( 'vtm_feature_maps', '0' ) == 0) return "<p>Map Feature disabled</p>";
 
 	/* Attributes:
 	//		map size
@@ -1081,6 +1083,9 @@ function vtm_print_character_offices($atts, $content=null) {
 add_shortcode('character_offices_block', 'vtm_print_character_offices');
 
 function vtm_print_character_temp_stats($atts, $content=null) {
+
+	if (get_option( 'vtm_feature_temp_stats', '0' ) == 0) return "<p>Temporary stat tracking feature disabled</p>";
+
 	extract(shortcode_atts(
 		array ("character" => "null", "stat" => "Willpower", "showtable" => "0", "limit" => "5")
 		, $atts)
@@ -1240,14 +1245,14 @@ function vtm_print_spend_button($atts, $content=null) {
 	global $wpdb;
 	$wpdb->show_errors();
 
+	if (get_option( 'vtm_feature_temp_stats', '0' ) == 0) return "<p>Temporary stat tracking feature disabled</p>";
+	if (!is_user_logged_in()) return "You must be logged in to view this content";
+
 	extract(shortcode_atts(array ("character" => "null", "stat" => "Willpower"), $atts));
 
 	$character = vtm_establishCharacter($character);
 	$characterID = vtm_establishCharacterID($character);
 
-	if (!is_user_logged_in()) {
-		return "You must be logged in to view this content";
-	}
 	if (!isset($characterID) || $characterID == "") {
 		return "";
 	}
