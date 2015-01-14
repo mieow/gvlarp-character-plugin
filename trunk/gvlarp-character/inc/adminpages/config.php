@@ -21,9 +21,10 @@ function vtm_character_config() {
 			<ul>
 				<li><?php echo vtm_get_tablink('general',   'General'); ?></li>
 				<li><?php echo vtm_get_tablink('pagelinks', 'Page Links'); ?></li>
-				<li><?php echo vtm_get_tablink('maps',      'Map Options'); ?></li>
+				<li><?php if (get_option( 'vtm_feature_maps', '0' ) == 1) echo vtm_get_tablink('maps',      'Map Options'); ?></li>
 				<li><?php echo vtm_get_tablink('chargen',   'Character Generation'); ?></li>
 				<li><?php echo vtm_get_tablink('skinning',  'Skinning'); ?></li>
+				<li><?php echo vtm_get_tablink('features',  'Features'); ?></li>
 			</ul>
 		</div>
 		<div class="gvadmin_content">
@@ -46,6 +47,9 @@ function vtm_character_config() {
 				break;
 			case 'skinning':
 				vtm_render_config_skinning();
+				break;
+			case 'features':
+				vtm_render_config_features();
 				break;
 			default:
 				vtm_render_config_general();
@@ -404,6 +408,8 @@ function vtm_render_config_skinning() {
 		
 		settings_fields( 'vtm_options_group' );
 		do_settings_sections('vtm_options_group');
+		
+		if (get_option( 'vtm_feature_reports', '0' ) == 1) {
 		?>
 		<h4>Report Options</h4>
 		<table>
@@ -412,6 +418,7 @@ function vtm_render_config_skinning() {
 				<td><input type="text" name="vtm_signin_columns" value="<?php echo get_option('vtm_signin_columns'); ?>" /></td>
 			</tr>
 		</table>
+		<?php } ?>
 		
 		<h4>Web Page Layout</h4>
 		<table>
@@ -656,5 +663,42 @@ function vtm_draw_arrow($name, $drawcolour, $drawbgcolour, $drawborder) {
 
 		$image = "";
 	}
+}
+
+
+function vtm_render_config_features() {	
+	global $wpdb;
+	
+		?>
+		<h3>Enable/Disable Plugin Features</h3>
+		<p>You can hide or show the various plugin features.</p>
+		<form method="post" action="options.php">
+		<?php
+		
+		settings_fields( 'vtm_features_group' );
+		do_settings_sections('vtm_features_group');
+		?>
+
+		<table>
+		<tr>
+			<td><label>Track Temporary Stats: </label></td>
+			<td><input type="checkbox" name="vtm_feature_temp_stats" value="1" <?php checked( '1', get_option( 'vtm_feature_temp_stats', '0' ) ); ?> /></td>
+			<td>Track Willpower and Blood pool spends</td>
+		</tr>
+		<tr>
+			<td><label>Maps: </label></td>
+			<td><input type="checkbox" name="vtm_feature_maps" value="1" <?php checked( '1', get_option( 'vtm_feature_maps', '0' ) ); ?> /></td>
+			<td>Show feeding/domain map</td>
+		</tr>
+		<tr>
+			<td><label>Reports: </label></td>
+			<td><input type="checkbox" name="vtm_feature_reports" value="1" <?php checked( '1', get_option( 'vtm_feature_reports', '0' ) ); ?> /></td>
+			<td>Show admin reports, including sign-in sheet</td>
+		</tr>
+		</table>
+		<?php submit_button("Save Changes", "primary", "save_features_button"); ?>
+		</form>
+		
+	<?php 
 }
 ?>
