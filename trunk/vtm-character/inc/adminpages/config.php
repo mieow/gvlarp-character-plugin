@@ -498,17 +498,17 @@ function vtm_render_config_skinning() {
 		</table>
 		<table>
 		<tr>
-		<td><img alt="empty dot1" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/dot1empty.jpg' ); ?>'></td>
-		<td><img alt="full dot1"  width=16 src='<?php echo plugins_url( 'gvlarp-character/images/dot1full.jpg' ); ?>'></td>
-		<td><img alt="dot2"       width=16 src='<?php echo plugins_url( 'gvlarp-character/images/dot2.jpg' ); ?>'></td>
-		<td><img alt="dot3"       width=16 src='<?php echo plugins_url( 'gvlarp-character/images/dot3.jpg' ); ?>'></td>
-		<td><img alt="dot4"       width=16 src='<?php echo plugins_url( 'gvlarp-character/images/dot4.jpg' ); ?>'></td>
-		<td><img alt="crossclear" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/crossclear.jpg' ); ?>'></td>
-		<td><img alt="box"        width=16 src='<?php echo plugins_url( 'gvlarp-character/images/webbox.jpg' ); ?>'></td>
-		<td><img alt="checked"    width=16 src='<?php echo plugins_url( 'gvlarp-character/images/check.jpg' ); ?>'></td>
-		<td><img alt="spacer"     width=16 src='<?php echo plugins_url( 'gvlarp-character/images/spacer.jpg' ); ?>'></td>
-		<td><img alt="fill"       width=16 src='<?php echo plugins_url( 'gvlarp-character/images/fill.jpg' ); ?>'></td>
-		<td><img alt="arrow"      width=16 src='<?php echo plugins_url( 'gvlarp-character/images/arrowright.jpg' ); ?>'></td>
+		<td><img alt="empty dot1" width=16 src='<?php echo plugins_url( 'vtm-character/images/dot1empty.jpg' ); ?>'></td>
+		<td><img alt="full dot1"  width=16 src='<?php echo plugins_url( 'vtm-character/images/dot1full.jpg' ); ?>'></td>
+		<td><img alt="dot2"       width=16 src='<?php echo plugins_url( 'vtm-character/images/dot2.jpg' ); ?>'></td>
+		<td><img alt="dot3"       width=16 src='<?php echo plugins_url( 'vtm-character/images/dot3.jpg' ); ?>'></td>
+		<td><img alt="dot4"       width=16 src='<?php echo plugins_url( 'vtm-character/images/dot4.jpg' ); ?>'></td>
+		<td><img alt="crossclear" width=16 src='<?php echo plugins_url( 'vtm-character/images/crossclear.jpg' ); ?>'></td>
+		<td><img alt="box"        width=16 src='<?php echo plugins_url( 'vtm-character/images/webbox.jpg' ); ?>'></td>
+		<td><img alt="checked"    width=16 src='<?php echo plugins_url( 'vtm-character/images/check.jpg' ); ?>'></td>
+		<td><img alt="spacer"     width=16 src='<?php echo plugins_url( 'vtm-character/images/spacer.jpg' ); ?>'></td>
+		<td><img alt="fill"       width=16 src='<?php echo plugins_url( 'vtm-character/images/fill.jpg' ); ?>'></td>
+		<td><img alt="arrow"      width=16 src='<?php echo plugins_url( 'vtm-character/images/arrowright.jpg' ); ?>'></td>
 		</tr>
 		</table>
 
@@ -538,13 +538,13 @@ function vtm_render_config_skinning() {
 		</table>
 		<table>
 		<tr>
-		<td><img alt="empty dot"  width=16 src='<?php echo plugins_url( 'gvlarp-character/images/emptydot.jpg' ); ?>'></td>
-		<td><img alt="full dot"  width=16 src='<?php echo plugins_url( 'gvlarp-character/images/fulldot.jpg' ); ?>'></td>
-		<td><img alt="xp dot"  width=16 src='<?php echo plugins_url( 'gvlarp-character/images/pdfxpdot.jpg' ); ?>'></td>
-		<td><img alt="box dot"  width=16 src='<?php echo plugins_url( 'gvlarp-character/images/box.jpg' ); ?>'></td>
-		<td><img alt="box2 dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/boxcross1.jpg' ); ?>'></td>
-		<td><img alt="box3 dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/boxcross2.jpg' ); ?>'></td>
-		<td><img alt="box4 dot" width=16 src='<?php echo plugins_url( 'gvlarp-character/images/boxcross3.jpg' ); ?>'></td>
+		<td><img alt="empty dot"  width=16 src='<?php echo plugins_url( 'vtm-character/images/emptydot.jpg' ); ?>'></td>
+		<td><img alt="full dot"  width=16 src='<?php echo plugins_url( 'vtm-character/images/fulldot.jpg' ); ?>'></td>
+		<td><img alt="xp dot"  width=16 src='<?php echo plugins_url( 'vtm-character/images/pdfxpdot.jpg' ); ?>'></td>
+		<td><img alt="box dot"  width=16 src='<?php echo plugins_url( 'vtm-character/images/box.jpg' ); ?>'></td>
+		<td><img alt="box2 dot" width=16 src='<?php echo plugins_url( 'vtm-character/images/boxcross1.jpg' ); ?>'></td>
+		<td><img alt="box3 dot" width=16 src='<?php echo plugins_url( 'vtm-character/images/boxcross2.jpg' ); ?>'></td>
+		<td><img alt="box4 dot" width=16 src='<?php echo plugins_url( 'vtm-character/images/boxcross3.jpg' ); ?>'></td>
 		</tr>
 		</table>
 		
