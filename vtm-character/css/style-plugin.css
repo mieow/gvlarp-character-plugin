@@ -140,7 +140,7 @@ div#csheet {
 	padding: 5px;
 }
 .vtmbgmenu .shown,.vtmbgmenu a:focus  {
-    background-image: url('/wp-content/plugins/gvlarp-character/images/fill.jpg');
+    background-image: url('/wp-content/plugins/vtm-character/images/fill.jpg');
 	color: inherit;
 }
 .vtmbgmain {
@@ -280,12 +280,12 @@ input[type="submit"].vtmxp_clear {
 }
 #vtmid_xpst .vtmdots > input[type="checkbox"] + label {
     display:inline-block;
-    background:url('/wp-content/plugins/gvlarp-character/images/webbox.jpg') no-repeat 0 0;
+    background:url('/wp-content/plugins/vtm-character/images/webbox.jpg') no-repeat 0 0;
 	background-size:16px 16px;
 	width: 16px;
 }
 #vtmid_xpst .vtmdots > input[type="checkbox"]:checked + label {
-    background-image: url('/wp-content/plugins/gvlarp-character/images/check.jpg');
+    background-image: url('/wp-content/plugins/vtm-character/images/check.jpg');
 }
 input[type="submit"].vtmxp_submit {
 	float:right;
@@ -340,7 +340,7 @@ table.feedingmapkey {width:auto;}
 	padding-right:10px;
 	padding-top:5px;
  	padding-bottom:5px;
-    background-image: url('/wp-content/plugins/gvlarp-character/images/arrowright.jpg');
+    background-image: url('/wp-content/plugins/vtm-character/images/arrowright.jpg');
     background-repeat: no-repeat;
 	background-size:10px 10px;
 	background-position:right center;
@@ -385,10 +385,10 @@ table.feedingmapkey {width:auto;}
     white-space:nowrap;
 }
 #chargen-main .dotselect label.freedot {
-    background-image: url('/wp-content/plugins/gvlarp-character/images/dot1full.jpg') !important;
+    background-image: url('/wp-content/plugins/vtm-character/images/dot1full.jpg') !important;
 }
 #chargen-main .dotselect label.cleardot {
-    background-image: url('/wp-content/plugins/gvlarp-character/images/crossclear.jpg') !important;
+    background-image: url('/wp-content/plugins/vtm-character/images/crossclear.jpg') !important;
 }
 #chargen-main .dotselect img {
 	width:14px;
@@ -416,16 +416,16 @@ table.feedingmapkey {width:auto;}
     line-height:1.2;
 }
 #chargen-main .dotselect:not(:checked) > label {
-    background-image: url('/wp-content/plugins/gvlarp-character/images/dot1empty.jpg');
+    background-image: url('/wp-content/plugins/vtm-character/images/dot1empty.jpg');
 }
 
 #chargen-main .dotselect > input:checked ~ label {
-    background-image: url('/wp-content/plugins/gvlarp-character/images/dot2.jpg');
+    background-image: url('/wp-content/plugins/vtm-character/images/dot2.jpg');
 }
 
 #chargen-main .dotselect:not(:checked) > label:hover,
 #chargen-main .dotselect:not(:checked) > label:hover ~ label {
-    background-image: url('/wp-content/plugins/gvlarp-character/images/dot2.jpg');
+    background-image: url('/wp-content/plugins/vtm-character/images/dot2.jpg');
 }
 #chargen-main fieldset {
 	padding: 0;
@@ -448,7 +448,7 @@ table.feedingmapkey {width:auto;}
 }
 
 #chargen-main .dotselect > label:active {
-    content: url('/wp-content/plugins/gvlarp-character/images/cg_selectdot.jpg');
+    content: url('/wp-content/plugins/vtm-character/images/cg_selectdot.jpg');
 }
 
 /* Merits and Flaws */
@@ -469,15 +469,15 @@ table.feedingmapkey {width:auto;}
 }
 
 #chargen-main .mfdotselect > input[type="checkbox"]:checked + div {
-    background-image: url('/wp-content/plugins/gvlarp-character/images/fill.jpg');
+    background-image: url('/wp-content/plugins/vtm-character/images/fill.jpg');
 }
 
 #chargen-main .mfdotselect > input[type="checkbox"]:checked + div label  {
-    background-image: url('/wp-content/plugins/gvlarp-character/images/check.jpg');
+    background-image: url('/wp-content/plugins/vtm-character/images/check.jpg');
 }
 #chargen-main .mfdotselect > input[type="checkbox"] + div label {
     /*display:inline-block;*/
-    background:url('/wp-content/plugins/gvlarp-character/images/webbox.jpg') no-repeat 0 0;
+    background:url('/wp-content/plugins/vtm-character/images/webbox.jpg') no-repeat 0 0;
 	background-size:16px 16px;
 }
 

@@ -1,13 +1,13 @@
 <?php
-    /*  Plugin Name: Vampire:the Masquerade Character Plugin
+    /*  Plugin Name: Vampire:the Masquerade Character Manager
         Plugin URI: http://plugin.gvlarp.com
         Description: Management of Characters and Players for Vampire:the Masquerade
         Author: Jane Houston
-        Version: 1.12
+        Version: 2.0
         Author URI: http://www.mieow.co.uk
     */
 
-    /*  Copyright 2014 Lambert Behnke and Jane Houston
+    /*  Copyright 2015 Jane Houston
 
         This program is free software; you can redistribute it and/or modify
         it under the terms of the GNU General Public License, version 2, as
@@ -23,99 +23,6 @@
         Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
     */
 
-    /*  Version 1.0   Initial Release
-        Version 1.1   Character Admin added, various bug fixes, XP spend table limit, status table
-        Version 1.2   Preferred values hardcoded as initially selected, Player Admin introduced, added ability
-                      for STs to see Character Sheet and other pages as selected character, officials
-                      selectable by court or by court and position.
-        Version 1.2.1 Prevent a player from being added with name New Player
-        Version 1.2.2 Put ST Links into a DB Table
-        Version 1.3.0 DB description size increases, book ref for paths, rituals, merits/flaw, Improve XP
-                      spends, User XP spends, ST XP spend approvals, Humanity changes expansion, Character
-                      edit improvements, add submit button to top.
-        Version 1.3.1 Add training note to XP Spends, Hide inactive characters from Prestige/Master Path table
-        Version 1.3.2 Profile, CSS class ids, Single width skill choice in edit character with separate groups
-                      for Talents, Skills, Knowledges
-        Version 1.4.0 Fixed CLAN table link column, create default entry in ROAD_OR_PATH on character creation
-        Version 1.5.0 Character Admin default selection (PC, Not Visible, View Sheet), Character Edit increase
-                      Harpy Quote to textarea, longer box for Portrait URL, Portrait (Show cstatus/comment,
-                      placeholder image, option to change Display Name/Password), Fixed status list (display
-                      zeros & dead characters), Added Clan Discipline Discount Configuration (simple),
-                      Obituary Page, Merit/Flaw can be bought (off) with XP, Escape single/double quotes in
-                      harpy comment. CSS classes and ids added in remaining tables
-        Version 1.6.0 Specialisations and multiple versions of same skill during XP spend, High and Low Gen
-                      support on xp spend. Added Temporary Blood and Temporary Willpower master table, Status
-                      table only show active characters, On Clan Prestige Table add court, allow 5 rituals to
-                      be added at the same time, master path table exclude not visible chars and make "Path
-                      Change" default option, Prestige List character name links to profile, On XP Approval
-                      and Profile character name links to character sheet for STs only, create monthly WP gain
-                      table
-		Version 1.7.0 PDF version of the character sheet now available. Added wp-admin pages to manage Merits 
-					  & Flaws, Rituals, Backgrounds, Sourcebooks, Extended Background questions, Sectors, clans, 
-					  page locations & PDF customisations. Added extended backgrounds, with functionality for 
-					  STs to approve. Split off main PHP file into include files. Updated installation functions
-					  for properly upgrading the database when plugin is activated.  Added initial table data 
-					  during installation for ST links, Sectors, Extended Background questions, Generations,
-					  player status, character status, Attributes/stats, Clans.
-		Version 1.8.0 Alot more admin pages created. Caitiff XP Spends now supported. Nature/Demeanour, sect 
-					  membership, assigning xp by character now supported. Solar Calc widget incorporated.
-					  Shortcodes ‘status_list_block’, ‘dead_character_table’ and ‘prestige_list_block’ replaced 
-					  with ‘background_table’ and ‘merit_table’ to support display of other backgrounds 
-					  (e.g. Anarch Status). Removed shortcode ‘xp_spend_table’. Page now generated with content 
-					  filter. XP Spend page re-written to allow multiple spends at the one time. Also shows 
-					  pending spends and allows them to be cancelled.
-		Version 1.9.0 Admin-related shortcodes have been moved to WP admin pages. Generation table can now be
-					  managed and the default gen for new characters defined.  Sort fixed on XP Approval page
-					  and you can only assign XP to visible characters.  On Xp spend page, only get check-boxes
-					  if the character has enough XP. Can buy over WP 5. Thaum paths now show up on printable
-					  sheet. Combo-disciplines can be purchased with XP. Ritual descriptions show up  on
-					  printable sheet. Character info doesn't get displayed if you aren't logged in. Pending
-					  XP changes don't get deleted if approval fails. Extended Background widget added. Show
-					  Feeding domains in a googlemaps api shortcode. Fixed PDF report issue for data generated 
-					  on the 2nd page and onward
-		Version 1.10.0	Character Generation added. Character names on View Character page show up correctly if 
-					  they have an apostrophe in the name. Non-Clan, Non-visible disciplines now show up to buy 
-					  when the character already has a dot in it. Ability to add extra blank columns in the 
-					  sign-in report added. Report added to show when characters were last updated. Characters 
-					  without a WordPress ID (e.g NPCs) can now be viewed. Optional 4th Clan Discipline can now 
-					  be specified for clans. Initial level of the character road/path can only be set at 
-					  initial character creation. Validation performed on create character inputs (e.g. 
-					  wordpress ID, required fields, duplicate character names). Report when character could not 
-					  be added to database. Conscience/instinct/etc pull-down boxes only go to 5, and not to the 
-					  generational maximum. For login Widget: Removed download DT link, Pick up page URLs from 
-					  database and Checkbox to set which links to show
-		Version 1.11.0	Characters can now be added if there is an apostrophe in the Player name. Column ‘office’ 
-					  added to backgrounds shortcode output. XP costs are listed on the spend page for the things
-					  you can’t afford yet. You can update your email address from the Profile page. Disciplines 
-					  and Magik paths are now displayed if you already have them. Willpower changes are not 
-					  recorded for characters when the actual change is 0. Paths of Enlightenment can be bought 
-					  with freebie points at character generation. V20 rules for whether you get free dots in 
-					  virtues are now supported in the templates. Descriptions will display when you hover over
-					  Merits/Flaws/skills/etc for freebie and XP spends. Rituals can be bought at character 
-					  generation. 7th generation characters and lower are now supported. Confirm your email 
-					  address by clicking on the link emailed out. free background and abilities can be 
-					  automatically added at character generation (e.g. status 1). Don’t need to set 
-					  Primary/Secondary/Tertiary for Abilities and Attributes any more – they are automatically 
-					  worked out. Character Generation Templates can be set to include/limit specific Sects. 
-					  Character Generation Templates can be set to include/limit specific Paths of Enlightenment.
-					  Only active players are listed on the pull-down on the Edit characters page. Added a report 
-					  for showing background with sectors for characters. Path Changes admin page has added 
-					  filters at the top of the page. Can’t now save merits/flaws if there is another with the 
-					  same name. Fixed issue where decimal number wasn’t accepted in lat/long boxes in Google map 
-					  config settings.
-
-        Comments:
-
-	*/
-
-    /*
-        DB Changes: 
-		
-		Version 1.11.35
-			Added CHARGEN_TEMPLATE_DEFAULTS Table
-			Table ROAD_OR_PATH			Added column COST_MODEL_ID
-				
-         */
 global $wpdb;
 
 define( 'VTM_CHARACTER_URL', plugin_dir_path(__FILE__) );
@@ -138,13 +45,13 @@ $title = "V:tM Character Management";
 ------------------------------------------------------ */
 
 function vtm_feedingmap_admin_css() {
-	wp_enqueue_style('plugin-admin-style', plugins_url('gvlarp-character/css/style-admin.css'));
+	wp_enqueue_style('plugin-admin-style', plugins_url('vtm-character/css/style-admin.css'));
 }
 add_action('admin_enqueue_scripts', 'vtm_feedingmap_admin_css');
 
 function vtm_plugin_style()  
 { 
-  wp_register_style( 'plugin-style', plugins_url( 'gvlarp-character/css/style-plugin.css' ) );
+  wp_register_style( 'plugin-style', plugins_url( 'vtm-character/css/style-plugin.css' ) );
   wp_enqueue_style( 'plugin-style' );
 }
 add_action('wp_enqueue_scripts', 'vtm_plugin_style');
@@ -152,7 +59,7 @@ add_action('wp_enqueue_scripts', 'vtm_plugin_style');
 /* JAVASCRIPT
 ----------------------------------------------------------------- */
 function vtm_feedingmap_scripts() {
-	wp_enqueue_script( 'feedingmap-setup-api', plugins_url('gvlarp-character/js/googleapi.js'));
+	wp_enqueue_script( 'feedingmap-setup-api', plugins_url('vtm-character/js/googleapi.js'));
 }
 
 add_action( 'wp_enqueue_scripts', 'vtm_feedingmap_scripts' );
@@ -1091,8 +998,8 @@ function vtm_get_sects() {
 
 function vtm_numberToDots($base, $input) {
 	$number = (int) $input;
-	$full  = plugins_url( 'gvlarp-character/images/dot1full.jpg' );
-	$empty = plugins_url( 'gvlarp-character/images/dot1empty.jpg' );
+	$full  = plugins_url( 'vtm-character/images/dot1full.jpg' );
+	$empty = plugins_url( 'vtm-character/images/dot1empty.jpg' );
 	
 	$output = "";
 	
@@ -1107,8 +1014,8 @@ function vtm_numberToDots($base, $input) {
 }
 function vtm_numberToBoxes($base, $input) {
 	$number = (int) $input;
-	$full  = plugins_url( 'gvlarp-character/images/crossclear.jpg' );
-	$empty = plugins_url( 'gvlarp-character/images/webbox.jpg' );
+	$full  = plugins_url( 'vtm-character/images/crossclear.jpg' );
+	$empty = plugins_url( 'vtm-character/images/webbox.jpg' );
 	
 	$output = "";
 	

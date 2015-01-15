@@ -5,7 +5,7 @@ register_activation_hook( __FILE__, 'vtm_character_install_data' );
 
 global $vtm_character_version;
 global $vtm_character_db_version;
-$vtm_character_version = "1.12"; 
+$vtm_character_version = "2.0"; 
 $vtm_character_db_version = "38"; 
 
 function vtm_update_db_check() {
@@ -1053,6 +1053,7 @@ function vtm_character_update($beforeafter) {
 		case "1.9":  $errors += vtm_character_update_1_9($beforeafter);
 		case "1.10": $errors += vtm_character_update_1_10($beforeafter);
 		case "1.11": $errors += vtm_character_update_1_11($beforeafter);
+		case "1.12": $errors += vtm_character_update_1_11($beforeafter);
 	}
 	
 	// Incremental database updates, during development
@@ -1062,6 +1063,7 @@ function vtm_character_update($beforeafter) {
 			case "1.10": $errors += vtm_character_update_1_9($beforeafter);
 			case "1.11": $errors += vtm_character_update_1_10($beforeafter);
 			case "1.12": $errors += vtm_character_update_1_11($beforeafter);
+			case "2.0" : $errors += vtm_character_update_1_11($beforeafter);
 		}
 	
 	}
@@ -1145,7 +1147,7 @@ function vtm_column_exists($table, $column) {
 
 	$sql = "SHOW INDEX FROM $table WHERE Key_name != 'PRIMARY';";
 	$existing_columns = $wpdb->get_col("DESC $table", 0);
-	print_r($existing_columns);
+	//print_r($existing_columns);
 	$match_columns = array_intersect(array($column), $existing_columns);
 	
 	return !empty($match_columns);

@@ -1055,8 +1055,8 @@ class vtmclass_Report_ListTable extends WP_List_Table {
 			
 			submit_button( 'Filter', 'secondary', 'do_filter_tablenav', false );
 			echo "<label>Download: </label>";
-			echo "<a class='button-primary' href='" . plugins_url( 'gvlarp-character/tmp/report.pdf') . "'>PDF</a>";
-			echo "<a class='button-primary' href='" . plugins_url( 'gvlarp-character/tmp/report.csv') . "'>CSV</a>";
+			echo "<a class='button-primary' href='" . plugins_url( 'vtm-character/tmp/report.pdf') . "'>PDF</a>";
+			echo "<a class='button-primary' href='" . plugins_url( 'vtm-character/tmp/report.csv') . "'>CSV</a>";
 	}
 	 
 	function extra_tablenav($which) {

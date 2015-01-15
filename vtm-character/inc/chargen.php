@@ -606,10 +606,10 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 		$postvariable, $showzeros, $issubmitted, $max2display = 5,
 		$templatefree = array()) {
 	
-	$fulldoturl    = plugins_url( 'gvlarp-character/images/dot1full.jpg' );
-	$emptydoturl   = plugins_url( 'gvlarp-character/images/dot1empty.jpg' );
-	$freebiedoturl = plugins_url( 'gvlarp-character/images/dot3.jpg' );
-	$doturl        = plugins_url( 'gvlarp-character/images/dot2.jpg' );
+	$fulldoturl    = plugins_url( 'vtm-character/images/dot1full.jpg' );
+	$emptydoturl   = plugins_url( 'vtm-character/images/dot1empty.jpg' );
+	$freebiedoturl = plugins_url( 'vtm-character/images/dot3.jpg' );
+	$doturl        = plugins_url( 'vtm-character/images/dot2.jpg' );
 
 	$config = vtm_getConfig();
 	$columns     = $config->WEB_COLUMNS;
@@ -816,10 +816,10 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 	$pendingxp, $postvariable, $showzeros, $issubmitted, $fbcosts = array(),
 	$max2display = 5, $templatefree = array()) {
 
-	$fulldoturl    = plugins_url( 'gvlarp-character/images/dot1full.jpg' );
-	$freebiedoturl = plugins_url( 'gvlarp-character/images/dot3.jpg' );
-	$emptydoturl   = plugins_url( 'gvlarp-character/images/dot1empty.jpg' );
-	$doturl        = plugins_url( 'gvlarp-character/images/dot2.jpg' );
+	$fulldoturl    = plugins_url( 'vtm-character/images/dot1full.jpg' );
+	$freebiedoturl = plugins_url( 'vtm-character/images/dot3.jpg' );
+	$emptydoturl   = plugins_url( 'vtm-character/images/dot1empty.jpg' );
+	$doturl        = plugins_url( 'vtm-character/images/dot2.jpg' );
 	
 	$config    = vtm_getConfig();
 	$columns       = $config->WEB_COLUMNS;
@@ -1087,7 +1087,7 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 			$id = "id$key";
 			$output .= "<tr><td $class>";
 			if (isset($pendingxp[$key])) {
-				$freebiedoturl = plugins_url( 'gvlarp-character/images/cg_freebiedot.jpg' );
+				$freebiedoturl = plugins_url( 'vtm-character/images/cg_freebiedot.jpg' );
 				$output .= "<img src='$freebiedoturl' alt='*' />";
 			}
 			else
@@ -3726,11 +3726,11 @@ function vtm_get_chargen_roads() {
 function vtm_render_dot_select($type, $itemid, $current, $pending, $free, $max, $submitted) {
 
 	$output = "";
-	$fulldoturl    = plugins_url( 'gvlarp-character/images/dot1full.jpg' );
-	$doturl        = plugins_url( 'gvlarp-character/images/dot2.jpg' );
-	$emptydoturl   = plugins_url( 'gvlarp-character/images/dot1empty.jpg' );
-	$freebiedoturl = plugins_url( 'gvlarp-character/images/dot3.jpg' );
-	$spacerblock   = plugins_url( 'gvlarp-character/images/spacer.jpg' );
+	$fulldoturl    = plugins_url( 'vtm-character/images/dot1full.jpg' );
+	$doturl        = plugins_url( 'vtm-character/images/dot2.jpg' );
+	$emptydoturl   = plugins_url( 'vtm-character/images/dot1empty.jpg' );
+	$freebiedoturl = plugins_url( 'vtm-character/images/dot3.jpg' );
+	$spacerblock   = plugins_url( 'vtm-character/images/spacer.jpg' );
 	
 	if ($pending || $submitted) {
 		$output .= "<input type='hidden' name='" . $type . "[" . $itemid . "]' value='$current' />\n";
@@ -4072,8 +4072,8 @@ function vtm_render_freebie_backgrounds($characterID, $submitted, $templateID) {
 	$settings    = vtm_get_chargen_settings($templateID);
 	$max2display = $wpdb->get_var($wpdb->prepare("SELECT MAX_DISCIPLINE FROM " . VTM_TABLE_PREFIX . "GENERATION WHERE ID = %s", $settings['limit-generation-low']));
 	$columns     = 3;
-	$fulldoturl  = plugins_url( 'gvlarp-character/images/cg_freedot.jpg' );
-	$emptydoturl = plugins_url( 'gvlarp-character/images/cg_emptydot.jpg' );
+	$fulldoturl  = plugins_url( 'vtm-character/images/cg_freedot.jpg' );
+	$emptydoturl = plugins_url( 'vtm-character/images/cg_emptydot.jpg' );
 	$dotstobuy   = 0;
 
 	$freebiecosts = vtm_get_freebie_costs('BACKGROUND', $characterID);
