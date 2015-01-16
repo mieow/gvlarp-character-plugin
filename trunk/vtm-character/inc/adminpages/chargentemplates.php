@@ -94,7 +94,27 @@ function vtm_render_template_data(){
 						}
 					}
 					
-					
+					// save template maximums
+					$tables    = $_REQUEST['max_table'];
+					$items     = $_REQUEST['max_item'];
+					$levels    = $_REQUEST['max_level'];
+					for ($i = 0 ; $i < count($items) ; $i++) {
+						if ($levels[$i] > 0 && $items[$i] != 0) {
+						
+							$data = array(
+									'TEMPLATE_ID'  => $id,
+									'ITEMTABLE'    => $tables[$i],
+									'ITEMTABLE_ID' => $items[$i],
+									'LEVEL'          => $levels[$i],
+								);
+						
+							//print_r($data);
+							$wpdb->insert(VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_MAXIMUM",
+								$data,
+								array('%d', '%s', '%d', '%d')
+							);
+						}
+					}
 				}
 			} 
 			elseif (isset($_REQUEST['do_delete_' . $type])) {
@@ -113,6 +133,9 @@ function vtm_render_template_data(){
 						$result = $wpdb->get_results($wpdb->prepare($sql, $id));
 						/* delete defaults */
 						$sql = "delete from " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_DEFAULTS where TEMPLATE_ID = %d;";
+						$result = $wpdb->get_results($wpdb->prepare($sql, $id));
+						/* delete maximums */
+						$sql = "delete from " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_MAXIMUM where TEMPLATE_ID = %d;";
 						$result = $wpdb->get_results($wpdb->prepare($sql, $id));
 						/* delete template */
 						$sql = "delete from " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE where ID = %d;";
@@ -219,6 +242,43 @@ function vtm_render_template_data(){
 					}
 				}
 				
+				// save template maximums
+				
+				//delete maximums 
+				$sql = "delete from " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_MAXIMUM where TEMPLATE_ID = %d;";
+				$result = $wpdb->get_results($wpdb->prepare($sql, $id));
+
+				// then re-add
+				$tables    = $_REQUEST['max_table'];
+				$items     = $_REQUEST['max_item'];
+				$levels    = $_REQUEST['max_level'];
+				$delete    = $_REQUEST['max_delete'];
+
+				for ($i = 0 ; $i < count($items) ; $i++) {
+					if ($levels[$i] > 0 && $items[$i] != 0) {
+						//echo "<li>$i - level: {$levels[$i]}, item: {$items[$i]}, delete: {$delete[$i]}</li>";
+						if (isset($delete[$i]) && $delete[$i] == 'on') {
+							$doadd = 0;
+						} else {
+							$doadd = 1;
+						}
+						
+						if ($doadd) {
+							$data = array(
+									'TEMPLATE_ID'  => $id,
+									'ITEMTABLE'    => $tables[$i],
+									'ITEMTABLE_ID' => $items[$i],
+									'LEVEL'        => $levels[$i],
+								);
+						
+							//print_r($data);
+							$wpdb->insert(VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_MAXIMUM",
+								$data,
+								array('%d', '%s', '%d', '%d')
+							);
+						}
+					}
+				}
 			}
 			break;		
 	}
@@ -624,6 +684,78 @@ function vtm_render_template_data(){
 			print "</select></td>\n";
 			print "<td><input type='hidden' name='item_delete[$i]' value='off'>
 				<input type='hidden' name='item_sector[$i]' value='0'></td>\n";
+			print "</tr>\n";
+		}
+		$offset = $i;
+	?>
+	</table>
+	</div>
+	
+	<h4>Character Generation Template Maximums</h4>
+	<p>Configure the maximum level allowed at character generation.</p>
+	<div class="datatables_defaults">
+	
+	<h5>Backgrounds</h5>
+	<table>
+	<tr class="template_default_row">
+		<th>Background</th><th>Maximum</th><th>Delete</th>
+	</tr>
+	<?php 
+		$backgrounds = vtm_get_backgrounds();
+				
+		if ($id > 0) {
+			$sql = "SELECT bg.ID, bg.NAME, ctm.LEVEL
+					FROM 
+						" . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_MAXIMUM ctm,
+						" . VTM_TABLE_PREFIX . "BACKGROUND bg
+					WHERE 
+						ctm.TEMPLATE_ID = %s 
+						AND ctm.ITEMTABLE_ID = bg.ID
+						AND ctm.ITEMTABLE = 'BACKGROUND'";
+			$sql = $wpdb->prepare($sql, $id);
+			$results = $wpdb->get_results($sql);
+		} else {
+			$results = array();
+		}
+		
+		$offset = 0;
+		if (count($results) > 0) {
+			foreach ($results as $item) {
+
+				print "<tr class='template_default_row'>\n";
+				print "<td>
+					<input type='hidden' name='max_table[$offset]' value='BACKGROUND'>
+					<input type='hidden' name='max_item[$offset]' value='{$item->ID}'>
+					" . stripslashes($item->NAME) . "</td>\n";
+				print "<td><select name='max_level[$offset]'>\n";
+				for ($j = 1 ; $j <= 5 ; $j++) {
+					print "<option value='$j' " . selected($j,$item->LEVEL, false) . ">$j</option>\n";
+				}
+				print "</select></td>\n";
+				print "<td><input type='checkbox' name='max_delete[$offset]' value='on'></td>\n";
+				print "</tr>\n";
+				
+				$offset++;
+			}
+		}
+		
+		// blank rows
+		for ($i = $offset ; $i < ($offset + 4) ; $i++) {
+			print "<tr class='template_default_row'>\n";
+			print "<td>
+				<input type='hidden' name='max_table[$i]' value='BACKGROUND'>
+				<select name='max_item[$i]'>\n";
+			print "<option value='0'>[Select]</option>\n";
+			foreach ($backgrounds as $item) {
+				print "<option value='{$item->ID}'>" . stripslashes($item->NAME) . "</option>\n";
+			}
+			print "</select></td>\n";
+			print "<td><select name='max_level[$i]'>\n";
+			for ($j = 0 ; $j <= 5 ; $j++) {
+				print "<option value='$j'>$j</option>\n";
+			}
+			print "</select></td>\n";
+			print "<td><input type='hidden' name='max_delete[$i]' value='off'></td>\n";
 			print "</tr>\n";
 		}
 		$offset = $i;
