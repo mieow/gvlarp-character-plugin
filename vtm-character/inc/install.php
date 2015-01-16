@@ -6,7 +6,7 @@ register_activation_hook( __FILE__, 'vtm_character_install_data' );
 global $vtm_character_version;
 global $vtm_character_db_version;
 $vtm_character_version = "2.0"; 
-$vtm_character_db_version = "38"; 
+$vtm_character_db_version = "39"; 
 
 function vtm_update_db_check() {
     global $vtm_character_version;
@@ -298,6 +298,18 @@ function vtm_character_install() {
 					MULTIPLE        VARCHAR(1)		NOT NULL,
 					PRIMARY KEY  (ID),
 					CONSTRAINT `" . $table_prefix . "template_default_constraint_1` FOREIGN KEY (TEMPLATE_ID)   REFERENCES " . $table_prefix . "CHARGEN_TEMPLATE(ID)
+					) ENGINE=INNODB;";
+		dbDelta($sql);
+
+		$current_table_name = $table_prefix . "CHARGEN_TEMPLATE_MAXIMUM";
+		$sql = "CREATE TABLE " . $current_table_name . " (
+					ID              MEDIUMINT(9)	NOT NULL   AUTO_INCREMENT,
+					TEMPLATE_ID		MEDIUMINT(9)	NOT NULL,
+					ITEMTABLE       TINYTEXT        NOT NULL,
+					ITEMTABLE_ID    MEDIUMINT(9)    NOT NULL,
+					LEVEL  	        MEDIUMINT(9)    NOT NULL,
+					PRIMARY KEY  (ID),
+					CONSTRAINT `" . $table_prefix . "template_max_constraint_1` FOREIGN KEY (TEMPLATE_ID)   REFERENCES " . $table_prefix . "CHARGEN_TEMPLATE(ID)
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 
