@@ -14,7 +14,7 @@ For managing Vampire:the Masquerade character sheets for LARPs and on-line Vampi
 /description/
 
 Features are:
-* Online character generation
+* On-line character generation
 * Track and assign changes in Experience, Path of Enlightenment, Willpower and Bloodpool
 * Output a PDF character for printing
 * Configure character generation rules using templates
@@ -24,6 +24,7 @@ Features are:
 * Display domain/feeding area map using Google API
 * Automatically list active characters and what their Status is
 * Get reports (CSV and PDF) such as character activity
+* Pre-loaded with data for V20 edition
 
 == Installation ==
 

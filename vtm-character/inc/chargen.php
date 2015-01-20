@@ -1,7 +1,5 @@
 <?php
 
-$vtmglobal['config']      = vtm_getConfig();
-
 function vtm_default_chargen_settings() {
 	global $wpdb;
 	global $vtmglobal;

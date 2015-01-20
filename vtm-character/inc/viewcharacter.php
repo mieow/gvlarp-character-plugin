@@ -2,12 +2,13 @@
 
 function vtm_viewcharacter_content_filter($content) {
 
-  if (is_page(vtm_get_stlink_page('viewCharSheet')))
+  if (is_page(vtm_get_stlink_page('viewCharSheet'))) {
 		if (is_user_logged_in()) {
 			$content .= vtm_get_viewcharacter_content();
 		} else {
 			$content .= "<p>You must be logged in to view this content.</p>";
 		}
+  }
   // otherwise returns the database content
   return $content;
 }
@@ -17,20 +18,19 @@ add_filter( 'the_content', 'vtm_viewcharacter_content_filter' );
 
 function vtm_get_viewcharacter_content() {
 	global $wpdb;
-
+	global $vtmglobal;
 	$character   = vtm_establishCharacter('');
 	$characterID = vtm_establishCharacterID($character);
 	
 	$mycharacter = new vtmclass_character();
 	$mycharacter->load($characterID);
-	
-	$config = vtm_getConfig();
+
 	$maxrating = $mycharacter->max_rating > 5 ? 10 : 5;
 
-	if ($config->WEB_COLUMNS == 1)
+	if ($vtmglobal['config']->WEB_COLUMNS == 1)
 		$divder = "<tr><td class='vtmhr'><hr /></td></tr>"; // divider
 	else
-		$divder = "<tr><td class='vtmhr' colspan=" . $config->WEB_COLUMNS . "><hr /></td></tr>"; // divider
+		$divder = "<tr><td class='vtmhr' colspan=" . $vtmglobal['config']->WEB_COLUMNS . "><hr /></td></tr>"; // divider
 	
 	$content = "<div class=\"gvplugin\" id=\"csheet\">";
 	
@@ -45,7 +45,7 @@ function vtm_get_viewcharacter_content() {
 		<tr><td class='vtmcol_key'>Public Clan</td><td>" . htmlentities($mycharacter->clan) . "</td></tr>
 		<tr><td class='vtmcol_key'>Sire</td><td>"        . htmlentities($mycharacter->sire) . "</td></tr>
 		</tbody></table>";
-	if ($config->USE_NATURE_DEMEANOUR == 'Y') {
+	if ($vtmglobal['config']->USE_NATURE_DEMEANOUR == 'Y') {
 		$c_tableright = "<table><tbody>
 			<tr><td class='vtmcol_key'>Generation</td><td>" . htmlentities($mycharacter->generation) . "</td></tr>
 			<tr><td class='vtmcol_key'>Nature</td><td>" . htmlentities($mycharacter->nature) . "</td></tr>
@@ -60,7 +60,7 @@ function vtm_get_viewcharacter_content() {
 	}
 	
 	$content .= "<table>\n";
-	if ($config->WEB_COLUMNS == 3) {
+	if ($vtmglobal['config']->WEB_COLUMNS == 3) {
 		$content .= "<tr>
 			<td class='vtm_colnarrow'>$c_tableleft</td>
 			<td class='vtm_colnarrow'>$c_tablemid</td>
@@ -120,7 +120,7 @@ function vtm_get_viewcharacter_content() {
 	$c_tableright .= "</table>";
 
 
-	if ($config->WEB_COLUMNS == 3) {
+	if ($vtmglobal['config']->WEB_COLUMNS == 3) {
 		$content .= "
 			<tr><td colspan=3><h3>Attributes</h3></td></tr>
 			<tr>
@@ -177,7 +177,7 @@ function vtm_get_viewcharacter_content() {
 	}
 	$c_tableright .= "</table>";
 	
-	if ($config->WEB_COLUMNS == 3) {
+	if ($vtmglobal['config']->WEB_COLUMNS == 3) {
 		$content .= "
 			<tr><td colspan=3><h3>Abilities</h3></td></tr>
 			<tr>
@@ -251,7 +251,7 @@ function vtm_get_viewcharacter_content() {
 	}
 	$c_tableright .= "</table>";
 	
-	if ($config->WEB_COLUMNS == 3) {
+	if ($vtmglobal['config']->WEB_COLUMNS == 3) {
 		$content .= "
 			<tr>
 			<td class='vtm_colnarrow'>$c_tableleft</td>
@@ -308,7 +308,7 @@ function vtm_get_viewcharacter_content() {
 	$c_tableright .= "<tr><td colspan=3 class='vtmdot_10 vtmdotwide'>" . vtm_numberToBoxes($mycharacter->bloodpool,0) . "</td></tr>\n";
 	$c_tableright .= "</table>";
 
-	if ($config->WEB_COLUMNS == 3) {
+	if ($vtmglobal['config']->WEB_COLUMNS == 3) {
 		$content .= "
 			<tr>
 			<td class='vtm_colwide' colspan = 2>$c_tableleft</td>
@@ -360,7 +360,7 @@ function vtm_get_viewcharacter_content() {
 	}
 	$c_tableright .= "</tr></table>";
 
-	if ($config->WEB_COLUMNS == 3) {
+	if ($vtmglobal['config']->WEB_COLUMNS == 3) {
 		$content .= "
 			<tr>
 			<td class='vtm_colwide' colspan = 2>$c_tableleft</td>

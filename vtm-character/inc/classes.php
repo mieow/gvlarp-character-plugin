@@ -49,11 +49,10 @@ class vtmclass_character {
 	
 	function load ($characterID){
 		global $wpdb;
+		global $vtmglobal;
 		
 		$wpdb->show_errors();
-		
-		$config = vtm_getConfig();
-		
+				
 		/* Basic Character Info */
 		$sql = "SELECT chara.name                      cname,
 					   chara.character_status_comment  cstat_comment,
@@ -167,12 +166,12 @@ class vtmclass_character {
 		$result = $wpdb->get_row($wpdb->prepare($sql, $characterID));
 		$this->quote    = isset($result->QUOTE) ? $result->QUOTE : '';
 		if (empty($result->PORTRAIT))
-			$this->portrait = $config->PLACEHOLDER_IMAGE;
+			$this->portrait = $vtmglobal['config']->PLACEHOLDER_IMAGE;
 		else
 			$this->portrait = $result->PORTRAIT;
 		
 		/* Nature / Demeanour, if used */
-		if ($config->USE_NATURE_DEMEANOUR == 'Y') {
+		if ($vtmglobal['config']->USE_NATURE_DEMEANOUR == 'Y') {
 			$sql = "SELECT 
 						natures.name as nature,
 						demeanours.name as demeanour

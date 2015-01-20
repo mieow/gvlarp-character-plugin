@@ -79,6 +79,7 @@ function vtm_render_printable($characterID) {
 	global $textsize;
 	global $textfont;
 	global $textrowheight;
+	global $vtmglobal;
 
 
 	$mycharacter = new vtmclass_character();
@@ -108,8 +109,7 @@ function vtm_render_printable($characterID) {
 				)
 		);
 		
-		$config = vtm_getConfig();
-		if ($config->USE_NATURE_DEMEANOUR == 'Y') {
+		if ($vtmglobal['config']->USE_NATURE_DEMEANOUR == 'Y') {
 			$pdf->BasicInfoTableRow(array(
 					'Nature:', $mycharacter->nature,
 					'Demeanour:', $mycharacter->demeanour,

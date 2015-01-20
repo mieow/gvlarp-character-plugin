@@ -2,8 +2,9 @@
 
 function vtm_profile_content_filter($content) {
 
-  if (is_page(vtm_get_stlink_page('viewProfile')))
+	if (is_page(vtm_get_stlink_page('viewProfile'))) {
 		$content .= vtm_get_profile_content();
+	}
   // otherwise returns the database content
   return $content;
 }
@@ -13,6 +14,7 @@ add_filter( 'the_content', 'vtm_profile_content_filter' );
 
 function vtm_get_profile_content() {
 	global $wpdb;
+	global $vtmglobal;
 
 	// Work out current character and what character profile is requested
 	$currentUser      = wp_get_current_user();
@@ -27,7 +29,6 @@ function vtm_get_profile_content() {
 		return "<p>You need to specify a character or be logged in to view the profiles.</p>";
 
 	$output       = "";
-	$config       = vtm_getConfig();
 	$clanPrestige = 0;
 	$showAll = false;
 	
@@ -160,10 +161,10 @@ function vtm_get_profile_content() {
     $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Resides:</td><td class=\"gvcol_2 gvcol_val\">" . $mycharacter->domain . "</td></tr>";
 	
 	// Background - Status
-	if ($config->DISPLAY_BACKGROUND_IN_PROFILE) {
+	if ($vtmglobal['config']->DISPLAY_BACKGROUND_IN_PROFILE) {
 		$sql = "SELECT NAME FROM " . VTM_TABLE_PREFIX . "BACKGROUND
 				WHERE ID = %d";
-		$background = $wpdb->get_var($wpdb->prepare($sql, $config->DISPLAY_BACKGROUND_IN_PROFILE));	
+		$background = $wpdb->get_var($wpdb->prepare($sql, $vtmglobal['config']->DISPLAY_BACKGROUND_IN_PROFILE));	
 	
 		$level = 0;
 		foreach ($mycharacter->backgrounds as $row) {

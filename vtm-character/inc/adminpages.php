@@ -1,13 +1,11 @@
 <?php
 
-require_once VTM_CHARACTER_URL . 'inc/adminpages/characters.php';
 require_once VTM_CHARACTER_URL . 'inc/adminpages/reports.php';
 require_once VTM_CHARACTER_URL . 'inc/adminpages/reportclasses.php';
 require_once VTM_CHARACTER_URL . 'inc/adminpages/backgrounds.php';
 require_once VTM_CHARACTER_URL . 'inc/adminpages/clans.php';
 require_once VTM_CHARACTER_URL . 'inc/adminpages/data.php';
 require_once VTM_CHARACTER_URL . 'inc/adminpages/moredata.php';
-require_once VTM_CHARACTER_URL . 'inc/adminpages/toolbar.php';
 require_once VTM_CHARACTER_URL . 'inc/adminpages/config.php';
 require_once VTM_CHARACTER_URL . 'inc/adminpages/experience.php';
 require_once VTM_CHARACTER_URL . 'inc/adminpages/enlightenment.php';
@@ -191,10 +189,10 @@ function vtm_get_tablink($tab, $text, $default = ""){
 /* DISPLAY TABS
 -------------------------------------------------- */
 function vtm_character_datatables() {
+	global $vtmglobal;
 	if ( !current_user_can( 'manage_options' ) )  {
 		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 	}
-	$config = vtm_getConfig();
 	?>
 	<div class="wrap">
 		<h2>Database Tables</h2>
@@ -214,7 +212,7 @@ function vtm_character_datatables() {
 				<li><?php echo vtm_get_tablink('costmodel', 'Cost Models'); ?></li>
 				<li><?php echo vtm_get_tablink('enlighten', 'Paths of Enlightenment'); ?></li>
 				<li><?php echo vtm_get_tablink('path',    'Paths of Magik'); ?></li>
-				<li><?php if (isset($config->USE_NATURE_DEMEANOUR) && $config->USE_NATURE_DEMEANOUR == 'Y') echo vtm_get_tablink('nature',  'Nature/Demeanour'); ?></li>
+				<li><?php if (isset($vtmglobal['config']->USE_NATURE_DEMEANOUR) && $vtmglobal['config']->USE_NATURE_DEMEANOUR == 'Y') echo vtm_get_tablink('nature',  'Nature/Demeanour'); ?></li>
 				<li><?php echo vtm_get_tablink('domain',  'Domains'); ?></li>
 				<li><?php echo vtm_get_tablink('office',  'Offices'); ?></li>
 				<li><?php echo vtm_get_tablink('combo',   'Combination Disciplines'); ?></li>
