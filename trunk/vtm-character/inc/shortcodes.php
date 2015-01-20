@@ -8,14 +8,12 @@ function vtm_get_shortcode_id($base) {
 }
 
 function vtm_get_homedomain() {
-
+	global $vtmglobal;
 	global $wpdb;
 	
-	$config = vtm_getConfig();
-
 	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "DOMAIN
 			WHERE ID = %s;";
-	$list = $wpdb->get_results($wpdb->prepare($sql, $config->HOME_DOMAIN_ID));
+	$list = $wpdb->get_results($wpdb->prepare($sql, $vtmglobal['config']->HOME_DOMAIN_ID));
 	
 	return $list[0]->NAME;
 }
@@ -570,7 +568,7 @@ function vtm_print_merit_shortcode($atts, $content = null) {
 			$output .= "</tr>\n";
 		}
 		
-		//$config = getConfig();
+		//$vtmglobal['config'] = getConfig();
 
 		foreach ($result as $tablerow) {
 			$col = 1;
@@ -601,6 +599,7 @@ add_shortcode('merit_table', 'vtm_print_merit_shortcode');
 
 function vtm_print_character_xp_table($atts, $content=null) {
 	extract(shortcode_atts(array ("character" => "null", "group" => "", "maxrecords" => "20"), $atts));
+	global $vtmglobal;
 	
 	if (!is_user_logged_in()) {
 		return "You must be logged in to view this content";
@@ -613,9 +612,8 @@ function vtm_print_character_xp_table($atts, $content=null) {
 	global $wpdb;
 	$table_prefix = VTM_TABLE_PREFIX;
 	
-	$config = vtm_getConfig();
-	$filteron = $config->ASSIGN_XP_BY_PLAYER == 'Y' ? "PLAYER_ID" : "CHARACTER_ID";
-	$filterid = $config->ASSIGN_XP_BY_PLAYER == 'Y' ? $playerID   : $characterID;
+	$filteron = $vtmglobal['config']->ASSIGN_XP_BY_PLAYER == 'Y' ? "PLAYER_ID" : "CHARACTER_ID";
+	$filterid = $vtmglobal['config']->ASSIGN_XP_BY_PLAYER == 'Y' ? $playerID   : $characterID;
 	
 	$xp_total = vtm_get_total_xp($playerID, $characterID);
 
@@ -939,6 +937,7 @@ function vtm_print_character_details($atts, $content=null) {
 
 	$character = vtm_establishCharacter($character);
 
+	global $vtmglobal;
 	global $wpdb;
 	$table_prefix = VTM_TABLE_PREFIX;
 	$output    = "";
@@ -980,10 +979,8 @@ function vtm_print_character_details($atts, $content=null) {
 					  AND chara.id                  = path_totals.character_id";
 
 	$character_details = $wpdb->get_row($wpdb->prepare($sql, $character));
-
-	$config = vtm_getConfig();
 	
-	if ($config->USE_NATURE_DEMEANOUR == 'Y' && count($character_details) > 0) {
+	if ($vtmglobal['config']->USE_NATURE_DEMEANOUR == 'Y' && count($character_details) > 0) {
 			
 		$sql = "SELECT 
 					natures.name as nature,
@@ -1021,7 +1018,7 @@ function vtm_print_character_details($atts, $content=null) {
 			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Road or Path rating</td><td class=\"gvcol_2 gvcol_val\">"   . $character_details->path_value      . "</td></tr>";
 			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Last Updated</td><td class=\"gvcol_2 gvcol_val\">"          . $character_details->last_updated    . "</td></tr>";
 			
-			if ($config->USE_NATURE_DEMEANOUR == 'Y') {
+			if ($vtmglobal['config']->USE_NATURE_DEMEANOUR == 'Y') {
 				
 				$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Nature</td><td class=\"gvcol_2 gvcol_val\">" . $character_details->nature      . "</td></tr>";
 				$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Demeanour</td><td class=\"gvcol_2 gvcol_val\">" . $character_details->demeanour      . "</td></tr>";

@@ -241,9 +241,7 @@ function vtm_render_config_pagelinks() {
 		<?php 
 			if (isset($_REQUEST['save_st_links'])) {
 				for ($i=0; $i<$_REQUEST['linecount']; $i++) {
-					if ($_REQUEST['selectpage' . $i] == "0")
-						$link = $_REQUEST['link' . $i];
-					else if ($_REQUEST['selectpage' . $i] == "vtmnewpage") {
+					if ($_REQUEST['selectpage' . $i] == "vtmnewpage") {
 					
 						//check if page with name $_REQUEST['value' . $i] exists 
 					
@@ -257,15 +255,13 @@ function vtm_render_config_pagelinks() {
 
 						// Insert the post into the database
 						$pageid = wp_insert_post( $my_page );
-						
-						$link = "/" . get_page_uri($pageid);
 					}
 					else
-						$link = $_REQUEST['selectpage' . $i];
+						$pageid = $_REQUEST['selectpage' . $i];
 								
 					$dataarray = array (
 						'ORDERING' => $_REQUEST['order' . $i],
-						'LINK' => $link
+						'WP_PAGE_ID' => $pageid
 					);
 					
 					$result = $wpdb->update(VTM_TABLE_PREFIX . "ST_LINK",
@@ -307,18 +303,16 @@ function vtm_render_config_pagelinks() {
 				'post_status' => 'publish'
 			); 
 			$pages = get_pages($args);
-			$pageuris = array();
 			$pagetitles = array();
 			foreach ( $pages as $page ) {
-				$pageuris[$page->ID] = get_page_uri( $page->ID );
 				$pagetitles[$page->ID] = $page->post_title;
-			}								
+			}							
 		?>
 		
 		<form id='ST_Links_form' method='post'>
 			<input type="hidden" name="linecount" value="<?php print count($stlinks); ?>" />
 			<table>
-				<tr><th>List Order</th><th>Name</th><th>Description</th><th>Select Page</th><th>Specify Link or New Page name</th></tr>
+				<tr><th>List Order</th><th>Name</th><th>Description</th><th>Select Page</th><th>New Page name</th></tr>
 			<?php
 				$i = 0;
 				foreach ($stlinks as $stlink) {
@@ -333,24 +327,18 @@ function vtm_render_config_pagelinks() {
 							<?php print $stlink->DESCRIPTION; ?></td>
 						<td>
 							<select name="selectpage<?php print $i; ?>">
+							<option value='vtmnewpage'>[New Page]</option>
 							<?php
 								$match = 0;
-								foreach ( $pageuris as $pageid => $pageuri ) {
-									if ('/' . $pageuri == $stlink->LINK)
-										$match = 1;
-									echo "<option value='/$pageuri' ";
-									selected('/' . $pageuri, $stlink->LINK);
-									echo ">{$pagetitles[$pageid]}</option>";
+								foreach ( $pagetitles as $pageid => $pagetitle ) {
+									echo "<option value='$pageid' ";
+									selected($pageid, $stlink->WP_PAGE_ID);
+									echo ">$pagetitle</option>";
 								}								
-								echo "<option value='0' ";
-								if (!$match)
-									echo "selected";
-								echo ">[Specify Link]</option>";
-								echo "<option value='vtmnewpage'>[New Page]</option>";
 							?>
 							</select>
 						</td>
-						<td><input type="text" name="link<?php print $i; ?>" value="<?php print $stlink->LINK; ?>" size=60 /></td>
+						<td><input type="text" name="link<?php print $i; ?>" value="" /></td>
 					</tr>
 					<?php
 					$i++;

@@ -6,7 +6,7 @@ register_activation_hook( __FILE__, 'vtm_character_install_data' );
 global $vtm_character_version;
 global $vtm_character_db_version;
 $vtm_character_version = "2.0"; 
-$vtm_character_db_version = "39"; 
+$vtm_character_db_version = "41a"; 
 
 function vtm_update_db_check() {
     global $vtm_character_version;
@@ -70,6 +70,7 @@ function vtm_character_install() {
 					VALUE        VARCHAR(32)  NOT NULL,
 					DESCRIPTION  TINYTEXT     NOT NULL,
 					LINK         TINYTEXT     NOT NULL,
+					WP_PAGE_ID   MEDIUMINT(9) NOT NULL,
 					ORDERING     SMALLINT(3)  NOT NULL,
 					PRIMARY KEY  (ID)
 					) ENGINE=INNODB;";
@@ -956,42 +957,42 @@ function vtm_character_install_data() {
 	$data = array (
 		'editCharSheet' => array(	'VALUE' => 'editCharSheet',
 									'DESCRIPTION' => 'New/Edit Character Sheet',
-									'LINK' => '',
+									'WP_PAGE_ID' => '',
 									'ORDERING' => 1
 							),
 		'viewCharSheet' => array(	'VALUE' => 'viewCharSheet',
 									'DESCRIPTION' => 'View Character Sheet',
-									'LINK' => '',
+									'WP_PAGE_ID' => '',
 									'ORDERING' => 2
 							),
 		'printCharSheet' => array(	'VALUE' => 'printCharSheet',
 									'DESCRIPTION' => 'View Printable Character Sheet',
-									'LINK' => '',
+									'WP_PAGE_ID' => '',
 									'ORDERING' => 3
 							),
 		'viewCustom' => array(		'VALUE' => 'viewCustom',
 									'DESCRIPTION' => 'View Custom Page as Character',
-									'LINK' => '',
+									'WP_PAGE_ID' => '',
 									'ORDERING' => 4
 							),
 		'viewProfile ' => array(	'VALUE' => 'viewProfile',
 									'DESCRIPTION' => 'View Character Profile',
-									'LINK' => '',
+									'WP_PAGE_ID' => '',
 									'ORDERING' => 5
 									),
 		'viewXPSpend' => array(	'VALUE' => 'viewXPSpend',
 								'DESCRIPTION' => 'View XP Spend Workspace',
-								'LINK' => '',
+								'WP_PAGE_ID' => '',
 								'ORDERING' => 6,
 						),
 		'viewExtBackgrnd' => array(	'VALUE' => 'viewExtBackgrnd',
 								'DESCRIPTION' => 'View Extended Background',
-								'LINK' => '',
+								'WP_PAGE_ID' => '',
 								'ORDERING' => 7,
 						),
 		'viewCharGen' => array(	'VALUE' => 'viewCharGen',
 								'DESCRIPTION' => 'Character Generation',
-								'LINK' => '',
+								'WP_PAGE_ID' => '',
 								'ORDERING' => 8,
 						),
 	);
@@ -1428,7 +1429,44 @@ function vtm_character_update_1_11($beforeafter) {
 				'GROUPING' => '',
 			);
 			vtm_remove_columns(VTM_TABLE_PREFIX . "SKILL", $remove);
-		} 
+		}
+		
+		// Fill in ST_LINK Page IDs
+		if (vtm_column_exists(VTM_TABLE_PREFIX . "ST_LINK","LINK")) {
+			$sql = "SELECT VALUE, ID, LINK FROM " . VTM_TABLE_PREFIX . "ST_LINK";
+			$links = $wpdb->get_results($sql, OBJECT_K);
+			$args = array(
+				'sort_order' => 'ASC',
+				'sort_column' => 'post_title',
+				'hierarchical' => 0,
+				'exclude' => '',
+				'include' => '',
+				'meta_key' => '',
+				'meta_value' => '',
+				'authors' => '',
+				'child_of' => 0,
+				'parent' => -1,
+				'exclude_tree' => '',
+				'number' => '',
+				'offset' => 0,
+				'post_type' => 'page',
+				'post_status' => 'publish'
+			); 
+			$pages = get_pages($args);
+			$pageinfo = array();
+			foreach ( $pages as $page ) {
+				$pageinfo['/' . get_page_uri( $page->ID )] = $page->ID;
+			}
+
+			foreach ($links as $key => $info) {
+					$wpdb->update(VTM_TABLE_PREFIX . "ST_LINK",
+						array('WP_PAGE_ID' => $pageinfo[$info->LINK]),
+						array('ID' => $info->ID)
+					);
+			}
+			
+		}
+		
 	}
 
 }

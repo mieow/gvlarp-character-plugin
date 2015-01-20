@@ -474,6 +474,7 @@ function vtm_render_details_section($type) {
 }
 function vtm_render_stats($characterID, $maxRating, $pendingSpends, $xp_avail) {
 	global $wpdb;
+	global $vtmglobal;
 	
 	$output = "";
 	
@@ -514,10 +515,8 @@ function vtm_render_stats($characterID, $maxRating, $pendingSpends, $xp_avail) {
 	$sql = $wpdb->prepare($sql, $characterID,$characterID);
 	//echo "<p>SQL: $sql</p>";
 	$character_stats_xp = $wpdb->get_results($sql);
-	
-	$config = vtm_getConfig();
-	
-	$rowoutput = vtm_render_spend_table('stat', $character_stats_xp, $maxRating, $config->WEB_COLUMNS, $xp_avail);
+		
+	$rowoutput = vtm_render_spend_table('stat', $character_stats_xp, $maxRating, $vtmglobal['config']->WEB_COLUMNS, $xp_avail);
 	
 	if (!empty($rowoutput)) {
 		$output .= "<table>\n";
@@ -530,6 +529,7 @@ function vtm_render_stats($characterID, $maxRating, $pendingSpends, $xp_avail) {
 }
 function vtm_render_skills($characterID, $maxRating, $pendingSpends, $xp_avail) {
 	global $wpdb;
+	global $vtmglobal;
 	
 	$output = "";
 	
@@ -650,10 +650,9 @@ function vtm_render_skills($characterID, $maxRating, $pendingSpends, $xp_avail) 
 	
     //echo "<p>SQL: $sql</p>";
 	//print_r($skills_list);
-	$config = vtm_getConfig();
 	
 	$rowoutput = vtm_render_skill_spend_table('skill', $skills_list, $character_skills_xp, 
-						$maxRating, $config->WEB_COLUMNS, $xp_avail);
+						$maxRating, $vtmglobal['config']->WEB_COLUMNS, $xp_avail);
 	
 	if (!empty($rowoutput)) {
 		$output .= "<table>\n";
@@ -777,6 +776,7 @@ function vtm_reformat_skills_xp ($input) {
 
 function vtm_render_disciplines($characterID, $maxRating, $pendingSpends, $xp_avail) {
 	global $wpdb;
+	global $vtmglobal;
 	
 	$output = "";
 	
@@ -857,10 +857,8 @@ function vtm_render_disciplines($characterID, $maxRating, $pendingSpends, $xp_av
 	$sql = $wpdb->prepare($sql, $characterID,$characterID,$characterID,$characterID);
     //echo "<p>SQL: $sql</p>";
 	$character_data = $wpdb->get_results($sql);
-	
-	$config = vtm_getConfig();
-	
-	$rowoutput = vtm_render_spend_table('disc', $character_data, $maxRating, $config->WEB_COLUMNS, $xp_avail);
+		
+	$rowoutput = vtm_render_spend_table('disc', $character_data, $maxRating, $vtmglobal['config']->WEB_COLUMNS, $xp_avail);
 	
 	if (!empty($rowoutput)) {
 		$output .= "<table>\n";
@@ -873,6 +871,7 @@ function vtm_render_disciplines($characterID, $maxRating, $pendingSpends, $xp_av
 }
 function vtm_render_paths($characterID, $maxRating, $pendingSpends, $xp_avail) {
 	global $wpdb;
+	global $vtmglobal;
 	
 	$output = "";
 	
@@ -943,9 +942,8 @@ function vtm_render_paths($characterID, $maxRating, $pendingSpends, $xp_avail) {
 	$sql = $wpdb->prepare($sql, $characterID,$characterID,$characterID,$characterID);
     //echo "<p>SQL: $sql</p>";
 	$character_data = $wpdb->get_results($sql);
-	$config = vtm_getConfig();
 	
-	$rowoutput = vtm_render_spend_table('path', $character_data, $maxRating, $config->WEB_COLUMNS, $xp_avail);
+	$rowoutput = vtm_render_spend_table('path', $character_data, $maxRating, $vtmglobal['config']->WEB_COLUMNS, $xp_avail);
 	
 	if (!empty($rowoutput)) {
 		$output .= "<table>\n";
@@ -958,6 +956,7 @@ function vtm_render_paths($characterID, $maxRating, $pendingSpends, $xp_avail) {
 }
 function vtm_render_rituals($characterID, $maxRating, $pendingSpends, $xp_avail) {
 	global $wpdb;
+	global $vtmglobal;
 	
 	$output = "";
 	
@@ -1013,8 +1012,7 @@ function vtm_render_rituals($characterID, $maxRating, $pendingSpends, $xp_avail)
     //echo "<p>SQL: $sql</p>";
 	$character_data = $wpdb->get_results($sql);
 	
-	$config = vtm_getConfig();
-	$columns = min(2, $config->WEB_COLUMNS);
+	$columns = min(2, $vtmglobal['config']->WEB_COLUMNS);
 	
 	$rowoutput = vtm_render_ritual_spend_table('ritual', $character_data, $columns, $xp_avail);
 	
@@ -1103,6 +1101,7 @@ function vtm_render_combo($characterID, $pendingSpends, $xp_avail) {
 
 function vtm_render_merits($characterID, $pendingSpends, $xp_avail) {
 	global $wpdb;
+	global $vtmglobal;
 	
 	$output = "";
 	
@@ -1178,8 +1177,7 @@ function vtm_render_merits($characterID, $pendingSpends, $xp_avail) {
 			ORDER BY grp DESC, level DESC, name";
 	$merits_list = $wpdb->get_results($sql);
     //echo "<p>SQL: $sql</p>";
-	$config = vtm_getConfig();
-	$columns = min(2,$config->WEB_COLUMNS);
+	$columns = min(2,$vtmglobal['config']->WEB_COLUMNS);
 	
 	$rowoutput = vtm_render_merit_spend_table('merit', $merits_list, $character_merit_xp, $columns, $xp_avail);
 	
@@ -2084,15 +2082,14 @@ function vtm_save_merit_to_pending ($type, $table, $itemtable, $itemidname, $pla
  */
 function vtm_get_pending_xp($playerID = 0, $characterID = 0) {
 	global $wpdb;
-	
-	$config = vtm_getConfig();
-	
-	if ($config->ASSIGN_XP_BY_PLAYER == 'Y' && $playerID == 0 & $characterID != 0) {
+	global $vtmglobal;
+		
+	if ($vtmglobal['config']->ASSIGN_XP_BY_PLAYER == 'Y' && $playerID == 0 & $characterID != 0) {
 		$sql = $wpdb->prepare("SELECT PLAYER_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $characterID);
 		$playerID = $wpdb->get_var($sql);
 	}
 
-	if ($config->ASSIGN_XP_BY_PLAYER == 'N') {
+	if ($vtmglobal['config']->ASSIGN_XP_BY_PLAYER == 'N') {
 		$sql = "SELECT SUM(AMOUNT) as COST FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
 				WHERE CHARACTER_ID = %s";
 		$sql = $wpdb->prepare($sql, $characterID);
