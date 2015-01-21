@@ -130,16 +130,12 @@ function vtm_get_stlink_page($stlinkvalue) {
 function vtm_get_stlink_url($stlinkvalue, $fullurl = false) {
 	global $wpdb;
 
-	$sql = "select DESCRIPTION, LINK from " . VTM_TABLE_PREFIX . "ST_LINK where VALUE = %s;";
-	$results = $wpdb->get_results($wpdb->prepare($sql, $stlinkvalue));
+	$sql = "select DESCRIPTION, WP_PAGE_ID from " . VTM_TABLE_PREFIX . "ST_LINK where VALUE = %s;";
+	$results = $wpdb->get_row($wpdb->prepare($sql, $stlinkvalue));
 	
 	$url = "Page not matched";
 	if (count($results) == 1) {
-		$url = $results[0]->LINK;
-		
-		if ($fullurl == true)
-			$url = get_site_url() . $url;
-		
+		$url = get_page_link($results->WP_PAGE_ID);
 	}
 	
 	return $url;
@@ -294,7 +290,8 @@ function vtm_get_sects() {
         $playerTypes = $wpdb->get_results($sql);
         return $playerTypes;
     }
-
+	
+	/*
     function vtm_listSTLinks() {
         global $wpdb;
         $table_prefix = VTM_TABLE_PREFIX;
@@ -305,6 +302,7 @@ function vtm_get_sects() {
         $stLinks = $wpdb->get_results($sql);
         return $stLinks;
     }
+	*/
 	
     function vtm_listPlayers($playerStatus, $playerType) {
         global $wpdb;
@@ -942,5 +940,11 @@ function vtm_numberToBoxes($base, $input) {
 	return $output;
 }
 
+function vtm_formatOutput($string, $allowhtml = 0) {
+	$string = stripslashes($string);
+	$string = $allowhtml ? $string : htmlentities($string, ENT_QUOTES);
+	
+	return $string;
+}
 
 ?>

@@ -36,26 +36,26 @@ function vtm_get_viewcharacter_content() {
 	
 	//---- TOP CHARACTER INFO ----
 	$c_tableleft = "<table><tbody>
-		<tr><td class='vtmcol_key'>Character</td><td>". htmlentities($mycharacter->name) . "</td></tr>
-		<tr><td class='vtmcol_key'>Domain</td><td>"   . htmlentities($mycharacter->domain) . "</td></tr>
-		<tr><td class='vtmcol_key'>Sect</td><td>"     . htmlentities($mycharacter->sect) . "</td></tr>
+		<tr><td class='vtmcol_key'>Character</td><td>". vtm_formatOutput($mycharacter->name) . "</td></tr>
+		<tr><td class='vtmcol_key'>Domain</td><td>"   . vtm_formatOutput($mycharacter->domain) . "</td></tr>
+		<tr><td class='vtmcol_key'>Sect</td><td>"     . vtm_formatOutput($mycharacter->sect) . "</td></tr>
 		</tbody></table>";
 	$c_tablemid = "<table><tbody>
-		<tr><td class='vtmcol_key'>Clan</td><td>"        . htmlentities($mycharacter->private_clan) . "</td></tr>
-		<tr><td class='vtmcol_key'>Public Clan</td><td>" . htmlentities($mycharacter->clan) . "</td></tr>
-		<tr><td class='vtmcol_key'>Sire</td><td>"        . htmlentities($mycharacter->sire) . "</td></tr>
+		<tr><td class='vtmcol_key'>Clan</td><td>"        . vtm_formatOutput($mycharacter->private_clan) . "</td></tr>
+		<tr><td class='vtmcol_key'>Public Clan</td><td>" . vtm_formatOutput($mycharacter->clan) . "</td></tr>
+		<tr><td class='vtmcol_key'>Sire</td><td>"        . vtm_formatOutput($mycharacter->sire) . "</td></tr>
 		</tbody></table>";
 	if ($vtmglobal['config']->USE_NATURE_DEMEANOUR == 'Y') {
 		$c_tableright = "<table><tbody>
-			<tr><td class='vtmcol_key'>Generation</td><td>" . htmlentities($mycharacter->generation) . "</td></tr>
-			<tr><td class='vtmcol_key'>Nature</td><td>" . htmlentities($mycharacter->nature) . "</td></tr>
-			<tr><td class='vtmcol_key'>Demeanour</td><td>" . htmlentities($mycharacter->demeanour) . "</td></tr>
+			<tr><td class='vtmcol_key'>Generation</td><td>" . vtm_formatOutput($mycharacter->generation) . "</td></tr>
+			<tr><td class='vtmcol_key'>Nature</td><td>"     . vtm_formatOutput($mycharacter->nature) . "</td></tr>
+			<tr><td class='vtmcol_key'>Demeanour</td><td>"  . vtm_formatOutput($mycharacter->demeanour) . "</td></tr>
 			</tbody></table>";
 	} else {
 		$c_tableright = "<table><tbody>
-			<tr><td class='vtmcol_key'>Generation</td><td>" . htmlentities($mycharacter->generation) . "</td></tr>
-			<tr><td class='vtmcol_key'>Date of Birth</td><td>" . htmlentities($mycharacter->date_of_birth) . "</td></tr>
-			<tr><td class='vtmcol_key'>Date of Embrace</td><td>" . htmlentities($mycharacter->date_of_embrace) . "</td></tr>
+			<tr><td class='vtmcol_key'>Generation</td><td>" . vtm_formatOutput($mycharacter->generation) . "</td></tr>
+			<tr><td class='vtmcol_key'>Date of Birth</td><td>" . vtm_formatOutput($mycharacter->date_of_birth) . "</td></tr>
+			<tr><td class='vtmcol_key'>Date of Embrace</td><td>" . vtm_formatOutput($mycharacter->date_of_embrace) . "</td></tr>
 			</tbody></table>";
 	}
 	
@@ -81,8 +81,8 @@ function vtm_get_viewcharacter_content() {
 	
 	$c_tableleft = "<table><tr><td colspan=3><h4>Physical</h4></td></tr>";
 	for ($i=0;$i<3;$i++) {
-		$statname = isset($physical[$i]->name)      ? $physical[$i]->name : '';
-		$statspec = isset($physical[$i]->specialty) ? stripslashes($physical[$i]->specialty) : '';
+		$statname = isset($physical[$i]->name)      ? vtm_formatOutput($physical[$i]->name) : '';
+		$statspec = isset($physical[$i]->specialty) ? vtm_formatOutput($physical[$i]->specialty) : '';
 		$statlvl  = isset($physical[$i]->level)     ? $physical[$i]->level : '';
 		$max = max($statlvl, $maxrating);
 		$c_tableleft .= "<tr>
@@ -94,8 +94,8 @@ function vtm_get_viewcharacter_content() {
 	$c_tableleft .= "</table>";
 	$c_tablemid = "<table><tr><td colspan=3><h4>Social</h4></td></tr>";
 	for ($i=0;$i<3;$i++) {
-		$statname = isset($social[$i]->name)      ? $social[$i]->name : '';
-		$statspec = isset($social[$i]->specialty) ? stripslashes($social[$i]->specialty) : '';
+		$statname = isset($social[$i]->name)      ? vtm_formatOutput($social[$i]->name) : '';
+		$statspec = isset($social[$i]->specialty) ? vtm_formatOutput($social[$i]->specialty) : '';
 		$statlvl  = isset($social[$i]->level)     ? $social[$i]->level : '';
 		$max = max($statlvl, $maxrating);
 		$c_tablemid .= "<tr>
@@ -107,8 +107,8 @@ function vtm_get_viewcharacter_content() {
 	$c_tablemid .= "</table>";
 	$c_tableright = "<table><tr><td colspan=3><h4>Mental</h4></td></tr>";
 	for ($i=0;$i<3;$i++) {
-		$statname = isset($mental[$i]->name)      ? $mental[$i]->name : '';
-		$statspec = isset($mental[$i]->specialty) ? stripslashes($mental[$i]->specialty) : '';
+		$statname = isset($mental[$i]->name)      ? vtm_formatOutput($mental[$i]->name) : '';
+		$statspec = isset($mental[$i]->specialty) ? vtm_formatOutput($mental[$i]->specialty) : '';
 		$statlvl  = isset($mental[$i]->level)     ? $mental[$i]->level : '';
 		$max = max($statlvl, $maxrating);
 		$c_tableright .= "<tr>
@@ -148,8 +148,8 @@ function vtm_get_viewcharacter_content() {
 		$max = max($talent[$i]->level, $maxrating);
 		if ($talent[$i]->level > 0)
 			$c_tableleft .= "<tr>
-					<td class='vtmcol_key'>" . $talent[$i]->skillname               . "</td>
-					<td class='vtmcol_spec'>" . stripslashes($talent[$i]->specialty) . "</td>
+					<td class='vtmcol_key'>" . vtm_formatOutput($talent[$i]->skillname) . "</td>
+					<td class='vtmcol_spec'>" . vtm_formatOutput($talent[$i]->specialty) . "</td>
 					<td class='vtmdot_{$maxrating}'>" . vtm_numberToDots($max, $talent[$i]->level) . "</td>
 				</tr>";
 	}
@@ -159,8 +159,8 @@ function vtm_get_viewcharacter_content() {
 		$max = max($skill[$i]->level, $maxrating);
 		if ($skill[$i]->level > 0)
 			$c_tablemid .= "<tr>
-				<td class='vtmcol_key'>" . $skill[$i]->skillname               . "</td>
-				<td class='vtmcol_spec'>" . stripslashes($skill[$i]->specialty) . "</td>
+				<td class='vtmcol_key'>" . vtm_formatOutput($skill[$i]->skillname) . "</td>
+				<td class='vtmcol_spec'>" . vtm_formatOutput($skill[$i]->specialty) . "</td>
 				<td class='vtmdot_{$maxrating}'>" . vtm_numberToDots($max, $skill[$i]->level) . "</td>
 			</tr>";
 	}
@@ -170,8 +170,8 @@ function vtm_get_viewcharacter_content() {
 		$max = max($knowledge[$i]->level, $maxrating);
 		if ($knowledge[$i]->level > 0)
 			$c_tableright .= "<tr>
-				<td class='vtmcol_key'>" . $knowledge[$i]->skillname               . "</td>
-				<td class='vtmcol_spec'>" . stripslashes($knowledge[$i]->specialty) . "</td>
+				<td class='vtmcol_key'>" . vtm_formatOutput($knowledge[$i]->skillname) . "</td>
+				<td class='vtmcol_spec'>" . vtm_formatOutput($knowledge[$i]->specialty) . "</td>
 				<td class='vtmdot_{$maxrating}'>" . vtm_numberToDots($max, $knowledge[$i]->level) . "</td>
 			</tr>";
 	}
@@ -216,8 +216,8 @@ function vtm_get_viewcharacter_content() {
 	for ($i=0;$i<count($backgrounds);$i++) {
 		$max = max($backgrounds[$i]->level, $maxrating);
 		$c_tableleft .= "<tr>
-				<td class='vtmcol_key'>" . $backgrounds[$i]->background               . "</td>
-				<td class='vtmcol_spec'>" . (!empty($backgrounds[$i]->sector) ?  $backgrounds[$i]->sector : stripslashes($backgrounds[$i]->comment)) . "</td>
+				<td class='vtmcol_key'>" . vtm_formatOutput($backgrounds[$i]->background) . "</td>
+				<td class='vtmcol_spec'>" . (!empty($backgrounds[$i]->sector) ?  vtm_formatOutput($backgrounds[$i]->sector) : vtm_formatOutput($backgrounds[$i]->comment)) . "</td>
 				<td class='vtmdot_{$maxrating}'>" . vtm_numberToDots($max, $backgrounds[$i]->level) . "</td>
 			</tr>";
 	}
@@ -227,7 +227,7 @@ function vtm_get_viewcharacter_content() {
 		$max = max($disciplines[$i]->level, $maxrating);
 		if ($disciplines[$i]->level > 0)
 			$c_tablemid .= "<tr>
-				<td class='vtmcol_key'>" . $disciplines[$i]->name               . "</td>
+				<td class='vtmcol_key'>" . vtm_formatOutput($disciplines[$i]->name) . "</td>
 				<td class='vtmcol_spec'>&nbsp;</td>
 				<td class='vtmdot_{$maxrating}'>" . vtm_numberToDots($max, $disciplines[$i]->level) . "</td>
 			</tr>";
@@ -236,7 +236,7 @@ function vtm_get_viewcharacter_content() {
 	$combo = $mycharacter->combo_disciplines;
 	foreach ($combo as $id => $disc) {
 		if (!strstr($disc,"PENDING"))
-			$c_tablemid .= "<tr><td colspan=3>$disc</td></tr>";
+			$c_tablemid .= "<tr><td colspan=3>" . vtm_formatOutput($disc) . "</td></tr>";
 	}
 	$c_tablemid .= "</table>";
 	$c_tableright = "<table><tr><td colspan=3><h4>Other Traits</h4></td></tr>";
@@ -244,8 +244,8 @@ function vtm_get_viewcharacter_content() {
 		$max = max($secondary[$i]->level, $maxrating);
 		if ($secondary[$i]->level > 0)
 			$c_tableright .= "<tr>
-				<td class='vtmcol_key'>" . $secondary[$i]->skillname               . "</td>
-				<td class='vtmcol_spec'>" . stripslashes($secondary[$i]->specialty) . "</td>
+				<td class='vtmcol_key'>" . vtm_formatOutput($secondary[$i]->skillname) . "</td>
+				<td class='vtmcol_spec'>" . vtm_formatOutput($secondary[$i]->specialty) . "</td>
 				<td class='vtmdot_{$maxrating}'>" . vtm_numberToDots($max, $secondary[$i]->level) . "</td>
 			</tr>";
 	}
@@ -277,8 +277,8 @@ function vtm_get_viewcharacter_content() {
 		$c_tableleft .= "<td colspan=4><table>";
 		foreach ($merits as $merit) {
 			if ($merit->pending == 0) {
-				$c_tableleft .= "<tr><td class='vtmcol_key'>" . stripslashes($merit->name) . "</td>";
-				$c_tableleft .= "<td class='vtmcol_spec'>" . (empty($merit->comment) ? "&nbsp;" : stripslashes($merit->comment)) . "</td>";
+				$c_tableleft .= "<tr><td class='vtmcol_key'>" . vtm_formatOutput($merit->name) . "</td>";
+				$c_tableleft .= "<td class='vtmcol_spec'>" . (empty($merit->comment) ? "&nbsp;" : vtm_formatOutput($merit->comment)) . "</td>";
 				$c_tableleft .= "<td>" . $merit->level . "</td></tr>\n";
 			}
 		}
@@ -289,7 +289,7 @@ function vtm_get_viewcharacter_content() {
 	$c_tableleft .= "</tr></table>";
 	$c_tableright = "<table><tr><td colspan=3><h4>Virtues</h4></td></tr>";
 	for ($i=0;$i<3;$i++) {
-		$statname = isset($virtues[$i]->name)      ? $virtues[$i]->name : '';
+		$statname = isset($virtues[$i]->name)      ? vtm_formatOutput($virtues[$i]->name) : '';
 		$statlvl  = isset($virtues[$i]->level)     ? $virtues[$i]->level : '';
 		$c_tableright .= "<tr>
 				<td class='vtmcol_key'>" . $statname . "</td>
@@ -302,7 +302,7 @@ function vtm_get_viewcharacter_content() {
 	$c_tableright .= "<tr><td colspan=3 class='vtmdot_10 vtmdotwide'>" . vtm_numberToDots(10, $mycharacter->willpower) . "</td></tr>\n";
 	$c_tableright .= "<tr><td colspan=3 class='vtmdot_10 vtmdotwide'>" . vtm_numberToBoxes(10, $mycharacter->willpower - $mycharacter->current_willpower) . "</td></tr>\n";
 	$c_tableright .= "<tr><td colspan=3><hr /></td></tr>\n";
-	$c_tableright .= "<tr><td colspan=2><h4>" . $mycharacter->path_of_enlightenment . "</h4></td><td><h4>" . $mycharacter->path_rating . "</h4></td></tr>\n";
+	$c_tableright .= "<tr><td colspan=2><h4>" . vtm_formatOutput($mycharacter->path_of_enlightenment) . "</h4></td><td><h4>" . $mycharacter->path_rating . "</h4></td></tr>\n";
 	$c_tableright .= "<tr><td colspan=3><hr /></td></tr>\n";
 	$c_tableright .= "<tr><td colspan=3><h4>Bloodpool</h4></td></tr>";
 	$c_tableright .= "<tr><td colspan=3 class='vtmdot_10 vtmdotwide'>" . vtm_numberToBoxes($mycharacter->bloodpool,0) . "</td></tr>\n";
@@ -332,10 +332,10 @@ function vtm_get_viewcharacter_content() {
 	if (count($rituals) > 0) {
 		$c_tableleft .= "<td colspan=4><table>";
 		foreach ($rituals as $majikdiscipline => $rituallist) {
-			$c_tableleft .= "<tr><td colspan=2><strong>" . $majikdiscipline . " Rituals</strong></td></tr>\n";
+			$c_tableleft .= "<tr><td colspan=2><strong>" . vtm_formatOutput($majikdiscipline) . " Rituals</strong></td></tr>\n";
 			foreach ($rituallist as $ritual) {
 				if ($ritual['pending'] == 0)
-					$c_tableleft .= "<tr><td class='vtmcol_key'>Level " . $ritual['level'] . "</td><td>" . $ritual['name'] . "</td></tr>\n";
+					$c_tableleft .= "<tr><td class='vtmcol_key'>Level " . $ritual['level'] . "</td><td>" . vtm_formatOutput($ritual['name']) . "</td></tr>\n";
 			} 
 		}
 		$c_tableleft .= "</table></td>";
@@ -348,10 +348,10 @@ function vtm_get_viewcharacter_content() {
 	if (count($majikpaths) > 0) {
 		$c_tableright .= "<table>\n";
 		foreach ($majikpaths as $discipline => $paths) {
-			$c_tableright .= "<tr><td colspan=2><strong>$discipline</strong></td></tr>\n";
+			$c_tableright .= "<tr><td colspan=2><strong>" . vtm_formatOutput($discipline) . "</strong></td></tr>\n";
 			foreach ($paths as $path => $info) {
 				if ($info[0] > 0)
-					$c_tableright .= "<tr><td class='vtmcol_key_wide'>$path</td><td class='vtmdot_5'>" . vtm_numberToDots(5, $info[0]) . "</td></tr>";
+					$c_tableright .= "<tr><td class='vtmcol_key_wide'>" . vtm_formatOutput($path) . "</td><td class='vtmdot_5'>" . vtm_numberToDots(5, $info[0]) . "</td></tr>";
 			}
 		}
 		$c_tableright .= "</table>\n";

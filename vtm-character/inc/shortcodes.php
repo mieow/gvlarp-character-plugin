@@ -74,7 +74,7 @@ function vtm_get_profilelink($wordpressid, $character) {
 
 	return str_replace(
 		Array('@PROFILELINK@','@WORDPRESS@','@EXTRA@','@NAME@'),
-			Array(vtm_get_stlink_url('viewProfile'), urlencode($wordpressid), "",stripslashes($character)),
+			Array(vtm_get_stlink_url('viewProfile'), urlencode($wordpressid), "",vtm_formatOutput($character)),
 			$markup
 		);
 }
@@ -352,19 +352,19 @@ function vtm_print_background_shortcode($atts, $content = null) {
 			$output .= "<tr>";
 			foreach ($columnlist as $name) {
 				if ($name == 'character') $output .= "<td class='gvcol_$col gvcol_key'>" . vtm_get_profilelink($tablerow->wordpress_id, $tablerow->charname) . "</td>";
-				if ($name == 'player') $output .= "<td class='gvcol_$col gvcol_val'>" . stripslashes($tablerow->playername) . "</td>";
-				if ($name == 'clan')   $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->publicclan}</td>";
-				if ($name == 'status') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->cstat}</td>";
-				if ($name == 'domain')  $output .= "<td class='gvcol_$col gvcol_val'>" . stripslashes($tablerow->domain) . "</td>";
-				if ($name == 'background') $output .= "<td class='gvcol_$col gvcol_val'>$background</td>";
-				if ($name == 'comment') $output .= "<td class='gvcol_$col gvcol_val'>" . stripslashes($tablerow->comment) . "</td>";
-				if ($name == 'sector') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->sectorname}</td>";
+				if ($name == 'player') $output .= "<td class='gvcol_$col gvcol_val'>" . vtm_formatOutput($tablerow->playername) . "</td>";
+				if ($name == 'clan')   $output .= "<td class='gvcol_$col gvcol_val'>" . vtm_formatOutput($tablerow->publicclan) . "</td>";
+				if ($name == 'status') $output .= "<td class='gvcol_$col gvcol_val'>" . vtm_formatOutput($tablerow->cstat) . "</td>";
+				if ($name == 'domain')  $output .= "<td class='gvcol_$col gvcol_val'>" . vtm_formatOutput($tablerow->domain) . "</td>";
+				if ($name == 'background') $output .= "<td class='gvcol_$col gvcol_val'>" . vtm_formatOutput($background) . "</td>";
+				if ($name == 'comment') $output .= "<td class='gvcol_$col gvcol_val'>" . vtm_formatOutput($tablerow->comment) . "</td>";
+				if ($name == 'sector') $output .= "<td class='gvcol_$col gvcol_val'>" . vtm_formatOutput($tablerow->sectorname) . "</td>";
 				if ($name == 'level')  $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->level}</td>";
 				if ($name == 'office') {
-					$text = isset($offices[$tablerow->id]) ? stripslashes($offices[$tablerow->id]) : "";
+					$text = isset($offices[$tablerow->id]) ? vtm_formatOutput($offices[$tablerow->id]) : "";
 					$output .= "<td class='gvcol_$col gvcol_val'>$text</td>";
 				}
-				if ($name == 'sect')  $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->sect}</td>";
+				if ($name == 'sect')  $output .= "<td class='gvcol_$col gvcol_val'>" . vtm_formatOutput($tablerow->sect) . "</td>";
 				$col++;
 			}
 			$output .= "</tr>\n";
@@ -575,14 +575,14 @@ function vtm_print_merit_shortcode($atts, $content = null) {
 			$output .= "<tr>";
 			foreach ($columnlist as $name) {
 				if ($name == 'character') $output .= "<td class='gvcol_$col gvcol_key'>" . vtm_get_profilelink($tablerow->wordpress_id, $tablerow->charname) . "</td>";
-				if ($name == 'player') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->playername}</td>";
-				if ($name == 'clan')   $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->publicclan}</td>";
-				if ($name == 'status') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->cstat}</td>";
-				if ($name == 'domain')  $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->domain}</td>";
-				if ($name == 'merit') $output .= "<td class='gvcol_$col gvcol_val'>$merit</td>";
-				if ($name == 'comment') $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->comment}</td>";
+				if ($name == 'player') $output .= "<td class='gvcol_$col gvcol_val'>" . vtm_formatOutput($tablerow->playername) . "</td>";
+				if ($name == 'clan')   $output .= "<td class='gvcol_$col gvcol_val'>" . vtm_formatOutput($tablerow->publicclan) . "</td>";
+				if ($name == 'status') $output .= "<td class='gvcol_$col gvcol_val'>" . vtm_formatOutput($tablerow->cstat) . "</td>";
+				if ($name == 'domain')  $output .= "<td class='gvcol_$col gvcol_val'>" . vtm_formatOutput($tablerow->domain) . "</td>";
+				if ($name == 'merit') $output .= "<td class='gvcol_$col gvcol_val'>" . vtm_formatOutput($merit) . "</td>";
+				if ($name == 'comment') $output .= "<td class='gvcol_$col gvcol_val'>" . vtm_formatOutput($tablerow->comment) . "</td>";
 				if ($name == 'level')  $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->level}</td>";
-				if ($name == 'sect')  $output .= "<td class='gvcol_$col gvcol_val'>{$tablerow->sect}</td>";
+				if ($name == 'sect')  $output .= "<td class='gvcol_$col gvcol_val'>" . vtm_formatOutput($tablerow->sect) . "</td>";
 				$col++;
 			}
 			$output .= "</tr>\n";
@@ -590,7 +590,7 @@ function vtm_print_merit_shortcode($atts, $content = null) {
 		
 		$output .= "</table>";
 	} else {
-		$output = "<p>No characters with the matching merit '$merit'</p>";
+		$output = "<p>No characters with the matching merit '" . vtm_formatOutput($merit) . "'</p>";
 	}
 	
 	return $output;
@@ -672,10 +672,10 @@ function vtm_print_character_xp_table($atts, $content=null) {
 		$arr = array();
 		$i = 0;
 		foreach ($character_xp as $current_xp) {
-			$arr[$i] = "<tr><td class=\"gvcol_1 gvcol_key\">" . stripslashes($current_xp->char_name)   . "</td><td class=\"gvcol_2 gvcol_val\">"
-				. $current_xp->reason_name . "</td><td class=\"gvcol_3 gvcol_val\">"
+			$arr[$i] = "<tr><td class=\"gvcol_1 gvcol_key\">" . vtm_formatOutput($current_xp->char_name)   . "</td><td class=\"gvcol_2 gvcol_val\">"
+				. vtm_formatOutput($current_xp->reason_name) . "</td><td class=\"gvcol_3 gvcol_val\">"
 				. $current_xp->amount      . "</td><td class='gvcol_4 gvcol_val'>"
-				. stripslashes($current_xp->comment)     . "</td><td class='gvcol_5 gvcol_val'>"
+				. vtm_formatOutput($current_xp->comment)     . "</td><td class='gvcol_5 gvcol_val'>"
 				. $current_xp->awarded     . "</td></tr>\n";
 			$i++;
 		}
@@ -760,10 +760,10 @@ function vtm_print_map($atts, $content = null) {
 			$initial = ",\n";
 
 		// Domain name & description
-		$output .= sprintf("name:'%s',desc:'%s',", htmlentities($domain->NAME, ENT_QUOTES), htmlentities($domain->DESCRIPTION, ENT_QUOTES));
+		$output .= sprintf("name:'%s',desc:'%s',", vtm_formatOutput($domain->NAME), vtm_formatOutput($domain->DESCRIPTION));
 
 		// Polygon fill colour
-		$output .= sprintf("fill:'%s',", $domain->SHOWOWNER == 'Y' ? htmlentities($domain->FILL_COLOUR, ENT_QUOTES) : '#FFFFFF');
+		$output .= sprintf("fill:'%s',", $domain->SHOWOWNER == 'Y' ? vtm_formatOutput($domain->FILL_COLOUR) : '#FFFFFF');
 
 		// Coordinate list
 		$output .= 'coords:[';
@@ -838,7 +838,7 @@ function vtm_print_map($atts, $content = null) {
     $output .= "<table class=\"feedingmapkey\">\n";
 	$output .= "<tr><th colspan=2>Map Key</th></tr>\n";
 	foreach ($owners as $owner) {
-		$output .= "<tr><td>". stripslashes($owner->NAME) . "</td>";
+		$output .= "<tr><td>". vtm_formatOutput($owner->NAME) . "</td>";
 		$output .= "<td style='background-color:" . $owner->FILL_COLOUR . ";width:10px'>&nbsp;</td></tr>\n";
 	}
 	$output .= "</table>\n\n";
@@ -888,9 +888,9 @@ function vtm_print_character_road_or_path_table($atts, $content=null) {
 		$i = 0;
 		$path_total = 0;
 		foreach ($character_path as $current_path) {
-			$arr[$i] = "<tr><td class=\"gvcol_1 gvcol_val\">" . $current_path->reason_name . "</td><td class=\"gvcol_2 gvcol_val\">"
+			$arr[$i] = "<tr><td class=\"gvcol_1 gvcol_val\">" . vtm_formatOutput($current_path->reason_name) . "</td><td class=\"gvcol_2 gvcol_val\">"
 				. $current_path->amount      . "</td><td class=\"gvcol_3 gvcol_val\">"
-				. stripslashes($current_path->comment)     . "</td><td class='gvcol_4 gvcol_val'>"
+				. vtm_formatOutput($current_path->comment)     . "</td><td class='gvcol_4 gvcol_val'>"
 				. $current_path->awarded     . "</td></tr>";
 			$path_total = (int) $current_path->total_path;
 			$i++;
@@ -1002,33 +1002,33 @@ function vtm_print_character_details($atts, $content=null) {
 
 	if (count($character_details) > 0) {
 		if ($group == "") {
-			$output  = "<table class='gvplugin' id=\"" . vtm_get_shortcode_id("gvid_cdb") . "\"><tr><td class=\"gvcol_1 gvcol_key\">Character_name</td><td class=\"gvcol_2 gvcol_val\">" . stripslashes($character_details->char_name) . "</td></tr>";
-			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Public Clan</td><td class=\"gvcol_2 gvcol_val\">"           . $character_details->pub_clan        . "</td></tr>";
-			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Private Clan</td><td class=\"gvcol_2 gvcol_val\">"          . $character_details->priv_clan       . "</td></tr>";
+			$output  = "<table class='gvplugin' id=\"" . vtm_get_shortcode_id("gvid_cdb") . "\"><tr><td class=\"gvcol_1 gvcol_key\">Character Name</td><td class=\"gvcol_2 gvcol_val\">" . vtm_formatOutput($character_details->char_name) . "</td></tr>";
+			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Public Clan</td><td class=\"gvcol_2 gvcol_val\">"           . vtm_formatOutput($character_details->pub_clan)        . "</td></tr>";
+			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Private Clan</td><td class=\"gvcol_2 gvcol_val\">"          . vtm_formatOutput($character_details->priv_clan)       . "</td></tr>";
 			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Date of Birth</td><td class=\"gvcol_2 gvcol_val\">"         . $character_details->date_of_birth   . "</td></tr>";
 			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Date of Embrace</td><td class=\"gvcol_2 gvcol_val\">"       . $character_details->date_of_embrace . "</td></tr>";
 			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Generation</td><td class=\"gvcol_2 gvcol_val\">"            . $character_details->gen             . "th</td></tr>";
 			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Max Bloodpool</td><td class=\"gvcol_2 gvcol_val\">"         . $character_details->bloodpool       . "</td></tr>";
 			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Max blood per round</td><td class=\"gvcol_2 gvcol_val\">"   . $character_details->blood_per_round . "</td></tr>";
-			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Sire's Name</td><td class=\"gvcol_2 gvcol_val\">"           . $character_details->sire            . "</td></tr>";
-			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Character Status</td><td class=\"gvcol_2 gvcol_val\">"      . $character_details->status          . "</td></tr>";
-			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Status Comment</td><td class=\"gvcol_2 gvcol_val\">"        . $character_details->status_comment  . "</td></tr>";
-			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Current Domain</td><td class=\"gvcol_2 gvcol_val\">"        . $character_details->domain          . "</td></tr>";
-			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Road or Path name</td><td class=\"gvcol_2 gvcol_val\">"     . $character_details->path_name       . "</td></tr>";
+			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Sire's Name</td><td class=\"gvcol_2 gvcol_val\">"           . vtm_formatOutput($character_details->sire)            . "</td></tr>";
+			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Character Status</td><td class=\"gvcol_2 gvcol_val\">"      . vtm_formatOutput($character_details->status)          . "</td></tr>";
+			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Status Comment</td><td class=\"gvcol_2 gvcol_val\">"        . vtm_formatOutput($character_details->status_comment)  . "</td></tr>";
+			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Current Domain</td><td class=\"gvcol_2 gvcol_val\">"        . vtm_formatOutput($character_details->domain)          . "</td></tr>";
+			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Road or Path name</td><td class=\"gvcol_2 gvcol_val\">"     . vtm_formatOutput($character_details->path_name)       . "</td></tr>";
 			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Road or Path rating</td><td class=\"gvcol_2 gvcol_val\">"   . $character_details->path_value      . "</td></tr>";
 			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Last Updated</td><td class=\"gvcol_2 gvcol_val\">"          . $character_details->last_updated    . "</td></tr>";
 			
 			if ($vtmglobal['config']->USE_NATURE_DEMEANOUR == 'Y') {
 				
-				$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Nature</td><td class=\"gvcol_2 gvcol_val\">" . $character_details->nature      . "</td></tr>";
-				$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Demeanour</td><td class=\"gvcol_2 gvcol_val\">" . $character_details->demeanour      . "</td></tr>";
+				$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Nature</td><td class=\"gvcol_2 gvcol_val\">" . vtm_formatOutput($character_details->nature)      . "</td></tr>";
+				$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Demeanour</td><td class=\"gvcol_2 gvcol_val\">" . vtm_formatOutput($character_details->demeanour)      . "</td></tr>";
 			
 			}
 			
 			$output .= "</table>";
 		}
 		else {
-			$output = "<span class=\"gvcol_val\" id=\"gvid_cdeb_" . $group . "\">" . stripslashes($character_details->$group) . "</span>";
+			$output = "<span class=\"gvcol_val\" id=\"gvid_cdeb_" . $group . "\">" . vtm_formatOutput($character_details->$group) . "</span>";
 		}
 	}
 
@@ -1063,9 +1063,9 @@ function vtm_print_character_offices($atts, $content=null) {
 	$character_offices = $wpdb->get_results($wpdb->prepare($sql, $character));
 
 	foreach ($character_offices as $current_office) {
-		$sqlOutput .="<tr><td class=\"gvcol_1 gvcol_key\">"  . $current_office->office_name . "</td>
-								  <td class=\"gvcol_2 gvcol_val\">"  . $current_office->domain_name  . "</td>
-								  <td class=\"gvcol_3 gvcol_spec\">" . stripslashes($current_office->comment)     . "</td></tr>";
+		$sqlOutput .="<tr><td class=\"gvcol_1 gvcol_key\">"  . vtm_formatOutput($current_office->office_name) . "</td>
+								  <td class=\"gvcol_2 gvcol_val\">"  . vtm_formatOutput($current_office->domain_name)  . "</td>
+								  <td class=\"gvcol_3 gvcol_spec\">" . vtm_formatOutput($current_office->comment)     . "</td></tr>";
 	}
 
 	if ($sqlOutput != "") {
@@ -1150,7 +1150,7 @@ function vtm_print_character_temp_stats($atts, $content=null) {
 									<td class=\"gvcol_3 gvcol_val\">%s</td>
 									<td class=\"gvcol_4 gvcol_val\">%s</td>
 								</tr>\n",
-						$row->NAME, $row->AMOUNT, $row->AWARDED, $row->COMMENT);
+						vtm_formatOutput($row->NAME), $row->AMOUNT, $row->AWARDED, vtm_formatOutput($row->COMMENT));
 		}
 		$output .= "<tr><td colspan=2 class=\"gvsummary\">Current $stat</td>
 							<td colspan=2 class=\"gvsummary\">$totalstat</td></tr>\n";
@@ -1207,20 +1207,20 @@ function vtm_print_office_block($atts, $content=null) {
 		foreach ($characterOffices as $characterOffice) {
 			$currentOffice = $characterOffice->oname;
 			if ($currentOffice != $lastOffice) {
-				$sqlOutput .= "<tr><td class=\"gvcol_1 gvcol_key\">" . $characterOffice->oname . "</td>";
+				$sqlOutput .= "<tr><td class=\"gvcol_1 gvcol_key\">" . vtm_formatOutput($characterOffice->oname) . "</td>";
 				$lastOffice = $currentOffice;
 			}
 			else {
 				$sqlOutput .= "<tr><td class=\"gvcol_1 gvcol_key\">&nbsp;</td>";
 			}
-			$sqlOutput .= "<td class=\"gvcol_2 gvcol_val\">" . stripslashes($characterOffice->charname) . "</td><td class=\"gvcol_3 gvcol_val\">" . stripslashes($characterOffice->comment) . "</td></tr>";
+			$sqlOutput .= "<td class=\"gvcol_2 gvcol_val\">" . vtm_formatOutput($characterOffice->charname) . "</td><td class=\"gvcol_3 gvcol_val\">" . stripslashes($characterOffice->comment) . "</td></tr>";
 		}
 
 		if ($sqlOutput != "") {
 			$output = "<table class='gvplugin' id=\"" . vtm_get_shortcode_id("gvid_cob") . "\">" . $sqlOutput . "</table>";
 		}
 		else {
-			$output = "No office holders found for the domain of " . $domain;
+			$output = "No office holders found for the domain of " . vtm_formatOutput($domain);
 		}
 	}
 	else {
@@ -1231,7 +1231,7 @@ function vtm_print_office_block($atts, $content=null) {
 			$output .= $characterOffice->charname;
 		}
 		if ($output == "") {
-			$output = "No current holder of " . $office . " in " . $domain . " found.";
+			$output = "No current holder of " . vtm_formatOutput($office) . " in " . vtm_formatOutput($domain) . " found.";
 		}
 	}
 	return $output;
