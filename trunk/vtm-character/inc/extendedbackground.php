@@ -62,7 +62,7 @@ function vtm_get_tabanchor($tab, $text, $default = "backgrounds"){
 	$markup = '<a id="gvm-@TAB@" href="javascript:void(0);" onclick="vtm_tabSwitch(\'@TAB@\');"@SHOWN@>@TEXT@</a>';
 	return str_replace(
 		Array('@TAB@','@TEXT@','@SHOWN@'),
-			Array($tab, $text, vtm_get_highlight($tab, $default)),
+			Array($tab, vtm_formatOutput($text), vtm_get_highlight($tab, $default)),
 			$markup
 		);
 }
@@ -138,11 +138,11 @@ function vtm_get_editbackgrounds_tab($characterID) {
 	$content .= "<input type='hidden' name='charID' value='$characterID' />";
 	
 	foreach ($backgrounds as $background) {
-		$content .= "<p class='vtmext_name'>" . $background->NAME . ": " . $background->LEVEL;
-		$content .= ($background->COMMENT) ? " ({$background->COMMENT})" : "";
+		$content .= "<p class='vtmext_name'>" . vtm_formatOutput($background->NAME) . ": " . $background->LEVEL;
+		$content .= ($background->COMMENT) ? " (" . vtm_formatOutput($background->COMMENT) . ")" : "";
 		$content .= "</p>\n";
 		if (!empty($background->BACKGROUND_QUESTION))
-			$content .= "<div class='vtmext_ques'>" . wpautop(stripslashes($background->BACKGROUND_QUESTION)) . "</div>\n";
+			$content .= "<div class='vtmext_ques'>" . wpautop(vtm_formatOutput($background->BACKGROUND_QUESTION)) . "</div>\n";
 		$content .= "<div class='vtmext_section'>";
 		$content .= "<input type='hidden' name='charbgID[$i]' value='{$background->charbgsID}' />\n";
 		$content .= "<input type='hidden' name='charbgName[$i]' value='{$background->NAME}' />\n";
@@ -162,12 +162,12 @@ function vtm_get_editbackgrounds_tab($characterID) {
 					$content .= "selected='selected'";
 					$found = 1;
 				}
-				$content .= ">{$sector->NAME}</option>";
+				$content .= ">" . vtm_formatOutput($sector->NAME) . "</option>";
 			}
 			if (!$found && !empty($background->SECTOR_ID)) {
 				foreach (vtm_get_sectors(true) as $sector) {
 					if ($background->SECTOR_ID == $sector->ID) {
-						$content .= "<option value='{$sector->ID}' selected='selected' >{$sector->NAME}</option>";
+						$content .= "<option value='{$sector->ID}' selected='selected' >" . vtm_formatOutput($sector->NAME) . "</option>";
 					}
 				}
 			}
@@ -177,9 +177,9 @@ function vtm_get_editbackgrounds_tab($characterID) {
 		
 		if ($background->BACKGROUND_QUESTION != '') {
 			if (!empty($background->APPROVED_DETAIL))
-				$content .= "<tr><th>Approved Description</th></tr><tr><td class='vtmext_approved'>" . wpautop(stripslashes($background->APPROVED_DETAIL)) . "</td></tr>";
+				$content .= "<tr><th>Approved Description</th></tr><tr><td class='vtmext_approved'>" . wpautop(vtm_formatOutput($background->APPROVED_DETAIL, 1)) . "</td></tr>";
 			if ($background->DENIED_DETAIL != "") {
-				$content .= "<tr><th>Description Denied</th></tr><tr><td class='vtmext_denied'>" . wpautop(stripslashes($background->DENIED_DETAIL)) . "</td></tr>\n";
+				$content .= "<tr><th>Description Denied</th></tr><tr><td class='vtmext_denied'>" . wpautop(vtm_formatOutput($background->DENIED_DETAIL, 1)) . "</td></tr>\n";
 			}
 			$content .= "<tr><th>Update Description";
 			if ($background->DENIED_DETAIL != "")
@@ -189,16 +189,16 @@ function vtm_get_editbackgrounds_tab($characterID) {
 			$content .= "</th></tr>";
 			$content .= "<tr><td><textarea name='pendingbg[$i]' rows='5' cols='100'>";
 			if (isset($pendingbg[$i]))
-				$content .= stripslashes($pendingbg[$i]);
+				$content .= vtm_formatOutput($pendingbg[$i]);
 			else
 				if ($background->PENDING_DETAIL == "")
-					$content .= stripslashes($background->APPROVED_DETAIL);
+					$content .= vtm_formatOutput($background->APPROVED_DETAIL, 1);
 				else
-					$content .= stripslashes($background->PENDING_DETAIL);
+					$content .= vtm_formatOutput($background->PENDING_DETAIL, 1);
 			$content .= "</textarea></td></tr>";
 		}
 		
-		$content .= "<tr><td><input type='submit' name='save_bgform[$i]' value='Save {$background->NAME}' /></td></tr>\n";
+		$content .= "<tr><td><input type='submit' name='save_bgform[$i]' value='Save " . vtm_formatOutput($background->NAME) . "' /></td></tr>\n";
 		$content .= "</table></div>\n";
 		$i++;
 	}
@@ -258,18 +258,18 @@ function vtm_get_editmerits_tab($characterID) {
 	
 	foreach ($merits as $merit) {
 	
-		$content .= "<p class='vtmext_name'>" . $merit->NAME;
-		$content .= ($merit->COMMENT) ? " ({$merit->COMMENT})" : "";
-		$content .= "</p>\n<div class='vtmext_ques'>" . wpautop(stripslashes($merit->BACKGROUND_QUESTION)) . "</div>\n";
+		$content .= "<p class='vtmext_name'>" . vtm_formatOutput($merit->NAME);
+		$content .= ($merit->COMMENT) ? " (" . vtm_formatOutput($merit->COMMENT) . ")" : "";
+		$content .= "</p>\n<div class='vtmext_ques'>" . wpautop(vtm_formatOutput($merit->BACKGROUND_QUESTION)) . "</div>\n";
 		$content .= "<div class='vtmext_section'>";
 		$content .= "<input type='hidden' name='meritID[$i]' value='{$merit->meritID}' />\n";
-		$content .= "<input type='hidden' name='charmeritName[$i]' value='{$merit->NAME}' />\n";
+		$content .= "<input type='hidden' name='charmeritName[$i]' value='" . vtm_formatOutput($merit->COMMENT) . "' />\n";
 		$content .= "<table>";
 
 		if (!empty($merit->APPROVED_DETAIL))
-			$content .= "<tr><th>Approved Description</th></tr><tr><td class='vtmext_approved'>" . wpautop(stripslashes($merit->APPROVED_DETAIL)) . "</td></tr>";
+			$content .= "<tr><th>Approved Description</th></tr><tr><td class='vtmext_approved'>" . wpautop(vtm_formatOutput($merit->APPROVED_DETAIL, 1)) . "</td></tr>";
 		if ($merit->DENIED_DETAIL != "") {
-			$content .= "<tr><th>Description Denied</th></tr><tr><td class='vtmext_denied'>" . wpautop(stripslashes($merit->DENIED_DETAIL)) . "</td></tr>\n";
+			$content .= "<tr><th>Description Denied</th></tr><tr><td class='vtmext_denied'>" . wpautop(vtm_formatOutput($merit->DENIED_DETAIL, 1)) . "</td></tr>\n";
 		}
 		$content .= "<tr><th>Update Description";
 		if ($merit->DENIED_DETAIL != "")
@@ -279,16 +279,16 @@ function vtm_get_editmerits_tab($characterID) {
 		$content .= "</th></tr>";
 		$content .= "<tr><td><textarea name='pendingmerit[$i]' rows='5' cols='100'>";
 		if (isset($pendingmerit[$i]))
-			$content .= stripslashes($pendingmerit[$i]);
+			$content .= vtm_formatOutput($pendingmerit[$i]);
 		else
 			if ($merit->PENDING_DETAIL == "")
-				$content .= stripslashes($merit->APPROVED_DETAIL);
+				$content .= vtm_formatOutput($merit->APPROVED_DETAIL, 1);
 			else
-				$content .= stripslashes($merit->PENDING_DETAIL);
+				$content .= vtm_formatOutput($merit->PENDING_DETAIL, 1);
 		$content .= "</textarea></td></tr>";
 
 		
-		$content .= "<tr><td><input type='submit' name='save_meritform[$i]' value='Save {$merit->NAME}' /></td></tr>\n";
+		$content .= "<tr><td><input type='submit' name='save_meritform[$i]' value='Save " . vtm_formatOutput($merit->NAME) . "' /></td></tr>\n";
 		$content .= "</table></div>\n";
 		$i++;
 	}
@@ -384,19 +384,19 @@ function vtm_get_editmisc_tab($characterID) {
 	
 	foreach ($questions as $question) {
 	
-		$content .= "<p class='vtmext_name'>" . $question->TITLE . "</p>\n";
-		$content .= "<div class='vtmext_ques'>" . wpautop(stripslashes($question->BACKGROUND_QUESTION)) . "</div>\n";
+		$content .= "<p class='vtmext_name'>" . vtm_formatOutput($question->TITLE) . "</p>\n";
+		$content .= "<div class='vtmext_ques'>" . wpautop(vtm_formatOutput($question->BACKGROUND_QUESTION)) . "</div>\n";
 		$content .= "<div class='vtmext_section'>";
 		$content .= "<input type='hidden' name='miscID[$i]' value='{$question->miscID}' />\n";
 		$content .= "<input type='hidden' name='miscformID[$i]' value='{$i}' />\n";
 		$content .= "<input type='hidden' name='questID[$i]' value='{$question->questID}' />\n";
-		$content .= "<input type='hidden' name='charmiscTitle[$i]' value='{$question->TITLE}' />\n";
+		$content .= "<input type='hidden' name='charmiscTitle[$i]' value='" . vtm_formatOutput($question->TITLE) . "' />\n";
 		$content .= "<table>";
 
 		if (!empty($question->APPROVED_DETAIL))
-			$content .= "<tr><th>Approved Description</th></tr><tr><td class='vtmext_approved'>" . wpautop(stripslashes($question->APPROVED_DETAIL)) . "</td></tr>";
+			$content .= "<tr><th>Approved Description</th></tr><tr><td class='vtmext_approved'>" . wpautop(vtm_formatOutput($question->APPROVED_DETAIL, 1)) . "</td></tr>";
 		if ($question->DENIED_DETAIL != "") {
-			$content .= "<tr><th>Description Denied</th></tr><tr><td class='vtmext_denied'>" . wpautop(stripslashes($question->DENIED_DETAIL)) . "</td></tr>\n";
+			$content .= "<tr><th>Description Denied</th></tr><tr><td class='vtmext_denied'>" . wpautop(vtm_formatOutput($question->DENIED_DETAIL, 1)) . "</td></tr>\n";
 		}
 		$content .= "<tr><th>Update Description";
 		if ($question->DENIED_DETAIL != "")
@@ -406,16 +406,16 @@ function vtm_get_editmisc_tab($characterID) {
 		$content .= "</th></tr>";
 		$content .= "<tr><td><textarea name='pendingmisc[$i]' rows='5' cols='100'>";
 		if (isset($pendingmisc[$i]))
-			$content .= stripslashes($pendingmisc[$i]);
+			$content .= vtm_formatOutput($pendingmisc[$i]);
 		else
 			if ($question->PENDING_DETAIL == "")
-				$content .= stripslashes($question->APPROVED_DETAIL);
+				$content .= vtm_formatOutput($question->APPROVED_DETAIL, 1);
 			else
-				$content .= stripslashes($question->PENDING_DETAIL);
+				$content .= vtm_formatOutput($question->PENDING_DETAIL, 1);
 		$content .= "</textarea></td></tr>";
 
 		
-		$content .= "<tr><td><input type='submit' name='save_miscform[$i]' value='Save {$question->TITLE}' /></td></tr>\n";
+		$content .= "<tr><td><input type='submit' name='save_miscform[$i]' value='Save " . vtm_formatOutput($question->TITLE) . "' /></td></tr>\n";
 		$content .= "</table></div>\n";
 		$i++;
 	}

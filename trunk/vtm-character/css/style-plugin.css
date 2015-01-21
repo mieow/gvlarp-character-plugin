@@ -484,6 +484,7 @@ table.feedingmapkey {width:auto;}
 
 #chargen-main .mfdotselect img {
 	vertical-align:top;
+	width: 16px;
 }
 #chargen-main .mfdotselect span {
 	padding-left:17px;

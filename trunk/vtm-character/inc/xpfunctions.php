@@ -176,8 +176,8 @@ function vtm_render_supply_details($character) {
 	$output .= "<input class='vtmxp_submit' type='submit' name='xCancel' value='Back'>\n";
 
 	if (isset($_POST['VTM_CHARACTER']) && $_POST['VTM_CHARACTER'] != "")
-		$output .= "<input type='HIDDEN' name='VTM_CHARACTER' value='" . $_POST['VTM_CHARACTER'] . "' />\n";
-	$output .= "<input type='HIDDEN' name='character' value='" . $character . "'>\n";
+		$output .= "<input type='HIDDEN' name='VTM_CHARACTER' value='" . vtm_formatOutput($_POST['VTM_CHARACTER']) . "' />\n";
+	$output .= "<input type='HIDDEN' name='character' value='" . vtm_formatOutput($character) . "'>\n";
 	$output .= "<input type='HIDDEN' name='step' value='submit_spend'>\n";
 	$output .= "<input type='HIDDEN' name='VTM_FORM' value='applyXPSpend' />\n";
 	$output .= "</form></div>\n";
@@ -242,7 +242,7 @@ function vtm_render_select_spends($character) {
 	$i = 0;
 	foreach ($sectionorder as $section) {
 		if ($sectiontitle[$section] && $sectioncontent[$section]) {
-			$jumpto[$i++] = "<a href='#gvid_xpst_$section' class='gvxp_jump'>" . $sectiontitle[$section] . "</a>";
+			$jumpto[$i++] = "<a href='#gvid_xpst_$section' class='gvxp_jump'>" . vtm_formatOutput($sectiontitle[$section]) . "</a>";
 		}
 	}
 	$outputJump = "<p>Jump to section: " . implode(" | ", $jumpto) . "</p>";
@@ -250,7 +250,7 @@ function vtm_render_select_spends($character) {
 	foreach ($sectionorder as $section) {
 	
 		if ($sectioncontent[$section]) {
-			$output .= "<h4 class='gvxp_head' id='gvid_xpst_$section'>" . $sectiontitle[$section] . "</h4>\n";
+			$output .= "<h4 class='gvxp_head' id='gvid_xpst_$section'>" . vtm_formatOutput($sectiontitle[$section]) . "</h4>\n";
 			$output .= "$outputJump\n";
 			//$output .= $sectionheading[$section];
 			$output .= $sectioncontent[$section];
@@ -261,12 +261,12 @@ function vtm_render_select_spends($character) {
 
 
 	if (isset($_POST['VTM_CHARACTER']) && $_POST['VTM_CHARACTER'] != "") {
-		$output .= "<input type='HIDDEN' name='VTM_CHARACTER' value='" . $_POST['VTM_CHARACTER'] . "' />\n";
+		$output .= "<input type='HIDDEN' name='VTM_CHARACTER' value='" . vtm_formatOutput($_POST['VTM_CHARACTER']) . "' />\n";
 	}
 
 	if (isset($_POST['VTM_CHARACTER']) && $_POST['VTM_CHARACTER'] != "")
-		$output .= "<input type='HIDDEN' name='VTM_CHARACTER' value='" . $_POST['VTM_CHARACTER'] . "' />\n";
-	$output .= "<input type='HIDDEN' name='character' value='" . $character . "'>\n";
+		$output .= "<input type='HIDDEN' name='VTM_CHARACTER' value='" . vtm_formatOutput($_POST['VTM_CHARACTER']) . "' />\n";
+	$output .= "<input type='HIDDEN' name='character' value='" . vtm_formatOutput($character) . "'>\n";
 	$output .= "<input type='HIDDEN' name='step' value='supply_details'>\n";
 	$output .= "<input type='HIDDEN' name='VTM_FORM' value='applyXPSpend' />\n";
 	$output .= "</form></div>\n";
@@ -418,8 +418,9 @@ function vtm_render_details_section($type) {
 	
 		if ($level != 0) {
 			$specat = isset($specats[$index]) ? $specats[$index] : '';
-			$name    = htmlspecialchars(stripslashes($names[$index]), ENT_QUOTES);
-			$comment = htmlspecialchars(stripslashes($comments[$index]), ENT_QUOTES);
+			$name    = vtm_formatOutput($names[$index]);
+			$comment = vtm_formatOutput($comments[$index]);
+			$spec    = vtm_formatOutput($specs[$index]);
 			
 			// Hidden fields
 			$rowoutput .= "<tr style='display:none'><td colspan=5>";
@@ -441,12 +442,12 @@ function vtm_render_details_section($type) {
 				if (empty($specs[$index]))
 					$rowoutput .= "<td><input type='text' name='{$type}_spec[" . $index . "]' value='' size=15 maxlength=60></td>";
 				else
-					$rowoutput .= "<td>{$specs[$index]}<input type='hidden' name='{$type}_spec[" . $index . "]' value='{$specs[$index]}'></td>";
+					$rowoutput .= "<td>{$spec}<input type='hidden' name='{$type}_spec[" . $index . "]' value='{$specs[$index]}'></td>";
 			} elseif ($specat > 0) {
 				if (empty($specs[$index]) && $specats[$index] <= $level)
 					$rowoutput .= "<td><input type='text' name='{$type}_spec[" . $index . "]' value='' size=15 maxlength=60></td>";
 				else
-					$rowoutput .= "<td>{$specs[$index]}<input type='hidden' name='{$type}_spec[" . $index . "]' value='{$specs[$index]}'></td>";
+					$rowoutput .= "<td>{$spec}<input type='hidden' name='{$type}_spec[" . $index . "]' value='{$specs[$index]}'></td>";
 			} else {
 				$rowoutput .= "<td>&nbsp;</td>";
 			}
@@ -670,6 +671,9 @@ function vtm_render_skills_row($type, $rownum, $max2display, $maxRating, $dataro
 	$emptydoturl   = plugins_url( 'vtm-character/images/dot1empty.jpg' );
 	$pendingdoturl = plugins_url( 'vtm-character/images/dot2.jpg' );
 
+	$datarow->comment = vtm_formatOutput($datarow->comment);
+	$datarow->name    = vtm_formatOutput($datarow->name);
+	
 	$rowoutput = "";
 		// Hidden fields
 	$rowoutput .= "<tr style='display:none'><td colspan=3>\n";
@@ -681,25 +685,7 @@ function vtm_render_skills_row($type, $rownum, $max2display, $maxRating, $dataro
 	$rowoutput .= "<input type='hidden' name='{$type}_name[" . $rownum . "]'    value='" . $datarow->name . "' >\n";
 	$rowoutput .= "</td></tr>\n";
 	
-	// start column / new column
-/* 	if (isset($datarow->grp)) {
-		if ($grp != $datarow->grp) {
-			if (empty($grp)) {
-				$rowoutput .= "<tr><td class='gvxp_col'><table><tr><th colspan=$colspan>{$datarow->grp}</th></tr>";
-				$col++;
-			} 
-			elseif ($col == $columns) {
-				$rowoutput .= "</table></td></tr><tr><td class='gvxp_col'><table><tr><th colspan=$colspan>{$datarow->grp}</th></tr>";
-				$col = 1;
-			}
-			else {
-				$rowoutput .= "</table></td><td class='gvxp_col'><table><tr><th colspan=$colspan>{$datarow->grp}</th></tr>";
-				$col++;
-			}
-			$grp = $datarow->grp;
-		}
-	}
- */	
+
 	//dots row
 	$xpcost = 0;
 	$rowoutput .= "<tr><td class='vtmcol_key'><span";
@@ -1264,9 +1250,9 @@ function vtm_render_spend_table($type, $allxpdata, $maxRating, $columns, $xp_ava
 			}
 			
 			$spec_at   = isset($xpdata->spec_at) ?  $xpdata->spec_at : 0;
-			$xpcomment = isset($xpdata->comment) ?  htmlspecialchars($xpdata->comment) : '';
+			$xpcomment = isset($xpdata->comment) ?  vtm_formatOutput($xpdata->comment) : '';
 			$xpid      = isset($xpdata->id)      ?  $xpdata->id : '';
-			$name      = htmlspecialchars($xpdata->name, ENT_QUOTES);
+			$name      = vtm_formatOutput($xpdata->name);
 			
 			// Hidden fields
 			$rowoutput .= "<tr style='display:none'><td colspan=3>\n";
@@ -1283,8 +1269,8 @@ function vtm_render_spend_table($type, $allxpdata, $maxRating, $columns, $xp_ava
 			$xpcost = 0;
 			$rowoutput .= "<tr><td class='vtmcol_key'><span";
 			if ($xpcomment)
-				$rowoutput .= " title='{$xpcomment}' class='vtmxp_spec' ";
-			$rowoutput .= ">" . stripslashes($xpdata->name) . "</span></td>\n";
+				$rowoutput .= " title='$xpcomment' class='vtmxp_spec' ";
+			$rowoutput .= ">$name</span></td>\n";
 			$rowoutput .= "<td class='vtmdot_$tmp_max2display vtmdots'>";
 			for ($i=1;$i<=$tmp_max2display;$i++) {
 			
@@ -1305,7 +1291,7 @@ function vtm_render_spend_table($type, $allxpdata, $maxRating, $columns, $xp_ava
 							
 						if ($xp_avail >= $xpcost) {
 								
-							$comment    = htmlentities($xpdata->name, ENT_QUOTES) . " " . $xpdata->level . " > " . $i;
+							$comment    = $name . " " . $xpdata->level . " > " . $i;
 						
 							$rowoutput .= "<input type='hidden'   name='{$type}_cost[" . $id . "]'    value='" . $xpcost . "' >";
 							$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $id . "]' value='$comment' >";
@@ -1369,15 +1355,15 @@ function vtm_render_skill_spend_table($type, $list, $allxpdata, $maxRating, $col
 				if ($grp != $skill->grp) {
 					$grpcount++;
 					if (empty($grp)) {
-						$rowoutput .= "<tr><td class='gvxp_col'><table><tr><th class='$colclass' colspan=3>{$skill->grp}</th></tr>";
+						$rowoutput .= "<tr><td class='gvxp_col'><table><tr><th class='$colclass' colspan=3>" . vtm_formatOutput($skill->grp) . "</th></tr>";
 						$col++;
 					} 
 					elseif ($col == $columns) {
-						$rowoutput .= "</table></td></tr><tr><td class='gvxp_col'><table><tr><th class='$colclass' colspan=3>{$skill->grp}</th></tr>";
+						$rowoutput .= "</table></td></tr><tr><td class='gvxp_col'><table><tr><th class='$colclass' colspan=3>" . vtm_formatOutput($skill->grp) . "</th></tr>";
 						$col = 1;
 					}
 					else {
-						$rowoutput .= "</table></td><td class='gvxp_col'><table><tr><th class='$colclass' colspan=3>{$skill->grp}</th></tr>";
+						$rowoutput .= "</table></td><td class='gvxp_col'><table><tr><th class='$colclass' colspan=3>" . vtm_formatOutput($skill->grp) . "</th></tr>";
 						$col++;
 					}
 					$grp = $skill->grp;
@@ -1448,15 +1434,15 @@ function vtm_render_ritual_spend_table($type, $allxpdata, $columns, $xp_avail) {
 				if ($grp != $xpdata->grp) {
 					$grpcount++;
 					if (empty($grp)) {
-						$rowoutput .= "<tr><td class='gvxp_col'><table><tr><th class='$colclass' colspan=3>{$xpdata->grp}</th></tr>";
+						$rowoutput .= "<tr><td class='gvxp_col'><table><tr><th class='$colclass' colspan=3>" . vtm_formatOutput($xpdata->grp) . "</th></tr>";
 						$col++;
 					} 
 					elseif ($col == $columns) {
-						$rowoutput .= "</table></td></tr><tr><td class='gvxp_col'><table><tr><th class='$colclass' colspan=3>{$xpdata->grp}</th></tr>";
+						$rowoutput .= "</table></td></tr><tr><td class='gvxp_col'><table><tr><th class='$colclass' colspan=3>" . vtm_formatOutput($xpdata->grp) . "</th></tr>";
 						$col = 1;
 					}
 					else {
-						$rowoutput .= "</table></td><td class='gvxp_col'><table><tr><th class='$colclass' colspan=3>{$xpdata->grp}</th></tr>";
+						$rowoutput .= "</table></td><td class='gvxp_col'><table><tr><th class='$colclass' colspan=3>" . vtm_formatOutput($xpdata->grp) . "</th></tr>";
 						$col++;
 					}
 					$grp = $xpdata->grp;
@@ -1470,13 +1456,13 @@ function vtm_render_ritual_spend_table($type, $allxpdata, $columns, $xp_avail) {
 			$rowoutput .= "<input type='hidden' name='{$type}_curr[" . $id . "]'    value='" . $xpdata->level . "' >\n";
 			$rowoutput .= "<input type='hidden' name='{$type}_itemid[" . $id . "]'  value='" . $xpdata->item_id . "' >\n";
 			$rowoutput .= "<input type='hidden' name='{$type}_id[" . $id . "]'      value='" . $xpid . "' >\n";
-			$rowoutput .= "<input type='hidden' name='{$type}_name[" . $id . "]'    value='" . htmlentities($xpdata->name) . "' >\n";
+			$rowoutput .= "<input type='hidden' name='{$type}_name[" . $id . "]'    value='" . vtm_formatOutput($xpdata->name) . "' >\n";
 			$rowoutput .= "</td></tr>\n";
 			
 			
 			//dots row
 			$xpcost = 0;
-			$rowoutput .= "<tr><td class='vtmcol_key_wide'><span>(Level {$xpdata->rituallevel}) {$xpdata->name}</span></td>";
+			$rowoutput .= "<tr><td class='vtmcol_key_wide'><span>(Level {$xpdata->rituallevel}) " . vtm_formatOutput($xpdata->name) . "</span></td>";
 			$rowoutput .= "<td class='vtmdot_1 vtmdots'>";
 			if ($xpdata->level || $xpdata->level === 0)
 				$rowoutput .= "<img alt='*' src='$fulldoturl'>";
@@ -1486,7 +1472,7 @@ function vtm_render_ritual_spend_table($type, $allxpdata, $columns, $xp_avail) {
 				$xpcost = $xpdata->XP_COST;
 				
 				if ($xp_avail >= $xpcost) {
-					$comment    = htmlentities("Learn Level {$xpdata->rituallevel} {$xpdata->grp} ritual {$xpdata->name}");
+					$comment    = vtm_formatOutput("Learn Level {$xpdata->rituallevel} {$xpdata->grp} ritual {$xpdata->name}");
 				
 					$rowoutput .= "<input type='hidden'   name='{$type}_cost[" . $id . "]'    value='" . $xpcost . "' >";
 					$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $id . "]' value='$comment' >";
@@ -1561,12 +1547,12 @@ function vtm_render_combo_spend_table($type, $allxpdata, $xp_avail) {
 			$rowoutput .= "<input type='hidden' name='{$type}_curr[" . $id . "]'    value='" . $xpdata->level . "' >\n";
 			$rowoutput .= "<input type='hidden' name='{$type}_itemid[" . $id . "]'  value='" . $xpdata->item_id . "' >\n";
 			$rowoutput .= "<input type='hidden' name='{$type}_id[" . $id . "]'      value='0' >\n";
-			$rowoutput .= "<input type='hidden' name='{$type}_name[" . $id . "]'    value='" . $xpdata->name . "' >\n";
+			$rowoutput .= "<input type='hidden' name='{$type}_name[" . $id . "]'    value='" . vtm_formatOutput($xpdata->name) . "' >\n";
 			$rowoutput .= "</td></tr>\n";
 						
 			//dots row
 			$xpcost = 0;
-			$rowoutput .= "<tr><td class='vtmcol_key'><span>{$xpdata->name}</span></td>";
+			$rowoutput .= "<tr><td class='vtmcol_key'><span>" . vtm_formatOutput($xpdata->name) . "</span></td>";
 			$rowoutput .= "<td class='vtmdot_5 vtmdots'>";
 			if ($xpdata->level)
 				$rowoutput .= "<img alt='*' src='$fulldoturl'>";
@@ -1576,7 +1562,7 @@ function vtm_render_combo_spend_table($type, $allxpdata, $xp_avail) {
 				$xpcost = $xpdata->XP_COST;
 				
 				if ($xp_avail >= $xpcost) {
-					$comment    = "Learn Combo-Discipline {$xpdata->name}";
+					$comment    = "Learn Combo-Discipline " . vtm_formatOutput($xpdata->name);
 				
 					$rowoutput .= "<input type='hidden'   name='{$type}_cost[" . $id . "]'    value='" . $xpcost . "' >";
 					$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $id . "]' value='$comment' >";
@@ -1624,15 +1610,15 @@ function vtm_render_merit_spend_table($type, $list, $allxpdata, $columns, $xp_av
 			if (isset($merit->grp)) {
 				if ($grp != $merit->grp) {
 					if (empty($grp)) {
-						$rowoutput .= "<tr><td class='gvxp_col'><table><tr><th class='$colclass' colspan=$colspan>{$merit->grp}</th></tr>\n";
+						$rowoutput .= "<tr><td class='gvxp_col'><table><tr><th class='$colclass' colspan=$colspan>" . vtm_formatOutput($merit->grp) . "</th></tr>\n";
 						$col++;
 					} 
 					elseif ($col == $columns) {
-						$rowoutput .= "</table></td></tr>\n<tr><td class='gvxp_col'>\n<table>\n<tr><th class='$colclass' colspan=$colspan>{$merit->grp}</th></tr>\n";
+						$rowoutput .= "</table></td></tr>\n<tr><td class='gvxp_col'>\n<table>\n<tr><th class='$colclass' colspan=$colspan>" . vtm_formatOutput($merit->grp) . "</th></tr>\n";
 						$col = 1;
 					}
 					else {
-						$rowoutput .= "</table>\n</td><td class='gvxp_col'>\n<table>\n<tr><th class='$colclass' colspan=$colspan>{$merit->grp}</th></tr>\n";
+						$rowoutput .= "</table>\n</td><td class='gvxp_col'>\n<table>\n<tr><th class='$colclass' colspan=$colspan>" . vtm_formatOutput($merit->grp) . "</th></tr>\n";
 						$col++;
 					}
 					$grp = $merit->grp;
@@ -1690,18 +1676,18 @@ function vtm_render_merits_row($type, $id, $xpdata, $levelsdata, $xp_avail) {
 	$rowoutput .= "<input type='hidden' name='{$type}_curr[" . $id . "]'    value='" . $xpdata->level . "' >\n";
 	$rowoutput .= "<input type='hidden' name='{$type}_itemid[" . $id . "]'  value='" . $xpdata->item_id . "' >\n";
 	$rowoutput .= "<input type='hidden' name='{$type}_id[" . $id . "]'      value='" . $cha_id . "' >\n";
-	$rowoutput .= "<input type='hidden' name='{$type}_name[" . $id . "]'    value='" . $xpdata->name . "' >\n";
+	$rowoutput .= "<input type='hidden' name='{$type}_name[" . $id . "]'    value='" . vtm_formatOutput($xpdata->name) . "' >\n";
 	$rowoutput .= "<input type='hidden' name='{$type}_spec_at[" . $id . "]' value='" . $xpdata->has_specialisation . "' >\n";
-	$rowoutput .= "<input type='hidden' name='{$type}_spec[" . $id . "]'    value='" . $xpdata->comment . "' >\n";
+	$rowoutput .= "<input type='hidden' name='{$type}_spec[" . $id . "]'    value='" . vtm_formatOutput($xpdata->comment) . "' >\n";
 	$rowoutput .= "</td></tr>\n";
 	
 	
 	//dots row
 	
 	$xpcost = $xpdata->XP_COST;
-	$rowoutput .= "<tr><td class='vtmcol_key_wide'><span>(Level {$xpdata->level}) {$xpdata->name}";
+	$rowoutput .= "<tr><td class='vtmcol_key_wide'><span>(Level {$xpdata->level}) " . vtm_formatOutput($xpdata->name);
 	if ($xpdata->comment)
-		$rowoutput .= " - {$xpdata->comment}";
+		$rowoutput .= " - " . vtm_formatOutput($xpdata->comment);
 	$rowoutput .= "</span></td>\n";
 	
 	$rowoutput .= "<td class='vtmdot_1 vtmdots'>";
@@ -1727,7 +1713,7 @@ function vtm_render_merits_row($type, $id, $xpdata, $levelsdata, $xp_avail) {
 			$rowoutput .= "";
 		} else {
 			if ($xp_avail >= $xpcost) {
-				$comment    = "Buy level {$xpdata->level} Merit {$xpdata->name}";
+				$comment    = "Buy level {$xpdata->level} Merit " . vtm_formatOutput($xpdata->name);
 				$rowoutput .= "<input type='hidden'   name='{$type}_cost[" . $id . "]'    value='" . $xpcost . "' >\n";
 				$rowoutput .= "<input type='hidden'   name='{$type}_comment[" . $id . "]' value='$comment' >\n";
 				$rowoutput .= "<input type='CHECKBOX' name='{$type}_level[" . $id . "]'   value='{$xpdata->level}' id='vtmmfcb_$id' ";
@@ -1873,7 +1859,7 @@ function vtm_render_ritual_row($xpdata, $pending, $levelsdata,
     $output .= "</td></tr>\n";
     $output .= "<tr>\n";
 	/* Name */
-	$output .= "<td colspan=2 class='vtmcol_key'>" . $xpdata->name . "\n";
+	$output .= "<td colspan=2 class='vtmcol_key'>" . vtm_formatOutput($xpdata->name) . "\n";
 	$output .= " </th>\n";
 
 	$pendinglvl = vtm_pending_level($pending, $xpdata->id, $xpdata->item_id);
@@ -1895,7 +1881,7 @@ function vtm_render_ritual_row($xpdata, $pending, $levelsdata,
 				$output .= ">";
 				
 				$output .= "<input type='hidden' name='ritual_cost_" . $i . "[" . $id . "]' value='" . $xpdata->cost . "' >";
-				$output .= "<input type='hidden' name='ritual_comment_" . $i . "[" . $id . "]' value='Learn Ritual " . $xpdata->name . "' ></td>";
+				$output .= "<input type='hidden' name='ritual_comment_" . $i . "[" . $id . "]' value='Learn Ritual " . vtm_formatOutput($xpdata->name) . "' ></td>";
 				$output .= "</td>";
 
 				$output .= "<td>" . $xpdata->cost . "</td>";

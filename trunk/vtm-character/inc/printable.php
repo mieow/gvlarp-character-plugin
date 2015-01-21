@@ -128,15 +128,15 @@ function vtm_render_printable($characterID) {
 		for ($i=0;$i<3;$i++) {
 		
 			$physicalname = isset($physical[$i]->name)      ? $physical[$i]->name                    : '';
-			$physicalspec = isset($physical[$i]->specialty) ? stripslashes($physical[$i]->specialty) : '';
+			$physicalspec = isset($physical[$i]->specialty) ? $physical[$i]->specialty : '';
 			$physicallvl  = isset($physical[$i]->level)     ? $physical[$i]->level                   : 0;
 			$physicalpnd  = isset($physical[$i]->pending)   ? $physical[$i]->pending                 : 0;
 			$socialname   = isset($social[$i]->name)        ? $social[$i]->name                    : '';
-			$socialspec   = isset($social[$i]->specialty)   ? stripslashes($social[$i]->specialty) : '';
+			$socialspec   = isset($social[$i]->specialty)   ? $social[$i]->specialty : '';
 			$sociallvl    = isset($social[$i]->level)       ? $social[$i]->level                   : 0;
 			$socialpnd    = isset($social[$i]->pending)     ? $social[$i]->pending                 : 0;
 			$mentalname   = isset($mental[$i]->name)        ? $mental[$i]->name                    : '';
-			$mentalspec   = isset($mental[$i]->specialty)   ? stripslashes($mental[$i]->specialty) : '';
+			$mentalspec   = isset($mental[$i]->specialty)   ? $mental[$i]->specialty : '';
 			$mentallvl    = isset($mental[$i]->level)       ? $mental[$i]->level                   : 0;
 			$mentalpnd    = isset($mental[$i]->pending)     ? $mental[$i]->pending                 : 0;
 		
@@ -164,15 +164,15 @@ function vtm_render_printable($characterID) {
 		
 		for ($i=0;$i<$abilrows;$i++) {
 			$talentname    = isset($talent[$i]->skillname)    ? $talent[$i]->skillname               : '';
-			$talentspec    = isset($talent[$i]->specialty)    ? stripslashes($talent[$i]->specialty) : '';
+			$talentspec    = isset($talent[$i]->specialty)    ? $talent[$i]->specialty : '';
 			$talentlvl     = isset($talent[$i]->level)        ? $talent[$i]->level                   : 0;
 			$talentpnd     = isset($talent[$i]->pending)      ? $talent[$i]->pending                 : 0;
 			$skillname     = isset($skill[$i]->skillname)     ? $skill[$i]->skillname                : '';
-			$skillspec     = isset($skill[$i]->specialty)     ? stripslashes($skill[$i]->specialty) : '';
+			$skillspec     = isset($skill[$i]->specialty)     ? $skill[$i]->specialty : '';
 			$skilllvl      = isset($skill[$i]->level)         ? $skill[$i]->level                   : 0;
 			$skillpnd      = isset($skill[$i]->pending)       ? $skill[$i]->pending                 : 0;
 			$knowledgename = isset($knowledge[$i]->skillname) ? $knowledge[$i]->skillname               : '';
-			$knowledgespec = isset($knowledge[$i]->specialty) ? stripslashes($knowledge[$i]->specialty) : '';
+			$knowledgespec = isset($knowledge[$i]->specialty) ? $knowledge[$i]->specialty : '';
 			$knowledgelvl  = isset($knowledge[$i]->level)     ? $knowledge[$i]->level                   : 0;
 			$knowledgepnd  = isset($knowledge[$i]->pending)   ? $knowledge[$i]->pending                 : 0;
 			$data = array(
@@ -250,7 +250,7 @@ function vtm_render_printable($characterID) {
 				$is_discipline ? $alldisciplines[$i][3] : 0,
 				
 				$is_skill ? $secondary[$i]->skillname : '',
-				$is_skill ? stripslashes($secondary[$i]->specialty) : '',
+				$is_skill ? $secondary[$i]->specialty : '',
 				$is_skill ? $secondary[$i]->level : 0,
 				$is_skill && isset($secondary[$i]->pending) ? $secondary[$i]->pending : 0
 			);
@@ -274,7 +274,7 @@ function vtm_render_printable($characterID) {
 				foreach ($merits as $merit) {
 					$string = $merit->name;
 					if (!empty($merit->comment))
-						$string .= " - " . stripslashes($merit->comment);
+						$string .= " - " . $merit->comment;
 					$string .= " (" . $merit->level . ")";
 					if (isset($merit->pending) && $merit->pending != 0)
 						$string .= " pending";
@@ -346,7 +346,7 @@ function vtm_render_printable($characterID) {
 		$pdf->Ln();
 		if (!empty($mycharacter->concept)) {
 			$pdf->FullWidthText('Character Concept','B');
-			$pdf->FullWidthText(stripslashes($mycharacter->concept));
+			$pdf->FullWidthText($mycharacter->concept);
 		}
 		
 		/* Rituals */
@@ -378,10 +378,10 @@ function vtm_render_printable($characterID) {
 				if (!empty($backgrounds[$i]->sector) || !empty($backgrounds[$i]->comment) || !empty($backgrounds[$i]->detail)) {
 					$text = $backgrounds[$i]->background . " " . $backgrounds[$i]->level;
 					if (!empty($backgrounds[$i]->sector))  $text .= " (" . $backgrounds[$i]->sector . ")";
-					if (!empty($backgrounds[$i]->comment)) $text .= " " . stripslashes($backgrounds[$i]->comment);
+					if (!empty($backgrounds[$i]->comment)) $text .= " " . $backgrounds[$i]->comment;
 				
 					$pdf->FullWidthText($text, 'B');
-					if (!empty($backgrounds[$i]->detail))  $pdf->FullWidthText(stripslashes($backgrounds[$i]->detail));
+					if (!empty($backgrounds[$i]->detail))  $pdf->FullWidthText($backgrounds[$i]->detail);
 					$pdf->Ln($textrowheight/2);
 				}
 			}
@@ -394,10 +394,10 @@ function vtm_render_printable($characterID) {
 				//if (!empty($merits[$i]->comment) || !empty($merits[$i]->detail)) {
 				if (!empty($merits[$i]->detail)) {
 					$text = $merits[$i]->name;
-					if (!empty($merits[$i]->comment)) $text .= " (" . stripslashes($merits[$i]->comment) . ")";
+					if (!empty($merits[$i]->comment)) $text .= " (" . $merits[$i]->comment . ")";
 				
 					$pdf->FullWidthText($text, 'B');
-					if (!empty($merits[$i]->detail))  $pdf->FullWidthText(stripslashes($merits[$i]->detail));
+					if (!empty($merits[$i]->detail))  $pdf->FullWidthText($merits[$i]->detail);
 					$pdf->Ln($textrowheight/2);
 				}
 			}
@@ -408,10 +408,10 @@ function vtm_render_printable($characterID) {
 		if (count($history) > 0) {
 			//$pdf->Divider('Character History');
 			for ($i=0;$i<count($history);$i++) {
-				$text = stripslashes($history[$i]->title);
+				$text = $history[$i]->title;
 				$pdf->FullWidthText($text, 'B');
 				
-				$pdf->FullWidthText(stripslashes($history[$i]->detail));
+				$pdf->FullWidthText($history[$i]->detail);
 				$pdf->Ln($textrowheight/2);
 			}
 		}
@@ -477,7 +477,7 @@ class vtmclass_PDFcsheet extends FPDF
 
 		$this->SetFont($printtitlefont,'B',$printtitlesize);
 		$this->SetTextColor($printtitlecolour[0],$printtitlecolour[1],$printtitlecolour[2]);
-		$this->Cell(0,10,$printtitle,0,1,'C');
+		$this->Cell(0,10,$this->FormatString($printtitle),0,1,'C');
 
 		$this->Ln(2);
 	}
@@ -494,7 +494,7 @@ class vtmclass_PDFcsheet extends FPDF
 		$this->SetLineWidth(0.3);
 		$this->SetTextColor($textcolour[0],$textcolour[1],$textcolour[2]);
 		
-		$this->Cell(0,10,$footer . ' | Page ' . $this->PageNo().' of {nb} | Printed on ' . $footerdate,'T',0,'C');
+		$this->Cell(0,10,$this->FormatString($footer . ' | Page ' . $this->PageNo().' of {nb} | Printed on ' . $footerdate),'T',0,'C');
 	}
 	
 	function BasicInfoTableRow($data) {
@@ -514,10 +514,10 @@ class vtmclass_PDFcsheet extends FPDF
 		
 		for($i=0;$i<$numcols;$i=$i+2) {
 			$this->SetFont($textfont,'B', $textsize);
-			$this->Cell($colwidths[$i],$textrowheight,$data[$i],0,0,'R');
+			$this->Cell($colwidths[$i],$textrowheight,$this->FormatString($data[$i]),0,0,'R');
 			
 			$this->SetFont($textfont,'', $textsize);
-			$this->Cell($colwidths[$i+1],$textrowheight,$data[$i+1],'B',0,'L'); 
+			$this->Cell($colwidths[$i+1],$textrowheight,$this->FormatString($data[$i+1]),'B',0,'L'); 
 		}
 		
 		$this->Ln();
@@ -536,6 +536,7 @@ class vtmclass_PDFcsheet extends FPDF
 		global $dividerlinewidth;
 	
 		$padding = 7;
+		$data = $this->FormatString($data);
 		
 		$this->Ln(1);
 		
@@ -587,9 +588,9 @@ class vtmclass_PDFcsheet extends FPDF
 		
 		if (count($data) > 12) {
 			$this->SetFont($textfont,'B', $headsize);
-			$this->Cell($itemwidth + $specwidth + $dotswidth,$textrowheight,$data[12],0, 0,'C');
-			$this->Cell($itemwidth + $specwidth + $dotswidth,$textrowheight,$data[13],0, 0,'C');
-			$this->Cell($itemwidth + $specwidth + $dotswidth,$textrowheight,$data[14],0, 0,'C');
+			$this->Cell($itemwidth + $specwidth + $dotswidth,$textrowheight,$this->FormatString($data[12]),0, 0,'C');
+			$this->Cell($itemwidth + $specwidth + $dotswidth,$textrowheight,$this->FormatString($data[13]),0, 0,'C');
+			$this->Cell($itemwidth + $specwidth + $dotswidth,$textrowheight,$this->FormatString($data[14]),0, 0,'C');
 			$this->Ln();
 		}
 		
@@ -597,12 +598,15 @@ class vtmclass_PDFcsheet extends FPDF
 		$this->SetLineWidth(.3);
 		
 		for($i=0;$i<$numcols;$i=$i+4) {
+			$data[$i+0] = $this->FormatString($data[$i+0]);
 			$this->FitToCell($data[$i+0], $itemwidth, $textfont, '', $textsize); 
 			$this->Cell($itemwidth,$textrowheight,$data[$i+0],0,  0,'L');
 			
+			$data[$i+1] = $this->FormatString($data[$i+1]);
 			$this->FitToCell($data[$i+1], $specwidth, $textfont, 'I', $specialtysize); 
 			$this->Cell($specwidth,$textrowheight,$data[$i+1],'B',0,'L');
 			
+			$data[$i+2] = $this->FormatString($data[$i+2]);
 			$this->FitToCell($data[$i+2], $dotswidth, $textfont, '', $textsize); 
 			/* $this->Cell($dotswidth,$textrowheight,$data[$i+2],0,  0,'L'); */
 			$this->Dots($data[$i+2], $data[$i+3], $dotswidth, $this->GetX(), $this->GetY(), $dotmaximum, $textrowheight);
@@ -615,6 +619,7 @@ class vtmclass_PDFcsheet extends FPDF
 	
 	function FitToCell ($text, $cellwidth, $targetfont, $targetfmt, $targetfontsize) {
 		$this->SetFont($targetfont,$targetfmt, $targetfontsize);
+		$text = $this->FormatString($text);
 		while ($cellwidth < $this->GetStringWidth($text) && $targetfontsize > 5) {
 			$targetfontsize--;
 			$this->SetFont($targetfont,$targetfmt, $targetfontsize);
@@ -740,7 +745,7 @@ class vtmclass_PDFcsheet extends FPDF
 	
 		$this->SetTextColor($textcolour[0],$textcolour[1],$textcolour[2]);
 		$this->SetFont($textfont,'B',$headsize);
-		$this->Cell($sectionwidth, $headrowheight, $heading, 0, 0, 'C');
+		$this->Cell($sectionwidth, $headrowheight, $this->FormatString($heading), 0, 0, 'C');
 		$nextcol = $this->GetX();
 		$this->Ln();
 		
@@ -763,7 +768,7 @@ class vtmclass_PDFcsheet extends FPDF
 		$this->SetFont($textfont,'B',$textsize);
 		$this->SetLineWidth(.3);
 		$this->Cell($cellpadding,$textrowheight,'',0,0,'L');
-		$this->Cell($sectionwidth - $cellpadding * 2, $textrowheight, $text, 1, 1, 'C');
+		$this->Cell($sectionwidth - $cellpadding * 2, $textrowheight, $this->FormatString($text), 1, 1, 'C');
 		
 	}
 	
@@ -799,7 +804,7 @@ class vtmclass_PDFcsheet extends FPDF
 		
 		$this->SetTextColor($textcolour[0],$textcolour[1],$textcolour[2]);
 		$this->SetFont($textfont,$textweight,$textsize);
-		$this->Write($textrowheight, $text);
+		$this->Write($textrowheight, $this->FormatString($text));
 		$this->Ln();
 		
 	}
@@ -816,7 +821,7 @@ class vtmclass_PDFcsheet extends FPDF
 		$sectionwidth = ($pagewidth - 2 * $margin) / 3;
 		$x1 = $this->GetX();
 		
-		$xnext = $this->SingleColumnHeading($heading);
+		$xnext = $this->SingleColumnHeading($this->FormatString($heading));
 	
 		$this->SetTextColor($textcolour[0],$textcolour[1],$textcolour[2]);
 		$this->SetFont($textfont,'B',$textsize);
@@ -826,7 +831,7 @@ class vtmclass_PDFcsheet extends FPDF
 		$this->SetX($x1);
 		
 		foreach ($data as $item) {
-			$this->Cell($colwidths[0], $textrowheight, $item->name,  0,   0, 'L');
+			$this->Cell($colwidths[0], $textrowheight, $this->FormatString($item->name),  0,   0, 'L');
 			$this->Cell($colwidths[1], $textrowheight, ''         ,  'B', 0, 'L');
 			$pending = isset($item->pending) ? $item->pending : 0;
 			$this->Dots($item->level, $pending, $colwidths[2], $this->GetX(),$this->GetY(),5, $textrowheight);
@@ -878,7 +883,8 @@ class vtmclass_PDFcsheet extends FPDF
 	function WriteWordWrap ($text, $columnwidth, $rowheight) {
 	
 		//$text .= "($columnwidth / " . $this->GetStringWidth($text) . " / " .strlen($text) . ")";
-	
+		$text = $this->FormatString($text);
+		
 		if ($columnwidth < $this->GetStringWidth($text)) {
 			$approxcharwidth = $this->GetStringWidth($text) / strlen($text);
 			$approxwrapwidth = (int) ($columnwidth - 1) / $approxcharwidth;
@@ -887,6 +893,10 @@ class vtmclass_PDFcsheet extends FPDF
 		}
 		
 		$this->Write($rowheight, $text);
+	}
+	
+	function FormatString($text) {
+		return stripslashes($text);
 	}
 }
 

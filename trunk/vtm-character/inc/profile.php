@@ -73,7 +73,7 @@ function vtm_get_profile_content() {
 		if (isset($_POST['VTM_FORM']) && $_POST['VTM_FORM'] == 'updateDisplayName' && isset($_POST['displayName']) 
 			&& !empty($_POST['displayName']) && $_POST['displayName'] != $displayName && $userID > 0) {
 			
-			$newDisplayName = stripslashes($_POST['displayName']);
+			$newDisplayName = vtm_formatOutput($_POST['displayName']);
 			
 			$output .= "<p>Changed display name to <i>$newDisplayName</i></p>";
 			vtm_changeDisplayNameByID ($userID, $newDisplayName);
@@ -144,21 +144,21 @@ function vtm_get_profile_content() {
 	// Title, with link to view character for STs
 	$characterDisplayName = vtm_isST() ? 
 							"<a href='" . get_site_url() . vtm_get_stlink_url('viewCharSheet') . "?CHARACTER=" . urlencode($character) . "'>" . $displayName . "</a>" 
-							: $displayName;
+							: vtm_formatOutput($displayName);
 	$output .= "<h1>" . $characterDisplayName . "</h1>";
 	
 	// Profile info
 	$output .= "<table class='gvplugin gvprofile' id=\"gvid_prof_out\">\n";
 	$output .= "<tr><td class=\"gvcol_1 gvcol_val\">\n";
 	// Character Info
-	$output .= "<p><img alt='Clan Icon' src='$clanIcon' />" . $mycharacter->quote . "</p>\n";
+	$output .= "<p><img alt='Clan Icon' src='$clanIcon' />" . vtm_formatOutput($mycharacter->quote, 1) . "</p>\n";
 	$output .= "<table class='gvplugin gvprofile' id=\"gvid_prof_in\">\n";
-    $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Player:</td><td class=\"gvcol_2 gvcol_val\">" . $mycharacter->player . "</td></tr>";
-	$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Clan:</td><td class=\"gvcol_2 gvcol_val\">" . $mycharacter->clan;
+    $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Player:</td><td class=\"gvcol_2 gvcol_val\">" . vtm_formatOutput($mycharacter->player) . "</td></tr>";
+	$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Clan:</td><td class=\"gvcol_2 gvcol_val\">" . vtm_formatOutput($mycharacter->clan);
 	if ($showAll && $mycharacter->clan != $mycharacter->private_clan)
-		$output .= " (" . $mycharacter->private_clan . ")";
+		$output .= " (" . vtm_formatOutput($mycharacter->private_clan) . ")";
 	$output .= "</td></tr>";
-    $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Resides:</td><td class=\"gvcol_2 gvcol_val\">" . $mycharacter->domain . "</td></tr>";
+    $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Resides:</td><td class=\"gvcol_2 gvcol_val\">" . vtm_formatOutput($mycharacter->domain) . "</td></tr>";
 	
 	// Background - Status
 	if ($vtmglobal['config']->DISPLAY_BACKGROUND_IN_PROFILE) {
@@ -171,13 +171,13 @@ function vtm_get_profile_content() {
 			if ($row->background == $background)
 				$level = $row->level;
 		}
-        $output .= "<tr><td class=\"gvcol_1 gvcol_key\">$background:</td><td class=\"gvcol_2 gvcol_val\">" . $level . "</td></tr>";
+        $output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . vtm_formatOutput($background) . ":</td><td class=\"gvcol_2 gvcol_val\">" . $level . "</td></tr>";
 	}
 	
 	// Condition
-	$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Condition:</td><td class=\"gvcol_2 gvcol_val\">" . $mycharacter->char_status;
+	$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Condition:</td><td class=\"gvcol_2 gvcol_val\">" . vtm_formatOutput($mycharacter->char_status);
 	if ($mycharacter->char_status_comment != "") {
-		$output .= " (" . $mycharacter->char_status_comment . ")";
+		$output .= " (" . vtm_formatOutput($mycharacter->char_status_comment) . ")";
 	}
 	$output .= "</td></tr>";
 	
@@ -187,7 +187,7 @@ function vtm_get_profile_content() {
 	
 		if ($row->background == "Clan Prestige") {
 			if ($showAll || $observerClanPub  == $testClan || $observerClanPriv == $testClan)
-				$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Clan Prestige (" . $testClan . "):</td><td class=\"gvcol_2 gvcol_val\">" . $row->level . "</td></tr>";
+				$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Clan Prestige (" . vtm_formatOutput($testClan) . "):</td><td class=\"gvcol_2 gvcol_val\">" . $row->level . "</td></tr>";
 		}
 	}
 	
@@ -208,7 +208,7 @@ function vtm_get_profile_content() {
 			
 			if ($showAll || $observerClanPub  == $charmerit->comment 
 				|| $observerClanPriv == $charmerit->comment) {
-				$output .= "<tr><td class=\"gvcol_1 gvcol_key\">$displaymerit:</td><td class=\"gvcol_2 gvcol_val\">" . $charmerit->comment . "</td></tr>";
+				$output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . vtm_formatOutput($displaymerit) . ":</td><td class=\"gvcol_2 gvcol_val\">" . vtm_formatOutput($charmerit->comment) . "</td></tr>";
 			
 			}
 		}
@@ -221,9 +221,9 @@ function vtm_get_profile_content() {
 		foreach ($mycharacter->offices as $office) {
 			if ($office->visible == 'Y') {
 				if ($office->domain == $mycharacter->domain)
-					array_push($offices, $office->name);
+					array_push($offices, vtm_formatOutput($office->name));
 				else
-					array_push($offices, $office->name . " (" . $office->domain . ")");
+					array_push($offices, vtm_formatOutput($office->name) . " (" . vtm_formatOutput($office->domain) . ")");
 			}	
 		}
 		$output .= implode("<br />", $offices);
@@ -253,7 +253,7 @@ function vtm_get_profile_content() {
 		
 		$output .= "<table>\n";
 		$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Display Name:</td><td class=\"gvcol_2 gvcol_val\">";
-		$output .= "<input type='text' size=50 maxlength=50 name=\"displayName\" value=\"" . $displayName . "\">";
+		$output .= "<input type='text' size=50 maxlength=50 name=\"displayName\" value=\"" . vtm_formatOutput($displayName) . "\">";
 		$output .= "</td>\n";
 		$output .= "<td><input type='submit' name=\"displayNameUpdate\" value=\"Update\"></td>";
 		$output .= "</tr>";
