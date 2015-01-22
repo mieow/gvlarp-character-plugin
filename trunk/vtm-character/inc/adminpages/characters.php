@@ -2348,8 +2348,8 @@ function vtm_email_chargen_denied($characterID, $denyMessage) {
 				AND ch.ID = %s";
 	$results = $wpdb->get_row($wpdb->prepare($sql, $characterID));
 
-	$name   = vtm_formatOutput($results->name);
-	$player = vtm_formatOutput($results->player);
+	$name   = stripslashes($results->name);
+	$player = stripslashes($results->player);
 	$email  = $results->email;
 	
 	$ref = vtm_get_chargen_reference($characterID);
@@ -2366,7 +2366,7 @@ function vtm_email_chargen_denied($characterID, $denyMessage) {
 	
 The Storytellers have provided feedback on $name. Please review the comments and resubmit your character once any issues have been resolved.
 	
-'" . vtm_formatOutput($denyMessage) . "'
+'" . stripslashes($denyMessage) . "'
 	
 You can return to character generation by following this link: $url";
 	

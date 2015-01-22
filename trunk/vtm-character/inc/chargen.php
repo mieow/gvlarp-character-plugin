@@ -1884,14 +1884,16 @@ function vtm_render_choose_template() {
 	
 	$output .= "<h3>Choose a template</h3>\n";
 	
-	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE WHERE VISIBLE = 'Y' ORDER BY NAME";
+	$sql = "SELECT ID, NAME, DESCRIPTION FROM " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE WHERE VISIBLE = 'Y' ORDER BY NAME";
 	$result = $wpdb->get_results($sql);
 	
-	$output .= "<p><label>Character Generation Template:</label> <select name='chargen_template'>\n";
+	$output .= "<table>";
 	foreach ($result as $template) {
-		$output .= "<option value='{$template->ID}'>{$template->NAME}</option>\n";
+		$output .= "<tr><td><input type='radio' id='seltempl{{$template->ID}}' name='chargen_template' value='{$template->ID}' /></td>";
+		$output .= "<td><label for='seltempl{{$template->ID}}'>" . vtm_formatOutput($template->NAME) . "</label></td>";
+		$output .= "<td>" . vtm_formatOutput($template->DESCRIPTION) . "</td></tr>";
 	}
-	$output .= "</select></p>\n";
+	$output .= "</table>";
 	
 	$ref = isset($_GET['reference']) ? $_GET['reference'] : '';
 	
@@ -6594,11 +6596,11 @@ function vtm_save_submit() {
 		$tag    = get_option( 'vtm_chargen_emailtag' );
 		$toname = get_option( 'vtm_chargen_email_from_name', 'The Storytellers');
 		$toaddr = get_option( 'vtm_chargen_email_from_address', get_bloginfo('admin_email') );
-		$fromname = vtm_formatOutput($results->player);
+		$fromname = stripslashes($results->player);
 		$fromemail = $results->email;
-		$character = vtm_formatOutput($results->name);
+		$character = stripslashes($results->name);
 		$concept = $results->concept;
-		$clan = vtm_formatOutput(vtm_get_clan_name($results->clanid));
+		$clan = stripslashes(vtm_get_clan_name($results->clanid));
 		$url    = add_query_arg('reference', $ref, vtm_get_stlink_url('viewCharGen', true));
 		
 		$subject = "$tag Character Submitted";
@@ -6614,7 +6616,7 @@ A new character has been submitted:
 	* Clan: $clan
 	* Concept: 
 	
-" . vtm_formatOutput($concept) . "
+" . stripslashes($concept) . "
 	
 You can view this character by following this link: $url";
 	
