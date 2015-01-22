@@ -87,75 +87,14 @@ function vtm_render_master_path_page(){
 
 }
 
-/* function vtm_render_master_path_data () {
-	global $wpdb;
-
-	$output = "";
-	
-	$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "PATH_REASON WHERE NAME = 'Path Change'";
-	$defaultreason = $wpdb->get_var($sql);
-	
-	$sql = "SELECT
-				chara.ID as id,
-				chara.name as charactername,
-				paths.name as pathname,
-				SUM(charpaths.AMOUNT) as pathrating
-			FROM
-				" . VTM_TABLE_PREFIX . "CHARACTER chara,
-				" . VTM_TABLE_PREFIX . "PLAYER player,
-				" . VTM_TABLE_PREFIX . "PLAYER_STATUS pstatus,
-				" . VTM_TABLE_PREFIX . "CHARACTER_TYPE ctype,
-				" . VTM_TABLE_PREFIX . "CHARACTER_STATUS cstatus,
-				" . VTM_TABLE_PREFIX . "CHARACTER_ROAD_OR_PATH charpaths,
-				" . VTM_TABLE_PREFIX . "ROAD_OR_PATH paths
-			WHERE
-				chara.PLAYER_ID = player.ID
-				AND pstatus.ID = player.PLAYER_STATUS_ID
-				AND cstatus.ID = chara.CHARACTER_STATUS_ID
-				AND charpaths.CHARACTER_ID = chara.ID
-				AND paths.ID = chara.ROAD_OR_PATH_ID
-				AND ctype.ID = chara.CHARACTER_TYPE_ID
-				AND pstatus.NAME = 'Active'
-				AND cstatus.NAME = 'Alive'
-				AND ctype.NAME   = 'PC'
-				AND chara.DELETED != 'Y'
-				AND chara.VISIBLE = 'Y'
-			GROUP BY chara.ID
-			ORDER BY charactername";
-	
-	//$output .= "<p>SQL: $sql</p>";
-	$results = $wpdb->get_results($sql);
-	//print_r ($results);
-	
-
-	foreach ($results as $row) {
-	
-		$output .= "<tr>";
-		$output .= "<td>{$row->charactername} <span style='color:silver'>(id:{$row->id})</span></td>";
-		$output .= "<td>{$row->pathname}</td>";
-		$output .= "<td>{$row->pathrating}</td>";
-		$output .= "<td><select name='path_reason[{$row->id}]'>";
-		foreach (vtm_listPathReasons() as $reason) {
-			$output .= "<option value='{$reason->id}' " . selected($reason->id, $defaultreason,false) . ">{$reason->name}</option>\n";
-		}		
-		$output .= "</select></td>";
-		$output .= "<td><input name='masterpath_change[{$row->id}]' value=\"\" type=\"text\" size=4 /></td>";
-		$output .= "<td><input name='comment[{$row->id}]' value=\"\" type=\"text\" size=30 /></td></tr>";
-		
-	}
-
-	echo $output;
-
-}
- */
 class vtmclass_master_path extends vtmclass_Report_ListTable {
 
    function column_default($item, $column_name){
         switch($column_name){
             case 'PATHNAME':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'CHARACTERNAME':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'LEVEL':
                 return $item->$column_name;
            default:
@@ -166,7 +105,7 @@ class vtmclass_master_path extends vtmclass_Report_ListTable {
 	function column_reason($item) {
 		$output = "<select name='path_reason[{$item->ID}]'>";
 		foreach ($this->pathreasons as $reason) {
-			$output .= "<option value='{$reason->id}' " . selected($reason->id, $this->defaultreason,false) . ">{$reason->name}</option>\n";
+			$output .= "<option value='{$reason->id}' " . selected($reason->id, $this->defaultreason,false) . ">" . vtm_formatOutput($reason->name) . "</option>\n";
 		}		
 		$output .= "</select>";
 	
@@ -209,7 +148,7 @@ class vtmclass_master_path extends vtmclass_Report_ListTable {
 				foreach( $this->filter_player_status as $key => $value ) {
 					echo '<option value="' . esc_attr( $key ) . '" ';
 					selected( $this->active_filter_player_status, $key );
-					echo '>' . esc_attr( $value ) . '</option>';
+					echo '>' . vtm_formatOutput( $value ) . '</option>';
 				}
 				echo '</select>';
 			}
@@ -220,7 +159,7 @@ class vtmclass_master_path extends vtmclass_Report_ListTable {
 				foreach( $this->filter_character_type as $key => $value ) {
 					echo '<option value="' . esc_attr( $key ) . '" ';
 					selected( $this->active_filter_character_type, $key );
-					echo '>' . esc_attr( $value ) . '</option>';
+					echo '>' . vtm_formatOutput( $value ) . '</option>';
 				}
 				echo '</select>';
 			}
@@ -231,7 +170,7 @@ class vtmclass_master_path extends vtmclass_Report_ListTable {
 				foreach( $this->filter_character_status as $key => $value ) {
 					echo '<option value="' . esc_attr( $key ) . '" ';
 					selected( $this->active_filter_character_status, $key );
-					echo '>' . esc_attr( $value ) . '</option>';
+					echo '>' . vtm_formatOutput( $value ) . '</option>';
 				}
 				echo '</select>';
 			}

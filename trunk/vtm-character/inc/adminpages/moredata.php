@@ -116,14 +116,14 @@ function vtm_render_skill_add_form($type, $addaction) {
 		<table>
 		<tr>
 			<td>Name:</td>
-			<td><input type="text" name="<?php print $type; ?>_name" value="<?php print $name; ?>" size=20 /></td>
+			<td><input type="text" name="<?php print $type; ?>_name" value="<?php print vtm_formatOutput($name); ?>" size=20 /></td>
 			<td>Skill Type:</td>
 			<td><select name="<?php print $type; ?>_skilltype">
 					<?php
 						foreach (vtm_get_skilltypes() as $skilltype) {
 							print "<option value='{$skilltype->ID}' ";
 							selected($skilltype->ID, $skilltype_id);
-							echo ">{$skilltype->NAME}</option>";
+							echo ">" . vtm_formatOutput($skilltype->NAME) . "</option>";
 						}
 					?>
 				</select>
@@ -138,7 +138,7 @@ function vtm_render_skill_add_form($type, $addaction) {
 						foreach (vtm_get_costmodels() as $costmodel) {
 							print "<option value='{$costmodel->ID}' ";
 							selected($costmodel->ID, $costmodel_id);
-							echo ">{$costmodel->NAME}</option>";
+							echo ">" . vtm_formatOutput($costmodel->NAME) . "</option>";
 						}
 					?>
 				</select>
@@ -158,7 +158,7 @@ function vtm_render_skill_add_form($type, $addaction) {
 		</tr>
 		<tr>
 			<td>Description:  </td>
-			<td colspan=5><input type="text" name="<?php print $type; ?>_desc" value="<?php print $desc; ?>" size=90 /></td> <!-- check sizes -->
+			<td colspan=5><input type="text" name="<?php print $type; ?>_desc" value="<?php print vtm_formatOutput($desc); ?>" size=90 /></td> <!-- check sizes -->
 		</tr>
 		</table>
 		<input type="submit" name="save_<?php print $type; ?>" class="button-primary" value="Save" />
@@ -213,9 +213,9 @@ function vtm_render_stat_form($type, $addaction) {
 		<table>
 		<tr>
 			<td>Name:</td>
-			<td><?php print $name; ?></td>
+			<td><?php print vtm_formatOutput($name); ?></td>
 			<td>Grouping:</td>
-			<td><?php print $grouping; ?></td>
+			<td><?php print vtm_formatOutput($grouping); ?></td>
 			<td>Display Order:</td>
 			<td><?php print $ordering; ?></td>
 		</tr>
@@ -226,7 +226,7 @@ function vtm_render_stat_form($type, $addaction) {
 						foreach (vtm_get_costmodels() as $costmodel) {
 							print "<option value='{$costmodel->ID}' ";
 							selected($costmodel->ID, $costmodel_id);
-							echo ">{$costmodel->NAME}</option>";
+							echo ">" . vtm_formatOutput($costmodel->NAME) . "</option>";
 						}
 					?>
 				</select>
@@ -237,7 +237,7 @@ function vtm_render_stat_form($type, $addaction) {
 		</tr>
 		<tr>
 			<td>Description:  </td>
-			<td colspan=5><input type="text" name="<?php print $type; ?>_desc" value="<?php print $desc; ?>" size=90 /></td> <!-- check sizes -->
+			<td colspan=5><input type="text" name="<?php print $type; ?>_desc" value="<?php print vtm_formatOutput($desc); ?>" size=90 /></td> <!-- check sizes -->
 		</tr>
 		</table>
 		<input type="submit" name="save_<?php print $type; ?>" class="button-primary" value="Save <?php print ucfirst($type); ?>" />
@@ -344,13 +344,13 @@ class vtmclass_admin_stats_table extends vtmclass_MultiPage_ListTable {
     function column_default($item, $column_name){
         switch($column_name){
             case 'DESCRIPTION':
-                return $item->$column_name;
+                return vtm_formatOutput($item->$column_name);
             case 'GROUPING':
-                return $item->$column_name;
+                return vtm_formatOutput($item->$column_name);
             case 'ORDERING':
                 return $item->$column_name;
             case 'COST_MODEL':
-                return $item->$column_name;
+                return vtm_formatOutput($item->$column_name);
             case 'SPECIALISATION_AT':
                 return $item->$column_name;
             default:
@@ -366,7 +366,7 @@ class vtmclass_admin_stats_table extends vtmclass_MultiPage_ListTable {
         
         
         return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
-            $item->NAME,
+            vtm_formatOutput($item->NAME),
             $item->ID,
             $this->row_actions($actions)
         );
@@ -565,7 +565,7 @@ class vtmclass_admin_skills_table extends vtmclass_MultiPage_ListTable {
 			echo "<p style='color:red'>Cannot delete as this skill has been use for the following characters:";
 			echo "<ul>";
 			foreach ($isused as $item)
-				echo "<li style='color:red'>{$item->NAME}</li>";
+				echo "<li style='color:red'>" . vtm_formatOutput($item->NAME) . "</li>";
 			echo "</ul></p>";
 			return;
 			
@@ -582,11 +582,11 @@ class vtmclass_admin_skills_table extends vtmclass_MultiPage_ListTable {
     function column_default($item, $column_name){
         switch($column_name){
             case 'DESCRIPTION':
-                return $item->$column_name;
+                return vtm_formatOutput($item->$column_name);
             case 'SKILL_TYPE':
-                return $item->$column_name;
+                return vtm_formatOutput($item->$column_name);
             case 'COST_MODEL':
-                return $item->$column_name;
+                return vtm_formatOutput($item->$column_name);
             case 'SPECIALISATION_AT':
                 return $item->$column_name;
             case 'VISIBLE':
@@ -608,7 +608,7 @@ class vtmclass_admin_skills_table extends vtmclass_MultiPage_ListTable {
         
         
         return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
-            $item->NAME,
+            vtm_formatOutput($item->NAME),
             $item->ID,
             $this->row_actions($actions)
         );
