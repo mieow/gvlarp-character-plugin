@@ -39,6 +39,11 @@ require_once VTM_CHARACTER_URL . 'inc/profile.php';
 require_once VTM_CHARACTER_URL . 'inc/chargen.php';
 require_once VTM_CHARACTER_URL . 'inc/install.php';
 
+// Only load code for admin pages if we are trying to look at them
+if (is_admin()) {
+	require_once VTM_CHARACTER_URL . 'inc/adminpages.php';
+}
+
 // Admin includes that are used on the front of the site
 require_once VTM_CHARACTER_URL . 'inc/adminpages/toolbar.php';
 require_once VTM_CHARACTER_URL . 'inc/adminpages/characters.php';
@@ -104,16 +109,5 @@ function vtm_establishCharacter($character) {
 }
 
 
-// Only load code for admin pages if we are trying to look at them
-if (is_admin()) {
 
-	require_once VTM_CHARACTER_URL . 'inc/adminpages.php';
-
-	/*
-	function vtm_feedingmap_admin_css() {
-		wp_enqueue_style('plugin-admin-style', plugins_url('vtm-character/css/style-admin.css'));
-	}
-	add_action('admin_enqueue_scripts', 'vtm_feedingmap_admin_css');
-	*/
-}
 ?>

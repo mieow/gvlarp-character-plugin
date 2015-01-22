@@ -109,7 +109,7 @@ function vtm_render_player_add_form($addaction) {
 						foreach( vtm_get_player_type() as $pltype ) {
 							echo '<option value="' . $pltype->ID . '" ';
 							selected( $typeid, $pltype->ID );
-							echo '>' . esc_attr( $pltype->NAME ) . '</option>';
+							echo '>' . vtm_formatOutput( $pltype->NAME ) . '</option>';
 						}
 					?>
 				</select>
@@ -121,7 +121,7 @@ function vtm_render_player_add_form($addaction) {
 						foreach( vtm_get_player_status() as $plstat ) {
 							echo '<option value="' . $plstat->ID . '" ';
 							selected( $activeid, $plstat->ID );
-							echo '>' . esc_attr( $plstat->NAME ) . '</option>';
+							echo '>' . vtm_formatOutput( $plstat->NAME ) . '</option>';
 						}
 					?>
 				</select>
@@ -238,12 +238,12 @@ class vtmclass_admin_players_table extends vtmclass_MultiPage_ListTable {
 				);
 		
 		if ($result) 
-			echo "<p style='color:green'>Updated $name</p>";
+			echo "<p style='color:green'>Updated " . vtm_formatOutput($name) . "</p>";
 		else if ($result === 0) 
-			echo "<p style='color:orange'>No updates made to $name</p>";
+			echo "<p style='color:orange'>No updates made to " . vtm_formatOutput($name) . "</p>";
 		else {
 			$wpdb->print_error();
-			echo "<p style='color:red'>Could not update $name ($id)</p>";
+			echo "<p style='color:red'>Could not update " . vtm_formatOutput($name) . " ($id)</p>";
 		}
 	}
 
@@ -276,9 +276,9 @@ class vtmclass_admin_players_table extends vtmclass_MultiPage_ListTable {
     function column_default($item, $column_name){
         switch($column_name){
           case 'PLAYERTYPE':
-                return $item->$column_name;
+                return vtm_formatOutput($item->$column_name);
           case 'PLAYERSTATUS':
-                return $item->$column_name;
+                return vtm_formatOutput($item->$column_name);
           default:
                 return print_r($item,true); 
         }
@@ -292,7 +292,7 @@ class vtmclass_admin_players_table extends vtmclass_MultiPage_ListTable {
         
         
         return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
-            $item->NAME,
+            vtm_formatOutput($item->NAME),
             $item->ID,
             $this->row_actions($actions)
         );
@@ -368,7 +368,7 @@ class vtmclass_admin_players_table extends vtmclass_MultiPage_ListTable {
 				foreach( $this->filter_type as $key => $value ) {
 					echo '<option value="' . esc_attr( $key ) . '" ';
 					selected( $this->active_playertype, $key );
-					echo '>' . esc_attr( $value ) . '</option>';
+					echo '>' . vtm_formatOutput( $value ) . '</option>';
 				}
 				echo '</select>';
 			}
@@ -380,7 +380,7 @@ class vtmclass_admin_players_table extends vtmclass_MultiPage_ListTable {
 				foreach( $this->filter_status as $key => $value ) {
 					echo '<option value="' . esc_attr( $key ) . '" ';
 					selected( $this->active_playerstatus, $key );
-					echo '>' . esc_attr( $value ) . '</option>';
+					echo '>' . vtm_formatOutput( $value ) . '</option>';
 				}
 				echo '</select>';
 			}

@@ -6,19 +6,19 @@ class vtmclass_report_flaws extends vtmclass_Report_ListTable {
     function column_default($item, $column_name){
         switch($column_name){
             case 'PLAYERNAME':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'CHARACTERNAME':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'MERIT':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'LEVEL':
                 return $item->$column_name;
             case 'COMMENT':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'DETAIL':
-                return str_replace("\n", "<br>", stripslashes($item->$column_name));
+                return wpautop(vtm_formatOutput($item->$column_name));
             case 'SOURCEBOOK':
-                return $item->$column_name;
+                return vtm_formatOutput($item->$column_name);
             case 'PAGE_NUMBER':
                 return $item->$column_name;
            default:
@@ -28,7 +28,7 @@ class vtmclass_report_flaws extends vtmclass_Report_ListTable {
 
     function get_columns(){
         $columns = array(
-            'CHARACTERNAME'    => 'Character',
+            'CHARACTERNAME'  => 'Character',
             'PLAYERNAME'   => 'Player',
             'MERIT'        => 'Merit or Flaw',
             'LEVEL'        => 'Level',
@@ -181,13 +181,13 @@ class vtmclass_report_quotes extends vtmclass_Report_ListTable {
     function column_default($item, $column_name){
         switch($column_name){
             case 'PLAYERNAME':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'CHARACTERNAME':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'CLAN':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'QUOTE':
-                return str_replace("\n", "<br>", stripslashes($item->$column_name));
+                return wpautop(vtm_formatOutput($item->$column_name, 1));
             default:
                 return print_r($item,true); 
         }
@@ -292,15 +292,15 @@ class vtmclass_report_prestige extends vtmclass_Report_ListTable {
     function column_default($item, $column_name){
         switch($column_name){
             case 'PLAYERNAME':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'CHARACTERNAME':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'PUBLIC_CLAN':
-                return $item->$column_name;
+                return vtm_formatOutput($item->$column_name);
             case 'PRIVATE_CLAN':
-                return $item->$column_name;
+                return vtm_formatOutput($item->$column_name);
             case 'COMMENT':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'LEVEL':
                 return $item->$column_name;
             default:
@@ -459,11 +459,11 @@ class vtmclass_report_signin extends vtmclass_Report_ListTable {
     function column_default($item, $column_name){
         switch($column_name){
             case 'PLAYERNAME':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'CHARACTERNAME':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'BACKGROUND':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'SIGNATURE':
                 return $item->$column_name;
             default:
@@ -648,11 +648,11 @@ class vtmclass_report_sect extends vtmclass_Report_ListTable {
     function column_default($item, $column_name){
         switch($column_name){
             case 'PLAYERNAME':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'CHARACTERNAME':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'SECT':
-                return $item->$column_name;
+                return vtm_formatOutput($item->$column_name);
             default:
                 return print_r($item,true); 
         }
@@ -688,7 +688,7 @@ class vtmclass_report_sect extends vtmclass_Report_ListTable {
 			foreach (vtm_get_sects() as $sect) {
 				echo '<option value="' . $sect->ID . '" ';
 				echo selected( $this->active_filter_selectsect, $sect->ID );
-				echo '>' . $sect->NAME . '</option>';
+				echo '>' . vtm_formatOutput($sect->NAME) . '</option>';
 			}
 			echo '</select>';
 			
@@ -775,9 +775,9 @@ class vtmclass_report_activity extends vtmclass_Report_ListTable {
     function column_default($item, $column_name){
         switch($column_name){
             case 'PLAYERNAME':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'CHARACTERNAME':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'LAST_UPDATED':
                 return $item->$column_name;
             default:
@@ -868,15 +868,15 @@ class vtmclass_report_sector extends vtmclass_Report_ListTable {
     function column_default($item, $column_name){
         switch($column_name){
             case 'PLAYERNAME':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'CHARACTERNAME':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'BACKGROUND':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'SECTOR':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'COMMENT':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'LEVEL':
                 return $item->$column_name;
            default:
@@ -915,7 +915,7 @@ class vtmclass_report_sector extends vtmclass_Report_ListTable {
 			foreach (vtm_get_backgrounds() as $background) {
 				echo '<option value="' . $background->ID . '" ';
 				selected( $this->active_filter_background, $background->ID );
-				echo '>' . $background->NAME , '</option>';
+				echo '>' . vtm_formatOutput($background->NAME) , '</option>';
 			}
 			echo '</select>';
 

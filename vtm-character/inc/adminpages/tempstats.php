@@ -87,7 +87,7 @@ function vtm_render_temp_stat_page($stat) {
 		$errstat = 2;
 		for ($i=0;$i<count($ids);$i++) {
 			if (!vtm_update_temp_stat($ids[$i], $amount, $stat, $statID, $reasonID, 
-							$maximums[$i], $currents[$i], htmlspecialchars(stripslashes($names[$i]),ENT_QUOTES), ''))
+							$maximums[$i], $currents[$i], $names[$i], ''))
 				$errstat = 1;
 		}
 	}
@@ -96,7 +96,7 @@ function vtm_render_temp_stat_page($stat) {
 		for ($i=0;$i<count($ids);$i++) {
 			if (!empty($amounts[$i]))
 				if (!vtm_update_temp_stat($ids[$i], $amounts[$i], $stat, $statID, $tmpreasons[$i], 
-							$maximums[$i], $currents[$i], htmlspecialchars(stripslashes($names[$i]),ENT_QUOTES), $comments[$i]))
+							$maximums[$i], $currents[$i], $names[$i], $comments[$i]))
 					$errstat = 1;
 		}
 	}
@@ -158,7 +158,7 @@ function vtm_render_temp_stat_page($stat) {
 			foreach ($reasons as $reason) {
 				echo "<option value='{$reason->id}'";
 				selected($reason->id, $reasonID);
-				echo ">" . stripslashes($reason->name) . "</option>";
+				echo ">" . vtm_formatOutput($reason->name) . "</option>";
 			}
 		?>
 		</select>
@@ -178,9 +178,9 @@ function vtm_render_temp_stat_page($stat) {
 				?>
 				<tr>
 					<?php 
-					echo "<td><input type='hidden' name='charname[]' value='" . htmlspecialchars(stripslashes($item->CHARACTERNAME),ENT_QUOTES) . "'/>
+					echo "<td><input type='hidden' name='charname[]' value='" . vtm_formatOutput($item->CHARACTERNAME) . "'/>
 						<input type='hidden' name='charID[]' value='{$item->ID}'/>
-						" . htmlspecialchars(stripslashes($item->CHARACTERNAME),ENT_QUOTES) . "
+						" . vtm_formatOutput($item->CHARACTERNAME) . "
 						<span style='color:silver'>(ID:{$item->ID})</span></td>";
 					echo "<td><input type='hidden' name='current[]' value='{$item->CURRENTSTAT}'/>
 						{$item->CURRENTSTAT}</td>";
@@ -188,7 +188,7 @@ function vtm_render_temp_stat_page($stat) {
 						{$item->$maxcol}</td>";
 					echo "<td><select name='temp_reason[]'>\n";
 					foreach ($reasons as $reason) {
-						echo "<option value='{$reason->id}'>" . stripslashes($reason->name) . "</option>\n";
+						echo "<option value='{$reason->id}'>" . vtm_formatOutput($reason->name) . "</option>\n";
 					}
 					echo "</select></td>\n";
 					echo "<td><input type='text' name='amount[]' value='' size=4 /></td>";
