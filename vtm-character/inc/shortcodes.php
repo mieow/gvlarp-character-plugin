@@ -13,9 +13,11 @@ function vtm_get_homedomain() {
 	
 	$sql = "SELECT ID, NAME FROM " . VTM_TABLE_PREFIX . "DOMAIN
 			WHERE ID = %s;";
-	$list = $wpdb->get_results($wpdb->prepare($sql, $vtmglobal['config']->HOME_DOMAIN_ID));
+	$list = $wpdb->get_row($wpdb->prepare($sql, $vtmglobal['config']->HOME_DOMAIN_ID));
 	
-	return $list[0]->NAME;
+	//echo "<li>Home domain: ({$list->ID}) {$list->NAME}</li>";
+	
+	return $list->NAME;
 }
 function vtm_get_loggedinclan($characterID) {
 	global $wpdb;
@@ -93,7 +95,8 @@ function vtm_print_background_shortcode($atts, $content = null) {
 		"liststatus" => "Alive",
 		"level"      => "all",
 		"columns"    => "level,character,player,clan,domain,background,sector,office,comment,level",  // also sect
-		"heading"    => 1
+		"heading"    => 1,
+		"charactertype" => 'all'
 		), $atts)
 	);
 	
@@ -126,12 +129,14 @@ function vtm_print_background_shortcode($atts, $content = null) {
 				domains.name as domain,
 				sector.name as sectorname,
 				cgstatus.name as chargenstat,
-				sects.name as sect
+				sects.name as sect,
+				ctype.name as charactertype
 			FROM
 				" . VTM_TABLE_PREFIX . "CHARACTER chara,
 				" . VTM_TABLE_PREFIX . "PLAYER player,
 				" . VTM_TABLE_PREFIX . "PLAYER_STATUS pstatus,
 				" . VTM_TABLE_PREFIX . "CHARACTER_STATUS cstatus,
+				" . VTM_TABLE_PREFIX . "CHARACTER_TYPE ctype,
 				" . VTM_TABLE_PREFIX . "CLAN pubclan,
 				" . VTM_TABLE_PREFIX . "CLAN privclan,
 				" . VTM_TABLE_PREFIX . "BACKGROUND background,
@@ -150,6 +155,7 @@ function vtm_print_background_shortcode($atts, $content = null) {
                 AND player.PLAYER_STATUS_ID = pstatus.ID
 				AND pstatus.NAME = 'Active'
 				AND chara.CHARACTER_STATUS_ID = cstatus.ID
+				AND chara.CHARACTER_TYPE_ID = ctype.ID
 				AND chara.PUBLIC_CLAN_ID = pubclan.ID
 				AND chara.PRIVATE_CLAN_ID = privclan.ID
 				AND background.ID = char_bg.BACKGROUND_ID
@@ -176,7 +182,8 @@ function vtm_print_background_shortcode($atts, $content = null) {
 				domains.name as domain,
 				\"\" as sectorname,
 				cgstatus.name as chargenstat,
-				sects.name as sect
+				sects.name as sect,
+				ctype.name as charactertype
 			FROM
 				" . VTM_TABLE_PREFIX . "CHARACTER chara
 				LEFT JOIN
@@ -194,6 +201,7 @@ function vtm_print_background_shortcode($atts, $content = null) {
 				" . VTM_TABLE_PREFIX . "PLAYER player,
 				" . VTM_TABLE_PREFIX . "PLAYER_STATUS pstatus,
 				" . VTM_TABLE_PREFIX . "CHARACTER_STATUS cstatus,
+				" . VTM_TABLE_PREFIX . "CHARACTER_TYPE ctype,
 				" . VTM_TABLE_PREFIX . "CHARGEN_STATUS cgstatus,
 				" . VTM_TABLE_PREFIX . "CLAN pubclan,
 				" . VTM_TABLE_PREFIX . "CLAN privclan,
@@ -204,6 +212,7 @@ function vtm_print_background_shortcode($atts, $content = null) {
                 AND player.PLAYER_STATUS_ID = pstatus.ID
 				AND pstatus.NAME = 'Active'
 				AND chara.CHARACTER_STATUS_ID = cstatus.ID
+				AND chara.CHARACTER_TYPE_ID = ctype.ID
 				AND chara.PUBLIC_CLAN_ID = pubclan.ID
 				AND chara.PRIVATE_CLAN_ID = privclan.ID
 				AND domains.ID = chara.DOMAIN_ID
@@ -224,6 +233,12 @@ function vtm_print_background_shortcode($atts, $content = null) {
 		
 		$sqlmain .= $sqlfilter;
 		$sqlzero .= $sqlfilter;
+	}
+	if ($charactertype != 'all') {
+		$sqlmain .= " AND ctype.name = %s";
+		$sqlzero .= " AND ctype.name = %s";
+		array_push($sqlmainargs, $charactertype);
+		array_push($sqlzeroargs, $charactertype);
 	}
 	
 	if ($matchtype == 'comment') {
@@ -445,7 +460,8 @@ function vtm_print_merit_shortcode($atts, $content = null) {
 		"domain"     => "home",
 		"liststatus" => "Alive",
 		"columns"    => "character,player,clan,domain,merit,comment,level",
-		"heading"    => 1
+		"heading"    => 1,
+		"charactertype" => 'all'
 		), $atts)
 	);
 	
@@ -455,6 +471,8 @@ function vtm_print_merit_shortcode($atts, $content = null) {
 		domain = "" or <value> or loggedin or home
 		
 		level = "all" or "displayzeros" or <number>
+		
+		charactertype = all, PC, NPC
 	*/
 
 	$character = vtm_establishCharacter($character);
@@ -472,17 +490,21 @@ function vtm_print_merit_shortcode($atts, $content = null) {
 				char_merit.level as level,
 				char_merit.comment as comment,
 				domains.name as domain,
-				sects.name as sect
+				sects.name as sect,
+				cgstatus.name as chargenstat,
+				ctype.name as charactertype
 			FROM
 				" . VTM_TABLE_PREFIX . "CHARACTER chara,
 				" . VTM_TABLE_PREFIX . "PLAYER player,
 				" . VTM_TABLE_PREFIX . "PLAYER_STATUS pstatus,
 				" . VTM_TABLE_PREFIX . "CHARACTER_STATUS cstatus,
+				" . VTM_TABLE_PREFIX . "CHARACTER_TYPE ctype,
 				" . VTM_TABLE_PREFIX . "CLAN pubclan,
 				" . VTM_TABLE_PREFIX . "CLAN privclan,
 				" . VTM_TABLE_PREFIX . "MERIT merit,
 				" . VTM_TABLE_PREFIX . "CHARACTER_MERIT char_merit,
 				" . VTM_TABLE_PREFIX . "DOMAIN domains,
+				" . VTM_TABLE_PREFIX . "CHARGEN_STATUS cgstatus,
 				" . VTM_TABLE_PREFIX . "SECT sects
 			WHERE
 				chara.PLAYER_ID = player.ID
@@ -490,13 +512,16 @@ function vtm_print_merit_shortcode($atts, $content = null) {
                 AND player.PLAYER_STATUS_ID = pstatus.ID
 				AND pstatus.NAME = 'Active'
 				AND chara.CHARACTER_STATUS_ID = cstatus.ID
+				AND chara.CHARACTER_TYPE_ID = ctype.ID
 				AND chara.PUBLIC_CLAN_ID = pubclan.ID
 				AND chara.PRIVATE_CLAN_ID = privclan.ID
+				AND cgstatus.ID = chara.CHARGEN_STATUS_ID
 				AND merit.ID = char_merit.MERIT_ID
 				AND domains.ID = chara.DOMAIN_ID
 				AND sects.ID = chara.SECT_ID
 				AND chara.VISIBLE = 'Y'
 				AND chara.DELETED = 'N'
+				AND cgstatus.NAME = 'Approved'
 				AND merit.name = %s";
 	$sqlmainargs = array($merit);
 	
@@ -507,6 +532,10 @@ function vtm_print_merit_shortcode($atts, $content = null) {
 		$sqlfilter .= "')";
 		
 		$sqlmain .= $sqlfilter;
+	}
+	if ($charactertype != 'all') {
+		$sqlmain .= " AND ctype.name = %s";
+		array_push($sqlmainargs, $charactertype);
 	}
 	
 	if ($match) {
