@@ -152,6 +152,8 @@ function vtm_render_template_data(){
 				/* update */
 				$id = $_REQUEST['template'];
 				
+				//print_r($_REQUEST);
+				
 				if (empty($_REQUEST["template_name"])) {
 					echo "<p style='color:red'><b>Error: </b>Enter a template name before saving</p>";
 					break;
@@ -222,7 +224,18 @@ function vtm_render_template_data(){
 				$delete    = $_REQUEST['item_delete'];
 				//print_r($_REQUEST);
 				for ($i = 0 ; $i < count($items) ; $i++) {
+					//echo "<li>Add $i {$tables[$i]} {$comments[$i]}, {$items[$i]} at {$levels[$i]}?</li>";
 					if ($levels[$i] > 0 && $items[$i] != 0 && (!isset($delete[$i]) || (isset($delete[$i]) && $delete[$i] != 'on'))) {
+						
+						if (!isset($multiples[$i])) {
+							if ($tables[$i] != 'BACKGROUND') {
+								$sql = "SELECT MULTIPLE FROM " . VTM_TABLE_PREFIX . $tables[$i] . " WHERE ID = %s";
+								$multiples[$i] = $wpdb->get_var($wpdb->prepare($sql, $items[$i]));
+							} else {
+								$multiples[$i] = 'N';
+							}
+						}
+						
 						$data = array(
 								'TEMPLATE_ID'  => $id,
 								'CHARTABLE'    => 'CHARACTER_' . $tables[$i],
@@ -345,9 +358,9 @@ function vtm_render_template_data(){
 	<input type="hidden" name="action" value="save" />
 	<div class="datatables_info">
 	<p>Template Name:
-	<input type="text"   name="template_name" value="<?php print $name; ?>" size=30 /></p>
+	<input type="text"   name="template_name" value="<?php print vtm_formatOutput($name); ?>" size=30 /></p>
 	<p>Description:
-	<input type="text"   name="template_desc" value="<?php print $description; ?>" size=70 /></p>
+	<input type="text"   name="template_desc" value="<?php print vtm_formatOutput($description); ?>" size=70 /></p>
 	<p>Visible:
 		<select name="template_visible">
 			<option value="N" <?php selected($visible, "N"); ?>>No</option>
@@ -443,7 +456,7 @@ function vtm_render_template_data(){
 					<select name="limit-road-id">
 					<?php 
 						foreach ($roads as $road) {
-							print "<option value='{$road->ID}' " . selected($settings['limit-road-id'],$road->ID, false) . ">{$road->name}</option>\n";
+							print "<option value='{$road->ID}' " . selected($settings['limit-road-id'],$road->ID, false) . ">" . vtm_formatOutput($road->name) . "</option>\n";
 						}
 					?>
 					</select>
@@ -505,7 +518,7 @@ function vtm_render_template_data(){
 					<select name="limit-sect-id">
 					<?php 
 						foreach ($sects as $sect) {
-							print "<option value='{$sect->ID}' " . selected($settings['limit-sect-id'],$sect->ID, false) . ">{$sect->NAME}</option>\n";
+							print "<option value='{$sect->ID}' " . selected($settings['limit-sect-id'],$sect->ID, false) . ">" . vtm_formatOutput($sect->NAME) . "</option>\n";
 						}
 					?>
 					</select>
@@ -580,12 +593,12 @@ function vtm_render_template_data(){
 				<input type='hidden' name='table[$offset]' value='BACKGROUND'>
 				<input type='hidden' name='item[$offset]' value='{$item->ID}'>
 				<input type='hidden' name='multiple[$offset]' value='{$item->MULTIPLE}'>
-				" . stripslashes($item->NAME) . "</td>\n";
+				" . vtm_formatOutput($item->NAME) . "</td>\n";
 			print "<td>
 				<input type='hidden' name='item_sector[$offset]' value='{$item->SECTOR_ID}'>
-				{$item->SECTOR}</td>\n";
-			print "<td><input type='hidden' name='item_spec[$offset]' value='{$item->SPECIALISATION}'>
-				" . stripslashes($item->SPECIALISATION) . "</td>\n";
+				" . vtm_formatOutput($item->SECTOR) . "</td>\n";
+			print "<td><input type='hidden' name='item_spec[$offset]' value='" . vtm_formatOutput($item->SPECIALISATION) . "'>
+				" . vtm_formatOutput($item->SPECIALISATION) . "</td>\n";
 			print "<td>
 				<input type='hidden' name='item_level[$offset]' value='{$item->LEVEL}'>
 				{$item->LEVEL}</td>\n";
@@ -602,13 +615,13 @@ function vtm_render_template_data(){
 				<select name='item[$i]'>\n";
 			print "<option value='0'>[Select]</option>\n";
 			foreach ($backgrounds as $item) {
-				print "<option value='{$item->ID}'>" . stripslashes($item->NAME) . "</option>\n";
+				print "<option value='{$item->ID}'>" . vtm_formatOutput($item->NAME) . "</option>\n";
 			}
 			print "</select></td>\n";
 			print "<td><select name='item_sector[$i]'>\n";
 			print "<option value='0'>[None]</option>\n";
 			foreach ($sectors as $item) {
-				print "<option value='{$item->ID}'>" . stripslashes($item->NAME) . "</option>\n";
+				print "<option value='{$item->ID}'>" . vtm_formatOutput($item->NAME) . "</option>\n";
 			}
 			print "</select></td>\n";
 			print "<td><input type='text' name='item_spec[$i]' value=''></td>\n";
@@ -654,9 +667,9 @@ function vtm_render_template_data(){
 				<input type='hidden' name='table[$offset]' value='SKILL'>
 				<input type='hidden' name='item[$offset]' value='{$item->ID}'>
 				<input type='hidden' name='multiple[$offset]' value='{$item->MULTIPLE}'>
-				" . stripslashes($item->NAME) . "</td>\n";
-			print "<td><input type='hidden' name='item_spec[$offset]' value='{$item->SPECIALISATION}'>
-				" . stripslashes($item->SPECIALISATION) . "</td>\n";
+				" . vtm_formatOutput($item->NAME) . "</td>\n";
+			print "<td><input type='hidden' name='item_spec[$offset]' value='" . vtm_formatOutput($item->SPECIALISATION) . "'>
+				" . vtm_formatOutput($item->SPECIALISATION) . "</td>\n";
 			print "<td>
 				<input type='hidden' name='item_level[$offset]' value='{$item->LEVEL}'>
 				{$item->LEVEL}</td>\n";
@@ -673,7 +686,7 @@ function vtm_render_template_data(){
 				<select name='item[$i]'>\n";
 			print "<option value='0'>[Select]</option>\n";
 			foreach ($skills as $item) {
-				print "<option value='{$item->id}'>" . stripslashes($item->name) . "</option>\n";
+				print "<option value='{$item->id}'>" . vtm_formatOutput($item->name) . "</option>\n";
 			}
 			print "</select></td>\n";
 			print "<td><input type='text' name='item_spec[$i]' value=''></td>\n";
@@ -726,7 +739,7 @@ function vtm_render_template_data(){
 				print "<td>
 					<input type='hidden' name='max_table[$offset]' value='BACKGROUND'>
 					<input type='hidden' name='max_item[$offset]' value='{$item->ID}'>
-					" . stripslashes($item->NAME) . "</td>\n";
+					" . vtm_formatOutput($item->NAME) . "</td>\n";
 				print "<td><select name='max_level[$offset]'>\n";
 				for ($j = 1 ; $j <= 5 ; $j++) {
 					print "<option value='$j' " . selected($j,$item->LEVEL, false) . ">$j</option>\n";
@@ -747,7 +760,7 @@ function vtm_render_template_data(){
 				<select name='max_item[$i]'>\n";
 			print "<option value='0'>[Select]</option>\n";
 			foreach ($backgrounds as $item) {
-				print "<option value='{$item->ID}'>" . stripslashes($item->NAME) . "</option>\n";
+				print "<option value='{$item->ID}'>" . vtm_formatOutput($item->NAME) . "</option>\n";
 			}
 			print "</select></td>\n";
 			print "<td><select name='max_level[$i]'>\n";
@@ -789,7 +802,7 @@ function vtm_render_select_template() {
 	foreach (vtm_get_templates() as $template) {
 		echo "<option value='{$template->ID}' ";
 		selected($selected,$template->ID);
-		echo ">{$template->NAME}</option>\n";
+		echo ">" . vtm_formatOutput($template->NAME) . "</option>\n";
 	}
 	
 	echo "</select>\n";

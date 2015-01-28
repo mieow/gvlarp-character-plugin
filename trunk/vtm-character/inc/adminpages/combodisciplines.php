@@ -95,7 +95,7 @@ function vtm_render_combo_add_form($type, $addaction) {
 		<table>
 		<tr>
 			<td>Name:</td>
-			<td><input type="text" name="<?php print $type; ?>_name" value="<?php print $name; ?>" size=30 /></td>
+			<td><input type="text" name="<?php print $type; ?>_name" value="<?php print vtm_formatOutput($name); ?>" size=30 /></td>
 			<td>Sourcebook:</td>
 			<td>
 				<select name="<?php print $type; ?>_sourcebook">
@@ -103,7 +103,7 @@ function vtm_render_combo_add_form($type, $addaction) {
 							foreach (vtm_get_booknames() as $book) {
 								print "<option value='{$book->ID}' ";
 								($book->ID == $sourcebook) ? print "selected" : print "";
-								echo ">{$book->NAME}</option>";
+								echo ">" . vtm_formatOutput($book->NAME) . "</option>";
 							}
 						?>
 				</select>
@@ -123,7 +123,7 @@ function vtm_render_combo_add_form($type, $addaction) {
 			<td>&nbsp;</td>
 		<tr>
 			<td>Description:  </td>
-			<td colspan=5><input type="text" name="<?php print $type; ?>_desc" value="<?php print $desc; ?>" size=90 /></td> 
+			<td colspan=5><input type="text" name="<?php print $type; ?>_desc" value="<?php print vtm_formatOutput($desc); ?>" size=90 /></td> 
 		</tr>
 		</tr><tr>
 			<td colspan=6><strong>Discipline Pre-requisite Levels</strong></td>
@@ -139,7 +139,7 @@ function vtm_render_combo_add_form($type, $addaction) {
 								: "0";
 				
 					if ($col == 1) echo "<tr>\n";
-					echo "<td>{$disc->NAME}</td>\n";
+					echo "<td>" . vtm_formatOutput($disc->NAME) . "</td>\n";
 					echo "<td><input type=\"number\" name=\"{$type}_disc[{$disc->ID}]\" value=\"{$prereq}\" size=4 /></td>\n";
 					
 					if ($col == 4) {
@@ -265,7 +265,7 @@ class vtmclass_admin_combo_table extends vtmclass_MultiPage_ListTable {
 				echo "<p style='color:red'>Could not add Combination Discipline pre-requisites ({$_REQUEST['combo_name']})</p>";
 			} 
 			else {
-				echo "<p style='color:green'>Added " . stripslashes($_REQUEST['combo_name']) . "' (ID: {$id})</p>";
+				echo "<p style='color:green'>Added " . vtm_formatOutput($_REQUEST['combo_name']) . "' (ID: {$id})</p>";
 			}
 		
 		}
@@ -332,13 +332,13 @@ class vtmclass_admin_combo_table extends vtmclass_MultiPage_ListTable {
 			}
 			
 			if ($fail) {
-				echo "<p style='color:red'>Could not update Combination Discipline pre-requisites ({$_REQUEST['combo_name']})</p>";
+				echo "<p style='color:red'>Could not update Combination Discipline pre-requisites (" . vtm_formatOutput($_REQUEST['combo_name']) . ")</p>";
 			} 
 			elseif (!$updates) {
 				echo "<p style='color:orange'>No updates made to Combination Discipline</p>";
 			}
 			else {
-				echo "<p style='color:green'>Updated Combination Discipline {$_REQUEST['combo_name']}</p>";
+				echo "<p style='color:green'>Updated Combination Discipline " . vtm_formatOutput($_REQUEST['combo_name']) . "</p>";
 			}
 		}
 	}
@@ -362,7 +362,7 @@ class vtmclass_admin_combo_table extends vtmclass_MultiPage_ListTable {
 			echo "<p style='color:red'>Cannot delete as this combo discipline has been use for the following characters:";
 			echo "<ul>";
 			foreach ($isused as $item)
-				echo "<li style='color:red'>{$item->NAME}</li>";
+				echo "<li style='color:red'>" . vtm_formatOutput($item->NAME) . "</li>";
 			echo "</ul></p>";
 			return;
 			
@@ -380,7 +380,7 @@ class vtmclass_admin_combo_table extends vtmclass_MultiPage_ListTable {
     function column_default($item, $column_name){
         switch($column_name){
             case 'DESCRIPTION':
-                return $item->$column_name;
+                return vtm_formatOutput($item->$column_name);
             case 'COST':
                 return $item->$column_name;
             default:
@@ -389,7 +389,7 @@ class vtmclass_admin_combo_table extends vtmclass_MultiPage_ListTable {
     }
 	
 	function column_sourcebook($item) {
-		return $item->BOOKNAME . ", p" . $item->PAGE_NUMBER;
+		return vtm_formatOutput($item->BOOKNAME) . ", p" . $item->PAGE_NUMBER;
 	}
 	function column_prerequisites($item) {
 	
@@ -404,7 +404,7 @@ class vtmclass_admin_combo_table extends vtmclass_MultiPage_ListTable {
 		
 		$out = count($outarray) > 0 ? implode(', ', $outarray) : "None";
 	
-		return $out;
+		return vtm_formatOutput($out);
 	}
 	
    function column_name($item){
@@ -416,7 +416,7 @@ class vtmclass_admin_combo_table extends vtmclass_MultiPage_ListTable {
         
         
         return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
-            $item->NAME,
+            vtm_formatOutput($item->NAME),
             $item->ID,
             $this->row_actions($actions)
         );

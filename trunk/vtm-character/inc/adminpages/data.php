@@ -191,9 +191,9 @@ function vtm_render_meritflaw_add_form($type, $addaction) {
 		<table>
 		<tr>
 			<td><?php print ucfirst($type); ?> Name:  </td>
-			<td><input type="text" name="<?php print $type; ?>_name" value="<?php print stripslashes($name); ?>" size=20 /></td> <!-- check sizes -->
+			<td><input type="text" name="<?php print $type; ?>_name" value="<?php print vtm_formatOutput($name); ?>" size=20 /></td> <!-- check sizes -->
 			<td>Grouping:   </td>
-			<td><input type="text" name="<?php print $type; ?>_group" value="<?php print $group; ?>" size=20 /></td>
+			<td><input type="text" name="<?php print $type; ?>_group" value="<?php print vtm_formatOutput($group); ?>" size=20 /></td>
 			<td>Visible to Players: </td>
 			<td>
 				<select name="<?php print $type; ?>_visible">
@@ -210,7 +210,7 @@ function vtm_render_meritflaw_add_form($type, $addaction) {
 						foreach ($booklist as $book) {
 							print "<option value='{$book->ID}' ";
 							($book->ID == $bookid) ? print "selected" : print "";
-							echo ">{$book->NAME}</option>";
+							echo ">" . vtm_formatOutput($book->NAME) . "</option>";
 						}
 					?>
 				</select>
@@ -246,7 +246,7 @@ function vtm_render_meritflaw_add_form($type, $addaction) {
 						foreach (vtm_get_profile_display() as $opt) {
 							print "<option value='{$opt->ID}' ";
 							($opt->ID == $profile) ? print "selected" : print "";
-							echo ">{$opt->NAME}</option>";
+							echo ">" . vtm_formatOutput($opt->NAME) . "</option>";
 						}
 					?>
 				</select>
@@ -254,9 +254,9 @@ function vtm_render_meritflaw_add_form($type, $addaction) {
 		</tr>
 		<tr>
 			<td>Description: </td>
-			<td colspan=2><input type="text" name="<?php print $type; ?>_desc" value="<?php print $desc; ?>" size=50 /></td>
+			<td colspan=2><input type="text" name="<?php print $type; ?>_desc" value="<?php print vtm_formatOutput($desc); ?>" size=50 /></td>
 			<td>Extended Background Question: </td>
-			<td colspan=2><input type="text" name="<?php print $type; ?>_question" value="<?php print $question; ?>" size=50 /></td>
+			<td colspan=2><input type="text" name="<?php print $type; ?>_question" value="<?php print vtm_formatOutput($question); ?>" size=50 /></td>
 		</tr>
 		</table>
 		<input type="submit" name="do_add_<?php print $type; ?>" class="button-primary" value="Save <?php print ucfirst($type); ?>" />
@@ -351,7 +351,7 @@ function vtm_render_ritual_add_form($addaction) {
 		<table>
 		<tr>
 			<td><?php print ucfirst($type); ?> Name:  </td>
-			<td colspan=3><input type="text" name="<?php print $type; ?>_name" value="<?php print $name; ?>" size=60 /></td> <!-- check sizes -->
+			<td colspan=3><input type="text" name="<?php print $type; ?>_name" value="<?php print vtm_formatOutput($name); ?>" size=60 /></td> <!-- check sizes -->
 			<td>Visible to Players: </td>
 			<td>
 				<select name="<?php print $type; ?>_visible">
@@ -368,7 +368,7 @@ function vtm_render_ritual_add_form($addaction) {
 						foreach (vtm_get_disciplines() as $disc) {
 							print "<option value='{$disc->ID}' ";
 							($disc->ID == $disciplineid) ? print "selected" : print "";
-							echo ">{$disc->NAME}</option>";
+							echo ">" . vtm_formatOutput($disc->NAME) . "</option>";
 						}
 					?>
 				</select>
@@ -386,7 +386,7 @@ function vtm_render_ritual_add_form($addaction) {
 						foreach ($booklist as $book) {
 							print "<option value='{$book->ID}' ";
 							($book->ID == $bookid) ? print "selected" : print "";
-							echo ">{$book->NAME}</option>";
+							echo ">" . vtm_formatOutput($book->NAME) . "</option>";
 						}
 					?>
 				</select>
@@ -402,7 +402,7 @@ function vtm_render_ritual_add_form($addaction) {
 			<td colspan=2>&nbsp;</td>
 		</tr>
 		<tr>
-			<td>Description: </td><td colspan=5><input type="text" name="<?php print $type; ?>_desc" value="<?php print $desc; ?>" size=120 /></td>
+			<td>Description: </td><td colspan=5><input type="text" name="<?php print $type; ?>_desc" value="<?php print vtm_formatOutput($desc); ?>" size=120 /></td>
 		</tr>
 		</table>
 		<input type="submit" name="do_add_<?php print $type; ?>" class="button-primary" value="Save <?php print ucfirst($type); ?>" />
@@ -467,11 +467,11 @@ function vtm_render_book_add_form($addaction) {
 		<table style='width:500px'>
 		<tr>
 			<td><?php print ucfirst($type); ?> Code:  </td>
-			<td><input type="text" name="<?php print $type; ?>_code" value="<?php print $code; ?>" size=16 /></td> <!-- check sizes -->
+			<td><input type="text" name="<?php print $type; ?>_code" value="<?php print vtm_formatOutput($code); ?>" size=16 /></td> <!-- check sizes -->
 		</tr>
 		<tr>
 			<td><?php print ucfirst($type); ?> Name:  </td>
-			<td><input type="text" name="<?php print $type; ?>_name" value="<?php print $name; ?>" size=60 /></td> <!-- check sizes -->
+			<td><input type="text" name="<?php print $type; ?>_name" value="<?php print vtm_formatOutput($name); ?>" size=60 /></td> <!-- check sizes -->
 		</tr>
 		<tr>
 			<td>Visible to Players: </td><td>
@@ -762,11 +762,11 @@ class vtmclass_admin_meritsflaws_table extends vtmclass_MultiPage_ListTable {
 				);
 		
 		if ($wpdb->insert_id == 0) {
-			echo "<p style='color:red'><b>Error:</b> " . stripslashes($meritname) . " could not be inserted (";
+			echo "<p style='color:red'><b>Error:</b> " . vtm_formatOutput($meritname) . " could not be inserted (";
 			$wpdb->print_error();
 			echo ")</p>";
 		} else {
-			echo "<p style='color:green'>Added " . stripslashes($meritgroup) . " merit/flaw '" . stripslashes($meritname) . "' (ID: {$wpdb->insert_id})</p>";
+			echo "<p style='color:green'>Added " . vtm_formatOutput($meritgroup) . " merit/flaw '" . stripslashes($meritname) . "' (ID: {$wpdb->insert_id})</p>";
 		}
 	}
  	function edit_merit($meritid, $meritname, $meritgroup, $sourcebookid, $pagenum,
@@ -802,21 +802,21 @@ class vtmclass_admin_meritsflaws_table extends vtmclass_MultiPage_ListTable {
 				);
 		
 		if ($result) 
-			echo "<p style='color:green'>Updated " . stripslashes($meritname) . "</p>";
+			echo "<p style='color:green'>Updated " . vtm_formatOutput($meritname) . "</p>";
 		else if ($result === 0) 
-			echo "<p style='color:orange'>No updates made to " . stripslashes($meritname) . "</p>";
+			echo "<p style='color:orange'>No updates made to " . vtm_formatOutput($meritname) . "</p>";
 		else {
 			$wpdb->print_error();
-			echo "<p style='color:red'>Could not update " . stripslashes($meritname) . " ($meritid)</p>";
+			echo "<p style='color:red'>Could not update " . vtm_formatOutput($meritname) . " ($meritid)</p>";
 		}
 	}
    
     function column_default($item, $column_name){
         switch($column_name){
             case 'DESCRIPTION':
-                return $item->$column_name;
+                return vtm_formatOutput($item->$column_name);
             case 'GROUPING':
-                return $item->$column_name;
+                return vtm_formatOutput($item->$column_name);
             case 'COST':
                 return $item->$column_name;
              case 'XP_COST':
@@ -824,7 +824,7 @@ class vtmclass_admin_meritsflaws_table extends vtmclass_MultiPage_ListTable {
             case 'PAGE_NUMBER':
                 return $item->$column_name;
             case 'SOURCEBOOK':
-                return $item->$column_name;
+                return vtm_formatOutput($item->$column_name);
            default:
                 return print_r($item,true); 
         }
@@ -842,7 +842,7 @@ class vtmclass_admin_meritsflaws_table extends vtmclass_MultiPage_ListTable {
         
         
         return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
-            stripslashes($item->NAME),
+            vtm_formatOutput($item->NAME),
             $item->ID,
             $this->row_actions($actions)
         );
@@ -954,7 +954,7 @@ class vtmclass_admin_meritsflaws_table extends vtmclass_MultiPage_ListTable {
 				foreach( $this->filter_visible as $key => $value ) {
 					echo '<option value="' . esc_attr( $key ) . '" ';
 					selected( $this->active_filter_visible, $key );
-					echo '>' . esc_attr( $value ) . '</option>';
+					echo '>' . vtm_formatOutput( $value ) . '</option>';
 				}
 				echo '</select>';
 			}
@@ -966,7 +966,7 @@ class vtmclass_admin_meritsflaws_table extends vtmclass_MultiPage_ListTable {
 				foreach( $this->filter_group as $key => $value ) {
 					echo '<option value="' . esc_attr( $key ) . '" ';
 					selected( $this->active_filter_group, $key );
-					echo '>' . esc_attr( $value ) . '</option>';
+					echo '>' . vtm_formatOutput( $value ) . '</option>';
 				}
 				echo '</select>';
 			}
@@ -978,7 +978,7 @@ class vtmclass_admin_meritsflaws_table extends vtmclass_MultiPage_ListTable {
 				foreach( $this->filter_multiple as $key => $value ) {
 					echo '<option value="' . esc_attr( $key ) . '" ';
 					selected( $this->active_filter_multiple, $key );
-					echo '>' . esc_attr( $value ) . '</option>';
+					echo '>' . vtm_formatOutput( $value ) . '</option>';
 				}
 				echo '</select>';
 			}
@@ -1117,7 +1117,7 @@ class vtmclass_admin_rituals_table extends vtmclass_MultiPage_ListTable {
 			echo "<p style='color:red'>Cannot delete as this ritual is being used in the following characters:";
 			echo "<ul>";
 			foreach ($isused as $character)
-				echo "<li style='color:red'>{$character->NAME}</li>";
+				echo "<li style='color:red'>" . vtm_formatOutput($character->NAME) . "</li>";
 			echo "</ul></p>";
 		} else {
 		
@@ -1168,11 +1168,11 @@ class vtmclass_admin_rituals_table extends vtmclass_MultiPage_ListTable {
 				);
 		
 		if ($wpdb->insert_id == 0) {
-			echo "<p style='color:red'><b>Error:</b> $ritualname could not be inserted (";
+			echo "<p style='color:red'><b>Error:</b> " . vtm_formatOutput($ritualname) . " could not be inserted (";
 			$wpdb->print_error();
 			echo ")</p>";
 		} else {
-			echo "<p style='color:green'>Added ritual '$ritualname' (ID: {$wpdb->insert_id})</p>";
+			echo "<p style='color:green'>Added ritual '" . vtm_formatOutput($ritualname) . "' (ID: {$wpdb->insert_id})</p>";
 		}
 	}
  	function edit_ritual($ritualid, $ritualname, $description, $level, $disciplineid, $dicepool,
@@ -1204,23 +1204,23 @@ class vtmclass_admin_rituals_table extends vtmclass_MultiPage_ListTable {
 				);
 		
 		if ($result) 
-			echo "<p style='color:green'>Updated $ritualname</p>";
+			echo "<p style='color:green'>Updated " . vtm_formatOutput($ritualname) . "</p>";
 		else if ($result === 0) 
-			echo "<p style='color:orange'>No updates made to $ritualname</p>";
+			echo "<p style='color:orange'>No updates made to " . vtm_formatOutput($ritualname) . "</p>";
 		else {
 			$wpdb->print_error();
-			echo "<p style='color:red'>Could not update $ritualname ($ritualid)</p>";
+			echo "<p style='color:red'>Could not update " . vtm_formatOutput($ritualname) . " ($ritualid)</p>";
 		}
 	}
    
     function column_default($item, $column_name){
         switch($column_name){
             case 'DESCRIPTION':
-                return $item->$column_name;
+                return vtm_formatOutput($item->$column_name);
             case 'LEVEL':
                 return $item->$column_name;
             case 'DISCIPLINE':
-                return $item->$column_name;
+                return vtm_formatOutput($item->$column_name);
             case 'DICE_POOL':
                 return $item->$column_name;
             case 'DIFFICULTY':
@@ -1230,7 +1230,7 @@ class vtmclass_admin_rituals_table extends vtmclass_MultiPage_ListTable {
             case 'PAGE_NUMBER':
                 return $item->$column_name;
             case 'SOURCEBOOK':
-                return $item->$column_name;
+                return vtm_formatOutput($item->$column_name);
            default:
                 return print_r($item,true); 
         }
@@ -1245,7 +1245,7 @@ class vtmclass_admin_rituals_table extends vtmclass_MultiPage_ListTable {
         
         
         return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
-            $item->NAME,
+            vtm_formatOutput($item->NAME),
             $item->ID,
             $this->row_actions($actions)
         );
@@ -1467,7 +1467,7 @@ class vtmclass_admin_books_table extends vtmclass_MultiPage_ListTable {
 			echo "<p style='color:red'>Cannot delete as this book is being used in the Merits and Flaws list:";
 			echo "<ul>";
 			foreach ($isused as $item)
-				echo "<li style='color:red'>{$item->NAME}</li>";
+				echo "<li style='color:red'>" . vtm_formatOutput($item->NAME) . "</li>";
 			echo "</ul></p>";
 			return;
 		}
@@ -1481,7 +1481,7 @@ class vtmclass_admin_books_table extends vtmclass_MultiPage_ListTable {
 			echo "<p style='color:red'>Cannot delete as this book is being used in the Rituals list:";
 			echo "<ul>";
 			foreach ($isused as $item)
-				echo "<li style='color:red'>{$item->NAME}</li>";
+				echo "<li style='color:red'>" . vtm_formatOutput($item->NAME) . "</li>";
 			echo "</ul></p>";
 			return;
 		}
@@ -1533,6 +1533,7 @@ class vtmclass_admin_books_table extends vtmclass_MultiPage_ListTable {
 					)
 				);
 		
+		$bookname = vtm_formatOutput($bookname);
 		if ($wpdb->insert_id == 0) {
 			echo "<p style='color:red'><b>Error:</b> $bookname could not be inserted (";
 			$wpdb->print_error();
@@ -1561,6 +1562,7 @@ class vtmclass_admin_books_table extends vtmclass_MultiPage_ListTable {
 					)
 				);
 		
+		$bookname = vtm_formatOutput($bookname);
 		if ($result) 
 			echo "<p style='color:green'>Updated $bookname</p>";
 		else if ($result === 0) 
@@ -1574,7 +1576,7 @@ class vtmclass_admin_books_table extends vtmclass_MultiPage_ListTable {
     function column_default($item, $column_name){
         switch($column_name){
             case 'CODE':
-                return $item->$column_name;
+                return vtm_formatOutput($item->$column_name);
            default:
                 return print_r($item,true); 
         }
@@ -1589,7 +1591,7 @@ class vtmclass_admin_books_table extends vtmclass_MultiPage_ListTable {
         
         
         return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
-            $item->NAME,
+            vtm_formatOutput($item->NAME),
             $item->ID,
             $this->row_actions($actions)
         );

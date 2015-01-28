@@ -93,7 +93,7 @@ function vtm_render_generation_data() {
 			<tr>
 				<td <?php echo $class; ?>>
 					<input type="hidden" name="genID[]" value="<?php echo $data->ID; ?>" size=4>
-					<input type="hidden" name="genName[]" value="<?php echo $data->NAME; ?>" size=4>
+					<input type="hidden" name="genName[]" value="<?php echo vtm_formatOutput($data->NAME); ?>" size=4>
 					<?php echo $data->NAME; ?>th
 				</td>
 				<td <?php echo $class; ?>>

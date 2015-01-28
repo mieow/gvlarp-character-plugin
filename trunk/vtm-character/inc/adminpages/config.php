@@ -111,9 +111,10 @@ function vtm_render_config_general() {
 				<?php 
 				$list = vtm_listDeletedCharacters();
 				foreach ($list as $chID => $row) {
-					echo "<tr><td>$chID</td><td>{$row->NAME}</td><td>{$row->PLAYER}</td><td>{$row->LAST_UPDATED}</td><td>";
+					echo "<tr><td>$chID</td><td>" . vtm_formatOutput($row->NAME) . "</td>";
+					echo "<td>" . vtm_formatOutput($row->PLAYER) . "</td><td>{$row->LAST_UPDATED}</td><td>";
 					echo "<input type='checkbox' name='characters[{$chID}]' " . checked( 1, 1, 0) . ">";
-					echo "<input type='hidden'   name='names[{$chID}]' value='{$row->NAME}'>";
+					echo "<input type='hidden'   name='names[{$chID}]' value='" . vtm_formatOutput($row->NAME) . "'>";
 					echo "</td></tr>";
 				}
 				?>
@@ -124,18 +125,27 @@ function vtm_render_config_general() {
 				<?php
 			}
 			elseif (isset($_REQUEST['comfirm_purge'])) {
-				echo "<ul>";
-				foreach ($_REQUEST['characters'] as $chID => $selected) {
-					if ($selected) {
-						echo vtm_purge_character($chID, $_REQUEST['names'][$chID]);
+				if (isset($_REQUEST['characters'])) {
+					echo "<ul>";
+					foreach ($_REQUEST['characters'] as $chID => $selected) {
+						if ($selected) {
+							echo vtm_purge_character($chID, $_REQUEST['names'][$chID]);
+						}
 					}
+					?>
+					</ul>
+					<form id='options_form' method='post'>
+					<input type="submit" name="return_purge" class="button-primary" value="Done" />
+					</form>
+					<?php
+				} else {
+					?>
+					<p style='color:orange;'>No characters selected to purge</p>
+					<form id='options_form' method='post'>
+					<input type="submit" name="cancel_purge" class="button-primary" value="Return" />
+					</form>
+					<?php
 				}
-				?>
-				</ul>
-				<form id='options_form' method='post'>
-				<input type="submit" name="return_purge" class="button-primary" value="Done" />
-				</form>
-				<?php
 			}
 			else {
 			
@@ -161,7 +171,7 @@ function vtm_render_config_general() {
 					foreach (vtm_get_domains() as $domain) {
 						echo '<option value="' . $domain->ID . '" ';
 						selected( $options[0]->HOME_DOMAIN_ID, $domain->ID );
-						echo '>' . $domain->NAME , '</option>';
+						echo '>' . vtm_formatOutput($domain->NAME) . '</option>';
 					}
 					?>
 				</select>
@@ -175,7 +185,7 @@ function vtm_render_config_general() {
 					foreach (vtm_get_sects() as $sect) {
 						echo '<option value="' . $sect->ID . '" ';
 						selected( $options[0]->HOME_SECT_ID, $sect->ID );
-						echo '>' . $sect->NAME , '</option>';
+						echo '>' . vtm_formatOutput($sect->NAME) . '</option>';
 					}
 					?>
 				</select>
@@ -202,7 +212,7 @@ function vtm_render_config_general() {
 					foreach (vtm_get_backgrounds() as $bg) {
 						echo '<option value="' . $bg->ID . '" ';
 						selected( $options[0]->DISPLAY_BACKGROUND_IN_PROFILE, $bg->ID );
-						echo '>' . $bg->NAME , '</option>';
+						echo '>' . vtm_formatOutput($bg->NAME) , '</option>';
 					}
 					?>
 				</select>
@@ -215,7 +225,7 @@ function vtm_render_config_general() {
 					foreach (vtm_get_generations() as $gen) {
 						echo '<option value="' . $gen->ID . '" ';
 						selected( $options[0]->DEFAULT_GENERATION_ID, $gen->ID );
-						echo '>' . $gen->NAME , '</option>';
+						echo '>' . vtm_formatOutput($gen->NAME) . '</option>';
 					}
 					?>
 				</select>
@@ -323,8 +333,8 @@ function vtm_render_config_pagelinks() {
 							<input type="text" name="order<?php print $i; ?>" value="<?php print $stlink->ORDERING; ?>" size=5 /></td>
 						<td><input type="hidden" name="value<?php print $i ?>" value="<?php print $stlink->VALUE; ?>" />
 							<?php print $stlink->VALUE; ?></td>
-						<td><input type="hidden" name="desc<?php print $i ?>" value="<?php print $stlink->DESCRIPTION; ?>" />
-							<?php print $stlink->DESCRIPTION; ?></td>
+						<td><input type="hidden" name="desc<?php print $i ?>" value="<?php print vtm_formatOutput($stlink->DESCRIPTION); ?>" />
+							<?php print vtm_formatOutput($stlink->DESCRIPTION); ?></td>
 						<td>
 							<select name="selectpage<?php print $i; ?>">
 							<option value='vtmnewpage'>[New Page]</option>
@@ -333,7 +343,7 @@ function vtm_render_config_pagelinks() {
 								foreach ( $pagetitles as $pageid => $pagetitle ) {
 									echo "<option value='$pageid' ";
 									selected($pageid, $stlink->WP_PAGE_ID);
-									echo ">$pagetitle</option>";
+									echo ">" . vtm_formatOutput($pagetitle) . "</option>";
 								}								
 							?>
 							</select>
