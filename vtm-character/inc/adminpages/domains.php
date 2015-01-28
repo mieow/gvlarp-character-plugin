@@ -76,7 +76,7 @@ function vtm_render_domain_add_form($type, $addaction) {
 		<table>
 		<tr>
 			<td>Name:</td>
-			<td><input type="text" name="<?php print $type; ?>_name" value="<?php print stripslashes($name); ?>" size=30 /></td>
+			<td><input type="text" name="<?php print $type; ?>_name" value="<?php print vtm_formatOutput($name); ?>" size=30 /></td>
 			<td>Visible to Players:</td>
 			<td>
 				<select name="<?php print $type; ?>_visible">
@@ -87,7 +87,7 @@ function vtm_render_domain_add_form($type, $addaction) {
 		</tr>
 		<tr>
 			<td>Description:  </td>
-			<td colspan=3><input type="text" name="<?php print $type; ?>_desc" value="<?php print stripslashes($desc); ?>" size=90 /></td> 
+			<td colspan=3><input type="text" name="<?php print $type; ?>_desc" value="<?php print vtm_formatOutput($desc); ?>" size=90 /></td> 
 		</tr>
 		</table>
 		<input type="submit" name="save_<?php print $type; ?>" class="button-primary" value="Save" />
@@ -160,11 +160,11 @@ class vtmclass_admin_domain_table extends vtmclass_MultiPage_ListTable {
 				);
 		
 		if ($wpdb->insert_id == 0) {
-			echo "<p style='color:red'><b>Error:</b> " . stripslashes($_REQUEST['domain_name']) . " could not be inserted (";
+			echo "<p style='color:red'><b>Error:</b> " . vtm_formatOutput($_REQUEST['domain_name']) . " could not be inserted (";
 			$wpdb->print_error();
 			echo ")</p>";
 		} else {
-			echo "<p style='color:green'>Added " . stripslashes($_REQUEST['domain_name']) . "' (ID: {$wpdb->insert_id})</p>";
+			echo "<p style='color:green'>Added " . vtm_formatOutput($_REQUEST['domain_name']) . "' (ID: {$wpdb->insert_id})</p>";
 		}
 	}
 
@@ -214,7 +214,7 @@ class vtmclass_admin_domain_table extends vtmclass_MultiPage_ListTable {
 			echo "<p style='color:red'>Cannot delete as this domain has been use for the following characters:";
 			echo "<ul>";
 			foreach ($isused as $item)
-				echo "<li style='color:red'>{$item->NAME}</li>";
+				echo "<li style='color:red'>" . vtm_formatOutput($item->NAME) . "</li>";
 			echo "</ul></p>";
 			return;
 			
@@ -231,7 +231,7 @@ class vtmclass_admin_domain_table extends vtmclass_MultiPage_ListTable {
     function column_default($item, $column_name){
         switch($column_name){
             case 'DESCRIPTION':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             default:
                 return print_r($item,true); 
         }
@@ -247,7 +247,7 @@ class vtmclass_admin_domain_table extends vtmclass_MultiPage_ListTable {
         
         
         return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
-            stripslashes($item->NAME),
+            vtm_formatOutput($item->NAME),
             $item->ID,
             $this->row_actions($actions)
         );

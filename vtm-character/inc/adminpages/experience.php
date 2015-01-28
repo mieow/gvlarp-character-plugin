@@ -301,9 +301,9 @@ function vtm_render_costmodel_page($type){
 	<input type="hidden" name="costmodel" value="<?php print $_REQUEST['costmodel']; ?>" />
 	<input type="hidden" name="action" value="save" />
 	<p>Cost Model Name:
-	<input type="text"   name="costmodel_name" value="<?php print $name; ?>"></p>
+	<input type="text"   name="costmodel_name" value="<?php print vtm_formatOutput($name); ?>"></p>
 	<p>Description:
-	<input type="text"   name="costmodel_desc" value="<?php print $description; ?>"></p>
+	<input type="text"   name="costmodel_desc" value="<?php print vtm_formatOutput($description); ?>"></p>
 	<table class="wp-list-table costmodels widefat">
 	<tr>
 		<th class="costmodels">Current Level</th>
@@ -356,7 +356,7 @@ function vtm_render_select_model () {
 	foreach (vtm_get_costmodels() as $model) {
 		echo "<option value='{$model->ID}' ";
 		selected($selected,$model->ID);
-		echo ">{$model->NAME}</option>\n";
+		echo ">" . vtm_formatOutput($model->NAME) . "</option>\n";
 	}
 	
 	echo "</select>\n";
@@ -576,13 +576,13 @@ class vtmclass_admin_xpapproval_table extends vtmclass_MultiPage_ListTable {
     function column_default($item, $column_name){
         switch($column_name){
             case 'PLAYER':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'COMMENT':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'SPECIALISATION':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
              case 'TRAINING_NOTE':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'CHARTABLE':
                 return $item->$column_name;
             case 'CHARTABLE_ID':
@@ -608,7 +608,7 @@ class vtmclass_admin_xpapproval_table extends vtmclass_MultiPage_ListTable {
         
         
         return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
-            stripslashes($item->CHARACTERNAME),
+            vtm_formatOutput($item->CHARACTERNAME),
             $item->ID,
             $this->row_actions($actions)
         );
@@ -831,7 +831,7 @@ function vtm_render_xp_assign_page(){
 }
 
 
-function vtm_render_xp_by_player () {
+function vtm_render_xp_by_player() {
 	global $wpdb;
 	
 	$sql = "SELECT
@@ -897,16 +897,16 @@ function vtm_render_xp_by_player () {
 		}
 		$lastplayer = $row->PLAYER;
 		
-		$charactername = stripslashes($row->CHARACTERNAME);
+		$charactername = vtm_formatOutput($row->CHARACTERNAME);
 		if ($row->CHARGENSTATUS == 'In Progress')
 			$charactername .= ' (chargen)';
 	
 		$output .= "<tr" . $rowclasses[$rowclass] . ">";
-		$output .= "<td>$player<input name='xp_player[{$row->ID}]' value=\"{$row->PLAYER_ID}\" type=\"hidden\" /></td>";
+		$output .= "<td>" . vtm_formatOutput($player) . "<input name='xp_player[{$row->ID}]' value=\"{$row->PLAYER_ID}\" type=\"hidden\" /></td>";
 		$output .= "<td>$charactername</td><td>{$row->CSTATUS}</td><td>$xp</td>";
 		$output .= "<td><select name='xp_reason[{$row->ID}]'>\n";
 		foreach (vtm_listXpReasons() as $reason) {
-			$output .= "<option value='{$reason->id}'>{$reason->name}</option>\n";
+			$output .= "<option value='{$reason->id}'>" . vtm_formatOutput($reason->name) . "</option>\n";
 		}
 		$output .= "</select></td>\n";
 		$output .= "<td><input name='xp_change[{$row->ID}]' value=\"\" type=\"text\" size=4 /></td>";
@@ -959,15 +959,15 @@ function vtm_render_xp_by_character () {
 	$output = "";
 	$lastplayer = "";
 	foreach ($results as $row) {
-		$player = $lastplayer == $row->PLAYER ? "&nbsp;" : $row->PLAYER;
+		$player = $lastplayer == $row->PLAYER ? "&nbsp;" : vtm_formatOutput($row->PLAYER);
 		$lastplayer = $row->PLAYER;
 	
 		$output .= "<tr>";
 		$output .= "<td>$player<input name='xp_player[{$row->ID}]' value=\"{$row->PLAYER_ID}\" type=\"hidden\" /></td>";
-		$output .= "<td>{$row->CHARACTERNAME}</td><td>{$row->CSTATUS}</td><td>{$row->CHARACTER_XP}</td>";
+		$output .= "<td>" . vtm_formatOutput($row->CHARACTERNAME) . "</td><td>" . vtm_formatOutput($row->CSTATUS) . "</td><td>{$row->CHARACTER_XP}</td>";
 		$output .= "<td><select name='xp_reason[{$row->ID}]'>\n";
 		foreach (vtm_listXpReasons() as $reason) {
-			$output .= "<option value='{$reason->id}'>{$reason->name}</option>\n";
+			$output .= "<option value='{$reason->id}'>" . vtm_formatOutput($reason->name) . "</option>\n";
 		}
 		$output .= "</select></td>\n";
 		$output .= "<td><input name='xp_change[{$row->ID}]' value=\"\" type=\"text\" size=4 /></td>";

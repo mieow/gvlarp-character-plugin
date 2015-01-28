@@ -106,7 +106,7 @@ function vtm_render_owner_add_form() {
 		<table style='width:500px'>
 		<tr>
 			<td>Name:  </td>
-			<td><input type="text" name="owner_name" value="<?php print stripslashes($name); ?>" /></td>
+			<td><input type="text" name="owner_name" value="<?php print vtm_formatOutput($name); ?>" /></td>
 			<td>Fill Colour:  </td>
 			<td><input type="color" name="owner_fill" value="<?php print $fillcolour; ?>" /></td>
 			<td>Visible:  </td>
@@ -175,7 +175,7 @@ function vtm_render_feedingdomain_add_form($inputsok) {
 			<table>
 				<tr>
 					<td>Name:  </td>
-					<td colspan=3><input type="text" name="domain_name" value="<?php print stripslashes($name); ?>" /></td>
+					<td colspan=3><input type="text" name="domain_name" value="<?php print vtm_formatOutput($name); ?>" /></td>
 				</tr>
 				<tr>
 					<td>Owner:  </td>
@@ -185,7 +185,7 @@ function vtm_render_feedingdomain_add_form($inputsok) {
 							foreach (vtm_get_owners() as $id => $info) {
 								echo "<option value=\"$id\" ";
 								selected($ownerid, $id);
-								echo ">" . stripslashes($info->NAME) . "</option>\n";
+								echo ">" . vtm_formatOutput($info->NAME) . "</option>\n";
 							}
 						?>
 						</select>
@@ -201,7 +201,7 @@ function vtm_render_feedingdomain_add_form($inputsok) {
 				<tr>
 					<td>Description:  </td>
 					<td colspan=3>
-						<textarea name="domain_desc" rows=6 cols=40><?php print stripslashes($description); ?></textarea></td>
+						<textarea name="domain_desc" rows=6 cols=40><?php print vtm_formatOutput($description); ?></textarea></td>
 				</tr>
 			</table>
 		</td>
@@ -261,7 +261,7 @@ class vtmclass_owner_table extends WP_List_Table {
 					)
 				);
 		
-		$owner = stripslashes($_REQUEST['owner_name']);
+		$owner = vtm_formatOutput($_REQUEST['owner_name']);
 		if ($wpdb->insert_id == 0) {
 			echo "<p style='color:red'><b>Error:</b> $owner could not be inserted</p>";
 		} else {
@@ -285,12 +285,13 @@ class vtmclass_owner_table extends WP_List_Table {
 					)
 				);
 		
+		$owner = vtm_formatOutput($_REQUEST['owner_name']);
 		if ($result) 
-			echo "<p style='color:green'>Updated {$_REQUEST['owner_name']}</p>";
+			echo "<p style='color:green'>Updated $owner</p>";
 		else if ($result === 0) 
-			echo "<p style='color:orange'>No updates made to {$_REQUEST['owner_name']}</p>";
+			echo "<p style='color:orange'>No updates made to $owner</p>";
 		else {
-			echo "<p style='color:red'>Could not update {$_REQUEST['owner_name']} ({$_REQUEST['owner']})</p>";
+			echo "<p style='color:red'>Could not update $owner ({$_REQUEST['owner']})</p>";
 		}
 	}
 	function delete($selectedID) {
@@ -307,7 +308,7 @@ class vtmclass_owner_table extends WP_List_Table {
 			echo "<p style='color:red'>Cannot delete as owner is assigned to the following domains:";
 			echo "<ul>";
 			foreach ($isused as $mapdomain)
-				echo "<li style='color:red'>" . stripslashes($mapdomain->NAME) . "</li>";
+				echo "<li style='color:red'>" . vtm_formatOutput($mapdomain->NAME) . "</li>";
 			echo "</ul></p>";
 		} else {
 			$sql = "delete from " . VTM_TABLE_PREFIX . "MAPOWNER where ID = %d;";
@@ -372,7 +373,7 @@ class vtmclass_owner_table extends WP_List_Table {
         
         
         return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
-            stripslashes($item->NAME),
+            vtm_formatOutput($item->NAME),
             $item->ID,
             $this->row_actions($actions)
         );
@@ -511,9 +512,9 @@ class vtmclass_domain_table extends WP_List_Table {
 				);
 		
 		if ($wpdb->insert_id == 0) {
-			echo "<p style='color:red'><b>Error:</b> {$_REQUEST['domain_name']} could not be inserted</p>";
+			echo "<p style='color:red'><b>Error:</b> " . vtm_formatOutput($_REQUEST['domain_name']) . " could not be inserted</p>";
 		} else {
-			echo "<p style='color:green'>Added mapdomain '{$_REQUEST['domain_name']}' (ID: {$wpdb->insert_id})</p>";
+			echo "<p style='color:green'>Added mapdomain '" . vtm_formatOutput($_REQUEST['domain_name']) . "' (ID: {$wpdb->insert_id})</p>";
 		}
 	}
  	function edit() {
@@ -536,11 +537,11 @@ class vtmclass_domain_table extends WP_List_Table {
 				);
 		
 		if ($result) 
-			echo "<p style='color:green'>Updated {$_REQUEST['domain_name']}</p>";
+			echo "<p style='color:green'>Updated " . vtm_formatOutput($_REQUEST['domain_name']) . "</p>";
 		else if ($result === 0) 
-			echo "<p style='color:orange'>No updates made to {$_REQUEST['domain_name']}</p>";
+			echo "<p style='color:orange'>No updates made to " . vtm_formatOutput($_REQUEST['domain_name']) . "</p>";
 		else {
-			echo "<p style='color:red'>Could not update {$_REQUEST['domain_name']} ({$_REQUEST['mapdomain']})</p>";
+			echo "<p style='color:red'>Could not update " . vtm_formatOutput($_REQUEST['domain_name']) . " ({$_REQUEST['mapdomain']})</p>";
 		}
 	}
 	function assign($selectedID) {
@@ -607,9 +608,9 @@ class vtmclass_domain_table extends WP_List_Table {
     function column_default($item, $column_name){
         switch($column_name){
             case 'DESCRIPTION':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'OWNER':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
              default:
                 return print_r($item,true); 
         }
@@ -633,7 +634,7 @@ class vtmclass_domain_table extends WP_List_Table {
         
         
         return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
-            stripslashes($item->NAME),
+            vtm_formatOutput($item->NAME),
             $item->ID,
             $this->row_actions($actions)
         );
@@ -732,7 +733,7 @@ class vtmclass_domain_table extends WP_List_Table {
 				foreach( $this->ownerlist as $key => $object ) {
 					echo '<option value="' . esc_attr( $object->ID ) . '" ';
 					selected( $this->ownerselect, $object->ID );
-					echo '>' . stripslashes(esc_attr( $object->NAME )) . '</option>';
+					echo '>' . vtm_formatOutput($object->NAME) . '</option>';
 				}
 				echo '</select>';
 			}

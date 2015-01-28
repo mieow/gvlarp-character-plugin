@@ -106,7 +106,7 @@ function vtm_render_enlighten_add_form($type, $addaction) {
 		<table>
 		<tr>
 			<td>Name:</td>
-			<td><input type="text" name="<?php print $type; ?>_name" value="<?php print stripslashes($name); ?>" size=20 /></td>
+			<td><input type="text" name="<?php print $type; ?>_name" value="<?php print vtm_formatOutput($name); ?>" size=20 /></td>
 			<td>Sourcebook:  </td>
 			<td>
 			<select name="<?php print $type; ?>_sourcebook">
@@ -114,7 +114,7 @@ function vtm_render_enlighten_add_form($type, $addaction) {
 						foreach (vtm_get_booknames() as $book) {
 							print "<option value='{$book->ID}' ";
 							($book->ID == $sourcebook_id) ? print "selected" : print "";
-							echo ">{$book->NAME}</option>";
+							echo ">" . vtm_formatOutput($book->NAME) . "</option>";
 						}
 					?>
 				</select>
@@ -140,7 +140,7 @@ function vtm_render_enlighten_add_form($type, $addaction) {
 						foreach (vtm_get_costmodels() as $costmodel) {
 							print "<option value='{$costmodel->ID}' ";
 							selected($costmodel->ID, $costmodel_id);
-							echo ">{$costmodel->NAME}</option>";
+							echo ">" . vtm_formatOutput($costmodel->NAME) . "</option>";
 						}
 					?>
 				</select>
@@ -148,7 +148,7 @@ function vtm_render_enlighten_add_form($type, $addaction) {
 		</tr>
 		<tr>
 			<td>Description:  </td>
-			<td colspan=3><input type="text" name="<?php print $type; ?>_desc" value="<?php print stripslashes($desc); ?>" size=90 /></td> 
+			<td colspan=3><input type="text" name="<?php print $type; ?>_desc" value="<?php print vtm_formatOutput($desc); ?>" size=90 /></td> 
 			<td>Visible to Players:</td>
 			<td>
 				<select name="<?php print $type; ?>_visible">
@@ -247,11 +247,11 @@ class vtmclass_admin_enlighten_table extends vtmclass_MultiPage_ListTable {
 				);
 		
 		if ($wpdb->insert_id == 0) {
-			echo "<p style='color:red'><b>Error:</b> " . stripslashes($_REQUEST['enlighten_name']) . " could not be inserted (";
+			echo "<p style='color:red'><b>Error:</b> " . vtm_formatOutput($_REQUEST['enlighten_name']) . " could not be inserted (";
 			$wpdb->print_error();
 			echo ")</p>";
 		} else {
-			echo "<p style='color:green'>Added " . stripslashes($_REQUEST['enlighten_name']) . "' (ID: {$wpdb->insert_id})</p>";
+			echo "<p style='color:green'>Added " . vtm_formatOutput($_REQUEST['enlighten_name']) . "' (ID: {$wpdb->insert_id})</p>";
 		}
 	}
 
@@ -305,7 +305,7 @@ class vtmclass_admin_enlighten_table extends vtmclass_MultiPage_ListTable {
 			echo "<p style='color:red'>Cannot delete as this road/path has been use for the following characters:";
 			echo "<ul>";
 			foreach ($isused as $item)
-				echo "<li style='color:red'>{$item->NAME}</li>";
+				echo "<li style='color:red'>" . vtm_formatOutput($item->NAME) . "</li>";
 			echo "</ul></p>";
 			return;
 			
@@ -322,20 +322,20 @@ class vtmclass_admin_enlighten_table extends vtmclass_MultiPage_ListTable {
     function column_default($item, $column_name){
         switch($column_name){
             case 'DESCRIPTION':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             case 'STAT1':
                 return $item->$column_name;
             case 'STAT2':
                 return $item->$column_name;
             case 'COSTMODEL':
-                return stripslashes($item->$column_name);
+                return vtm_formatOutput($item->$column_name);
             default:
                 return print_r($item,true); 
         }
     }
 	
 	function column_sourcebook($item) {
-		return stripslashes($item->bookname) . ", " . $item->PAGE_NUMBER;
+		return vtm_formatOutput($item->bookname) . ", " . $item->PAGE_NUMBER;
 	}
 
    function column_name($item){
@@ -347,7 +347,7 @@ class vtmclass_admin_enlighten_table extends vtmclass_MultiPage_ListTable {
         
         
         return sprintf('%1$s <span style="color:silver">(id:%2$s)</span>%3$s',
-            stripslashes($item->NAME),
+            vtm_formatOutput($item->NAME),
             $item->ID,
             $this->row_actions($actions)
         );

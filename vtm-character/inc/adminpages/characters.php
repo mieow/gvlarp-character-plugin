@@ -53,7 +53,7 @@ function vtm_character_options() {
 		if (isset($_REQUEST['action']) && $_REQUEST['action'] == 'delete' && $_REQUEST['characterID'] != 0) {
 		
 			?>
-			<p>Confirm deletion of character <?php echo $_REQUEST['characterName']; ?></p>
+			<p>Confirm deletion of character <?php echo vtm_formatOutput($_REQUEST['characterName']); ?></p>
 			<div class="char_delete">
 				
 				<form id="character-delete" method="get" action='<?php print $current_url; ?>'>
@@ -725,7 +725,7 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 			}
 
 			$skillName = "skill" . $skillCount;
-			$output .= "<tr><td>" . $characterSkill->name . "</td>"
+			$output .= "<tr><td>" . vtm_formatOutput($characterSkill->name) . "</td>"
 				. "<td>" . vtm_printSelectCounter($skillName, $characterSkill->level, 1, 10) . "</td>"
 				. "<td><input type='text' name='"     . $skillName . "Comment' value='" . vtm_formatOutput($characterSkill->comment) . "' /></td>"
 				. "<td><input type='checkbox' name='" . $skillName . "Delete' value='"  . $characterSkill->cskillid . "' />"
