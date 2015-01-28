@@ -328,6 +328,7 @@ function vtm_get_edit_character_content() {
 
 function vtm_displayUpdateCharacter($characterID, $submitted) {
 	global $wpdb;
+	global $vtmglobal;
 	$table_prefix = VTM_TABLE_PREFIX;
 	$output = "";
 
@@ -341,7 +342,7 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 		$characterStatuses = vtm_listCharacterStatuses();   // ID, name
 		$roadsOrPaths      = vtm_listRoadsOrPaths();        // ID, name
 
-		$config = vtm_getConfig();
+		$vtmglobal['config'] = vtm_getConfig();
 		
 		if ($submitted) {
 			$characterName             = $_POST['charName'];
@@ -370,7 +371,7 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 			$characterName             = "New Name";
 			$characterPublicClanId     = "";
 			$characterPrivateClanId    = "";
-			$characterGenerationId     = $config->DEFAULT_GENERATION_ID;
+			$characterGenerationId     = $vtmglobal['config']->DEFAULT_GENERATION_ID;
 			$characterDateOfBirth      = "";
 			$characterDateOfEmbrace    = "";
 			$characterSire             = "";
@@ -380,8 +381,8 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 			$characterStatusComment    = "";
 			$characterRoadOrPathId     = "";
 			$characterRoadOrPathRating = "";
-			$characterDomainId         = $config->HOME_DOMAIN_ID;
-			$characterSectId           = $config->HOME_SECT_ID;
+			$characterDomainId         = $vtmglobal['config']->HOME_DOMAIN_ID;
+			$characterSectId           = $vtmglobal['config']->HOME_SECT_ID;
 			$characterWordpressName    = "";
 			$characterVisible          = "Y";
 			$characterNatureId         = "";
@@ -453,7 +454,7 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 				$characterPortraitURL = $characterProfile->PORTRAIT;
 			}
 			
-			if ($config->USE_NATURE_DEMEANOUR == 'Y') {
+			if ($vtmglobal['config']->USE_NATURE_DEMEANOUR == 'Y') {
 				$sql = "SELECT
 							NATURE_ID,
 							DEMEANOUR_ID
@@ -579,7 +580,7 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 		}
 		
 		$output .= "</td></tr>";		
-		if ($config->USE_NATURE_DEMEANOUR == 'Y') {
+		if ($vtmglobal['config']->USE_NATURE_DEMEANOUR == 'Y') {
 			$output .= "<tr><td>Nature</td><td>";
 			$output .= "<select name = 'charNature'>";
 			$output .= "<option value='0'>[Select]</option>";
@@ -1165,6 +1166,7 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 
 function vtm_processCharacterUpdate($characterID) {
 	global $wpdb;
+	global $vtmglobal;
 	$table_prefix = VTM_TABLE_PREFIX;
 	
 	$wpdb->show_errors();
@@ -1582,8 +1584,7 @@ function vtm_processCharacterUpdate($characterID) {
 		$officeCounter++;
 	}
 	
-	$config = vtm_getConfig();
-	if ($config->USE_NATURE_DEMEANOUR == 'Y') {
+	if ($vtmglobal['config']->USE_NATURE_DEMEANOUR == 'Y') {
 		$dataarray = array(
 			'NATURE_ID'    => $characterNature,
 			'DEMEANOUR_ID' => $characterDemeanour,

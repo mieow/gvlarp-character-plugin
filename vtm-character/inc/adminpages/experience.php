@@ -767,6 +767,7 @@ function vtm_addPlayerXP($player, $character, $xpReason, $value, $comment) {
 
 
 function vtm_render_xp_assign_page(){
+	global $vtmglobal;
 
 	$type = "xpassign";
 	
@@ -795,9 +796,6 @@ function vtm_render_xp_assign_page(){
 		
 	}
 	
-	
-	$config = vtm_getConfig();
-
  	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$current_url = remove_query_arg( 'action', $current_url );
   ?>	
@@ -815,7 +813,7 @@ function vtm_render_xp_assign_page(){
 			<th class="manage-column">XP Change</th>
 			<th class="manage-column">Comment</th></tr>
 		<?php
-			if ($config->ASSIGN_XP_BY_PLAYER == 'Y')
+			if ($vtmglobal['config']->ASSIGN_XP_BY_PLAYER == 'Y')
 				vtm_render_xp_by_player();
 			else
 				vtm_render_xp_by_character();
