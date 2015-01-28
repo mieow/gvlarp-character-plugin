@@ -1,8 +1,8 @@
 <?php
 
 function vtm_render_generation_data() {
-
 	global $wpdb;
+	global $vtmglobal;
 
 	if ( !current_user_can( 'manage_options' ) )  {
 		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
@@ -70,9 +70,7 @@ function vtm_render_generation_data() {
 			ORDER BY
 				BLOODPOOL DESC, MAX_DISCIPLINE DESC";
 	$result = $wpdb->get_results($sql);
-	
-	$config = vtm_getConfig();
-	
+		
 	?>
 	
 	<div class="wrap">
@@ -88,7 +86,7 @@ function vtm_render_generation_data() {
 	</tr>
 	<?php
 		foreach ($result as $data) {
-			$class = $config->DEFAULT_GENERATION_ID == $data->ID ? "class='defaultgen'" : "";
+			$class = $vtmglobal['config']->DEFAULT_GENERATION_ID == $data->ID ? "class='defaultgen'" : "";
 			?>
 			<tr>
 				<td <?php echo $class; ?>>
