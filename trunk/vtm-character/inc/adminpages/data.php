@@ -1320,7 +1320,7 @@ class vtmclass_admin_rituals_table extends vtmclass_MultiPage_ListTable {
 			
 			echo "<span>Level: </span>";
 			if ( !empty( $this->filter_level ) ) {
-				echo "<select name='{$this->type}_level'>";
+				echo "<select name='{$this->type}_flevel'>";
 				foreach( $this->filter_level as $key => $value ) {
 					echo '<option value="' . esc_attr( $key ) . '" ';
 					selected( $this->active_filter_level, $key );
@@ -1378,8 +1378,8 @@ class vtmclass_admin_rituals_table extends vtmclass_MultiPage_ListTable {
 		} else {
 			$this->active_filter_discipline = 'all';
 		}
-		if ( isset( $_REQUEST[$type . '_level'] ) && array_key_exists( $_REQUEST[$type . '_level'], $this->filter_level ) ) {
-			$this->active_filter_level = sanitize_key( $_REQUEST[$type . '_level'] );
+		if ( isset( $_REQUEST[$type . '_flevel'] ) && array_key_exists( $_REQUEST[$type . '_flevel'], $this->filter_level ) ) {
+			$this->active_filter_level = sanitize_key( $_REQUEST[$type . '_flevel'] );
 		} else {
 			$this->active_filter_level = 'all';
 		}
