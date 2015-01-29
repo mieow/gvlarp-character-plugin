@@ -1479,7 +1479,7 @@ function vtm_render_finishing($step, $submitted) {
 	$freespecialities = vtm_get_free_levels('SKILL');
 	$specfinal = array();
 	
-	//print_r($specialities);
+	print_r($specialities);
 	
 	$spec_output = "";
 	$i = 0;
@@ -2330,6 +2330,7 @@ function vtm_save_finish() {
 		$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_STAT",  array('COMMENT' => ''), array('CHARACTER_ID' => $vtmglobal['characterID']));
 		$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_SKILL", array('COMMENT' => ''), array('CHARACTER_ID' => $vtmglobal['characterID']));
 		$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_MERIT", array('COMMENT' => ''), array('CHARACTER_ID' => $vtmglobal['characterID']));
+		$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND",  array('COMMENT' => ''), array('CHARACTER_ID' => $vtmglobal['characterID']));
 		$wpdb->update(VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND", array('SPECIALISATION' => ''), array('CHARACTER_ID' => $vtmglobal['characterID']));
 		$wpdb->update(VTM_TABLE_PREFIX . "PENDING_XP_SPEND",      array('SPECIALISATION' => ''), array('CHARACTER_ID' => $vtmglobal['characterID']));
 		
@@ -6135,7 +6136,7 @@ function vtm_get_chargen_specialties() {
 	// )
 	$specialities = array();
 		
-	// STATS & SKILLS - stats & skills from table, with freebies and XP
+	// STATS, SKILLS & backgrounds - from table, with freebies and XP
 	$sql = "(SELECT 
 				'STAT'					as type,
 				'Attributes' 			as typename,
@@ -6222,14 +6223,52 @@ function vtm_get_chargen_specialties() {
 				AND skill.SKILL_TYPE_ID = skilltypes.ID
 				AND cs.CHARACTER_ID = %s
 			ORDER BY
-				skilltypes.ORDERING, skill.NAME)";
-	$sql = $wpdb->prepare($sql, $vtmglobal['characterID'], $vtmglobal['characterID'], $vtmglobal['characterID'], $vtmglobal['characterID'], $vtmglobal['characterID'], $vtmglobal['characterID'], $vtmglobal['characterID']);
+				skilltypes.ORDERING, skill.NAME)
+			UNION
+			(SELECT 
+				'BACKGROUND'			as type,
+				'Backgrounds' 			as typename,
+				bg.NAME 				as itemname, 
+				bg.GROUPING 			as grp, 
+				cbg.LEVEL 					as level,
+				cbg.id						as id,
+				cbg.comment					as spec,
+				pendingfreebie.LEVEL_TO 	as freebielevel,
+				pendingfreebie.ID 			as freebieid,
+				pendingfreebie.SPECIALISATION as freebiespec,
+				pendingfreebie.ITEMNAME     as freebiekey,
+				NULL 						as xplevel,
+				0 							as xpid,
+				'' 							as xpspec,
+				''          				as xpkey,
+				IF(bg.HAS_SPECIALISATION='Y',1,0) 		as specialisation_at,
+				1							as ORDERING
+			FROM
+				" . VTM_TABLE_PREFIX . "BACKGROUND bg,
+				" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND cbg
+				LEFT JOIN (
+					SELECT ID, LEVEL_TO, CHARTABLE_ID, SPECIALISATION, ITEMNAME
+					FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
+					WHERE CHARACTER_ID = %s
+						AND CHARTABLE = 'CHARACTER_BACKGROUND'
+				) pendingfreebie
+				ON
+					pendingfreebie.CHARTABLE_ID = cbg.ID
+			WHERE
+				cbg.BACKGROUND_ID = bg.ID
+				AND cbg.CHARACTER_ID = %s
+			ORDER BY
+				bg.GROUPING, bg.NAME)";
+	$sql = $wpdb->prepare($sql, $vtmglobal['characterID'], $vtmglobal['characterID'], 
+		$vtmglobal['characterID'], $vtmglobal['characterID'], 
+		$vtmglobal['characterID'], $vtmglobal['characterID'], 
+		$vtmglobal['characterID'], $vtmglobal['characterID']);
 	$results1 = $wpdb->get_results($sql);
 	
 	//print "<p>SQL: $sql</p>";
 	
-	// SKILLS from freebie spends with pending XP
-	$sql = "SELECT 				
+	// SKILLS & BACKGROUNDS from freebie spends with pending XP
+	$sql = "(SELECT 				
 				'SKILL'					as type,
 				'Abilities' 			as typename,
 				skill.NAME 				as itemname, 
@@ -6266,11 +6305,39 @@ function vtm_get_chargen_specialties() {
 				AND skill.ID = freebie.ITEMTABLE_ID
 				AND skill.SKILL_TYPE_ID = skilltypes.ID
 				AND freebie.ITEMTABLE = 'SKILL'
-				AND freebie.CHARTABLE_ID = 0";
-	$sql = $wpdb->prepare($sql, $vtmglobal['characterID'], $vtmglobal['characterID']);
+				AND freebie.CHARTABLE_ID = 0)
+			UNION
+			(SELECT 				
+				'BACKGROUND'			as type,
+				'Backgrounds' 			as typename,
+				bg.NAME 				as itemname, 
+				bg.GROUPING				as grp, 
+				0 					    as level,
+				0						as id,
+				''					    as spec,
+				freebie.LEVEL_TO 	    as freebielevel,
+				freebie.ID 			    as freebieid,
+				freebie.SPECIALISATION  as freebiespec,
+				freebie.ITEMNAME        as freebiekey,
+				NULL					as xplevel,
+				0 						as xpid,
+				'' 						as xpspec,
+				''          			as xpkey,
+				IF(bg.HAS_SPECIALISATION='Y',1,0) as specialisation_at,
+				1						as ORDERING
+			FROM
+				" . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND freebie,
+				" . VTM_TABLE_PREFIX . "BACKGROUND bg
+			WHERE
+				freebie.CHARACTER_ID = %s
+				AND bg.ID = freebie.ITEMTABLE_ID
+				AND freebie.ITEMTABLE = 'BACKGROUND'
+				AND freebie.CHARTABLE_ID = 0)";
+	$sql = $wpdb->prepare($sql, $vtmglobal['characterID'], $vtmglobal['characterID'], $vtmglobal['characterID']);
 	$results2 = $wpdb->get_results($sql);
 	
 	//echo "<p>SQL: $sql</p>\n";
+	//print_r($results2);
 	
 	// SKILLS from pending XP
 	$sql = "SELECT 				

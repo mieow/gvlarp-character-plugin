@@ -40,13 +40,13 @@ function vtm_character_options() {
 	else $active_character_visible = $default_character_visible;
 	
 	// Get web pages
-	$stlinks = $wpdb->get_results("SELECT VALUE, LINK FROM " . VTM_TABLE_PREFIX. "ST_LINK ORDER BY ORDERING", OBJECT_K);
+	$stlinks = $wpdb->get_results("SELECT VALUE, WP_PAGE_ID FROM " . VTM_TABLE_PREFIX. "ST_LINK ORDER BY ORDERING", OBJECT_K);
 	
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$noclan_url = remove_query_arg( 'clan', $current_url );
 	?>
 	<div class="wrap">
-		<h2>Characters <a class="add-new-h2" href="<?php echo $stlinks['editCharSheet']->LINK ; ?>">Add New</a></h2>
+		<h2>Characters <a class="add-new-h2" href="<?php echo get_page_link($stlinks['editCharSheet']->WP_PAGE_ID) ; ?>">Add New</a></h2>
 
 		<?php 
 		
@@ -245,28 +245,28 @@ function vtm_character_options() {
 				if ($character->chargen_status != 'Approved')
 					echo $name . " [" . vtm_formatOutput($character->template) . "]";
 				elseif (!empty($character->wordpress_id))
-					echo '<a href="' . $stlinks['viewCharSheet']->LINK . '?CHARACTER='. urlencode($character->wordpress_id) . '">' . $name . '</a>';
+					echo '<a href="' . get_page_link($stlinks['viewCharSheet']->WP_PAGE_ID) . '?CHARACTER='. urlencode($character->wordpress_id) . '">' . $name . '</a>';
 				else
-					echo '<a href="' . $stlinks['viewCharSheet']->LINK . '?characterID='. urlencode($character->ID) . '">' . $name . '</a>';
+					echo '<a href="' . get_page_link($stlinks['viewCharSheet']->WP_PAGE_ID) . '?characterID='. urlencode($character->ID) . '">' . $name . '</a>';
 				
 				echo "</th><td>";
 				echo '<div>';
 				if ($character->chargen_status == 'Approved')
-					echo '&nbsp;<a href="' . $stlinks['editCharSheet']->LINK . '?characterID=' . urlencode($character->ID) . '"><img src="' . $iconurl . 'edit.png" alt="Edit" title="Edit Character" /></a>';
+					echo '&nbsp;<a href="' . get_page_link($stlinks['editCharSheet']->WP_PAGE_ID) . '?characterID=' . urlencode($character->ID) . '"><img src="' . $iconurl . 'edit.png" alt="Edit" title="Edit Character" /></a>';
 				else
-					echo '&nbsp;<a href="' . $stlinks['viewCharGen']->LINK . '?characterID=' . urlencode($character->ID) . '"><img src="' . $iconurl . 'edit.png" alt="Edit" title="Edit Character" /></a>';
+					echo '&nbsp;<a href="' . get_page_link($stlinks['viewCharGen']->WP_PAGE_ID) . '?characterID=' . urlencode($character->ID) . '"><img src="' . $iconurl . 'edit.png" alt="Edit" title="Edit Character" /></a>';
 
 				$delete_url = add_query_arg('action', 'delete', $current_url);
 				$delete_url = add_query_arg('characterID', $character->ID, $delete_url);
 				$delete_url = add_query_arg('characterName', urlencode($character->wordpress_id), $delete_url);
 				echo '&nbsp;<a href="' . htmlentities($delete_url) . '"><img src="' . $iconurl . 'delete.png" alt="Delete" title="Delete Character" /></a>';
-				echo '&nbsp;<a href="' . $stlinks['printCharSheet']->LINK  . '?characterID=' . urlencode($character->ID) . '"><img src="' . $iconurl . 'print.png" alt="Print" title="Print Character" /></a>';
+				echo '&nbsp;<a href="' . get_page_link($stlinks['printCharSheet']->WP_PAGE_ID)  . '?characterID=' . urlencode($character->ID) . '"><img src="' . $iconurl . 'print.png" alt="Print" title="Print Character" /></a>';
 				
 				if (!empty($character->wordpress_id) && $character->chargen_status == 'Approved') {
-					echo '&nbsp;<a href="' . $stlinks['viewProfile']->LINK     . '?CHARACTER='. urlencode($character->wordpress_id) . '"><img src="' . $iconurl . 'profile.png" alt="Profile" title="View Profile" /></a>';
-					echo '&nbsp;<a href="' . $stlinks['viewXPSpend']->LINK     . '?CHARACTER='. urlencode($character->wordpress_id) . '"><img src="' . $iconurl . 'spendxp.png" alt="XP Spend" title="Spend Experience" /></a>';
-					echo '&nbsp;<a href="' . $stlinks['viewExtBackgrnd']->LINK . '?CHARACTER='. urlencode($character->wordpress_id) . '"><img src="' . $iconurl . 'background.png" alt="Background" title="Extended Background" /></a>';
-					echo '&nbsp;<a href="' . $stlinks['viewCustom']->LINK      . '?CHARACTER='. urlencode($character->wordpress_id) . '"><img src="' . $iconurl . 'custom.png" alt="Custom" title="View Custom Page as Character" /></a>';
+					echo '&nbsp;<a href="' . get_page_link($stlinks['viewProfile']->WP_PAGE_ID)     . '?CHARACTER='. urlencode($character->wordpress_id) . '"><img src="' . $iconurl . 'profile.png" alt="Profile" title="View Profile" /></a>';
+					echo '&nbsp;<a href="' . get_page_link($stlinks['viewXPSpend']->WP_PAGE_ID)     . '?CHARACTER='. urlencode($character->wordpress_id) . '"><img src="' . $iconurl . 'spendxp.png" alt="XP Spend" title="Spend Experience" /></a>';
+					echo '&nbsp;<a href="' . get_page_link($stlinks['viewExtBackgrnd']->WP_PAGE_ID) . '?CHARACTER='. urlencode($character->wordpress_id) . '"><img src="' . $iconurl . 'background.png" alt="Background" title="Extended Background" /></a>';
+					echo '&nbsp;<a href="' . get_page_link($stlinks['viewCustom']->WP_PAGE_ID)      . '?CHARACTER='. urlencode($character->wordpress_id) . '"><img src="' . $iconurl . 'custom.png" alt="Custom" title="View Custom Page as Character" /></a>';
 				}
 				echo "</div></td>";
 				echo "<td>" . vtm_formatOutput($character->clan) . "</td>";

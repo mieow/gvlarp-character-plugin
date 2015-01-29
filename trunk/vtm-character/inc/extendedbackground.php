@@ -101,7 +101,8 @@ function vtm_get_editbackgrounds_tab($characterID) {
 		$bgids     = $_REQUEST['charbgID'];
 		$sectors   = $_REQUEST['sectorid'];
 		$pendingbg = $_REQUEST['pendingbg'];
-		$namesbg     = $_REQUEST['charbgName'];
+		$namesbg   = $_REQUEST['charbgName'];
+		$comments  = $_REQUEST['charbgComment'];
 		
 		foreach ($_REQUEST['save_bgform'] as $id => $buttontitle) {
 			$sector = isset($sectors[$id]) ? $sectors[$id] : 0;
@@ -109,7 +110,8 @@ function vtm_get_editbackgrounds_tab($characterID) {
 			$data = array (
 				'SECTOR_ID'      => $sector,
 				'PENDING_DETAIL' => $pendingbg[$id],
-				'DENIED_DETAIL'  => ''
+				'DENIED_DETAIL'  => '',
+				'COMMENT'        => $comments[$id]
 			);
 			$wpdb->show_errors();
 			$result = $wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND",
@@ -139,7 +141,7 @@ function vtm_get_editbackgrounds_tab($characterID) {
 	
 	foreach ($backgrounds as $background) {
 		$content .= "<p class='vtmext_name'>" . vtm_formatOutput($background->NAME) . ": " . $background->LEVEL;
-		$content .= ($background->COMMENT) ? " (" . vtm_formatOutput($background->COMMENT) . ")" : "";
+		//$content .= ($background->COMMENT) ? " (" . vtm_formatOutput($background->COMMENT) . ")" : "";
 		$content .= "</p>\n";
 		if (!empty($background->BACKGROUND_QUESTION))
 			$content .= "<div class='vtmext_ques'>" . wpautop(vtm_formatOutput($background->BACKGROUND_QUESTION)) . "</div>\n";
@@ -148,6 +150,12 @@ function vtm_get_editbackgrounds_tab($characterID) {
 		$content .= "<input type='hidden' name='charbgName[$i]' value='{$background->NAME}' />\n";
 		
 		$content .= "<table>";
+		if ($background->HAS_SPECIALISATION == 'Y') {
+			$content .= "<tr><th>Specialisation:</th></tr>";
+			$content .= "<tr><td>";
+			$content .= "<input type='text' name='charbgComment[$i]' value='{$background->COMMENT}' />";
+			$content .= "</td></tr>\n";
+		}
 		if ($background->HAS_SECTOR == 'Y') {
 			$content .= "<tr><th>Sector:</th></tr>";
 			$content .= "<tr><td><select name='sectorid[$i]'>";
@@ -434,14 +442,16 @@ function vtm_get_extbackgrounds_questions($characterID) {
 	$sql = "select backgrounds.NAME, charbgs.LEVEL, backgrounds.BACKGROUND_QUESTION,
 				charbgs.SECTOR_ID, charbgs.APPROVED_DETAIL, charbgs.PENDING_DETAIL,
 				charbgs.DENIED_DETAIL, charbgs.ID as charbgsID, backgrounds.HAS_SECTOR,
-				charbgs.COMMENT
+				charbgs.COMMENT, backgrounds.HAS_SPECIALISATION
 			from	" . VTM_TABLE_PREFIX . "BACKGROUND backgrounds,
 					" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND charbgs,
 					" . VTM_TABLE_PREFIX . "CHARACTER characters
 			where	backgrounds.ID = charbgs.BACKGROUND_ID
 				and	characters.ID = %d
 				and characters.ID = charbgs.CHARACTER_ID
-				and	(backgrounds.BACKGROUND_QUESTION != '' OR charbgs.SECTOR_ID > 0);";
+				and	(backgrounds.BACKGROUND_QUESTION != '' 
+					OR backgrounds.HAS_SECTOR = 'Y'
+					OR backgrounds.HAS_SPECIALISATION = 'Y');";
 	/* $content = "<p>SQL: $sql</p>";  */
 	
 	$backgrounds = $wpdb->get_results($wpdb->prepare($sql, $characterID));

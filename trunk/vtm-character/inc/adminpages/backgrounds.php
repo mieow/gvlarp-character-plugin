@@ -161,12 +161,14 @@ function vtm_render_background_data(){
  	if ($doaction == "add-bgdata") {
 		$testListTable['bgdata']->add_background($_REQUEST['bgdata_name'], $_REQUEST['bgdata_desc'], $_REQUEST['bgdata_group'], 
 									$_REQUEST['bgdata_costmodel'], $_REQUEST['bgdata_visible'],
-									$_REQUEST['bgdata_hassector'], $_REQUEST['bgdata_question']);
+									$_REQUEST['bgdata_hassector'], $_REQUEST['bgdata_question'],
+									$_REQUEST['bgdata_hasspec']);
 	}
 	if ($doaction == "save-bgdata") { 
 		$testListTable['bgdata']->edit_background($_REQUEST['bgdata_id'], $_REQUEST['bgdata_name'], $_REQUEST['bgdata_desc'], $_REQUEST['bgdata_group'], 
 									$_REQUEST['bgdata_costmodel'], $_REQUEST['bgdata_visible'],
-									$_REQUEST['bgdata_hassector'], $_REQUEST['bgdata_question']);
+									$_REQUEST['bgdata_hassector'], $_REQUEST['bgdata_question'],
+									$_REQUEST['bgdata_hasspec']);
 	} 
 
 	vtm_render_bgdata_add_form($doaction);
@@ -204,6 +206,7 @@ function vtm_render_bgdata_add_form($addaction) {
 		$costmodel_id = $_REQUEST[$type . '_costmodel'];
 		$has_sector = $_REQUEST[$type . '_hassector'];
 		$bgquestion = $_REQUEST[$type . '_question'];
+		$has_spec = $_REQUEST[$type . '_hasspec'];
 		
 		$nextaction = $_REQUEST['action'];
 		
@@ -226,6 +229,7 @@ function vtm_render_bgdata_add_form($addaction) {
 		$visible = $data[0]->VISIBLE;
 		$has_sector = $data[0]->HAS_SECTOR;
 		$bgquestion = $data[0]->BACKGROUND_QUESTION;
+		$has_spec = $data[0]->HAS_SPECIALISATION;
 		
 		$nextaction = "save";
 		
@@ -239,6 +243,7 @@ function vtm_render_bgdata_add_form($addaction) {
 		$visible = "Y";
 		$has_sector = "N";
 		$bgquestion = "";
+		$has_spec = "N";
 		
 		$nextaction = "add";
 	} 
@@ -291,10 +296,18 @@ function vtm_render_bgdata_add_form($addaction) {
 					<option value="Y" <?php selected($has_sector, "Y"); ?>>Yes</option>
 				</select>
 			</td>
+			<td>Has a Specialisation: </td>
+			<td>
+				<select name="<?php print $type; ?>_hasspec">
+					<option value="N" <?php selected($has_spec, "N"); ?>>No</option>
+					<option value="Y" <?php selected($has_spec, "Y"); ?>>Yes</option>
+				</select>
+			</td>
 				
+		</tr>
+		<tr>
 			<td>Description:  </td>
-			<td colspan=5><input type="text" name="<?php print $type; ?>_desc" value="<?php print vtm_formatOutput($desc); ?>" size=90 /></td> <!-- check sizes -->
-
+			<td colspan=7><input type="text" name="<?php print $type; ?>_desc" value="<?php print vtm_formatOutput($desc); ?>" size=90 /></td> <!-- check sizes -->
 		</tr>
 		<tr>
 			<td colspan=8>Extended Background question (leave blank to exclude background from Extended Backgrounds):  </td>
@@ -1459,7 +1472,8 @@ class vtmclass_admin_backgrounds_table extends vtmclass_MultiPage_ListTable {
 		}
 	}
 	
- 	function add_background($name, $description, $group, $costmodel_id, $visible, $has_sector, $question) {
+ 	function add_background($name, $description, $group, $costmodel_id, $visible, $has_sector, $question,
+		$has_spec) {
 		global $wpdb;
 		
 		$wpdb->show_errors();
@@ -1471,7 +1485,8 @@ class vtmclass_admin_backgrounds_table extends vtmclass_MultiPage_ListTable {
 						'COST_MODEL_ID' => $costmodel_id,
 						'VISIBLE'       => $visible,
 						'HAS_SECTOR'          => $has_sector,
-						'BACKGROUND_QUESTION' => $question
+						'BACKGROUND_QUESTION' => $question,
+						'HAS_SPECIALISATION'  => $has_spec
 					);
 		
 		/* print_r($dataarray); */
@@ -1483,6 +1498,7 @@ class vtmclass_admin_backgrounds_table extends vtmclass_MultiPage_ListTable {
 						'%s',
 						'%s',
 						'%d',
+						'%s',
 						'%s',
 						'%s',
 						'%s'
@@ -1498,7 +1514,8 @@ class vtmclass_admin_backgrounds_table extends vtmclass_MultiPage_ListTable {
 			echo "<p style='color:green'>Added background '$name' (ID: {$wpdb->insert_id})</p>";
 		}
 	}
- 	function edit_background($id, $name, $description, $group, $costmodel_id, $visible, $has_sector, $question) {
+ 	function edit_background($id, $name, $description, $group, $costmodel_id, $visible, $has_sector, $question,
+		$has_spec) {
 		global $wpdb;
 		
 		$wpdb->show_errors();
@@ -1510,7 +1527,8 @@ class vtmclass_admin_backgrounds_table extends vtmclass_MultiPage_ListTable {
 						'COST_MODEL_ID' => $costmodel_id,
 						'VISIBLE'       => $visible,
 						'HAS_SECTOR'          => $has_sector,
-						'BACKGROUND_QUESTION' => $question
+						'BACKGROUND_QUESTION' => $question,
+						'HAS_SPECIALISATION'  => $has_spec
 					);
 		
 		/* print_r($dataarray); */
@@ -1577,6 +1595,13 @@ class vtmclass_admin_backgrounds_table extends vtmclass_MultiPage_ListTable {
 			return "No";
 			
 	}
+	function column_has_specialisation($item) {
+		if ($item->HAS_SPECIALISATION == "Y")
+			return "Yes";
+		else
+			return "No";
+			
+	}
 
     function get_columns(){
         $columns = array(
@@ -1586,6 +1611,7 @@ class vtmclass_admin_backgrounds_table extends vtmclass_MultiPage_ListTable {
             'GROUPING'     => 'Background Group',
             'COSTMODEL'    => 'Cost Model',
             'HAS_SECTOR'   => 'Has a Sector',
+            'HAS_SPECIALISATION'     => 'Has a Specialisation',
             'VISIBLE'      => 'Visible to Players',
             'HAS_BG_Q'     => 'Extended Background'
         );
@@ -1649,7 +1675,8 @@ class vtmclass_admin_backgrounds_table extends vtmclass_MultiPage_ListTable {
 					costmodels.NAME as COSTMODEL, 
 					backgrounds.VISIBLE,
 					backgrounds.HAS_SECTOR,
-					backgrounds.BACKGROUND_QUESTION
+					backgrounds.BACKGROUND_QUESTION,
+					backgrounds.HAS_SPECIALISATION
 			from 
 				" . VTM_TABLE_PREFIX . "BACKGROUND backgrounds, 
 				" . VTM_TABLE_PREFIX . "COST_MODEL costmodels
