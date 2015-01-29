@@ -1197,7 +1197,8 @@ function vtm_print_character_temp_stats($atts, $content=null) {
 add_shortcode('character_temp_stats', 'vtm_print_character_temp_stats');
 
 function vtm_print_office_block($atts, $content=null) {
-	extract(shortcode_atts(array ("domain" => "Glasgow", "office" => ""), $atts));
+	
+	extract(shortcode_atts(array ("domain" => "home", "office" => ""), $atts));
 
 	global $wpdb;
 	$table_prefix = VTM_TABLE_PREFIX;
@@ -1222,6 +1223,10 @@ function vtm_print_office_block($atts, $content=null) {
 	}
 	$sql .= "ORDER BY domainname, office.ordering, charname";
 
+	if (isset($domain) && $domain == 'home') {
+		$domain = vtm_get_homedomain();
+	}
+	
 	if ($office != null && $office != "") {
 		$characterOffices = $wpdb->get_results($wpdb->prepare($sql, $domain, $office));
 	}

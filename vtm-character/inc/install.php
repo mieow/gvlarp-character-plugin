@@ -6,7 +6,7 @@ register_activation_hook( __FILE__, 'vtm_character_install_data' );
 global $vtm_character_version;
 global $vtm_character_db_version;
 $vtm_character_version = "2.0"; 
-$vtm_character_db_version = "41a"; 
+$vtm_character_db_version = "43"; 
 
 function vtm_update_db_check() {
     global $vtm_character_version;
@@ -392,12 +392,14 @@ function vtm_character_install() {
 
 		$current_table_name = $table_prefix . "BACKGROUND";
 		$sql = "CREATE TABLE " . $current_table_name . " (
-					ID              MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
-					NAME            VARCHAR(30)   NOT NULL,
-					DESCRIPTION     TINYTEXT      NOT NULL,
-					COST_MODEL_ID   MEDIUMINT(9)  NOT NULL,
-					HAS_SECTOR      VARCHAR(1)    NOT NULL,
-					VISIBLE         VARCHAR(1)    NOT NULL,
+					ID             		MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
+					NAME            	VARCHAR(30)   NOT NULL,
+					DESCRIPTION     	TINYTEXT      NOT NULL,
+					GROUPING        	VARCHAR(30)   NOT NULL,
+					COST_MODEL_ID   	MEDIUMINT(9)  NOT NULL,
+					HAS_SECTOR      	VARCHAR(1)    NOT NULL,
+					HAS_SPECIALISATION  VARCHAR(1)    NOT NULL,
+					VISIBLE         	VARCHAR(1)    NOT NULL,
 					BACKGROUND_QUESTION TEXT,
 					PRIMARY KEY  (ID),
 					CONSTRAINT `" . $table_prefix . "background_constraint_1` FOREIGN KEY (COST_MODEL_ID) REFERENCES " . $table_prefix . "COST_MODEL(ID)
@@ -1464,8 +1466,25 @@ function vtm_character_update_1_11($beforeafter) {
 						array('ID' => $info->ID)
 					);
 			}
+			$remove = array (
+				'LINK' => ''
+			);
+			vtm_remove_columns(VTM_TABLE_PREFIX . "ST_LINK", $remove);
+			
+			
 			
 		}
+		
+		// Fill in default 'N' for new background column "HAS_SPECIALISATION"
+		$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "BACKGROUND";
+		$result = $wpdb->get_results($sql);
+		foreach ($result as $bg) {
+					$wpdb->update(VTM_TABLE_PREFIX . "BACKGROUND",
+						array('HAS_SPECIALISATION' => 'N'),
+						array('ID' => $bg->ID)
+					);
+		}
+
 		
 	}
 
