@@ -79,11 +79,23 @@ function vtm_register_character_settings() {
 	register_setting( 'vtm_features_group', 'vtm_feature_temp_stats' );
 	register_setting( 'vtm_features_group', 'vtm_feature_maps' );
 	register_setting( 'vtm_features_group', 'vtm_feature_reports' );
+	register_setting( 'vtm_features_group', 'vtm_feature_email' );
 	
 	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_mustbeloggedin' );
-	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_emailtag' );
-	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_email_from_name' );
-	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_email_from_address' );
+	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_emailtag' ); 			// depreciated
+	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_email_from_name' ); 	// depreciated
+	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_email_from_address' ); 	// depreciated
+	
+	register_setting( 'vtm_email_options_group', 'vtm_emailtag' );
+	register_setting( 'vtm_email_options_group', 'vtm_replyto_name' );
+	register_setting( 'vtm_email_options_group', 'vtm_replyto_address' );
+	register_setting( 'vtm_email_options_group', 'vtm_method' );
+	register_setting( 'vtm_email_options_group', 'vtm_smtp_host' );
+	register_setting( 'vtm_email_options_group', 'vtm_smtp_port' );
+	register_setting( 'vtm_email_options_group', 'vtm_smtp_username' );
+	register_setting( 'vtm_email_options_group', 'vtm_smtp_pw' );
+	register_setting( 'vtm_email_options_group', 'vtm_smtp_auth' );
+	register_setting( 'vtm_email_options_group', 'vtm_smtp_secure' );
 	
 	register_setting( 'feedingmap_options_group', 'feedingmap_google_api' );  // google api key
 	register_setting( 'feedingmap_options_group', 'feedingmap_centre_lat' );  // centre point, latitude
