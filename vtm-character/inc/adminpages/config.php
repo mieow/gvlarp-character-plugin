@@ -485,7 +485,15 @@ function vtm_render_config_email() {
 	if ($method == 'smtp') {		
 		?>
 	<h3>SMTP Settings</h3>
-	<p>HELP TEXT</p>
+	<p>Using SMTP is useful if emails from the site are being spam-filtered or are not
+	reaching the end user.</p>
+	<p>Note 1: These setting will affect all emails sent by Wordpress.  SMTP support
+	is basic so if you have any issues then we recommend installing a stand-alone SMTP
+	plugin instead.</p>
+	<p>Note 2: The password is stored as plain text in the Wordpress database so be aware
+	that this is a risk to security.  We recommend creating a separate email address for
+	the purposes of sending notification emails so that your private email accounts
+	won't be compromised.</p>
 	<table>
 	<tr>
 		<td><label>SMTP Host: </label></td>

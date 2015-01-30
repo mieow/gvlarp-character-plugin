@@ -3386,17 +3386,10 @@ function vtm_email_new_character($email, $playerid, $name, $clanid, $player, $co
 	$ref = vtm_get_chargen_reference();
 	$clan = vtm_get_clan_name($clanid);
 	$name = stripslashes($name);
-	$tag = get_option( 'vtm_emailtag' );
-	$toname = get_option( 'vtm_chargen_email_from_name', 'The Storytellers');
-	$toaddr = get_option( 'vtm_chargen_email_from_address', get_bloginfo('admin_email') );
 	$url = add_query_arg('reference', $ref, vtm_get_stlink_url('viewCharGen', true));
 	$url = add_query_arg('confirm', true, $url);
 	$player = stripslashes($player);
-	
-	$subject   = "$tag New Character Created: $name";
-	$headers[] = "From: \"$toname\" <$toaddr>\n";
-	$headers[] = "Cc: \"$toname\" <$toaddr>\n";
-	
+		
 	$userbody = "Hello $player,
 	
 Your new character has been created:
@@ -3413,7 +3406,7 @@ Click this link to confirm your email address and to return to character generat
 	
 	//echo "<pre>$userbody</pre>\n";
 	
-	$result = wp_mail($email, $subject, $userbody, $headers);
+	$result = vtm_send_email($email, "New Character Created: $name", $userbody);
 	
 	if (!$result)
 		echo "<p>Failed to send email. Character Ref: $ref</p>\n";
@@ -6660,18 +6653,12 @@ function vtm_save_submit() {
 		
 		$playerid = $results->playerID;
 		$ref = vtm_get_chargen_reference();
-		$tag    = get_option( 'vtm_chargen_emailtag' );
-		$toname = get_option( 'vtm_chargen_email_from_name', 'The Storytellers');
-		$toaddr = get_option( 'vtm_chargen_email_from_address', get_bloginfo('admin_email') );
-		$fromname = stripslashes($results->player);
-		$fromemail = $results->email;
+		$toaddr = get_option( 'vtm_replyto_address', get_option( 'vtm_chargen_email_from_address', get_bloginfo('admin_email') ) );
 		$character = stripslashes($results->name);
 		$concept = $results->concept;
 		$clan = stripslashes(vtm_get_clan_name($results->clanid));
 		$url    = add_query_arg('reference', $ref, vtm_get_stlink_url('viewCharGen', true));
 		
-		$subject = "$tag Character Submitted";
-		$headers[] = "From: \"$fromname\" <$fromemail>\n";
 		
 		$body = "Hello Storytellers,
 		
@@ -6689,7 +6676,7 @@ You can view this character by following this link: $url";
 	
 		//echo "<pre>$body</pre>\n";
 
-		$result = wp_mail($toaddr, $subject, $body, $headers);
+		$result = vtm_send_email($toaddr, "Character Submitted", $body);
 		
 		if (!$result)
 			echo "<p>Failed to send email. Character Ref: $ref</p>\n";

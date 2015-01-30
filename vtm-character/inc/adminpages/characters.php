@@ -2242,8 +2242,8 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
     function column_name($item){
         
         $actions = array(
-            'view'      => sprintf('<a href="%s?characterID=%s">View</a>',$this->stlinks['viewCharGen']->LINK,$item->ID),
-            'print'     => sprintf('<a href="%s?characterID=%s">Print</a>',$this->stlinks['printCharSheet']->LINK,$item->ID),
+            'view'      => sprintf('<a href="%s?characterID=%s">View</a>',$this->stlinks['viewCharGen']->WP_PAGE_ID,$item->ID),
+            'print'     => sprintf('<a href="%s?characterID=%s">Print</a>',$this->stlinks['printCharSheet']->WP_PAGE_ID,$item->ID),
             'approveit' => sprintf('<a href="?page=%s&amp;action=%s&amp;character=%s">Approve</a>',$_REQUEST['page'],'approveit',$item->ID),
             'denyit'    => sprintf('<a href="?page=%s&amp;action=%s&amp;character=%s">Deny</a>',$_REQUEST['page'],'denyit',$item->ID),
         );
@@ -2284,7 +2284,7 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
         global $wpdb; 
         
         $this->type    = "chargen";
-		$this->stlinks = $wpdb->get_results("SELECT VALUE, LINK FROM " . VTM_TABLE_PREFIX. "ST_LINK ORDER BY ORDERING", OBJECT_K);
+		$this->stlinks = $wpdb->get_results("SELECT VALUE, WP_PAGE_ID FROM " . VTM_TABLE_PREFIX. "ST_LINK ORDER BY ORDERING", OBJECT_K);
 
         $columns  = $this->get_columns();
         $hidden   = array();
@@ -2352,16 +2352,8 @@ function vtm_email_chargen_denied($characterID, $denyMessage) {
 	$name   = stripslashes($results->name);
 	$player = stripslashes($results->player);
 	$email  = $results->email;
-	
 	$ref = vtm_get_chargen_reference($characterID);
-	
-	$url = add_query_arg('reference', $ref, vtm_get_stlink_url('viewCharGen', true));
-	$tag = get_option( 'vtm_chargen_emailtag' );
-	$fromname = get_option( 'vtm_chargen_email_from_name', 'The Storytellers');
-	$fromaddr = get_option( 'vtm_chargen_email_from_address', get_bloginfo('admin_email') );
-	
-	$subject   = "$tag Review Character Generation: $name";
-	$headers[] = "From: '$fromname' <$fromaddr>";
+	$url = add_query_arg('reference', $ref, vtm_get_stlink_url('viewCharGen', true));	
 	
 	$userbody = "Hello $player,
 	
@@ -2371,7 +2363,7 @@ The Storytellers have provided feedback on $name. Please review the comments and
 	
 You can return to character generation by following this link: $url";
 	
-	$result = wp_mail($email, $subject, $userbody, $headers);
+	$result = vtm_send_email($email, "Review Character Generation: $name", $userbody);
 	
 	if (!$result)
 		echo "<p>Failed to send email. Character Ref: $ref</p>";
@@ -2398,17 +2390,10 @@ function vtm_email_chargen_approved($characterID, $wpid, $password) {
 	$username = $results->username;
 	$website  = site_url();
 		
-	$tag = get_option( 'vtm_chargen_emailtag' );
-	$fromname = get_option( 'vtm_chargen_email_from_name', 'The Storytellers');
-	$fromaddr = get_option( 'vtm_chargen_email_from_address', get_bloginfo('admin_email') );
-	
 	$url1 = vtm_get_stlink_url('viewProfile', true);
 	$url2 = vtm_get_stlink_url('viewCharSheet', true);
 	$url3 = vtm_get_stlink_url('printCharSheet', true);
 	$url4 = vtm_get_stlink_url('viewXPSpend', true);
-
-	$subject   = "$tag Character Approved: $name";
-	$headers[] = "From: '$fromname' <$fromaddr>";
 	
 	$userbody = "Hello $player,\n\nThe Storytellers have approved your character.  ";
 	
@@ -2432,7 +2417,7 @@ function vtm_email_chargen_approved($characterID, $wpid, $password) {
 	$userbody .= "\tPrint your character:  $url3\n";
 	$userbody .= "\tSpend Experience:      $url4\n";
 	
-	$result = wp_mail($email, $subject, $userbody, $headers);
+	$result = vtm_send_email($email, "Character Approved: $name", $userbody);
 	
 	if (!$result)
 		echo "<p>Failed to send email. Character: $name, Player: $player</p>";
