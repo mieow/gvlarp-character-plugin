@@ -21,9 +21,10 @@ function vtm_character_config() {
 			<ul>
 				<li><?php echo vtm_get_tablink('general',   'General'); ?></li>
 				<li><?php echo vtm_get_tablink('pagelinks', 'Page Links'); ?></li>
-				<li><?php if (get_option( 'vtm_feature_maps', '0' ) == 1) echo vtm_get_tablink('maps',      'Map Options'); ?></li>
+				<li><?php if (get_option( 'vtm_feature_maps', '0' ) == 1) echo vtm_get_tablink('maps', 'Map Options'); ?></li>
 				<li><?php echo vtm_get_tablink('chargen',   'Character Generation'); ?></li>
 				<li><?php echo vtm_get_tablink('skinning',  'Skinning'); ?></li>
+				<li><?php if (get_option( 'vtm_feature_email', '0' ) == 1) echo vtm_get_tablink('email', 'Email Options'); ?></li>
 				<li><?php echo vtm_get_tablink('features',  'Features'); ?></li>
 			</ul>
 		</div>
@@ -50,6 +51,9 @@ function vtm_character_config() {
 				break;
 			case 'features':
 				vtm_render_config_features();
+				break;
+			case 'email':
+				vtm_render_config_email();
 				break;
 			default:
 				vtm_render_config_general();
@@ -422,22 +426,112 @@ function vtm_render_config_chargen() {
 			<td><label>User must be logged in: </label></td>
 			<td><input type="checkbox" name="vtm_chargen_mustbeloggedin" value="1" <?php checked( '1', get_option( 'vtm_chargen_mustbeloggedin', '0' ) ); ?> /></td>
 		</tr>
-		<tr>
-			<td><label>Tag to add to the start of notification email subject: </label></td>
-			<td><input type="text" name="vtm_chargen_emailtag" value="<?php echo get_option( 'vtm_chargen_emailtag' ); ?>" /></td>
-		</tr>
-		<tr>
-			<td><label>From name of notification emails: </label></td>
-			<td><input type="text" name="vtm_chargen_email_from_name" value="<?php echo get_option( 'vtm_chargen_email_from_name', 'The Storytellers'); ?>" /></td>
-		</tr>
-		<tr>
-			<td><label>From address of notification emails: </label></td>
-			<td><input type="text" name="vtm_chargen_email_from_address" value="<?php echo get_option( 'vtm_chargen_email_from_address', get_bloginfo('admin_email') ); ?>" /></td>
-		</tr>
 		</table>
 		<?php submit_button("Save Character Generation Options", "primary", "save_chargen_button"); ?>
 		</form>
 		
+	<?php 
+}
+function vtm_render_config_email() {	
+	global $wpdb;
+
+	if (isset($_REQUEST['send_email_button'])) {
+		//print_r($_REQUEST);
+		vtm_test_email($_REQUEST['vtm_test_address']);
+	}
+	
+	?><h3>Email Options</h3>
+	<form method="post" action="options.php">
+	<?php
+	
+	settings_fields( 'vtm_email_options_group' );
+	do_settings_sections('vtm_email_options_group');
+	
+	$emailtag  = get_option( 'vtm_emailtag',        get_option( 'vtm_chargen_emailtag' ) );
+	$replyname = get_option( 'vtm_replyto_name',    get_option( 'vtm_chargen_email_from_name', 'The Storytellers'));
+	$replyto   = get_option( 'vtm_replyto_address', get_option( 'vtm_chargen_email_from_address', get_bloginfo('admin_email') ) );
+	$method    = get_option( 'vtm_method',          'mail' );
+
+	$smtphost   = get_option( 'vtm_smtp_host',     '' );
+	$smtpport   = get_option( 'vtm_smtp_port',     '25' );
+	$smtpuser   = get_option( 'vtm_smtp_username', '' );
+	$smtpauth   = get_option( 'vtm_smtp_auth',     'true' );
+	$smtpsecure = get_option( 'vtm_smtp_secure',   'ssl' );
+	$smtppw     = get_option( 'vtm_smtp_pw',       '' );
+	?>
+
+	<table>
+	<tr>
+		<td><label>Tag to add to the start of notification email subject: </label></td>
+		<td><input type="text" name="vtm_emailtag" value="<?php echo $emailtag; ?>" /></td>
+	</tr>
+	<tr>
+		<td><label>From name of notification emails: </label></td>
+		<td><input type="text" name="vtm_replyto_name" value="<?php echo $replyname; ?>" /></td>
+	</tr>
+	<tr>
+		<td><label>Reply-to address of notification emails: </label></td>
+		<td><input type="text" name="vtm_replyto_address" value="<?php echo $replyto; ?>" /></td>
+	</tr>
+	<tr>
+		<td><label>Email method: </label></td>
+		<td>
+			<input type='radio' id='method_mail' name='vtm_method' value='mail' <?php echo checked($method, 'mail', false); ?> /><label for='method_mail'>Mail (default)</label>
+			<input type='radio' id='method_smpt' name='vtm_method' value='smtp' <?php echo checked($method, 'smtp', false); ?> /><label for='method_smpt'>SMTP</label>
+		</td>
+	</tr>
+	</table>
+	<?php 
+	if ($method == 'smtp') {		
+		?>
+	<h3>SMTP Settings</h3>
+	<p>HELP TEXT</p>
+	<table>
+	<tr>
+		<td><label>SMTP Host: </label></td>
+		<td><input type="text" name="vtm_smtp_host" value="<?php echo $smtphost; ?>" /></td>
+	</tr>
+	<tr>
+		<td><label>SMTP port: </label></td>
+		<td><input type="text" name="vtm_smtp_port" value="<?php echo $smtpport; ?>" /></td>
+	</tr>
+	<tr>
+		<td><label>Email username: </label></td>
+		<td><input type="text" name="vtm_smtp_username" value="<?php echo $smtpuser; ?>" /></td>
+	</tr>
+	<tr>
+		<td><label>Email password: </label></td>
+		<td><input type="password" name="vtm_smtp_pw" value="<?php echo $smtppw; ?>" /></td>
+	</tr>
+	<tr>
+		<td><label>Email method: </label></td>
+		<td>
+			<input type='radio' id='secure1' name='vtm_smtp_secure' value='ssl' <?php echo checked($smtpsecure, 'ssl', false); ?> /><label for='secure1'>SSL (default)</label>
+			<input type='radio' id='secure2' name='vtm_smtp_secure' value='tls' <?php echo checked($smtpsecure, 'tls', false); ?> /><label for='secure2'>TLS</label>
+			<input type='radio' id='secure3' name='vtm_smtp_secure' value='none' <?php echo checked($smtpsecure, 'none', false); ?> /><label for='secure3'>None</label>
+		</td>
+	</tr>
+	<tr>
+		<td><label>SMTP Authentication: </label></td>
+		<td>
+			<input type='radio' id='auth1' name='vtm_smtp_auth' value='true' <?php echo checked($smtpauth, 'true', false); ?> />
+			<label for='auth1'>Yes</label>
+			<input type='radio' id='auth2' name='vtm_smtp_auth' value='false' <?php echo checked($smtpauth, 'false', false); ?> />
+			<label for='auth2'>No</label>
+		</td>
+	</tr>
+	</table>
+		<?php
+	}
+	?>
+	<?php submit_button("Save Email Options", "primary", "save_email_button"); ?>
+	</form>
+	
+	<form id='options_form' method='post'>
+	<input type="text" name="vtm_test_address" value="<?php echo $replyto; ?>" />
+	<?php submit_button("Send test email", "primary", "send_email_button"); ?>
+	</form>
+			
 	<?php 
 }
 function vtm_render_config_skinning() {	
@@ -735,6 +829,11 @@ function vtm_render_config_features() {
 			<td><label>Reports: </label></td>
 			<td><input type="checkbox" name="vtm_feature_reports" value="1" <?php checked( '1', get_option( 'vtm_feature_reports', '0' ) ); ?> /></td>
 			<td>Show admin reports, including sign-in sheet</td>
+		</tr>
+		<tr>
+			<td><label>Email configuration: </label></td>
+			<td><input type="checkbox" name="vtm_feature_email" value="1" <?php checked( '1', get_option( 'vtm_feature_email', '0' ) ); ?> /></td>
+			<td>Advanced options for configuring sending email</td>
 		</tr>
 		</table>
 		<?php submit_button("Save Changes", "primary", "save_features_button"); ?>

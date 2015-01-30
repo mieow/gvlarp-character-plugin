@@ -3386,7 +3386,7 @@ function vtm_email_new_character($email, $playerid, $name, $clanid, $player, $co
 	$ref = vtm_get_chargen_reference();
 	$clan = vtm_get_clan_name($clanid);
 	$name = stripslashes($name);
-	$tag = get_option( 'vtm_chargen_emailtag' );
+	$tag = get_option( 'vtm_emailtag' );
 	$toname = get_option( 'vtm_chargen_email_from_name', 'The Storytellers');
 	$toaddr = get_option( 'vtm_chargen_email_from_address', get_bloginfo('admin_email') );
 	$url = add_query_arg('reference', $ref, vtm_get_stlink_url('viewCharGen', true));
