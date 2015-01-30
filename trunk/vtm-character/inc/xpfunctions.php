@@ -924,6 +924,10 @@ function vtm_render_paths($characterID, $maxRating, $pendingSpends, $xp_avail) {
 					(ISNULL(cha_path.LEVEL) AND steps.CURRENT_VALUE = 0)
 					OR steps.CURRENT_VALUE = cha_path.level
 				)
+				AND (
+					steps.XP_COST > 0
+					OR steps.CURRENT_VALUE > 0
+				)
 		   ORDER BY grp, path.name";
 	$sql = $wpdb->prepare($sql, $characterID,$characterID,$characterID,$characterID);
     //echo "<p>SQL: $sql</p>";
@@ -1289,7 +1293,10 @@ function vtm_render_spend_table($type, $allxpdata, $maxRating, $columns, $xp_ava
 						if ($xpdata->NEXT_VALUE > $xpdata->level)
 							$xpcost = $xpdata->XP_COST;
 							
-						if ($xp_avail >= $xpcost) {
+						if ($xpcost == 0) {
+							$rowoutput .= "<img alt='O' src='$emptydoturl'>";
+						}
+						elseif ($xp_avail >= $xpcost) {
 								
 							$comment    = $name . " " . $xpdata->level . " > " . $i;
 						
@@ -1312,6 +1319,9 @@ function vtm_render_spend_table($type, $allxpdata, $maxRating, $columns, $xp_ava
 			$xpcost = ($xpdata->NEXT_VALUE <= $maxRating) ? "(" . $xpdata->XP_COST . " XP)" : "";
 			if ($xpdata->has_pending)
 				$rowoutput .= "<td class='vtmxp_cost'><input class='vtmxp_clear' type='submit' name='{$type}_cancel[{$xpdata->pending_id}]' value='Clear'></td>";
+			elseif ($xpdata->XP_COST == 0) {
+				$rowoutput .= "<td class='vtmxp_cost'>&nbsp;</td>";
+			}
 			else
 				$rowoutput .= "<td class='vtmxp_cost'>$xpcost</td>";
 				
