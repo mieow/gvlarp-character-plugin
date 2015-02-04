@@ -80,6 +80,7 @@ function vtm_register_character_settings() {
 	register_setting( 'vtm_features_group', 'vtm_feature_maps' );
 	register_setting( 'vtm_features_group', 'vtm_feature_reports' );
 	register_setting( 'vtm_features_group', 'vtm_feature_email' );
+	register_setting( 'vtm_features_group', 'vtm_feature_news' );
 	
 	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_mustbeloggedin' );
 	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_emailtag' ); 			// depreciated
@@ -87,6 +88,7 @@ function vtm_register_character_settings() {
 	register_setting( 'vtm_chargen_options_group', 'vtm_chargen_email_from_address' ); 	// depreciated
 	
 	register_setting( 'vtm_email_options_group', 'vtm_emailtag' );
+	register_setting( 'vtm_email_options_group', 'vtm_email_debug' );
 	register_setting( 'vtm_email_options_group', 'vtm_replyto_name' );
 	register_setting( 'vtm_email_options_group', 'vtm_replyto_address' );
 	register_setting( 'vtm_email_options_group', 'vtm_method' );

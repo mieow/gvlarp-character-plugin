@@ -46,6 +46,9 @@ class vtmclass_character {
 	var $last_updated;
 	var $concept;
 	var $email;
+	var $newsletter;
+	var $backgrounds_done;
+	var $backgrounds_total;
 	
 	function load ($characterID){
 		global $wpdb;
@@ -77,7 +80,8 @@ class vtmclass_character {
 					   pub_clan.icon_link			   public_icon,
 					   priv_clan.icon_link			   private_icon,
 					   chara.concept				   concept,
-					   chara.email
+					   chara.email,
+					   chara.get_newsletter			   newsletter
                     FROM " . VTM_TABLE_PREFIX . "CHARACTER chara,
                          " . VTM_TABLE_PREFIX . "PLAYER player,
                          " . VTM_TABLE_PREFIX . "DOMAIN domains,
@@ -127,6 +131,7 @@ class vtmclass_character {
 			$this->char_status_comment   = stripslashes($result[0]->cstat_comment);
 			$this->path_of_enlightenment = stripslashes($result[0]->path);
 			$this->email        = $result[0]->email;
+			$this->newsletter   = $result[0]->newsletter;
 		} else {
 			$this->name         = 'No character selected';
 			$this->clan         = '';
@@ -152,6 +157,7 @@ class vtmclass_character {
 			$this->path_of_enlightenment = '';
 			$this->concept      = '';
 			$this->email        = '';
+			$this->newsletter   = 'N';
 		}
 		
         $user = get_user_by('login',$this->name);
@@ -773,6 +779,56 @@ class vtmclass_character {
 				ORDER BY eb.ORDERING";
 		$sql = $wpdb->prepare($sql, $characterID);
 		$this->history = $wpdb->get_results($sql);
+		
+		// Background questions complete
+		$this->backgrounds_done = 0;
+		$this->backgrounds_total = 0;
+		
+		// backgrounds
+		$sql = "select count(backgrounds.BACKGROUND_QUESTION) as total2do, count(charbgs.APPROVED_DETAIL) as totaldone
+				from	" . VTM_TABLE_PREFIX . "BACKGROUND backgrounds,
+						" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND charbgs,
+						" . VTM_TABLE_PREFIX . "CHARACTER characters
+				where	
+					backgrounds.ID = charbgs.BACKGROUND_ID
+					and	characters.ID = %d
+					and characters.ID = charbgs.CHARACTER_ID
+					and	(backgrounds.BACKGROUND_QUESTION != '' OR charbgs.SECTOR_ID > 0);";
+		$sql = $wpdb->prepare($sql, $characterID);
+		$result1 = $wpdb->get_row($sql);
+		$this->backgrounds_done += $result1->totaldone;
+		$this->backgrounds_total += $result1->total2do;
+		
+		// Merits and Flaws
+		$sql = "select count(charmerits.APPROVED_DETAIL) as totaldone, count(merits.BACKGROUND_QUESTION) as total2do
+				from	" . VTM_TABLE_PREFIX . "MERIT merits,
+						" . VTM_TABLE_PREFIX . "CHARACTER_MERIT charmerits,
+						" . VTM_TABLE_PREFIX . "CHARACTER characters
+				where	merits.ID = charmerits.MERIT_ID
+					and	characters.ID = %d
+					and characters.ID = charmerits.CHARACTER_ID
+					and	merits.BACKGROUND_QUESTION != '';";
+		$sql = $wpdb->prepare($sql, $characterID);
+		$result2 = $wpdb->get_row($sql);
+		$this->backgrounds_done += $result2->totaldone;
+		$this->backgrounds_total += $result2->total2do;
+		
+		// Misc questions
+		$sql = "SELECT COUNT(ID) as total2do FROM " . VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND WHERE VISIBLE = 'Y'";
+		$this->backgrounds_total += $wpdb->get_var($sql);
+		
+		$sql = "SELECT COUNT(questions.ID) AS totaldone
+				FROM
+					" . VTM_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND as charquest,
+					" . VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND as questions
+				WHERE
+					charquest.CHARACTER_ID = %s
+					AND charquest.QUESTION_ID = questions.ID
+					AND questions.VISIBLE = 'Y'
+					AND charquest.APPROVED_DETAIL != ''";
+		$sql = $wpdb->prepare($sql, $characterID);
+		$this->backgrounds_done += $wpdb->get_var($sql);
+
 		
 	}
 	function getAttributes($group = "") {

@@ -39,6 +39,7 @@ require_once VTM_CHARACTER_URL . 'inc/profile.php';
 require_once VTM_CHARACTER_URL . 'inc/chargen.php';
 require_once VTM_CHARACTER_URL . 'inc/install.php';
 require_once VTM_CHARACTER_URL . 'inc/email.php';
+require_once VTM_CHARACTER_URL . 'inc/stnews.php';
 
 // Only load code for admin pages if we are trying to look at them
 if (is_admin()) {

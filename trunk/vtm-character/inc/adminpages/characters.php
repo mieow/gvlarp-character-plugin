@@ -41,6 +41,7 @@ function vtm_character_options() {
 	
 	// Get web pages
 	$stlinks = $wpdb->get_results("SELECT VALUE, WP_PAGE_ID FROM " . VTM_TABLE_PREFIX. "ST_LINK ORDER BY ORDERING", OBJECT_K);
+	//print_r($stlinks);
 	
 	$current_url = set_url_scheme( 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
 	$noclan_url = remove_query_arg( 'clan', $current_url );

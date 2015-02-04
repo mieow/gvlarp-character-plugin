@@ -6,7 +6,7 @@ register_activation_hook( __FILE__, 'vtm_character_install_data' );
 global $vtm_character_version;
 global $vtm_character_db_version;
 $vtm_character_version = "2.0"; 
-$vtm_character_db_version = "43"; 
+$vtm_character_db_version = "47"; 
 
 function vtm_update_db_check() {
     global $vtm_character_version;
@@ -273,6 +273,15 @@ function vtm_character_install() {
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 		
+		$current_table_name = $table_prefix . "MAIL_STATUS";
+		$sql = "CREATE TABLE " . $current_table_name . " (
+					ID              MEDIUMINT(9)	NOT NULL   AUTO_INCREMENT,
+					NAME            VARCHAR(60)		NOT NULL,
+					DESCRIPTION     TINYTEXT      	NOT NULL,
+					PRIMARY KEY  (ID)
+					) ENGINE=INNODB;";
+		dbDelta($sql);
+
 		// LEVEL 2 TABLES - TABLES WITH A FOREIGN KEY CONSTRAINT TO A LEVEL 1 TABLE
 		
 		$current_table_name = $table_prefix . "CHARGEN_TEMPLATE_OPTIONS";
@@ -617,6 +626,7 @@ function vtm_character_install() {
 					CONCEPT					  TINYTEXT		NOT NULL,
 					EMAIL					  VARCHAR(60)	NOT NULL,
 					LAST_UPDATED              DATE          NOT NULL,
+					GET_NEWSLETTER            VARCHAR(1)    NOT NULL,
 					VISIBLE                   VARCHAR(1)    NOT NULL,
 					DELETED                   VARCHAR(1)    NOT NULL,
 					PRIMARY KEY  (ID),
@@ -945,6 +955,17 @@ function vtm_character_install() {
 					) ENGINE=INNODB;";
 		dbDelta($sql);
 
+		$current_table_name = $table_prefix . "MAIL_QUEUE";
+		$sql = "CREATE TABLE " . $current_table_name . " (
+					ID                    MEDIUMINT(9)  NOT NULL  AUTO_INCREMENT,
+					CHARACTER_ID          MEDIUMINT(9)  NOT NULL,
+					MAIL_STATUS_ID        MEDIUMINT(9)  NOT NULL,
+					WP_POST_ID        	  MEDIUMINT(9)  NOT NULL,
+					PRIMARY KEY  (ID),
+					CONSTRAINT `" . $table_prefix . "mail_status_constraint_1` FOREIGN KEY (CHARACTER_ID)  REFERENCES " . $table_prefix . "CHARACTER(ID),
+					CONSTRAINT `" . $table_prefix . "mail_status_constraint_2` FOREIGN KEY (MAIL_STATUS_ID)  REFERENCES " . $table_prefix . "MAIL_STATUS(ID)
+					) ENGINE=INNODB;";
+		dbDelta($sql);
 	
 	//}
 	
@@ -1165,7 +1186,7 @@ function vtm_column_exists($table, $column) {
 	//print_r($existing_columns);
 	$match_columns = array_intersect(array($column), $existing_columns);
 	
-	return !empty($match_columns);
+	return count($match_columns);
 }
 function vtm_rename_column($columninfo) {
 	global $wpdb;
@@ -1476,11 +1497,21 @@ function vtm_character_update_1_11($beforeafter) {
 		}
 		
 		// Fill in default 'N' for new background column "HAS_SPECIALISATION"
-		$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "BACKGROUND";
+		$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "BACKGROUND WHERE HAS_SPECIALISATION = ''";
 		$result = $wpdb->get_results($sql);
 		foreach ($result as $bg) {
 					$wpdb->update(VTM_TABLE_PREFIX . "BACKGROUND",
 						array('HAS_SPECIALISATION' => 'N'),
+						array('ID' => $bg->ID)
+					);
+		}
+
+		// Fill in default 'Y' for new character column "GET_NEWSLETTER"
+		$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE GET_NEWSLETTER = ''";
+		$result = $wpdb->get_results($sql);
+		foreach ($result as $bg) {
+					$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER",
+						array('GET_NEWSLETTER' => 'Y'),
 						array('ID' => $bg->ID)
 					);
 		}
@@ -1493,5 +1524,6 @@ add_action('activated_plugin','save_error');
 function save_error(){
     update_option('vtm_plugin_error',  ob_get_contents());
 }
+
 
 ?>
