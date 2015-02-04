@@ -64,6 +64,12 @@ function vtm_send_email($email, $subject, $body) {
 		$headers[] = "From: \"$fromname\" <$replyto>\n";
 	$headers[] = "Reply-To: \"$fromname\" <$replyto>";
 	
+	$body .= "\n---\nView your character: " . vtm_get_stlink_url('viewCharSheet');
+	$body .= "\nSpend Experience: " . vtm_get_stlink_url('viewXPSpend');
+	
+	if (get_option( 'vtm_feature_news', '0' ) == '1')
+		$body .= "\nOpt-in/out of newsletter: " . vtm_get_stlink_url('viewProfile');
+	
 	$result = wp_mail($email, $subject, $body, $headers);
 	
 	return $result;

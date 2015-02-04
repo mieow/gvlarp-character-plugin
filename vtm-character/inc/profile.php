@@ -64,8 +64,9 @@ function vtm_get_profile_content() {
 	$mycharacter->load($characterID);
 	$emailAddress = $mycharacter->email;
 
-	// Update display name
 	if (vtm_isST() || $currentCharacter == $character) {
+		
+		// Update display name
 		$user = get_user_by('login', $character);
 		$displayName = isset($user->display_name) ? $user->display_name : $mycharacter->name;
 		$userID = isset($user->ID) ? $user->ID : 0;
@@ -79,11 +80,8 @@ function vtm_get_profile_content() {
 			vtm_changeDisplayNameByID ($userID, $newDisplayName);
 			$displayName = $newDisplayName;
 		}
-	}
 	
-	// Update email address
-	if (vtm_isST() || $currentCharacter == $character) {
-	
+		// Update email address
 		if (isset($_POST['VTM_FORM']) && $_POST['VTM_FORM'] == 'updateEmail' && isset($_POST['emailAddress']) 
 			&& !empty($_POST['emailAddress']) && $_POST['emailAddress'] != $emailAddress) {
 			
@@ -108,30 +106,44 @@ function vtm_get_profile_content() {
 			}
 				$emailAddress = $newemailAddress;
 		}
-	}
 	
-	// Update password
-	if (isset($_POST['newPassword1']) && (vtm_isST() || $currentCharacter == $character)) {
-		$user = get_user_by('login', $character);
-		$userID = $user->ID;
-	
-		$newPassword1 = $_POST['newPassword1'];
-		$newPassword2 = $_POST['newPassword2'];
+		// Update password
+		if (isset($_POST['newPassword1'])) {
+			$user = get_user_by('login', $character);
+			$userID = $user->ID;
 		
-		if ($_POST['VTM_FORM'] == 'updatePassword' 
-			&& isset($newPassword1) && !empty($newPassword1) 
-			&& isset($newPassword2) && !empty($newPassword2) 
-			) {
+			$newPassword1 = $_POST['newPassword1'];
+			$newPassword2 = $_POST['newPassword2'];
 			
-			if ($newPassword1 !== $newPassword2) {
-				$output .= "<p>Passwords don't match</p>";
-			} 
-			elseif (vtm_changePasswordByID($userID, $newPassword1, $newPassword2)) {
-				$output .= "<p>Successfully changed password</p>";
+			if ($_POST['VTM_FORM'] == 'updatePassword' 
+				&& isset($newPassword1) && !empty($newPassword1) 
+				&& isset($newPassword2) && !empty($newPassword2) 
+				) {
+				
+				if ($newPassword1 !== $newPassword2) {
+					$output .= "<p>Passwords don't match</p>";
+				} 
+				elseif (vtm_changePasswordByID($userID, $newPassword1, $newPassword2)) {
+					$output .= "<p>Successfully changed password</p>";
+				}
+				else {
+					$output .= "<p>Failed to change password</p>";
+				}
 			}
-			else {
-				$output .= "<p>Failed to change password</p>";
+		}
+		
+		// Update Email Newsletter settings
+		if (isset($_POST['newsletterUpdate'])) {
+			$result = $wpdb->update(VTM_TABLE_PREFIX . "CHARACTER",
+				array('GET_NEWSLETTER' => $_POST['vtm_news_optin']),
+				array('ID' => $characterID)
+			);
+			if (!$result && $result !== 0){
+				echo "<p style='color:red'>Could not save newsletter setting</p>";
+			} else {
+				$output .= "<p>Changed newsletter setting</p>";
 			}
+			$mycharacter->newsletter = $_POST['vtm_news_optin'];
 		}
 	}
 	
@@ -245,7 +257,8 @@ function vtm_get_profile_content() {
 		$displayName = isset($user->display_name) ? $user->display_name : $mycharacter->name;
 		$userID = isset($user->ID) ? $user->ID : 0;
 		
-		$output .= "<div class='displayNameForm'><strong>Update Display Name:</strong>";
+		$output .= "<div class='vtmext_section'>";
+		$output .= "<h4>Update Display Name:</h4>";
 		$output .= "<form name=\"DISPLAY_NAME_UPDATE_FORM\" method='post'>";
 
 		$output .= "<input type='HIDDEN' name=\"VTM_FORM\" value=\"updateDisplayName\" />";
@@ -257,9 +270,9 @@ function vtm_get_profile_content() {
 		$output .= "</td>\n";
 		$output .= "<td><input type='submit' name=\"displayNameUpdate\" value=\"Update\"></td>";
 		$output .= "</tr>";
-		$output .= "</table></form></div>\n";
+		$output .= "</table></form>\n";
 
-		$output .= "<div class='displayEmailForm'><strong>Update Email Address:</strong>";
+		$output .= "<h4>Update Email Address:</h4>";
 		$output .= "<form name=\"EMAIL_UPDATE_FORM\" method='post'>";
 
 		$output .= "<input type='HIDDEN' name=\"VTM_FORM\" value=\"updateEmail\" />";
@@ -271,9 +284,9 @@ function vtm_get_profile_content() {
 		$output .= "</td>\n";
 		$output .= "<td><input type='submit' name=\"emailAddressUpdate\" value=\"Update\"></td>";
 		$output .= "</tr>";
-		$output .= "</table></form></div>\n";
+		$output .= "</table></form>\n";
 
-		$output .= "<div class='PasswordForm'><strong>Update Password:</strong>";
+		$output .= "<h4>Update Password:</h4>";
 		$output .= "<form name=\"PASSWORD_UPDATE_FORM\" method='post'>";
 
 		$output .= "<input type='HIDDEN' name=\"VTM_FORM\" value=\"updatePassword\" />";
@@ -291,10 +304,21 @@ function vtm_get_profile_content() {
 		$output .= "<input type='submit' name=\"passwordUpdate\" value=\"Update Password\">";
 		$output .= "</td></tr>";
 
-		$output .= "</table></form></div>\n";
+		$output .= "</table></form>";
+		
+		$output .= "<h4>Update Newsletter Settings:</h4>";
+		$output .= "<form name='NEWLETTER_UPDATE_FORM' method='post'>";
+		$output .= "<input type='radio' id='news_true' name='vtm_news_optin' value='Y' " .
+			checked($mycharacter->newsletter, 'Y', false) . "/><label for='news_true'>I want the email newsletter</label><br />";
+		$output .= "<input type='radio' id='news_false' name='vtm_news_optin' value='N' " .
+			checked($mycharacter->newsletter, 'N', false) . "/><label for='news_false'>I do not want the email newsletter</label><br />";
+		$output .= "<input type='submit' name=\"newsletterUpdate\" value=\"Update Newsletter\">";
+		$output .= "</form>";
+		
+		$output .= "</div>\n";
 
 
-		}
+	}
 	
 	return $output;
 }

@@ -167,64 +167,19 @@ class vtmclass_Plugin_Background_Widget extends WP_Widget {
 				echo '<p>No character selected</p>';
 			} else {
 			
-				$donebgs = 0;
-				$totalbgs = 0;
-				
-				// backgrounds
-				$sql = "select count(backgrounds.BACKGROUND_QUESTION) as total2do, count(charbgs.APPROVED_DETAIL) as totaldone
-						from	" . VTM_TABLE_PREFIX . "BACKGROUND backgrounds,
-								" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND charbgs,
-								" . VTM_TABLE_PREFIX . "CHARACTER characters
-						where	
-							backgrounds.ID = charbgs.BACKGROUND_ID
-							and	characters.ID = %d
-							and characters.ID = charbgs.CHARACTER_ID
-							and	(backgrounds.BACKGROUND_QUESTION != '' OR charbgs.SECTOR_ID > 0);";
-				$sql = $wpdb->prepare($sql, $characterID);
-				$result1 = $wpdb->get_row($sql);
-				$donebgs += $result1->totaldone;
-				$totalbgs += $result1->total2do;
-				
-				// Merits and Flaws
-				$sql = "select count(charmerits.APPROVED_DETAIL) as totaldone, count(merits.BACKGROUND_QUESTION) as total2do
-						from	" . VTM_TABLE_PREFIX . "MERIT merits,
-								" . VTM_TABLE_PREFIX . "CHARACTER_MERIT charmerits,
-								" . VTM_TABLE_PREFIX . "CHARACTER characters
-						where	merits.ID = charmerits.MERIT_ID
-							and	characters.ID = %d
-							and characters.ID = charmerits.CHARACTER_ID
-							and	merits.BACKGROUND_QUESTION != '';";
-				$sql = $wpdb->prepare($sql, $characterID);
-				$result2 = $wpdb->get_row($sql);
-				$donebgs += $result2->totaldone;
-				$totalbgs += $result2->total2do;
-				
-				// Misc questions
-				$sql = "SELECT COUNT(ID) as total2do FROM " . VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND WHERE VISIBLE = 'Y'";
-				$totalbgs += $wpdb->get_var($sql);
-				
-				$sql = "SELECT COUNT(questions.ID) AS totaldone
-						FROM
-							" . VTM_TABLE_PREFIX . "CHARACTER_EXTENDED_BACKGROUND as charquest,
-							" . VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND as questions
-						WHERE
-							charquest.CHARACTER_ID = %s
-							AND charquest.QUESTION_ID = questions.ID
-							AND questions.VISIBLE = 'Y'
-							AND charquest.APPROVED_DETAIL != ''";
-				$sql = $wpdb->prepare($sql, $characterID);
-				$donebgs += $wpdb->get_var($sql);
 				//echo "<p>SQL: $sql</p>"; 
+				$mycharacter = new vtmclass_character();
+				$mycharacter->load($characterID);
 				
-				if ($totalbgs <= 0) {
+				if ($mycharacter->backgrounds_total <= 0) {
 					echo "<p>There are no <a href='" . vtm_get_stlink_url('viewExtBackgrnd') . "?CHARACTER=" . urlencode($character) . "'>character background</a> questions to complete</p>";
 				} 
-				elseif ($donebgs == $totalbgs) {
+				elseif ($mycharacter->backgrounds_done == $mycharacter->backgrounds_total) {
 					echo "<p>The <a href='" . vtm_get_stlink_url('viewExtBackgrnd') . "?CHARACTER=" . urlencode($character) . "'>character background</a> for $character has been completed</p>";
 				}
 				else {
 					echo "<p>The <a href='" . vtm_get_stlink_url('viewExtBackgrnd') . "?CHARACTER=" . urlencode($character) . "'>character background</a>  for $character is ";
-					echo sprintf ("%.0f%%", $donebgs * 100 / $totalbgs);
+					echo sprintf ("%.0f%%", $mycharacter->backgrounds_done * 100 / $mycharacter->backgrounds_total);
 					echo " complete</p>";
 				}
 			}

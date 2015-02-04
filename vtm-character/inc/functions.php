@@ -947,4 +947,63 @@ function vtm_formatOutput($string, $allowhtml = 0) {
 	return $string;
 }
 
+function vtm_get_xp_table($playerID, $characterID, $limit = 0) {
+	global $wpdb;
+	global $vtmglobal;
+	
+	$filteron = $vtmglobal['config']->ASSIGN_XP_BY_PLAYER == 'Y' ? "PLAYER_ID" : "CHARACTER_ID";
+	$filterid = $vtmglobal['config']->ASSIGN_XP_BY_PLAYER == 'Y' ? $playerID   : $characterID;
+
+	$sqlLimit = $limit == 0 ? '' : "LIMIT $limit";
+	
+	$sqlSpent = "SELECT 
+				player.name as player_name,
+				chara.name as char_name,
+				xp_reason.name as reason_name,
+				xp_spent.amount,
+				xp_spent.comment,
+				xp_spent.awarded
+			FROM
+				" . VTM_TABLE_PREFIX . "CHARACTER chara,
+				" . VTM_TABLE_PREFIX . "XP_REASON xp_reason,
+				" . VTM_TABLE_PREFIX . "PLAYER_XP xp_spent,
+				" . VTM_TABLE_PREFIX . "PLAYER player
+			WHERE
+				chara.ID = xp_spent.CHARACTER_ID
+				AND player.ID = chara.PLAYER_ID
+				AND xp_reason.ID = xp_spent.XP_REASON_ID
+				AND chara.DELETED != 'Y'
+				AND xp_spent.$filteron = %s";
+				
+	$sqlPending = "SELECT 
+				player.name as player_name,
+				chara.name as char_name,
+				\"Pending\" as reason_name,
+				pending.amount,
+				pending.comment,
+				pending.awarded
+			FROM
+				" . VTM_TABLE_PREFIX . "CHARACTER chara,
+				" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND pending,
+				" . VTM_TABLE_PREFIX . "PLAYER player
+			WHERE
+				player.ID = chara.PLAYER_ID
+				AND pending.CHARACTER_ID = chara.ID
+				AND pending.PLAYER_ID = player.ID
+				AND chara.DELETED != 'Y'
+				AND pending.$filteron = %s";
+	
+	$sql = "$sqlSpent
+			UNION
+			$sqlPending
+			ORDER BY awarded DESC, comment
+			$sqlLimit";
+	$sql = $wpdb->prepare($sql, $characterID, $characterID);	
+	
+	//print "<p>SQL: $sql</p>";
+	
+	return $wpdb->get_results($sql);
+	
+}
+
 ?>

@@ -629,6 +629,7 @@ add_shortcode('merit_table', 'vtm_print_merit_shortcode');
 function vtm_print_character_xp_table($atts, $content=null) {
 	extract(shortcode_atts(array ("character" => "null", "group" => "", "maxrecords" => "20"), $atts));
 	global $vtmglobal;
+	global $wpdb;
 	
 	if (!is_user_logged_in()) {
 		return "You must be logged in to view this content";
@@ -638,58 +639,12 @@ function vtm_print_character_xp_table($atts, $content=null) {
 	$characterID = vtm_establishCharacterID($character);
 	$playerID    = vtm_establishPlayerID($character);
 
-	global $wpdb;
 	$table_prefix = VTM_TABLE_PREFIX;
-	
-	$filteron = $vtmglobal['config']->ASSIGN_XP_BY_PLAYER == 'Y' ? "PLAYER_ID" : "CHARACTER_ID";
-	$filterid = $vtmglobal['config']->ASSIGN_XP_BY_PLAYER == 'Y' ? $playerID   : $characterID;
-	
+		
 	$xp_total = vtm_get_total_xp($playerID, $characterID);
 
 	if ($group != "total" && $group != "TOTAL") {
-		$sqlSpent = "SELECT 
-					player.name as player_name,
-					chara.name as char_name,
-					xp_reason.name as reason_name,
-					xp_spent.amount,
-					xp_spent.comment,
-					xp_spent.awarded
-				FROM
-					" . VTM_TABLE_PREFIX . "CHARACTER chara,
-					" . VTM_TABLE_PREFIX . "XP_REASON xp_reason,
-					" . VTM_TABLE_PREFIX . "PLAYER_XP xp_spent,
-					" . VTM_TABLE_PREFIX . "PLAYER player
-				WHERE
-					chara.ID = xp_spent.CHARACTER_ID
-					AND player.ID = chara.PLAYER_ID
-					AND xp_reason.ID = xp_spent.XP_REASON_ID
-					AND chara.DELETED != 'Y'
-					AND xp_spent.$filteron = %s";
-					
-		$sqlPending = "SELECT 
-					player.name as player_name,
-					chara.name as char_name,
-					\"Pending\" as reason_name,
-					pending.amount,
-					pending.comment,
-					pending.awarded
-				FROM
-					" . VTM_TABLE_PREFIX . "CHARACTER chara,
-					" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND pending,
-					" . VTM_TABLE_PREFIX . "PLAYER player
-				WHERE
-					player.ID = chara.PLAYER_ID
-					AND pending.CHARACTER_ID = chara.ID
-					AND pending.PLAYER_ID = player.ID
-					AND chara.DELETED != 'Y'
-					AND pending.$filteron = %s";
-		
-		$sql = "$sqlSpent
-				UNION
-				$sqlPending
-				ORDER BY awarded, comment";
-		$sql = $wpdb->prepare($sql, $filterid, $filterid);	
-		$character_xp = $wpdb->get_results($sql);
+		$character_xp = vtm_get_xp_table($playerID, $characterID, (int) $maxrecords);
 
 		$output = "<table class='gvplugin' id=\"" . vtm_get_shortcode_id("cxpt") . "\">
 						   <tr><th class=\"gvthead gvcol_1\">Character</th>
@@ -698,17 +653,18 @@ function vtm_print_character_xp_table($atts, $content=null) {
 							   <th class=\"gvthead gvcol_4\">Comment</th>
 							   <th class=\"gvthead gvcol_5\">Date of award</th></tr>\n";
 
-		$arr = array();
-		$i = 0;
+		//$arr = array();
+		//$i = 0;
 		foreach ($character_xp as $current_xp) {
-			$arr[$i] = "<tr><td class=\"gvcol_1 gvcol_key\">" . vtm_formatOutput($current_xp->char_name)   . "</td><td class=\"gvcol_2 gvcol_val\">"
+			$output .= "<tr><td class=\"gvcol_1 gvcol_key\">" . vtm_formatOutput($current_xp->char_name)   . "</td><td class=\"gvcol_2 gvcol_val\">"
 				. vtm_formatOutput($current_xp->reason_name) . "</td><td class=\"gvcol_3 gvcol_val\">"
 				. $current_xp->amount      . "</td><td class='gvcol_4 gvcol_val'>"
 				. vtm_formatOutput($current_xp->comment)     . "</td><td class='gvcol_5 gvcol_val'>"
 				. $current_xp->awarded     . "</td></tr>\n";
-			$i++;
+			//$i++;
 		}
 
+		/*
 		$pageSize = 20;
 		if ((int) $maxrecords > 0) {
 			$pageSize = (int) $maxrecords;
@@ -721,7 +677,7 @@ function vtm_print_character_xp_table($atts, $content=null) {
 		while ($j < $i) {
 			$output .= $arr[$j];
 			$j++;
-		}
+		}*/
 
 		$output .= "<tr><td colspan=3 class=\"gvsummary\">Total amount of XP to spend</td>
 							<td colspan=2 class=\"gvsummary\">" . $xp_total . "</td></tr>\n";

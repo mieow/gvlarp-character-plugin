@@ -258,40 +258,46 @@ function vtm_render_config_pagelinks() {
 					if ($_REQUEST['selectpage' . $i] == "vtmnewpage") {
 					
 						//check if page with name $_REQUEST['value' . $i] exists 
-					
-						$my_page = array(
-							  'post_status'           => 'publish', 
-							  'post_type'             => 'page',
-							  'comment_status'		  => 'closed',
-							  'post_name'			  => $_REQUEST['value' . $i],
-							  'post_title'			  => $_REQUEST['link' . $i]
-						);
+						if (isset($_REQUEST['link' . $i]) && $_REQUEST['link' . $i] != "") {
+							$my_page = array(
+								  'post_status'           => 'publish', 
+								  'post_type'             => 'page',
+								  'comment_status'		  => 'closed',
+								  'post_name'			  => $_REQUEST['value' . $i],
+								  'post_title'			  => $_REQUEST['link' . $i]
+							);
 
-						// Insert the post into the database
-						$pageid = wp_insert_post( $my_page );
+							// Insert the post into the database
+							$pageid = wp_insert_post( $my_page );
+						} else {
+							$pageid = 0;
+						}
 					}
 					else
 						$pageid = $_REQUEST['selectpage' . $i];
-								
-					$dataarray = array (
-						'ORDERING' => $_REQUEST['order' . $i],
-						'WP_PAGE_ID' => $pageid
-					);
-					
-					$result = $wpdb->update(VTM_TABLE_PREFIX . "ST_LINK",
-						$dataarray,
-						array (
-							'ID' => $_REQUEST['id' . $i]
-						)
-					);
-					
-					if ($result) 
-						echo "<p style='color:green'>Updated {$_REQUEST['value' . $i]}</p>";
-					else if ($result === 0) 
-						echo "<p style='color:orange'>No updates made to {$_REQUEST['value' . $i]}</p>";
-					else {
-						$wpdb->print_error();
-						echo "<p style='color:red'>Could not update {$_REQUEST['value' . $i]} ({$_REQUEST['id' . $i]})</p>";
+						
+					if ($pageid > 0) {
+						$dataarray = array (
+							'ORDERING' => $_REQUEST['order' . $i],
+							'WP_PAGE_ID' => $pageid
+						);
+						print_r($dataarray);
+						
+						$result = $wpdb->update(VTM_TABLE_PREFIX . "ST_LINK",
+							$dataarray,
+							array (
+								'ID' => $_REQUEST['id' . $i]
+							)
+						);
+						
+						if ($result) 
+							echo "<p style='color:green'>Updated {$_REQUEST['value' . $i]}</p>";
+						else if ($result === 0) 
+							echo "<p style='color:orange'>No updates made to {$_REQUEST['value' . $i]}</p>";
+						else {
+							$wpdb->print_error();
+							echo "<p style='color:red'>Could not update {$_REQUEST['value' . $i]} ({$_REQUEST['id' . $i]})</p>";
+						}
 					}
 			
 				}
@@ -451,6 +457,7 @@ function vtm_render_config_email() {
 	$replyname = get_option( 'vtm_replyto_name',    get_option( 'vtm_chargen_email_from_name', 'The Storytellers'));
 	$replyto   = get_option( 'vtm_replyto_address', get_option( 'vtm_chargen_email_from_address', get_bloginfo('admin_email') ) );
 	$method    = get_option( 'vtm_method',          'mail' );
+	$debug     = get_option( 'vtm_email_debug',     'false' );
 
 	$smtphost   = get_option( 'vtm_smtp_host',     '' );
 	$smtpport   = get_option( 'vtm_smtp_port',     '25' );
@@ -472,6 +479,13 @@ function vtm_render_config_email() {
 	<tr>
 		<td><label>Reply-to address of notification emails: </label></td>
 		<td><input type="text" name="vtm_replyto_address" value="<?php echo $replyto; ?>" /></td>
+	</tr>
+	<tr>
+		<td><label>Email Debug: </label></td>
+		<td>
+			<input type='radio' id='debug_true' name='vtm_email_debug' value='true' <?php echo checked($debug, 'true', false); ?> /><label for='debug_true'>Yes</label>
+			<input type='radio' id='debug_false' name='vtm_email_debug' value='false' <?php echo checked($debug, 'false', false); ?> /><label for='debug_false'>No</label>
+		</td>
 	</tr>
 	<tr>
 		<td><label>Email method: </label></td>
@@ -842,6 +856,11 @@ function vtm_render_config_features() {
 			<td><label>Email configuration: </label></td>
 			<td><input type="checkbox" name="vtm_feature_email" value="1" <?php checked( '1', get_option( 'vtm_feature_email', '0' ) ); ?> /></td>
 			<td>Advanced options for configuring sending email</td>
+		</tr>
+		<tr>
+			<td><label>Newsletter: </label></td>
+			<td><input type="checkbox" name="vtm_feature_news" value="1" <?php checked( '1', get_option( 'vtm_feature_news', '0' ) ); ?> /></td>
+			<td>Email out news and Experience Point totals to active character accounts</td>
 		</tr>
 		</table>
 		<?php submit_button("Save Changes", "primary", "save_features_button"); ?>
