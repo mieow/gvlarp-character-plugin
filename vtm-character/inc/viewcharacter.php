@@ -32,7 +32,7 @@ function vtm_get_viewcharacter_content() {
 	else
 		$divder = "<tr><td class='vtmhr' colspan=" . $vtmglobal['config']->WEB_COLUMNS . "><hr /></td></tr>"; // divider
 	
-	$content = "<div class=\"gvplugin\" id=\"csheet\">";
+	$content = "<div class='gvplugin vtmpage_" . $vtmglobal['config']->WEB_PAGEWIDTH . "' id=\"csheet\">";
 	
 	//---- TOP CHARACTER INFO ----
 	$c_tableleft = "<table><tbody>

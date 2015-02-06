@@ -580,10 +580,21 @@ function vtm_render_config_skinning() {
 		<h4>Web Page Layout</h4>
 		<table>
 			<tr>
+				<!---
 				<td>Number of columns:</td>
 				<td>
 					<input type="radio" name="vtm_web_columns" value="1" <?php if (get_option('vtm_web_columns', 3) == 1) print "checked"; ?>>1 Column
 					<input type="radio" name="vtm_web_columns" value="3" <?php if (get_option('vtm_web_columns', 3) == 3) print "checked"; ?>>3 Columns	
+				</td>
+				--->
+				<td>Page width:</td>
+				<td>
+					<input type="radio" name="vtm_web_pagewidth" value="narrow" <?php if (get_option('vtm_web_pagewidth', 'wide') == 'narrow') print "checked"; ?> />
+					narrow (character sheet has 1 column and normal dots)<br />
+					<input type="radio" name="vtm_web_pagewidth" value="medium" <?php if (get_option('vtm_web_pagewidth', 'wide') == 'medium') print "checked"; ?>>
+					medium (character sheet has 3 columns and small dots)<br />
+					<input type="radio" name="vtm_web_pagewidth" value="wide"   <?php if (get_option('vtm_web_pagewidth', 'wide') == 'wide') print "checked"; ?>>
+					wide (character sheet has 3 columns and normal dots)<br />
 				</td>
 			</tr>
 		</table>
