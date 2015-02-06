@@ -17,27 +17,42 @@ function vtm_doPendingXPSpend($character) {
 	global $wpdb;
 	$characterID = vtm_establishCharacterID($character);
 	$playerID    = vtm_establishPlayerID($character);
-		
+	
+	$submitted = array();
 	if (isset($_REQUEST['stat_level'])) {
+		$submitted[] = "Statistics";
 		$newid = vtm_save_to_pending('stat', 'CHARACTER_STAT', 'STAT', 'STAT_ID', $playerID, $characterID);
 	}
 	if (isset($_REQUEST['skill_level'])) {
+		$submitted[] = "Abilities";
 		$newid = vtm_save_to_pending('skill', 'CHARACTER_SKILL', 'SKILL', 'SKILL_ID', $playerID, $characterID);
 	}
 	if (isset($_REQUEST['disc_level'])) {
+		$submitted[] = "Disciplines";
 		$newid = vtm_save_to_pending('disc', 'CHARACTER_DISCIPLINE', 'DISCIPLINE', 'DISCIPLINE_ID', $playerID, $characterID);
 	}
 	if (isset($_REQUEST['path_level'])) {
+		$submitted[] = "Paths";
 		$newid = vtm_save_to_pending('path', 'CHARACTER_PATH', 'PATH', 'PATH_ID', $playerID, $characterID);
 	}
 	if (isset($_REQUEST['ritual_level'])) {
+		$submitted[] = "Rituals";
 		$newid = vtm_save_to_pending('ritual', 'CHARACTER_RITUAL', 'RITUAL', 'RITUAL_ID', $playerID, $characterID);
 	}
 	if (isset($_REQUEST['merit_level'])) {
+		$submitted[] = "Merits";
 		$newid = vtm_save_to_pending('merit', 'CHARACTER_MERIT', 'MERIT', 'MERIT_ID', $playerID, $characterID);
 	}
 	if (isset($_REQUEST['combo_level'])) {
+		$submitted[] = "Combination Disciplines";
 		$newid = vtm_save_to_pending('combo', 'CHARACTER_COMBO_DISCIPLINE', 'COMBO_DISCIPLINE', 'COMBO_DISCIPLINE_ID', $playerID, $characterID);
+	}
+	
+	if (count($submitted) > 0) {
+		$email = get_option( 'vtm_replyto_address', get_option( 'vtm_chargen_email_from_address', get_bloginfo('admin_email') ) );
+		$body = "A user has submitted experience spends.\n\nView the spends here: " .
+			admin_url('admin.php?page=vtmcharacter-xp');
+		vtm_send_email($email, "Experience spends have been submitted", $body);
 	}
 }
 	
@@ -729,9 +744,10 @@ function vtm_render_skills_row($type, $rownum, $max2display, $maxRating, $dataro
 	}
 	
 		
-	$xpcost = ($datarow->NEXT_VALUE <= $maxRating) ? "(" . $datarow->XP_COST . " XP)" : "";
+	//$xpcost = ($datarow->NEXT_VALUE <= $maxRating) ? "(" . $datarow->XP_COST . " XP)" : "";
+	$xpcost = ($datarow->NEXT_VALUE <= $maxRating) ? $datarow->XP_COST . "xp" : "";
 	if ($datarow->has_pending)
-		$rowoutput .= "<td class='vtmxp_cost'><input class='vtmxp_clear' type='submit' name='{$type}_cancel[{$datarow->pending_id}]' value='Clear'></td>";
+		$rowoutput .= "<td class='vtmxp_cost'><input class='vtmxp_clear' type='submit' name='{$type}_cancel[{$datarow->pending_id}]' value='Del'></td>";
 	else
 		$rowoutput .= "<td class='vtmxp_cost'>$xpcost</td>";
 	$rowoutput .= "</tr>\n";
@@ -932,8 +948,10 @@ function vtm_render_paths($characterID, $maxRating, $pendingSpends, $xp_avail) {
 	$sql = $wpdb->prepare($sql, $characterID,$characterID,$characterID,$characterID);
     //echo "<p>SQL: $sql</p>";
 	$character_data = $wpdb->get_results($sql);
+	$columns = min(2, $vtmglobal['config']->WEB_COLUMNS);
 	
-	$rowoutput = vtm_render_spend_table('path', $character_data, $maxRating, $vtmglobal['config']->WEB_COLUMNS, $xp_avail);
+	$rowoutput = vtm_render_spend_table('path', $character_data, $maxRating, $columns, $xp_avail);
+	//$rowoutput = vtm_render_spend_table('path', $character_data, $maxRating, 1, $xp_avail);
 	
 	if (!empty($rowoutput)) {
 		$output .= "<table>\n";
@@ -1005,11 +1023,12 @@ function vtm_render_rituals($characterID, $maxRating, $pendingSpends, $xp_avail)
 	$columns = min(2, $vtmglobal['config']->WEB_COLUMNS);
 	
 	$rowoutput = vtm_render_ritual_spend_table('ritual', $character_data, $columns, $xp_avail);
+	$colclass = 'vtm_colfull';
 	
 	if (!empty($rowoutput)) {
-		$output .= "<table>\n";
+		$output .= "<table><tr><td class='$colclass'><table>\n";
 		$output .= "$rowoutput\n";
-		$output .= "</table>\n";
+		$output .= "</table></td></tr></table>\n";
 	} 
 	
 	return $output;
@@ -1080,9 +1099,10 @@ function vtm_render_combo($characterID, $pendingSpends, $xp_avail) {
 	$rowoutput = vtm_render_combo_spend_table('combo', $character_data, $xp_avail);
 	
 	if (!empty($rowoutput)) {
-		$output .= "<table>\n";
+		$colclass = 'vtm_colfull';
+		$output .= "<table><tr><td class='$colclass'><table>\n";
 		$output .= "$rowoutput\n";
-		$output .= "</table>\n";
+		$output .= "</table></td></tr></table>\n";
 	} 
 	
 	return $output;
@@ -1182,13 +1202,18 @@ function vtm_render_merits($characterID, $pendingSpends, $xp_avail) {
 }
 
 function vtm_render_spend_table($type, $allxpdata, $maxRating, $columns, $xp_avail) {
-
+	global $vtmglobal;
+	
 	$fulldoturl    = plugins_url( 'vtm-character/images/dot1full.jpg' );
 	$emptydoturl   = plugins_url( 'vtm-character/images/dot1empty.jpg' );
 	$pendingdoturl = plugins_url( 'vtm-character/images/dot2.jpg' );
 	$levelsdata    = isset($_REQUEST[$type . '_level']) ? $_REQUEST[$type . '_level'] : array();
 
-	$colclass = $columns == 3 ? 'vtm_colnarrow' : 'vtm_colfull';
+	switch ($columns) {
+		case 1: $colclass = 'vtm_colfull'; break;
+		case 2: $colclass = 'vtm_colwide'; break;
+		case 3: $colclass = 'vtm_colnarrow'; break;
+	}
 	
 	$max2display = vtm_get_max_dots($allxpdata, $maxRating);
 	//$colspan = 2 + $max2display;
@@ -1238,15 +1263,15 @@ function vtm_render_spend_table($type, $allxpdata, $maxRating, $columns, $xp_ava
 				if ($grp != $xpdata->grp) {
 					$grpcount++;
 					if (empty($grp)) {
-						$rowoutput .= "<tr><td class='gvxp_col'>\n<table>\n<tr><th class='$colclass' colspan=3>{$xpdata->grp}</th></tr>\n";
+						$rowoutput .= "<tr><td class='$colclass'>\n<table>\n<tr><th class='$colclass' colspan=3>{$xpdata->grp}</th></tr>\n";
 						$col++;
 					} 
 					elseif ($col == $columns) {
-						$rowoutput .= "</table>\n</td></tr>\n<tr><td class='gvxp_col'>\n<table>\n<tr><th class='$colclass' colspan=3>{$xpdata->grp}</th></tr>\n";
+						$rowoutput .= "</table>\n</td></tr>\n<tr><td class='$colclass'>\n<table>\n<tr><th class='$colclass' colspan=3>{$xpdata->grp}</th></tr>\n";
 						$col = 1;
 					}
 					else {
-						$rowoutput .= "</table>\n</td><td class='gvxp_col'>\n<table>\n<tr><th class='$colclass' colspan=3>{$xpdata->grp}</th></tr>\n";
+						$rowoutput .= "</table>\n</td><td class='$colclass'>\n<table>\n<tr><th class='$colclass' colspan=3>{$xpdata->grp}</th></tr>\n";
 						$col++;
 					}
 					$grp = $xpdata->grp;
@@ -1316,9 +1341,10 @@ function vtm_render_spend_table($type, $allxpdata, $maxRating, $columns, $xp_ava
 			}
 			
 				
-			$xpcost = ($xpdata->NEXT_VALUE <= $maxRating) ? "(" . $xpdata->XP_COST . " XP)" : "";
+			//$xpcost = ($xpdata->NEXT_VALUE <= $maxRating) ? "(" . $xpdata->XP_COST . " XP)" : "";
+			$xpcost = ($xpdata->NEXT_VALUE <= $maxRating) ? $xpdata->XP_COST . "xp" : "";
 			if ($xpdata->has_pending)
-				$rowoutput .= "<td class='vtmxp_cost'><input class='vtmxp_clear' type='submit' name='{$type}_cancel[{$xpdata->pending_id}]' value='Clear'></td>";
+				$rowoutput .= "<td class='vtmxp_cost'><input class='vtmxp_clear' type='submit' name='{$type}_cancel[{$xpdata->pending_id}]' value='Del'></td>";
 			elseif ($xpdata->XP_COST == 0) {
 				$rowoutput .= "<td class='vtmxp_cost'>&nbsp;</td>";
 			}
@@ -1328,15 +1354,24 @@ function vtm_render_spend_table($type, $allxpdata, $maxRating, $columns, $xp_ava
 			$id++;
 			if ($id == count($allxpdata)) {
 				$remaining = $grpcount % $columns;
-				if ($remaining)
+				if ($remaining) {
 					$extracols = $columns - $remaining;
+				}
 			}
 			
 			$rowoutput .= "</tr>\n";
 			
 		}
 	}
-	if ($rowoutput != "")
+	
+	if ($extracols > 0) {
+		$rowoutput .= "</table></td>";
+		for ($i = 1 ; $i <= $extracols ; $i++) {
+			$rowoutput .= "<td class='$colclass'>&nbsp;</td>";
+		}
+		$rowoutput .= "</tr>";
+	} 
+	elseif ($rowoutput != "")
 		$rowoutput .= "</table></td></tr>\n";
 
 	return $rowoutput;
@@ -1365,15 +1400,15 @@ function vtm_render_skill_spend_table($type, $list, $allxpdata, $maxRating, $col
 				if ($grp != $skill->grp) {
 					$grpcount++;
 					if (empty($grp)) {
-						$rowoutput .= "<tr><td class='gvxp_col'><table><tr><th class='$colclass' colspan=3>" . vtm_formatOutput($skill->grp) . "</th></tr>";
+						$rowoutput .= "<tr><td class='$colclass'><table><tr><th class='$colclass' colspan=3>" . vtm_formatOutput($skill->grp) . "</th></tr>";
 						$col++;
 					} 
 					elseif ($col == $columns) {
-						$rowoutput .= "</table></td></tr><tr><td class='gvxp_col'><table><tr><th class='$colclass' colspan=3>" . vtm_formatOutput($skill->grp) . "</th></tr>";
+						$rowoutput .= "</table></td></tr><tr><td class='$colclass'><table><tr><th class='$colclass' colspan=3>" . vtm_formatOutput($skill->grp) . "</th></tr>";
 						$col = 1;
 					}
 					else {
-						$rowoutput .= "</table></td><td class='gvxp_col'><table><tr><th class='$colclass' colspan=3>" . vtm_formatOutput($skill->grp) . "</th></tr>";
+						$rowoutput .= "</table></td><td class='$colclass'><table><tr><th class='$colclass' colspan=3>" . vtm_formatOutput($skill->grp) . "</th></tr>";
 						$col++;
 					}
 					$grp = $skill->grp;
@@ -1425,7 +1460,8 @@ function vtm_render_ritual_spend_table($type, $allxpdata, $columns, $xp_avail) {
 	$pendingdoturl = plugins_url( 'vtm-character/images/dot2.jpg' );
 	$levelsdata    = isset($_REQUEST[$type . '_level']) ? $_REQUEST[$type . '_level'] : array();
 	
-	$colclass = $columns == 3 ? 'vtm_colnarrow' : 'vtm_colfull';
+	//$colclass = $columns == 3 ? 'vtm_colnarrow' : 'vtm_colfull';
+	$colclass = 'vtm_colwide';
 
 	$max2display = vtm_get_max_dots($allxpdata, 5);
 	//$colspan = 3;
@@ -1444,15 +1480,15 @@ function vtm_render_ritual_spend_table($type, $allxpdata, $columns, $xp_avail) {
 				if ($grp != $xpdata->grp) {
 					$grpcount++;
 					if (empty($grp)) {
-						$rowoutput .= "<tr><td class='gvxp_col'><table><tr><th class='$colclass' colspan=3>" . vtm_formatOutput($xpdata->grp) . "</th></tr>";
+						$rowoutput .= "<tr><td class='$colclass'><table><tr><th class='$colclass' colspan=3>" . vtm_formatOutput($xpdata->grp) . "</th></tr>";
 						$col++;
 					} 
 					elseif ($col == $columns) {
-						$rowoutput .= "</table></td></tr><tr><td class='gvxp_col'><table><tr><th class='$colclass' colspan=3>" . vtm_formatOutput($xpdata->grp) . "</th></tr>";
+						$rowoutput .= "</table></td></tr><tr><td class='$colclass'><table><tr><th class='$colclass' colspan=3>" . vtm_formatOutput($xpdata->grp) . "</th></tr>";
 						$col = 1;
 					}
 					else {
-						$rowoutput .= "</table></td><td class='gvxp_col'><table><tr><th class='$colclass' colspan=3>" . vtm_formatOutput($xpdata->grp) . "</th></tr>";
+						$rowoutput .= "</table></td><td class='$colclass'><table><tr><th class='$colclass' colspan=3>" . vtm_formatOutput($xpdata->grp) . "</th></tr>";
 						$col++;
 					}
 					$grp = $xpdata->grp;
@@ -1497,9 +1533,9 @@ function vtm_render_ritual_spend_table($type, $allxpdata, $columns, $xp_avail) {
 			$rowoutput .= "</td>";
 			
 				
-			$xpcost = ($xpcost) ? "(" . $xpcost . " XP)" : "";
+			$xpcost = ($xpcost) ? $xpcost . "xp" : "";
 			if ($xpdata->has_pending)
-				$rowoutput .= "<td class='vtmxp_cost'><input class='vtmxp_clear' type='submit' name='{$type}_cancel[{$xpdata->pending_id}]' value='Clear'></td>";
+				$rowoutput .= "<td class='vtmxp_cost'><input class='vtmxp_clear' type='submit' name='{$type}_cancel[{$xpdata->pending_id}]' value='Del'></td>";
 			else
 				$rowoutput .= "<td class='vtmxp_cost'>$xpcost</td>\n";
 			$rowoutput .= "</tr>\n";
@@ -1516,7 +1552,7 @@ function vtm_render_ritual_spend_table($type, $allxpdata, $columns, $xp_avail) {
 	if ($rowoutput != "") {
 		$rowoutput .= "</table></td>\n";
 		if ($extracols)
-			$rowoutput .= "<td colspan=$extracols>&nbsp;</td>\n";	
+			$rowoutput .= "<td class='$colclass' colspan=$extracols>&nbsp;</td>\n";	
 		$rowoutput .= "</tr>\n";
 	}
 
@@ -1530,7 +1566,7 @@ function vtm_render_combo_spend_table($type, $allxpdata, $xp_avail) {
 	$levelsdata    = isset($_REQUEST[$type . '_level']) ? $_REQUEST[$type . '_level'] : array();
 
 	//$colclass = $columns == 3 ? 'vtm_colnarrow' : 'vtm_colfull';
-	$colclass = 'vtm_colfull';
+	//$colclass = 'vtm_colfull';
 	$max2display = 1;
 	//$colspan = 2 + $max2display;
 	$grp = "";
@@ -1563,7 +1599,7 @@ function vtm_render_combo_spend_table($type, $allxpdata, $xp_avail) {
 			//dots row
 			$xpcost = 0;
 			$rowoutput .= "<tr><td class='vtmcol_key'><span>" . vtm_formatOutput($xpdata->name) . "</span></td>";
-			$rowoutput .= "<td class='vtmdot_5 vtmdots'>";
+			$rowoutput .= "<td class='vtmdot_1 vtmdots'>";
 			if ($xpdata->level)
 				$rowoutput .= "<img alt='*' src='$fulldoturl'>";
 			elseif ($xpdata->CHARTABLE_LEVEL)
@@ -1586,9 +1622,9 @@ function vtm_render_combo_spend_table($type, $allxpdata, $xp_avail) {
 			}
 			$rowoutput .= "</td>";
 	
-			$xpcost = ($xpcost) ? "(" . $xpcost . " XP)" : "";
+			$xpcost = ($xpcost) ? $xpcost . "xp" : "";
 			if ($xpdata->has_pending)
-				$rowoutput .= "<td class='vtmxp_cost'><input class='vtmxp_clear' type='submit' name='{$type}_cancel[{$xpdata->pending_id}]' value='Clear'></td>";
+				$rowoutput .= "<td class='vtmxp_cost'><input class='vtmxp_clear' type='submit' name='{$type}_cancel[{$xpdata->pending_id}]' value='Del'></td>";
 			else
 				$rowoutput .= "<td class='vtmxp_cost'>$xpcost</td>";
 			$rowoutput .= "</tr>\n";
@@ -1620,15 +1656,15 @@ function vtm_render_merit_spend_table($type, $list, $allxpdata, $columns, $xp_av
 			if (isset($merit->grp)) {
 				if ($grp != $merit->grp) {
 					if (empty($grp)) {
-						$rowoutput .= "<tr><td class='gvxp_col'><table><tr><th class='$colclass' colspan=$colspan>" . vtm_formatOutput($merit->grp) . "</th></tr>\n";
+						$rowoutput .= "<tr><td class='$colclass'><table><tr><th class='$colclass' colspan=$colspan>" . vtm_formatOutput($merit->grp) . "</th></tr>\n";
 						$col++;
 					} 
 					elseif ($col == $columns) {
-						$rowoutput .= "</table></td></tr>\n<tr><td class='gvxp_col'>\n<table>\n<tr><th class='$colclass' colspan=$colspan>" . vtm_formatOutput($merit->grp) . "</th></tr>\n";
+						$rowoutput .= "</table></td></tr>\n<tr><td class='$colclass'>\n<table>\n<tr><th class='$colclass' colspan=$colspan>" . vtm_formatOutput($merit->grp) . "</th></tr>\n";
 						$col = 1;
 					}
 					else {
-						$rowoutput .= "</table>\n</td><td class='gvxp_col'>\n<table>\n<tr><th class='$colclass' colspan=$colspan>" . vtm_formatOutput($merit->grp) . "</th></tr>\n";
+						$rowoutput .= "</table>\n</td><td class='$colclass'>\n<table>\n<tr><th class='$colclass' colspan=$colspan>" . vtm_formatOutput($merit->grp) . "</th></tr>\n";
 						$col++;
 					}
 					$grp = $merit->grp;
@@ -1736,9 +1772,9 @@ function vtm_render_merits_row($type, $id, $xpdata, $levelsdata, $xp_avail) {
 		} 
 	}
 	$rowoutput .= "</td>";
-	$xpcost = ($xpdata->XP_COST) ? "(" . $xpdata->XP_COST . " XP)" : "";
+	$xpcost = ($xpdata->XP_COST) ? $xpdata->XP_COST . "xp" : "";
 	if (isset($xpdata->has_pending) && $xpdata->has_pending)
-		$rowoutput .= "<td class='vtmxp_cost'><input class='vtmxp_clear' type='submit' name='{$type}_cancel[{$xpdata->pending_id}]' value='Clear'></td>\n";
+		$rowoutput .= "<td class='vtmxp_cost'><input class='vtmxp_clear' type='submit' name='{$type}_cancel[{$xpdata->pending_id}]' value='Del'></td>\n";
 	elseif ($cha_id && $xpdata->level >= 0)
 		$rowoutput .= "<td class='vtmxp_cost'></td>\n";
 	else

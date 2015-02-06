@@ -849,8 +849,13 @@ function vtm_get_sects() {
 
         $sql = "SELECT * FROM " . VTM_TABLE_PREFIX . "CONFIG";
         $vtmglobal['config'] = $wpdb->get_row($sql);
-		
-        $vtmglobal['config']->WEB_COLUMNS = get_option('vtm_web_columns', 3);
+				
+		switch(get_option('vtm_web_pagewidth', 'wide')) {
+			case 'wide'  : $vtmglobal['config']->WEB_COLUMNS = 3; break;
+			case 'medium': $vtmglobal['config']->WEB_COLUMNS = 3; break;
+			case 'narrow': $vtmglobal['config']->WEB_COLUMNS = 1; break;
+		}
+        $vtmglobal['config']->WEB_PAGEWIDTH = get_option('vtm_web_pagewidth', 'wide');
 				
 		return $vtmglobal['config'];
     }
