@@ -83,13 +83,13 @@ function vtm_handleMasterXP() {
 /* shortcode */
 
 function vtm_print_xp_spend_table() {
-	global $wpdb;
+	global $vtmglobal;
 	
 	$character   = vtm_establishCharacter('');
 	$characterID = vtm_establishCharacterID($character);
 	$playerID    = vtm_establishPlayerID($character);
 	
-	$output = "";
+	$output = "<div class='gvplugin vtmpage_" . $vtmglobal['config']->WEB_PAGEWIDTH . "' >";
 	$outputError = "";
 	$step = isset($_REQUEST['step']) ? $_REQUEST['step'] : '';
 	
@@ -142,6 +142,7 @@ function vtm_print_xp_spend_table() {
 	
 	}
 
+	$output .= "</div>";
 	return $output;
 }
 
@@ -227,7 +228,7 @@ function vtm_render_select_spends($character) {
 	$sectioncols    = array();
 	$sectionorder   = array('stat', 'skill', 'disc', 'combo', 'path',
 							'ritual', 'merit');
-	$output = "<p class='gvxp_xpstatus'>You have $xp_total experience in total, $xp_pending points currently pending and " . ($xp_total - $xp_pending) . " available to spend</p>";
+	$output = "<p>You have $xp_total experience in total, $xp_pending points currently pending and " . ($xp_total - $xp_pending) . " available to spend</p>";
 
 	/* work out the maximum ratings for this character based on generation */
 	$ratings = vtm_get_character_maximums($characterID);
@@ -2137,6 +2138,7 @@ function vtm_get_pending_xp($playerID = 0, $characterID = 0) {
 					ch.ID = pending.CHARACTER_ID
 					AND ch.PLAYER_ID = %s";
 		$sql = $wpdb->prepare($sql, $playerID);
+		//echo "<p>SQL: $sql</p>";
 		$result = $wpdb->get_results($sql);
 	}
 	

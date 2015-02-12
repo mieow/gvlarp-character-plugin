@@ -160,6 +160,8 @@ function vtm_get_total_xp($playerID = 0, $characterID = 0) {
 			WHERE
 				xpspends.$filteron = '%s'";
 	$sql = $wpdb->prepare($sql, $filterid);
+	
+	//echo "<p>SQL: $sql</p>";
 	$result = $wpdb->get_var($sql);
 	
 	return $result;
@@ -1003,7 +1005,7 @@ function vtm_get_xp_table($playerID, $characterID, $limit = 0) {
 			$sqlPending
 			ORDER BY awarded DESC, comment
 			$sqlLimit";
-	$sql = $wpdb->prepare($sql, $characterID, $characterID);	
+	$sql = $wpdb->prepare($sql, $filterid, $filterid);	
 	
 	//print "<p>SQL: $sql</p>";
 	

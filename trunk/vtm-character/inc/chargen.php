@@ -42,12 +42,17 @@ function vtm_default_chargen_settings() {
 function vtm_chargen_flow_steps() {
 	global $wpdb;
 	global $vtmglobal;
+	
+	$spent   = vtm_get_chargen_xp_spent();
+	$total   = vtm_get_total_xp(0, $vtmglobal['characterID']);
+	$pending = vtm_get_pending_xp(0, $vtmglobal['characterID']);
+	$xp      = $total - $pending + $spent;
+	//echo "<p>Total: $total, Pending: $pending, Spent on this character: $spent</p>";
 
-	$xp        = vtm_get_total_xp(0);
-	$questions = vtm_get_chargen_questions(true); // count
+	$questions     = vtm_get_chargen_questions(true); // count
 	$chargenstatus = $wpdb->get_var($wpdb->prepare("SELECT cgs.NAME FROM " . VTM_TABLE_PREFIX . "CHARACTER c, " . VTM_TABLE_PREFIX . "CHARGEN_STATUS cgs WHERE c.ID = %s AND c.CHARGEN_STATUS_ID = cgs.ID",$vtmglobal['characterID']));
-	$feedback  = $wpdb->get_var( $wpdb->prepare("SELECT NOTE_FROM_ST FROM " . VTM_TABLE_PREFIX . "CHARACTER_GENERATION WHERE CHARACTER_ID = %s", $vtmglobal['characterID']));
-	$rituals   = vtm_get_chargen_rituals(OBJECT, true); // count
+	$feedback      = $wpdb->get_var( $wpdb->prepare("SELECT NOTE_FROM_ST FROM " . VTM_TABLE_PREFIX . "CHARACTER_GENERATION WHERE CHARACTER_ID = %s", $vtmglobal['characterID']));
+	$rituals       = vtm_get_chargen_rituals(OBJECT, true); // count
 		
 	$buttons = array ();
 	
@@ -256,7 +261,7 @@ function vtm_get_chargen_content() {
 	$output .= vtm_render_flow($step, $progress);
 	//$flow = vtm_chargen_flow_steps();
 	
-	$output .= "<div id='chargen-main'>\n";
+	$output .= "<div id='chargen-main' class='gvplugin vtmpage_" . $vtmglobal['config']->WEB_PAGEWIDTH . "'>\n";
 	
 	// output form to be filled in
 	//echo "<li>step: $step, function: {$flow[$step-1]['function']}</li>\n";
@@ -315,9 +320,7 @@ function vtm_render_flow($step, $progress) {
 	global $vtmglobal;
 
 	$output = "";
-	
-	$xp = vtm_get_total_xp(0);
-	
+		
 	//$buttons = vtm_chargen_flow_steps();
 	
 	$output .= "<div id='vtm-chargen-flow'>\n";	
@@ -752,7 +755,7 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 							} else {
 								$rowoutput .= "<img src='{$vtmglobal['dots']['dot1empty']}' alt='O' /> ";
 							}
-							$rowoutput .=  $namehtml . " ($cost)";
+							$rowoutput .=  "<div><label>" . $namehtml . " ($cost)</label></div>";
 						} else {
 							$rowoutput .= "<input type='checkbox' name='{$postvariable}[" . $key . "]' id='$cbid' value='$cost' ";
 							$rowoutput .= checked($current, $cost, false);
@@ -764,7 +767,7 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 					} else {
 						//dots row
 						$flag = 0;
-						$rowoutput .= "<tr><td class='vtmcol_key'>" . $namehtml . "</th><td class='vtmdot_$max2display'>\n";
+						$rowoutput .= "<tr><td class='vtmcol_key'>" . $namehtml . "</th><td class='vtmdot_" . ($max2display > 5 ? 10 : 5) . "'>\n";
 						$rowoutput .= "<fieldset class='dotselect'>\n";
 						for ($i=$max2display;$i>=1;$i--) {
 							$radioid = "dot_{$key}_{$i}_{$j}";
@@ -959,14 +962,14 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 						} else {
 							$rowoutput .= "<img src='{$vtmglobal['dots']['dot1empty']}' alt='O' /> ";
 						}
-						$rowoutput .=  $namehtml . " ($meritlevel) - $meritcost XP";
+						$rowoutput .=  "<div><label>" . $namehtml . " ($meritlevel) - {$meritcost}xp</label></div>";
 					} else {
 						$rowoutput .= "<input type='checkbox' name='{$postvariable}[" . $key . "]' id='$cbid' value='$meritlevel' ";
 						if ($current) {
 							$rowoutput .= checked($current, $current, false);
 						}
 						$rowoutput .= "/>\n";
-						$rowoutput .= "<div><label for='$cbid'>" . $namehtml . " ($meritlevel) - $meritcost XP</label></div>\n";
+						$rowoutput .= "<div><label for='$cbid'>" . $namehtml . " ($meritlevel) - {$meritcost}xp</label></div>\n";
 					}
 					$rowoutput .= "</td></tr>\n";
 				} 
@@ -979,11 +982,11 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 						} else {
 							$rowoutput .= "<img src='{$vtmglobal['dots']['dot1empty']}' alt='O' /> ";
 						}
-						$rowoutput .=  $namehtml . " (level $rituallevel) - $ritualcost XP";
+						$rowoutput .=  "<div><label>" . $namehtml . " (level $rituallevel) - {$ritualcost}xp</label></div>";
 					} 
 					elseif ($saved[$key]->level > 0) {
 						$rowoutput .= "<img src='{$vtmglobal['dots']['dot1full']}' alt='X' />\n";
-						$rowoutput .= $namehtml . " (level $rituallevel)\n";
+						$rowoutput .= "<div><label>" . $namehtml . " (level $rituallevel)</label></div>\n";
 					}
 					else {
 						$rowoutput .= "<input type='checkbox' name='{$postvariable}[" . $key . "]' id='$cbid' value='$rituallevel' ";
@@ -991,13 +994,13 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 							$rowoutput .= checked($current, $current, false);
 						}
 						$rowoutput .= "/>\n";
-						$rowoutput .= "<div><label for='$cbid'>" . $namehtml . " (level $rituallevel) - $ritualcost XP</label></div>\n";
+						$rowoutput .= "<div><label for='$cbid'>" . $namehtml . " (level $rituallevel) - {$ritualcost}xp</label></div>\n";
 					}
 					$rowoutput .= "</td></tr>\n";
 				}
 				else {
 					//dots row
-					$rowoutput .= "<tr><td class='vtmcol_key>" . $namehtml . "</th><td class='vtmdot_$max2display'>\n";
+					$rowoutput .= "<tr><td class='vtmcol_key>" . $namehtml . "</th><td class='vtmdot_" . ($max2display > 5 ? 10 : 5) . "'>\n";
 					$rowoutput .= "<fieldset class='dotselect'>";
 					for ($i=$max2display;$i>=1;$i--) {
 						$radioid = "dot_{$key}_{$i}_{$j}";
@@ -1049,6 +1052,8 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $freedot,
 	$items, $posted, $pendingfb, $pendingxp, $title, $postvariable, $submitted,
 	$maxdots = 5, $templatefree = array()) {
+		
+	global $vtmglobal;
 
 	$output = "";
 
@@ -1095,7 +1100,7 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 			if ($postvariable == 'ritual_value')
 				$output .= "<table><tr><th>$title</th><th>Description</th></tr>\n";
 			else
-				$output .= "<table><tr><th>$title</th><th>Rating</th><th>Description</th></tr>\n";
+				$output .= "<table><tr><th class='vtmcol_key'>$title</th><th class='vtmcol_dots'>Rating</th><th>Description</th></tr>\n";
 		}
 				
 		// Display Data
@@ -1112,12 +1117,19 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 			if (isset($pendingxp[$key])) {
 				$output .= "<img src='{$vtmglobal['dots']['dot3']}' alt='*' />";
 			}
+			elseif ($submitted) {
+				if ($item->level == $level) {
+					$output .= "<img src='{$vtmglobal['dots']['dot1full']}' alt='*' />";
+				} else {
+					$output .= "<img src='{$vtmglobal['dots']['dot1empty']}' alt='O' />";
+				}
+			}
 			else
 				$output .= "<input id='$id' name='ritual_value[$key]' type='checkbox' " . checked( $item->level, $level, false) . " value='{$item->level}'>";
 			$output .= "<div><label for='$id'>Level {$item->level} - " . stripslashes($item->name) . "</label></div>";
 			//$output .= "</td>\n";
 		} else {
-			$output .= "<tr><td $class>" . stripslashes($item->name) . "</td>\n";
+			$output .= "<tr><td $class>" . stripslashes($item->name) . "</td>";
 			$output .= "<td $class>";
 			
 			$pending = isset($pendingfb[$key]->value) ? $pendingfb[$key]->value : 0 ;         // level bought with freebies
@@ -1340,14 +1352,17 @@ function vtm_render_chargen_freebies($step, $submitted) {
 
 function vtm_render_chargen_xp($step, $submitted) {
 	global $wpdb;
+	global $vtmglobal;
 
 	$output = "";
 	
 	// Work out how much points are currently available
 	$spent = vtm_get_chargen_xp_spent();
 	// points = total overall - all pending + just pending on this character
-	$points = vtm_get_total_xp(0) - vtm_get_pending_xp(0) + $spent;
-	$remaining = $points - $spent;
+	$total     = vtm_get_total_xp(0, $vtmglobal['characterID']);
+	$pending   = vtm_get_pending_xp(0, $vtmglobal['characterID']);
+	$points    = $total - $pending + $spent;
+	$remaining = $total - $pending;
 
 	$output .= "<h3>Step $step: Experience Points</h3>\n";
 	$output .= "<p>\n";
@@ -1479,7 +1494,7 @@ function vtm_render_finishing($step, $submitted) {
 	$freespecialities = vtm_get_free_levels('SKILL');
 	$specfinal = array();
 	
-	print_r($specialities);
+	//print_r($specialities);
 	
 	$spec_output = "";
 	$i = 0;
@@ -1588,7 +1603,7 @@ function vtm_render_finishing($step, $submitted) {
 	if ($submitted)
 		$output .= wpautop(vtm_formatOutput($stnotes, 1));
 	else
-		$output .= "<textarea name='noteforST' rows='5' cols='80'>" . vtm_formatOutput($stnotes, 1) . "</textarea>\n"; // ADD COLUMN TO CHARACTER
+		$output .= "<textarea name='noteforST' rows='5'>" . vtm_formatOutput($stnotes, 1) . "</textarea>\n"; // ADD COLUMN TO CHARACTER
 	$output .= "</td></tr>\n";
 	$output .= "</table>\n";
 	
@@ -3801,7 +3816,7 @@ function vtm_render_dot_select($type, $itemid, $current, $pending, $free, $max, 
 			elseif ($index <= $pending)
 				$output .= "<img src='{$vtmglobal['dots']['dot3']}' alt='*' id='$radioid' />";
 			else
-				$output .= "<img src='{$vtmglobal['dots']['dot1empty']}' alt='*' id='$radioid' />";
+				$output .= "<img src='{$vtmglobal['dots']['dot1empty']}' alt='O' id='$radioid' />";
 		} else {
 			$output .= "<input type='radio' id='$radioid' name='" . $type . "[" . $itemid . "]' value='$index' ";
 			$output .= checked($current, $index, false);
@@ -6043,11 +6058,11 @@ function vtm_validate_xp($usepost = 1) {
 	// VALIDATE XP POINTS
 	//		Not too many points spent
 	//		Level of paths bought do not exceed level of discipline
-	$points = vtm_get_total_xp(0);
-	$spent = 0;
-	$spent += vtm_get_chargen_xp_spent();
+	$points = vtm_get_total_xp(0, $vtmglobal['characterID']) - vtm_get_pending_xp(0, $vtmglobal['characterID']);
+	//$spent = 0;
+	//$spent += vtm_get_chargen_xp_spent();
 	
-	if ($spent > $points) {
+	if ($points < 0) {
 		$errormessages .= "<li>ERROR: You have spent too many dots</li>\n";
 		$ok = 0;
 		$complete = 0;
@@ -6666,7 +6681,7 @@ A new character has been submitted:
 
 	* Reference: $ref
 	* Character Name: $character
-	* Player: $fromname
+	* Player: " . stripslashes(vtm_get_player_name($playerid)) . "
 	* Clan: $clan
 	* Concept: 
 	

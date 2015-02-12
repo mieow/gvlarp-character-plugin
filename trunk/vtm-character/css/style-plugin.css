@@ -3,16 +3,9 @@
 .gvplugin {
 	/* font-family: "Courier New"; */
 }
+.gvplugin * {box-sizing: content-box;}
+.gvplugin textarea {width:100%}
 
-/*
-div.gvspendbutton  {
-	padding: 5px;
-	margin: 5px;
-}
-div.gvspendbutton input.gvxp_submit {
-	float: none;
-}
-*/
 .gvplugin hr {
     margin-bottom: 10px;
     margin-top: 20px;
@@ -35,11 +28,27 @@ div.vtm_error ul {list-style: none;}
     font-size:1em;
 	line-height: 1.6em;
 }
+.vtmpage_wide .vtmdot_1 img {
+    height:1.6em;
+	width:1.6em;
+}
 .vtmpage_wide .vtmdot_5 img {
     height:1.6em;
 	width:1.6em;
 }
 .vtmpage_wide .vtmdot_10 img {
+    height:0.8em;
+	width:0.8em;
+}
+.vtmpage_wide .vtmdot_1 label {
+    height:1.6em;
+	width:1.6em;
+}
+.vtmpage_wide .vtmdot_5 label {
+    height:1.6em;
+	width:1.6em;
+}
+.vtmpage_wide .vtmdot_10 label {
     height:0.8em;
 	width:0.8em;
 }
@@ -54,13 +63,29 @@ div.vtm_error ul {list-style: none;}
 /* MEDIUM */
 .vtmpage_medium td {
     font-size:0.9em;
-	line-height: 1em;
+	line-height: 1.1em;
+}
+.vtmpage_medium .vtmdot_1 img {
+    height:1.2em;
+	width:1.2em;
 }
 .vtmpage_medium .vtmdot_5 img {
     height:1.2em;
 	width:1.2em;
 }
 .vtmpage_medium .vtmdot_10 img {
+    height:0.6em;
+	width:0.6em;
+}
+.vtmpage_medium .vtmdot_1 label {
+    height:1.2em;
+	width:1.2em;
+}
+.vtmpage_medium .vtmdot_5 label {
+    height:1.2em;
+	width:1.2em;
+}
+.vtmpage_medium .vtmdot_10 label {
     height:0.6em;
 	width:0.6em;
 }
@@ -77,11 +102,27 @@ div.vtm_error ul {list-style: none;}
     font-size:1em;
 	line-height: 1.6em;
 }
+.vtmpage_narrow .vtmdot_1 img {
+    height:1.2em;
+	width:1.2em;
+}
 .vtmpage_narrow .vtmdot_5 img {
     height:1.2em;
 	width:1.2em;
 }
 .vtmpage_narrow .vtmdot_10 img {
+    height:1.2em;
+	width:1.2em;
+}
+.vtmpage_narrow .vtmdot_1 label {
+    height:1.2em;
+	width:1.2em;
+}
+.vtmpage_narrow .vtmdot_5 label {
+    height:1.2em;
+	width:1.2em;
+}
+.vtmpage_narrow .vtmdot_10 label {
     height:1.2em;
 	width:1.2em;
 }
@@ -202,10 +243,10 @@ div#csheet {
 	border-radius:5px;
 	border: 1px dotted;
 	margin-left: 20px;
+	margin-bottom: 5px;
 	padding: 5px;
 }
 .vtmext_section th {
-	/* font-weight:bold; */
 	text-align:left;
 }
 /*.vtmext_approved {
@@ -236,62 +277,34 @@ div#csheet {
 
 /* =XP Spend Page
 -------------------------------------------------------------- */
+.vtmpage_medium #vtmid_xpst td {font-size:0.95em;}
+.vtmpage_wide #vtmid_xpst td {font-size:1.1em;}
+.vtmpage_narrow #vtmid_xpst td {font-size:1.1em;}
+
+.vtmpage_medium #vtmid_xpst .vtmxp_cost {font-size:0.7em;}
+.vtmpage_wide #vtmid_xpst .vtmxp_cost {font-size:0.7em;}
+.vtmpage_narrow #vtmid_xpst .vtmxp_cost {font-size:0.7em;}
 
 #vtmid_xpst th {
-    /* font-weight: bold;
-    background-color: #222; */
     padding: 3px;
 	margin: 5px 1px 0px 0px;
 }
 #vtmid_xpst td {
-    font-size:0.9em;
     padding:1px;
 	margin:0px;
 	border:none;
 	vertical-align:top;
 	outline: 0;
-	line-height: 1.2em;
 }
-/* column layout */
 #vtmid_xpst .vtm_colfull {width:auto;}
 #vtmid_xpst .vtm_colwide {width:50%;}
 #vtmid_xpst .vtm_colnarrow {width:33%;}
 
-
-#vtmid_xpst .vtmdot_5   img {
-	height: 1.2em;
-	width: 1.2em;
-}
-#vtmid_xpst .vtmdot_10 img {
-	height: 0.6em;
-	width: 0.6em;
-}
-#vtmid_xpst .vtmdot_1 img {
-	height: 1.2em;
-	width: 1.2em;
-}
-#vtmid_xpst .vtmdot_5   label {
-	height: 1.2em;
-	width: 1.2em;
-}
-#vtmid_xpst .vtmdot_10 label {
-	height: 0.6em;
-	width: 0.6em;
-}
-#vtmid_xpst .vtmdot_1 label {
-	height: 1.2em;
-	width: 1.2em;
-}
-
-#vtmid_xpst .vtmdot_10 {width:50%;}
-#vtmid_xpst .vtmdot_5 {width:50%;}
-/* #vtmid_xpst .vtmdot_1 {width:16px;} */
+#vtmid_xpst td.vtmdot_10 {width:50%;}
+#vtmid_xpst td.vtmdot_5 {width:50%;}
 
 #vtmid_xpst .vtmxp_spec {
 	border-bottom: 1px dashed red;
-}
-#vtmid_xpst .vtmxp_cost {
-	font-size:0.7em;
 }
 #vtmid_xpst .vtmcol_key {
 	width: 40%;
@@ -301,16 +314,15 @@ div#csheet {
     padding: 0px 3px 0px 3px;
 } 
 input[type="submit"].vtmxp_clear {
-	/*margin: 0px 0px 2px 0px;*/
 	margin: 0px;
 	padding: 0px 1px 0px 1px;
-	font-size: 0.9em;
+	font-size:0.8em;
 }
+
 #vtmid_xpst .vtmcol_error {
 	background-color: #ff0000;
 }
 
-/* check box */
 #vtmid_xpst .vtmdots > input {
 	display: none;
 }
@@ -320,13 +332,6 @@ input[type="submit"].vtmxp_clear {
 #vtmid_xpst .vtmdots label {
     display:inline-block;
 }
-
-/*
-#vtmid_xpst .vtmdot_5 > input[type="checkbox"] + label {width: 20%;}
-#vtmid_xpst .vtmdot_10 > input[type="checkbox"] + label {width: 10%;}
-#vtmid_xpst .vtmdot_1 > input[type="checkbox"] + label {width:16px;}
-*/
-
 #vtmid_xpst .vtmdots > input[type="checkbox"] + label {
     background:url('/wp-content/plugins/vtm-character/images/webbox.jpg') no-repeat 0 0;
 	background-size: 100% auto;
@@ -336,7 +341,6 @@ input[type="submit"].vtmxp_clear {
 }
 input[type="submit"].vtmxp_submit {
 	float:right;
-	/*margin: 5px;*/
 }
 
 /* =Feeding Map
@@ -348,23 +352,135 @@ table.feedingmapkey {width:auto;}
 
 /* =Character Generation
 -------------------------------------------------------------- */
+#chargen-main div, 
+#chargen-main span, 
+#chargen-main ul, 
+#chargen-main li
+ {box-sizing: content-box;}
+ 
+#chargen-main {
+	clear: both;
+	padding-top: 10px;
+}
 #chargen_form th {
-    /*font-weight: bold;
-    background-color: #222; */
     padding: 3px;
 	margin: 5px 1px 0px 0px;
 }
 #chargen_form td {
-    font-size:10pt;
-    padding:1px;
-	margin:0px;
 	border:none;
 	vertical-align:top;
 	outline: 0;
 }
-#chargen-main {
-	clear: both;
-	padding-top: 10px;
+#chargen-main td.vtmcg_col {
+	width: 33%;
+}
+#chargen-main  td.vtmcg_col .vtmcol_key {
+	width:35%;
+}
+#chargen-main .vtmcol_key {
+	width:20%;
+}
+#chargen-main .vtmcol_dots {
+	width:25%;
+	padding: 0;
+}
+#chargen-main td.vtmdot_5 {
+	width:50%;
+	padding: 0;
+	text-align:left;
+	vertical-align: middle;
+}
+#chargen-main td.vtmdot_10 {
+	width:76%;
+	text-align:center;
+	padding: 0;
+	vertical-align: middle;
+}
+
+/* page width settings */
+#chargen-main td, #chargen-main th {
+	font-size:1em;
+}
+#chargen-main td.vtmdot_10 .dotselect {
+	font-size:0.7em;
+}
+
+/* WIDE */
+#chargen-main.vtmpage_wide .mfdotselect > input[type="checkbox"]:checked + div label  {
+	background-size: 1.3em 1.3em;
+}
+#chargen-main.vtmpage_wide .mfdotselect > input[type="checkbox"] + div label {
+	background-size: 1.3em 1.3em;
+}
+#chargen-main.vtmpage_wide .mfdotselect > input[type="checkbox"]:not(:checked) + div label  {
+	background-size: 1.3em 1.3em;
+}
+#chargen-main.vtmpage_wide .mfdotselect img {
+	width:1.3em;
+	height:1.3em;
+}
+#chargen-main.vtmpage_wide .dotselect img {
+	width:1.3em;
+	height:1.3em;
+}
+#chargen-main.vtmpage_wide .dotselect label {
+	width:1.3em;
+	height:1.3em;
+}
+#chargen-main.vtmpage_wide td.vtmdot_10 .dotselect {
+	font-size:0.7em;
+}
+
+/* MEDIUM */
+#chargen-main.vtmpage_medium .mfdotselect > input[type="checkbox"]:checked + div label  {
+	background-size: 0.9em 0.9em;
+}
+#chargen-main.vtmpage_medium .mfdotselect > input[type="checkbox"] + div label {
+	background-size: 0.9em 0.9em;
+}
+#chargen-main.vtmpage_medium .mfdotselect > input[type="checkbox"]:not(:checked) + div label  {
+	background-size: 0.9em 0.9em;
+}
+#chargen-main.vtmpage_medium .mfdotselect img {
+	width:0.9em;
+	height:0.9em;
+}
+#chargen-main.vtmpage_medium .dotselect img {
+	width:0.9em;
+	height:0.9em;
+}
+#chargen-main.vtmpage_medium .dotselect label {
+	width:0.9em;
+	height:0.9em;
+}
+#chargen-main.vtmpage_medium td.vtmdot_10 .dotselect {
+	font-size:0.7em;
+}
+
+/* NARROW */
+#chargen-main.vtmpage_narrow .mfdotselect > input[type="checkbox"]:checked + div label  {
+	background-size: 1.2em 1.2em;
+}
+#chargen-main.vtmpage_narrow .mfdotselect > input[type="checkbox"] + div label {
+	background-size: 1.2em 1.2em;
+}
+#chargen-main.vtmpage_narrow .mfdotselect > input[type="checkbox"]:not(:checked) + div label  {
+	background-size: 1.2em 1.2em;
+}
+#chargen-main.vtmpage_narrow .mfdotselect img {
+	width:1.2em;
+	height:1.2em;
+}
+#chargen-main.vtmpage_narrow .dotselect img {
+	width:1.2em;
+	height:1.2em;
+}
+#chargen-main.vtmpage_narrow .dotselect label {
+	width:1.2em;
+	height:1.2em;
+}
+#chargen-main.vtmpage_narrow td.vtmdot_10 .dotselect {
+	font-size:1.2em;
 }
 
 /* FLOW */
@@ -373,113 +489,110 @@ table.feedingmapkey {width:auto;}
 	display: block;
 	margin-top: 10px;
 	margin-bottom: 10px;
+	box-sizing: content-box;
 }
 #chargen_form #vtm-chargen-flow ul {
 	list-style: none;
 	z-index:1;
+	box-sizing: content-box;
 }
 
 #chargen_form #vtm-chargen-flow li.step-button {
-	width: 75px;
 	float: left;
-	min-height: 60px;
 	font-size:0.8em;
 	padding-right:10px;
 	padding-top:5px;
  	padding-bottom:5px;
     background-image: url('/wp-content/plugins/vtm-character/images/arrowright.jpg');
     background-repeat: no-repeat;
-	background-size:10px 10px;
+	background-size:1em 1em;
 	background-position:right center;
-}
-
-
-#chargen_form #vtm-chargen-flow .step-button input[type="submit"] {
-	min-height: 60px;
-	padding:0px;
-	border: none;
-	white-space: normal;
-	/*background: inherit;*/
+	list-style: none;
+	margin: 0;
 	width: 75px;
+	box-sizing: content-box;
+}
+#chargen_form #vtm-chargen-flow .step-button input[type="submit"] {
+	padding:0px;
+	vertical-align:middle;
+	text-align: center;
+	min-height: 6em;
+	width: 75px;
+	white-space: normal;
 	border: 2px solid;
 	border-radius: 5px;
+	font-size:1em;
 }
 #chargen_form #vtm-chargen-flow .step-button span {
+	font-size:1em;
 	display: block;
-	min-height: 55px; 
-	width: 70px;
+	padding:0px;
 	vertical-align:middle;
+	min-height: 6em;
 	text-align: center;
 	border: 2px solid;
 	border-radius: 5px;
+	border-top-width: 0;
+	border-bottom-width: 0;
+	box-sizing: content-box;
 }
 
 
-/* DOTS */
-/* :not(:checked) is a filter, so that browsers that don’t support :checked don’t 
-   follow these rules. Every browser that supports :checked also supports :not(), so
-   it doesn’t make the test unnecessarily selective */
-#chargen-main td.vtmdot_5 {
-	width:50%;
-}
-#chargen-main td.vtmdot_10 {
-	width:76%;
-	text-align:center;
-}
-
-#chargen-main .dotselect {
-    float:left;
-    white-space:nowrap;
-}
+/* DOTS - IMAGES */
 #chargen-main .dotselect label.freedot {
     background-image: url('/wp-content/plugins/vtm-character/images/dot1full.jpg') !important;
 }
 #chargen-main .dotselect label.cleardot {
     background-image: url('/wp-content/plugins/vtm-character/images/crossclear.jpg') !important;
 }
-#chargen-main .dotselect img {
-	width:14px;
-}
-#chargen-main .dotselect:not(:checked) > input {
-	display: none;
-}
-#chargen-main .dotselect:not(:checked) > label {
-    float:right;
-    width:14px;
-    height:14px;
-    padding:0 .1em;
-    overflow:hidden;
-    white-space:nowrap;
-    cursor:pointer;
-    color:#ddd;
-    background-repeat:no-repeat;
-    background-position:center; 
-	background-size: 14px;
-}
-#chargen-main .dotselect:not(:checked) > img {
-    float:right;
-    width:14px;
-    padding:0 .1em;
-    line-height:1.2;
-}
 #chargen-main .dotselect:not(:checked) > label {
     background-image: url('/wp-content/plugins/vtm-character/images/dot1empty.jpg');
 }
-
 #chargen-main .dotselect > input:checked ~ label {
     background-image: url('/wp-content/plugins/vtm-character/images/dot2.jpg');
 }
-
 #chargen-main .dotselect:not(:checked) > label:hover,
 #chargen-main .dotselect:not(:checked) > label:hover ~ label {
     background-image: url('/wp-content/plugins/vtm-character/images/dot2.jpg');
 }
+#chargen-main .dotselect > label:active {
+    content: url('/wp-content/plugins/vtm-character/images/cg_selectdot.jpg');
+}
+#chargen-main .mfdotselect > input[type="checkbox"]:checked + div {
+    background-image: url('/wp-content/plugins/vtm-character/images/fill.jpg');
+}
+#chargen-main .mfdotselect > input[type="checkbox"]:checked + div label  {
+    background-image: url('/wp-content/plugins/vtm-character/images/check.jpg');
+}
+#chargen-main .mfdotselect > input[type="checkbox"] + div label {
+    background:url('/wp-content/plugins/vtm-character/images/webbox.jpg') no-repeat 0 0;
+}
+
+/* DOTS - FORMATING */
+#chargen-main .dotselect {
+    float:left;
+    white-space:nowrap;
+    overflow:hidden;
+}
+#chargen-main .mfdotselect > img {
+	float:left;
+}
+#chargen-main .dotselect:not(:checked) > input {display: none;}
+#chargen-main .mfdotselect:not(:checked) > input {display: none;}
+
+#chargen-main .dotselect:not(:checked) > label {
+    float:right;
+    cursor:pointer;
+    background-repeat:no-repeat;
+    background-position:center; 
+	background-size: 100% auto;
+}
+#chargen-main .dotselect:not(:checked) > img {float:right;}
 #chargen-main fieldset {
 	padding: 0;
 	margin: 0;
 	border: none;
 	
-	/* no select */
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -494,19 +607,11 @@ table.feedingmapkey {width:auto;}
 	vertical-align:top;
 }
 
-#chargen-main .dotselect > label:active {
-    content: url('/wp-content/plugins/vtm-character/images/cg_selectdot.jpg');
-}
-
-/* Merits and Flaws */
-#chargen-main .mfdotselect > input {
-	display: none;
-}
 #chargen-main .mfdotselect > input[type="checkbox"] + div {
 	display:block;
+	box-sizing: content-box;
 	padding: 1px;
 
-	/* no select */
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -515,31 +620,9 @@ table.feedingmapkey {width:auto;}
     user-select: none;
 }
 
-#chargen-main .mfdotselect > input[type="checkbox"]:checked + div {
-    background-image: url('/wp-content/plugins/vtm-character/images/fill.jpg');
-}
-
-#chargen-main .mfdotselect > input[type="checkbox"]:checked + div label  {
-    background-image: url('/wp-content/plugins/vtm-character/images/check.jpg');
-}
-#chargen-main .mfdotselect > input[type="checkbox"] + div label {
-    /*display:inline-block;*/
-    background:url('/wp-content/plugins/vtm-character/images/webbox.jpg') no-repeat 0 0;
-	background-size:16px 16px;
-}
-
-
-#chargen-main .mfdotselect img {
-	vertical-align:top;
-	width: 16px;
-}
 #chargen-main .mfdotselect span {
-	padding-left:17px;
+	padding-left:2em;
 }
 #chargen-main .ritrowselect  label {
-	padding-left:17px;
-}
-/* misc */
-#chargen-main td.vtmcg_col {
-	width: 33%;
+	padding-left:2em;
 }
