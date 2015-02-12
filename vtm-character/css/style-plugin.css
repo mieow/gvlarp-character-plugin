@@ -212,6 +212,9 @@ div#csheet {
 	float: left;
 	position: relative;
 }
+.vtmbgmenu ul li {
+	list-style: none;
+}
 .vtmbgmenu a {
 	display: block;
 	text-decoration: none;
@@ -245,9 +248,15 @@ div#csheet {
 	margin-left: 20px;
 	margin-bottom: 5px;
 	padding: 5px;
+	clear: both;
+	display: block;
 }
 .vtmext_section th {
 	text-align:left;
+}
+.vtmext_section table {
+	display: block;
+	clear: both;
 }
 /*.vtmext_approved {
 	color:green;
@@ -258,20 +267,19 @@ div#csheet {
 
 /* PROFILE 
 -------------------------------------------------------------- */
-.gvprofile th.gvthhead {
+.vtmprofile th.gvthhead {
     text-align: left;
     font-weight: bold;
     font-size: 1.8em !important;
 }
 
-.gvprofile .gvcol_1 {
-    vertical-align:top;
-}
-.gvprofile .gvcol_key {
-    font-weight: bold;
-}
+.vtmprofile .gvcol_1 {vertical-align:top;}
+.vtmprofile .gvcol_key {font-weight: bold;}
 
-.gvprofile .gvcol_img img {
+.vtmprofile.vtmext_section td.gvcol_key {width: 20%;}
+.vtmprofile.vtmext_section .gvcol_val input {width: 100%;}
+
+.vtmprofile .gvcol_img img {
 	width: 150px;
 }
 

@@ -160,11 +160,11 @@ function vtm_get_profile_content() {
 	$output .= "<h1>" . $characterDisplayName . "</h1>";
 	
 	// Profile info
-	$output .= "<table class='gvplugin gvprofile' id=\"gvid_prof_out\">\n";
+	$output .= "<table class='gvplugin vtmprofile' id=\"gvid_prof_out\">\n";
 	$output .= "<tr><td class=\"gvcol_1 gvcol_val\">\n";
 	// Character Info
 	$output .= "<p><img alt='Clan Icon' src='$clanIcon' />" . vtm_formatOutput($mycharacter->quote, 1) . "</p>\n";
-	$output .= "<table class='gvplugin gvprofile' id=\"gvid_prof_in\">\n";
+	$output .= "<table class='gvplugin vtmprofile' id=\"gvid_prof_in\">\n";
     $output .= "<tr><td class=\"gvcol_1 gvcol_key\">Player:</td><td class=\"gvcol_2 gvcol_val\">" . vtm_formatOutput($mycharacter->player) . "</td></tr>";
 	$output .= "<tr><td class=\"gvcol_1 gvcol_key\">Clan:</td><td class=\"gvcol_2 gvcol_val\">" . vtm_formatOutput($mycharacter->clan);
 	if ($showAll && $mycharacter->clan != $mycharacter->private_clan)
@@ -257,7 +257,7 @@ function vtm_get_profile_content() {
 		$displayName = isset($user->display_name) ? $user->display_name : $mycharacter->name;
 		$userID = isset($user->ID) ? $user->ID : 0;
 		
-		$output .= "<div class='vtmext_section'>";
+		$output .= "<div class='vtmext_section vtmprofile'>";
 		$output .= "<h4>Update Display Name:</h4>";
 		$output .= "<form name=\"DISPLAY_NAME_UPDATE_FORM\" method='post'>";
 
