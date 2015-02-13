@@ -949,7 +949,7 @@ function vtm_numberToBoxes($base, $input) {
 
 function vtm_formatOutput($string, $allowhtml = 0) {
 	$string = stripslashes($string);
-	$string = $allowhtml ? $string : htmlentities($string, ENT_QUOTES);
+	$string = $allowhtml ? $string : htmlspecialchars($string, ENT_QUOTES);
 	
 	return $string;
 }

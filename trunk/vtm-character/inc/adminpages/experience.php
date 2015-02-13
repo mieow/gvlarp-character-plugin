@@ -886,8 +886,8 @@ function vtm_render_xp_by_player() {
 	$rowclass = 1;
 	foreach ($results as $row) {
 		if ($lastplayer == $row->PLAYER) {
-			$player = "&nbsp;";
-			$xp = "&nbsp;";
+			$player = "";
+			$xp = "";
 		} else {
 			$player = $row->PLAYER;
 			$xp = isset($player_xp[$row->PLAYER_ID]->PLAYER_XP) ? $player_xp[$row->PLAYER_ID]->PLAYER_XP : 0;
@@ -907,8 +907,8 @@ function vtm_render_xp_by_player() {
 			$output .= "<option value='{$reason->id}'>" . vtm_formatOutput($reason->name) . "</option>\n";
 		}
 		$output .= "</select></td>\n";
-		$output .= "<td><input name='xp_change[{$row->ID}]' value=\"\" type=\"text\" size=4 /></td>";
-		$output .= "<td><input name='comment[{$row->ID}]' value=\"\" type=\"text\" size=30 /></td>";
+		$output .= "<td><input name='xp_change[{$row->ID}]' value='' type='text' size=4 /></td>";
+		$output .= "<td><input name='comment[{$row->ID}]' value='' type='text' size=30 /></td>";
 		$output .= "</tr>";
 	}
 	
