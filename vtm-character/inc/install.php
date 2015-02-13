@@ -6,7 +6,7 @@ register_activation_hook( __FILE__, 'vtm_character_install_data' );
 global $vtm_character_version;
 global $vtm_character_db_version;
 $vtm_character_version = "2.0"; 
-$vtm_character_db_version = "47"; 
+$vtm_character_db_version = "48"; 
 
 function vtm_update_db_check() {
     global $vtm_character_version;
@@ -1181,10 +1181,14 @@ function vtm_table_exists($table, $prefix = VTM_TABLE_PREFIX) {
 function vtm_column_exists($table, $column) {
 	global $wpdb;
 
-	$sql = "SHOW INDEX FROM $table WHERE Key_name != 'PRIMARY';";
-	$existing_columns = $wpdb->get_col("DESC $table", 0);
-	//print_r($existing_columns);
+	$sql = "DESC $table";
+	$existing_columns = $wpdb->get_col($sql, 0);
 	$match_columns = array_intersect(array($column), $existing_columns);
+	
+	//print_r($existing_columns);
+	//print_r($column);
+	//print_r($match_columns);
+	//echo "<li>SQL: $sql -->" . count($match_columns) . "</li>";
 	
 	return count($match_columns);
 }
@@ -1455,7 +1459,8 @@ function vtm_character_update_1_11($beforeafter) {
 		}
 		
 		// Fill in ST_LINK Page IDs
-		if (vtm_column_exists(VTM_TABLE_PREFIX . "ST_LINK","LINK")) {
+		$result = vtm_column_exists(VTM_TABLE_PREFIX . "ST_LINK","LINK");
+		if ($result > 0) {
 			$sql = "SELECT VALUE, ID, LINK FROM " . VTM_TABLE_PREFIX . "ST_LINK";
 			$links = $wpdb->get_results($sql, OBJECT_K);
 			$args = array(
@@ -1482,17 +1487,18 @@ function vtm_character_update_1_11($beforeafter) {
 			}
 
 			foreach ($links as $key => $info) {
-					$wpdb->update(VTM_TABLE_PREFIX . "ST_LINK",
-						array('WP_PAGE_ID' => $pageinfo[$info->LINK]),
-						array('ID' => $info->ID)
-					);
+					if (isset($pageinfo[$info->LINK])) {
+						$wpdb->update(VTM_TABLE_PREFIX . "ST_LINK",
+							array('WP_PAGE_ID' => $pageinfo[$info->LINK]),
+							array('ID' => $info->ID)
+						);
+					}
 			}
 			$remove = array (
 				'LINK' => ''
 			);
 			vtm_remove_columns(VTM_TABLE_PREFIX . "ST_LINK", $remove);
-			
-			
+
 			
 		}
 		
