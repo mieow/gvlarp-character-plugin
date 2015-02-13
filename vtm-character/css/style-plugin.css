@@ -379,116 +379,93 @@ table.feedingmapkey {width:auto;}
 	vertical-align:top;
 	outline: 0;
 }
-#chargen-main td.vtmcg_col {
-	width: 33%;
+#chargen-main td, #chargen-main th {
+	font-size:1em;
+}
+#chargen-main .vtmcol_key {
+	width:20%;
+	padding-left: 0;
+}
+#chargen-main .vtmcol_dots {
+	width:35%;
+	padding-left: 0;
+	padding-right: 0;
+}
+#chargen-main  td.vtmcg_col {
+	padding-left: 0.5em;
+	padding-right: 0.5em;
 }
 #chargen-main  td.vtmcg_col .vtmcol_key {
 	width:35%;
 }
-#chargen-main .vtmcol_key {
-	width:20%;
-}
-#chargen-main .vtmcol_dots {
-	width:25%;
-	padding: 0;
-}
-#chargen-main td.vtmdot_5 {
-	width:50%;
-	padding: 0;
-	text-align:left;
-	vertical-align: middle;
-}
-#chargen-main td.vtmdot_10 {
-	width:76%;
-	text-align:center;
-	padding: 0;
-	vertical-align: middle;
+#chargen-main  td.vtmcg_col .vtmcol_dots {
+	width:auto;
 }
 
 /* page width settings */
-#chargen-main td, #chargen-main th {
-	font-size:1em;
+
+#chargen-main .mfdotselect > input[type="checkbox"]:checked + div label  {
+	background-size: 1em 1em;
 }
-#chargen-main td.vtmdot_10 .dotselect {
-	font-size:0.7em;
+#chargen-main .mfdotselect > input[type="checkbox"] + div label {
+	background-size: 1em 1em;
+}
+#chargen-main .mfdotselect > input[type="checkbox"]:not(:checked) + div label  {
+	background-size: 1em 1em;
+}
+#chargen-main .mfdotselect img {
+	width:1em;
+	height:1em;
+}
+#chargen-main .dotselect img {
+	width:1em;
+	height:1em;
+}
+#chargen-main .dotselect label {
+	width:1em;
+	height:1em;
 }
 
 /* WIDE */
-#chargen-main.vtmpage_wide .mfdotselect > input[type="checkbox"]:checked + div label  {
-	background-size: 1.3em 1.3em;
+#chargen-main.vtmpage_wide td.vtmcg_col {
+	width: 33%;
 }
-#chargen-main.vtmpage_wide .mfdotselect > input[type="checkbox"] + div label {
-	background-size: 1.3em 1.3em;
+#chargen-main.vtmpage_wide td.vtmcol_dots {
+	font-size: 1.4em;
 }
-#chargen-main.vtmpage_wide .mfdotselect > input[type="checkbox"]:not(:checked) + div label  {
-	background-size: 1.3em 1.3em;
+#chargen-main.vtmpage_wide td.vtmcg_col td.vtmdot_10 {
+	font-size: 0.95em;
 }
-#chargen-main.vtmpage_wide .mfdotselect img {
-	width:1.3em;
-	height:1.3em;
-}
-#chargen-main.vtmpage_wide .dotselect img {
-	width:1.3em;
-	height:1.3em;
-}
-#chargen-main.vtmpage_wide .dotselect label {
-	width:1.3em;
-	height:1.3em;
-}
-#chargen-main.vtmpage_wide td.vtmdot_10 .dotselect {
-	font-size:0.7em;
+#chargen-main.vtmpage_wide td.vtmcg_col td.vtmdot_5 {
+	font-size: 1.2em;
 }
 
 /* MEDIUM */
-#chargen-main.vtmpage_medium .mfdotselect > input[type="checkbox"]:checked + div label  {
-	background-size: 0.9em 0.9em;
+#chargen-main.vtmpage_medium td.vtmcg_col {
+	width: 33%;
 }
-#chargen-main.vtmpage_medium .mfdotselect > input[type="checkbox"] + div label {
-	background-size: 0.9em 0.9em;
+#chargen-main.vtmpage_medium td.vtmcol_dots {
+	font-size: 1.2em;
 }
-#chargen-main.vtmpage_medium .mfdotselect > input[type="checkbox"]:not(:checked) + div label  {
-	background-size: 0.9em 0.9em;
+#chargen-main.vtmpage_medium td.vtmcg_col td.vtmdot_10 {
+	font-size: 0.7em;
 }
-#chargen-main.vtmpage_medium .mfdotselect img {
-	width:0.9em;
-	height:0.9em;
-}
-#chargen-main.vtmpage_medium .dotselect img {
-	width:0.9em;
-	height:0.9em;
-}
-#chargen-main.vtmpage_medium .dotselect label {
-	width:0.9em;
-	height:0.9em;
-}
-#chargen-main.vtmpage_medium td.vtmdot_10 .dotselect {
-	font-size:0.7em;
+#chargen-main.vtmpage_medium td.vtmcg_col td.vtmdot_5 {
+	font-size: 1.1em;
 }
 
 /* NARROW */
-#chargen-main.vtmpage_narrow .mfdotselect > input[type="checkbox"]:checked + div label  {
-	background-size: 1.2em 1.2em;
+#chargen-main.vtmpage_narrow td.vtmcg_col {
+	width: 100%;
 }
-#chargen-main.vtmpage_narrow .mfdotselect > input[type="checkbox"] + div label {
-	background-size: 1.2em 1.2em;
+#chargen-main.vtmpage_narrow td.vtmcol_dots {
+	font-size: 1.1em;
 }
-#chargen-main.vtmpage_narrow .mfdotselect > input[type="checkbox"]:not(:checked) + div label  {
-	background-size: 1.2em 1.2em;
+#chargen-main.vtmpage_narrow td.vtmcg_col td.vtmdot_10 {
+	font-size: 1.4em;
 }
-#chargen-main.vtmpage_narrow .mfdotselect img {
-	width:1.2em;
-	height:1.2em;
-}
-#chargen-main.vtmpage_narrow .dotselect img {
-	width:1.2em;
-	height:1.2em;
-}
-#chargen-main.vtmpage_narrow .dotselect label {
-	width:1.2em;
-	height:1.2em;
-}
-#chargen-main.vtmpage_narrow td.vtmdot_10 .dotselect {
-	font-size:1.2em;
+#chargen-main.vtmpage_narrow td.vtmcg_col td.vtmdot_5 {
+	font-size: 1.4em;
 }
 
 /* FLOW */
