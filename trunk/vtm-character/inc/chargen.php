@@ -767,7 +767,7 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 					} else {
 						//dots row
 						$flag = 0;
-						$rowoutput .= "<tr><td class='vtmcol_key'>" . $namehtml . "</th><td class='vtmdot_" . ($max2display > 5 ? 10 : 5) . "'>\n";
+						$rowoutput .= "<tr><td class='vtmcol_key'>" . $namehtml . "</th><td class='vtmcol_dots vtmdot_" . ($max2display > 5 ? 10 : 5) . "'>\n";
 						$rowoutput .= "<fieldset class='dotselect'>\n";
 						for ($i=$max2display;$i>=1;$i--) {
 							$radioid = "dot_{$key}_{$i}_{$j}";
@@ -1000,7 +1000,7 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 				}
 				else {
 					//dots row
-					$rowoutput .= "<tr><td class='vtmcol_key>" . $namehtml . "</th><td class='vtmdot_" . ($max2display > 5 ? 10 : 5) . "'>\n";
+					$rowoutput .= "<tr><td class='vtmcol_key'>" . $namehtml . "</th><td class='vtmcol_dots vtmdot_" . ($max2display > 5 ? 10 : 5) . "'>\n";
 					$rowoutput .= "<fieldset class='dotselect'>";
 					for ($i=$max2display;$i>=1;$i--) {
 						$radioid = "dot_{$key}_{$i}_{$j}";
@@ -1057,7 +1057,7 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 
 	$output = "";
 
-	$class = $postvariable == 'ritual_value' ? "class='ritrowselect mfdotselect'" : "";
+	$class = $postvariable == 'ritual_value' ? "ritrowselect mfdotselect" : "";
 	
 	// Make a guess from saved levels which is Primary/Secondary/Tertiary
 	if (count($saved) > 0 || count($posted) > 0) {
@@ -1114,7 +1114,7 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 		
 		if ($postvariable == 'ritual_value') {
 			$id = "id$key";
-			$output .= "<tr><td $class>";
+			$output .= "<tr><td class='$class'>";
 			if (isset($pendingxp[$key])) {
 				$output .= "<img src='{$vtmglobal['dots']['dot3']}' alt='*' />";
 			}
@@ -1130,8 +1130,8 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 			$output .= "<div><label for='$id'>Level {$item->level} - " . stripslashes($item->name) . "</label></div>";
 			//$output .= "</td>\n";
 		} else {
-			$output .= "<tr><td $class>" . stripslashes($item->name) . "</td>";
-			$output .= "<td $class>";
+			$output .= "<tr><td class='$class vtmcol_key'>" . vtm_formatOutput($item->name) . "</td>";
+			$output .= "<td class='$class vtmcol_dots vtmdot_" . (max($maxdot,$maxdots['default']) > 5 ? 10 : 5) . "'>";
 			
 			$pending = isset($pendingfb[$key]->value) ? $pendingfb[$key]->value : 0 ;         // level bought with freebies
 			$pending = isset($pendingxp[$key]->value) ? $pendingxp[$key]->value : $pending ;  // level bought with xp
@@ -1143,8 +1143,8 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 				$output .= vtm_render_dot_select($postvariable, $key, $level, $pending, $tpfree, $maxdot, $submitted);
 		}
 		
-		$output .= "</td><td $class>\n";
-		$output .= stripslashes($item->description);
+		$output .= "</td><td class='$class'>\n";
+		$output .= vtm_formatOutput($item->description);
 		$output .= "</td></tr>\n";
 	
 	}
@@ -3802,6 +3802,7 @@ function vtm_render_dot_select($type, $itemid, $current, $pending, $free, $max, 
 	if ($pending || $submitted) {
 		$output .= "<input type='hidden' name='" . $type . "[" . $itemid . "]' value='$current' />\n";
 	}
+	
 	$output .= "<fieldset class='dotselect'>\n";
 	
 	// Ensure that anything with a free dot is selected initially at that level or 
