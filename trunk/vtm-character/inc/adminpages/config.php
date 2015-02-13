@@ -281,7 +281,7 @@ function vtm_render_config_pagelinks() {
 							'ORDERING' => $_REQUEST['order' . $i],
 							'WP_PAGE_ID' => $pageid
 						);
-						print_r($dataarray);
+						//print_r($dataarray);
 						
 						$result = $wpdb->update(VTM_TABLE_PREFIX . "ST_LINK",
 							$dataarray,
