@@ -176,9 +176,9 @@ function vtm_get_chargen_content() {
 	global $vtmglobal;
 
 	// Init global variables
-	$vtmglobal['settings']    = vtm_default_chargen_settings();
 	$vtmglobal['characterID'] = vtm_get_chargen_characterID();
 	$vtmglobal['templateID']  = vtm_get_templateid();
+	$vtmglobal['settings']    = vtm_get_chargen_settings();
 	$vtmglobal['flow']        = vtm_chargen_flow_steps();
 	$vtmglobal['dots'] = array(
 		'dot1full'  => plugins_url( 'vtm-character/images/dot1full.jpg' ),
@@ -1073,6 +1073,7 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 	}
 
 	//print_r($maxdots);
+	
 	$group = "";
 	foreach ($items as $item) {
 	
@@ -1838,6 +1839,9 @@ function vtm_render_chargen_backgrounds($step,$submitted) {
 	$maxbgs = $wpdb->get_results($wpdb->prepare("SELECT ITEMTABLE_ID, LEVEL 
 		FROM " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_MAXIMUM WHERE 
 		ITEMTABLE = 'BACKGROUND' AND TEMPLATE_ID = %s", $vtmglobal['templateID']), OBJECT_K);
+
+	//print_r($vtmglobal['settings']);
+	//echo "<li>limit: {$vtmglobal['settings']['limit-generation-low']} maxdots: $maxdots</li>";
 
 	if (count($maxbgs) > 0) {
 		$maximums = $maxbgs;
@@ -3436,7 +3440,7 @@ function vtm_get_chargen_settings() {
 	$sql = $wpdb->prepare($sql, $vtmglobal['templateID']);
 	//echo "<p>SQL: $sql</p>\n";
 	$result = $wpdb->get_results($sql);
-	$settings = $vtmglobal['settings'];
+	$settings = vtm_default_chargen_settings();
 	
 	if (count($result) == 0)
 		return $settings;

@@ -308,7 +308,7 @@ function vtm_render_template_data(){
 		$sql = "SELECT NAME, VALUE FROM " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_OPTIONS WHERE TEMPLATE_ID = %s";
 		$sql = $wpdb->prepare($sql, $id);
 		$results = $wpdb->get_results($sql, OBJECT_K);
-		
+				
 		$settings['attributes-method']    = isset($results['attributes-method']->VALUE) ? $results['attributes-method']->VALUE : $settings['attributes-method'];
 		$settings['attributes-primary']   = isset($results['attributes-primary']->VALUE) ? $results['attributes-primary']->VALUE : $settings['attributes-primary'];
 		$settings['attributes-secondary'] = isset($results['attributes-secondary']->VALUE) ? $results['attributes-secondary']->VALUE : $settings['attributes-secondary'];
