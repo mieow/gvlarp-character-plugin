@@ -180,6 +180,7 @@ function vtm_get_chargen_content() {
 	$vtmglobal['templateID']  = vtm_get_templateid();
 	$vtmglobal['settings']    = vtm_get_chargen_settings();
 	$vtmglobal['flow']        = vtm_chargen_flow_steps();
+	$vtmglobal['genInfo']     = vtm_calculate_generation();
 	$vtmglobal['dots'] = array(
 		'dot1full'  => plugins_url( 'vtm-character/images/dot1full.jpg' ),
 		'dot1empty' => plugins_url( 'vtm-character/images/dot1empty.jpg' ),
@@ -354,6 +355,8 @@ function vtm_render_flow($step, $progress) {
 
 }
 
+
+
 function vtm_render_basic_info($step, $submitted) {
 	global $current_user;
 	global $wpdb;
@@ -361,7 +364,6 @@ function vtm_render_basic_info($step, $submitted) {
 
 	$output = "";
 	
-	//$mustbeloggedin = get_option( 'vtm_chargen_mustbeloggedin' );
 	$clans    = vtm_get_clans();
 	$natures  = vtm_get_natures();
 	
@@ -617,13 +619,16 @@ function vtm_render_feedback($step, $submitted) {
 }
 
 function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $freebiecosts, 
-		$postvariable, $showzeros, $issubmitted, $maxdots = 5,
-		$templatefree = array()) {
+		$postvariable, $showzeros, $issubmitted, $maxdots, $templatefree) {
 	
 	global $vtmglobal;
 
 	$columns     = $vtmglobal['config']->WEB_COLUMNS;
+	$coloutput   = array();
+	$colgroups   = array();
+	$colindex    = 0;
 	$rowoutput   = "";
+	$output = "";
 	
 	// Get Posted data
 	if (isset($_POST[$postvariable])) {
@@ -635,183 +640,180 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 	}
 	//print_r($pendingfb);
 
-	$output = "";
 	$maxitems = count($items);
 	$itemcount = 0;
 	if ($maxitems > 0) {
 		$id = 0;
 		$grp = "";
-		$grpcount = 0;
-		$col = 0;
 		foreach ($items as $item) {
-			$colspan = $postvariable == 'freebie_merit' ? 1 : 2;
-			$itemcount++;
 			
 			if (is_array($maxdots)) {
-				if (isset($maxdots[$item->ID])) {
-					$max2display = $maxdots[$item->ID]->LEVEL;
+				if (isset($maxdots[$item['ITEMTABLE_ID']])) {
+					$max2display = $maxdots[$item['ITEMTABLE_ID']]->LEVEL;
 				} else {
 					$max2display = $maxdots['default'];
 				}
-			} else {
+			} 
+			elseif (sanitize_key($item['ITEMNAME']) == 'willpower') {
+				$max2display = 10;
+			}
+			elseif (sanitize_key($item['ITEMNAME']) == 'pathrating') {
+				$max2display = 10;
+			}
+			else {
 				$max2display = $maxdots;
 			}
+
+			$loop = $item['MULTIPLE'] == 'Y' ? 4 : 1;
 			
-			$loop = (isset($item->multiple) && $item->multiple == 'Y') ? 4 : 1;
+			$colspan = $postvariable == 'freebie_merit' ? 1 : 2;
+			$itemcount++;
 			
 			for ($j = 1 ; $j <= $loop ; $j++) {
 				
-				$name = sanitize_key($item->name);
-				$key = (isset($item->multiple) && $item->multiple == 'Y') ? $name . "_" . $j : $name;
-				if ($postvariable == 'freebie_stat' && $item->name == 'Path Rating') {
-					$name = sanitize_key($item->grp);
+				// What is the name and key of the item
+				$name = sanitize_key($item['ITEMNAME']);
+				if ($item['MULTIPLE'] == 'Y') {
+					$key = $name . "_" . $j;
+					if (isset($templatefree[$key])) {
+						$loop++;
+					}
+				} else {
+					$key = $name;
 				}
-				// Need extra loops if we have some free dots
-				if (isset($templatefree[$key]) && isset($item->multiple) && $item->multiple == 'Y')
-					$loop++; 
-			
-				// Base level from free dots from template
-				if (isset($templatefree[$key]->LEVEL))
-					$levelfrom = $templatefree[$key]->LEVEL; 
+				if ($postvariable == 'freebie_stat' && $name == 'pathrating') {
+					$name = sanitize_key($item['GROUPING']);
+				}
+				
+				// Work out the right key for the templatefree info
+				// to cover the special case where there is only 1 free of a multiple skill so the key
+				// was guessed wrongly by vtm_get_free_levels()
+				if (isset($templatefree[$key]))
+					$templatefreedata = $templatefree[$key]; 
 				elseif (isset($templatefree[$name]->LEVEL) && $j == 1)
-					// special case where there is only 1 free of a multiple skill so the key
-					// was guessed wrongly by vtm_get_free_levels()
-					$levelfrom = $templatefree[$name]->LEVEL; 
+					$templatefreedata = $templatefree[$name]; 
 				else
-					$levelfrom = 0;
-			
-				// Over-ridden by level from main table in database
+					$templatefreedata = array();
+				
+				// Base level from free dots from template
+				$levelfrom = isset($templatefreedata->LEVEL) ? $templatefreedata->LEVEL : $levelfrom = 0;
+				// Base level Over-ridden by level from main table in database
 				$levelfrom = isset($saved[$key]->level_from) ? $saved[$key]->level_from : $levelfrom;
-
-				// Over-ridden by freebie point spends saved
+			
+				// Current level set by freebie point spends saved
 				$current = isset($pendingfb[$key]) ? $pendingfb[$key]->value : $levelfrom;
 				// Over-ridden by freebie point spends submitted
 				$current = $submitted ? (isset($posted[$key]) ? $posted[$key] : $levelfrom) : $current;
-				
+
 				// xp point spends saved
 				$levelxp = isset($pendingxp[$key]) ? $pendingxp[$key]->value : 0;
-				
-				// echo "<li>$key: from: $levelfrom, current: $current, xp: $levelxp, saved from: " .
-				// (isset($saved[$key]->level_from) ? $saved[$key]->level_from : "not-set") . ", pendingfb: " .
-				// (isset($pendingfb[$key]->value) ? $pendingfb[$key]->value : "not-set") . ", posted: " .
-				// (isset($posted[$key]) ? $posted[$key] : "not-set") . ", submitted: $submitted</li>\n";
-				
+
+		
 				// Specialisation
 				if (isset($pendingfb[$key]) && $pendingfb[$key]->specialisation != '')
 					$specialisation = $pendingfb[$key]->specialisation;
-				elseif (isset($templatefree[$key]->SPECIALISATION)) 
-					$specialisation = $templatefree[$key]->SPECIALISATION;
-				elseif (isset($templatefree[$name]->SPECIALISATION) && $j == 1) 
-					$specialisation = $templatefree[$name]->SPECIALISATION;
+				elseif (isset($templatefreedata->SPECIALISATION)) 
+					$specialisation = $templatefreedata->SPECIALISATION;
 				else
 					$specialisation = '';
 				$specialisation = vtm_formatOutput($specialisation);
-					
+
 				// Pending Detail
 				$detail = isset($pendingfb[$key]) ? vtm_formatOutput($pendingfb[$key]->pending_detail, 1) : '';
-				
-				switch ($key) {
-					case 'willpower': $max2display = 10; break;
-				}
-				
+
+				// echo "<li>$key: name: $name, from: $levelfrom, current: $current, xp: $levelxp, spec: $specialisation, saved from: " .
+				// (isset($saved[$key]->level_from) ? $saved[$key]->level_from : "not-set") . ", pendingfb: " .
+				// (isset($pendingfb[$key]->value) ? $pendingfb[$key]->value : "not-set") . ", posted: " .
+				// (isset($posted[$key]) ? $posted[$key] : "not-set") . ", submitted: $submitted</li>\n";
+
 				if ($levelfrom > 0 || $showzeros) {
 					// start column / new column
-					if (isset($item->grp)) {
-						if ($grp != $item->grp) {
-							$grpcount++;
-							if (empty($grp)) {
-								$rowoutput .= "<tr><td class='vtmcg_col'>\n<table>\n<tr><th colspan=$colspan>" . vtm_formatOutput($item->grp) . "</th></tr>\n";
-								$col++;
-							} 
-							elseif ($col == $columns) {
-								$rowoutput .= "</table>\n</td></tr>\n<tr><td class='vtmcg_col'>\n<table>\n<tr><th colspan=$colspan>" . vtm_formatOutput($item->grp) . "</th></tr>\n";
-								$col = 1;
-							}
-							else {
-								$rowoutput .= "</table>\n</td><td class='vtmcg_col'>\n<table>\n<tr><th colspan=$colspan>" . vtm_formatOutput($item->grp) . "</th></tr>\n";
-								$col++;
-							}
-							$grp = $item->grp;
+					if (isset($item['GROUPING'])) {
+						if ($grp != $item['GROUPING']) {
+							$colindex++;
+							$grp = $item['GROUPING'];
+							$colgroups[$colindex] = $item['GROUPING'];
+							$coloutput[$colindex] = "";
 						} 
-						
 					}
-
-					// Hidden fields
-					$rowoutput .= "<tr style='display:none'><td colspan=$colspan>\n";
-					$rowoutput .= "<input type='hidden' name='{$postvariable}_spec[" . $key . "]' value='$specialisation' />\n";
-					$rowoutput .= "<input type='hidden' name='{$postvariable}_detail[" . $key . "]' value='$detail' />\n";
-					$rowoutput .= "</td></tr>\n";
 					
-					$namehtml = "<span title='" . vtm_formatOutput($item->description . ($specialisation == '' ? '' : " ($specialisation)")) . "'>" . vtm_formatOutput($item->name) . "</span>";
+					// Hidden fields
+					$coloutput[$colindex] .= "<tr style='display:none'><td colspan=$colspan>\n";
+					$coloutput[$colindex] .= "<input type='hidden' name='{$postvariable}_spec[" . $key . "]' value='$specialisation' />\n";
+					$coloutput[$colindex] .= "<input type='hidden' name='{$postvariable}_detail[" . $key . "]' value='$detail' />\n";
+					$coloutput[$colindex] .= "<input type='hidden' name='{$postvariable}_itemid[" . $key . "]' value='{$item['ITEMTABLE_ID']}' />\n";
+					$coloutput[$colindex] .= "</td></tr>\n";
+				
+					$namehtml = vtm_formatName($item['ITEMNAME'], $item['DESCRIPTION'], $specialisation);
 					
 					if ($postvariable == 'freebie_merit') {
 						$cost = $freebiecosts[$name][0][1];
 						$cbid = "cb_{$key}_{$j}";
-						//$rowoutput .= "<tr><td><span class='mfdotselect'>\n";
-						$rowoutput .= "<tr><td class='mfdotselect'>";
+						$namehtml = vtm_formatName($item['ITEMNAME'] . " ($cost)", $item['DESCRIPTION'], $specialisation);
+						$coloutput[$colindex] .= "<tr><td class='mfdotselect'>";
 						if ($issubmitted) {
 							if ($current == $cost) {
-								$rowoutput .= "<img src='{$vtmglobal['dots']['dot2']}' alt='X' /> ";
+								$coloutput[$colindex] .= "<img src='{$vtmglobal['dots']['dot2']}' alt='X' /> ";
 							} else {
-								$rowoutput .= "<img src='{$vtmglobal['dots']['dot1empty']}' alt='O' /> ";
+								$coloutput[$colindex] .= "<img src='{$vtmglobal['dots']['dot1empty']}' alt='O' /> ";
 							}
-							$rowoutput .=  "<div><label>" . $namehtml . " ($cost)</label></div>";
+							$coloutput[$colindex] .=  "<div><label>" . $namehtml . "</label></div>";
 						} else {
-							$rowoutput .= "<input type='checkbox' name='{$postvariable}[" . $key . "]' id='$cbid' value='$cost' ";
-							$rowoutput .= checked($current, $cost, false);
-							$rowoutput .= "/>";
-							$rowoutput .= "<div><label for='$cbid'>" . $namehtml . " ($cost)</label></div>";
+							$coloutput[$colindex] .= "<input type='checkbox' name='{$postvariable}[" . $key . "]' id='$cbid' value='$cost' ";
+							$coloutput[$colindex] .= checked($current, $cost, false);
+							$coloutput[$colindex] .= "/>";
+							$coloutput[$colindex] .= "<div><label for='$cbid'>" . $namehtml . "</label></div>";
 						}
-						$rowoutput .= "</td></tr>\n";
+						$coloutput[$colindex] .= "</td></tr>\n";
 					
 					} else {
 						//dots row
 						$flag = 0;
-						$rowoutput .= "<tr><td class='vtmcol_key'>" . $namehtml . "</th><td class='vtmcol_dots vtmdot_" . ($max2display > 5 ? 10 : 5) . "'>\n";
-						$rowoutput .= "<fieldset class='dotselect'>\n";
+						$coloutput[$colindex] .= "<tr><td class='vtmcol_key'>" . $namehtml . "</th><td class='vtmcol_dots vtmdot_" . ($max2display > 5 ? 10 : 5) . "'>\n";
+						$coloutput[$colindex] .= "<fieldset class='dotselect'>\n";
 						for ($i=$max2display;$i>=1;$i--) {
 							$radioid = "dot_{$key}_{$i}_{$j}";
 							
 							if ($levelfrom >= $i)
 								// Base level from main table in database
-								$rowoutput .= "<img src='{$vtmglobal['dots']['dot1full']}' alt='*' id='$radioid' />\n";
+								$coloutput[$colindex] .= "<img src='{$vtmglobal['dots']['dot1full']}' alt='*' id='$radioid' />\n";
 							elseif ($issubmitted || (isset($pendingxp[$key]) && $pendingxp[$key]->value != 0) ) {
 								// Lock if there are any xp spends for this item
 								if ($current >= $i)
-									$rowoutput .= "<img src='{$vtmglobal['dots']['dot2']}' alt='*' id='$radioid' />\n";
+									$coloutput[$colindex] .= "<img src='{$vtmglobal['dots']['dot2']}' alt='*' id='$radioid' />\n";
 								elseif ($levelxp >= $i)
-									$rowoutput .= "<img src='{$vtmglobal['dots']['dot3']}' alt='*' id='$radioid' />\n";
+									$coloutput[$colindex] .= "<img src='{$vtmglobal['dots']['dot3']}' alt='*' id='$radioid' />\n";
 								else
-									$rowoutput .= "<img src='{$vtmglobal['dots']['dot1empty']}' alt='*' id='$radioid' />\n";
+									$coloutput[$colindex] .= "<img src='{$vtmglobal['dots']['dot1empty']}' alt='*' id='$radioid' />\n";
 							} else {
 								// Display dot to buy, if it can be bought
 								if (isset($freebiecosts[$name][$levelfrom][$i])) {
 									$cost = $freebiecosts[$name][$levelfrom][$i];
-									$rowoutput .= "<input type='radio' id='$radioid' name='{$postvariable}[{$key}]' value='$i' ";
-									$rowoutput .= checked($current, $i, false);
-									$rowoutput .= " /><label for='$radioid' title='Level $i ($cost freebies)'";
-									$rowoutput .= ">&nbsp;</label>\n";
+									$coloutput[$colindex] .= "<input type='radio' id='$radioid' name='{$postvariable}[{$key}]' value='$i' ";
+									$coloutput[$colindex] .= checked($current, $i, false);
+									$coloutput[$colindex] .= " /><label for='$radioid' title='Level $i ($cost freebies)'";
+									$coloutput[$colindex] .= ">&nbsp;</label>\n";
 									$flag = 1;
 								}
 								else {
-									$rowoutput .= "<img src='{$vtmglobal['dots']['dot1empty']}' alt='X' id='$radioid' />\n";
+									$coloutput[$colindex] .= "<img src='{$vtmglobal['dots']['dot1empty']}' alt='X' id='$radioid' />\n";
 								}
 							}
 						}
 						if (!$issubmitted) {
 							$radioid = "dot_{$key}_{$j}_clear";
-							$rowoutput .= "<input type='radio' id='$radioid' name='{$postvariable}[{$key}]' value='0' ";
-							$rowoutput .= " /><label for='$radioid' title='Clear' class='cleardot'>&nbsp;</label>\n";
+							$coloutput[$colindex] .= "<input type='radio' id='$radioid' name='{$postvariable}[{$key}]' value='0' ";
+							$coloutput[$colindex] .= " /><label for='$radioid' title='Clear' class='cleardot'>&nbsp;</label>\n";
 						}
-						$rowoutput .= "</fieldset></td></tr>\n";
+						$coloutput[$colindex] .= "</fieldset></td></tr>\n";
 						
 						// Ensure that freebie spends don't get lost when an XP
 						// spend has blocked the user from changing the level
 						if (!$flag && $current > 0) {
 						
-							$rowoutput .= "<tr style='display:none'><td colspan=$colspan>\n";
-							$rowoutput .= "<input type='hidden' name='{$postvariable}[{$key}]' value='$current' />\n";
-							$rowoutput .= "</td></tr>\n";
+							$coloutput[$colindex] .= "<tr style='display:none'><td colspan=$colspan>\n";
+							$coloutput[$colindex] .= "<input type='hidden' name='{$postvariable}[{$key}]' value='$current' />\n";
+							$coloutput[$colindex] .= "</td></tr>\n";
 						
 						}
 					}
@@ -821,6 +823,7 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 	
 	}
 	
+	/*
 	if ($rowoutput != "") {
 		$rowoutput .= "</table></td>";
 		if ($col != $columns && $grpcount > $columns) {
@@ -828,18 +831,38 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 		}
 		$rowoutput .= "</tr>\n";
 	}
+	*/
+	
+	// Put each sub-table in the right column
+	for ($col = 1 ; $col <= count($coloutput) ; $col++) {
+		if ( $columns == 1 || ($col % $columns) == 1) { 
+			$rowoutput .= "<tr>";
+		}
+		$rowoutput .= "<td class='vtmcg_col'><table>";
+		$rowoutput .= "<th colspan=$colspan>" . vtm_formatOutput($colgroups[$col]) . "</th></tr>";
+		$rowoutput .= $coloutput[$col];
+		$rowoutput .= "</table></td>";
+		if ( $columns == 1 || ($col % $columns) == 0) 
+			$rowoutput .= "</tr>";
+		
+	}
 	
 	return $rowoutput;
 }
 
-function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, 
-	$pendingxp, $postvariable, $showzeros, $issubmitted, $fbcosts = array(),
-	$max2display = 5, $templatefree = array()) {
+
+function vtm_render_xp_section($items, $saved, $xpcosts, $pendingfb, 
+	$pendingxp, $postvariable, $showzeros, $issubmitted, $fbcosts,
+	$maxdots, $templatefree) {
 
 	global $vtmglobal;
 	
-	$columns       = $vtmglobal['config']->WEB_COLUMNS;
+	$columns = $vtmglobal['config']->WEB_COLUMNS;
+	$coloutput   = array();
+	$colgroups   = array();
+	$colindex    = 0;
 	$rowoutput = "";
+	$output = "";
 	
 	// Get Posted data
 	if (isset($_POST[$postvariable])) {
@@ -849,8 +872,209 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 		$submitted = 0;
 		$posted = array();
 	}
+	
+	$maxitems = count($items);
+	if ($maxitems > 0) {
+		$grp = "";
+		foreach ($items as $item) {
+			$loop = $item['MULTIPLE'] == 'Y' ? 4 : 1;
+			$colspan = ($postvariable == 'xp_merit' || $postvariable == 'xp_ritual') ? 1 : 2;
+			for ($j = 1 ; $j <= $loop ; $j++) {
+				// What is the name and key of the item
+				$name = sanitize_key($item['ITEMNAME']);
+				if ($item['MULTIPLE'] == 'Y') {
+					$key = $name . "_" . $j;
+					if (isset($templatefree[$key])) {
+						$loop++;
+					}
+				} else {
+					$key = $name;
+				}
+				if ($postvariable == 'freebie_stat' && $name == 'pathrating') {
+					$name = sanitize_key($item['GROUPING']);
+				}
+				
+				// Work out the right key for the templatefree info
+				// to cover the special case where there is only 1 free of a multiple skill so the key
+				// was guessed wrongly by vtm_get_free_levels()
+				if (isset($templatefree[$key]))
+					$templatefreedata = $templatefree[$key]; 
+				elseif (isset($templatefree[$name]->LEVEL) && $j == 1)
+					$templatefreedata = $templatefree[$name]; 
+				else
+					$templatefreedata = array();
+	
+				// How many dots to display
+				if (is_array($maxdots)) {
+					if (isset($maxdots[$item['ITEMTABLE_ID']])) {
+						$max2display = $maxdots[$item['ITEMTABLE_ID']]->LEVEL;
+					} else {
+						$max2display = $maxdots['default'];
+					}
+				} else {
+					$max2display = $maxdots;
+					switch ($key) {
+						case 'willpower':   $max2display = 10; break;
+						case 'pathrating':  $max2display = 10; break;
+						case 'conscience':  $max2display = 5; break;
+						case 'conviction':  $max2display = 5; break;
+						case 'selfcontrol': $max2display = 5; break;
+						case 'courage':     $max2display = 5; break;
+						case 'instinct':    $max2display = 5; break;
+					}
+				}
+				
+				// Base level from free dots from template
+				$levelfrom = isset($templatefreedata->LEVEL) ? $templatefreedata->LEVEL : $levelfrom = 0;
+				// Base level Over-ridden by level from main table in database
+				$levelfrom = isset($saved[$key]->level_from) ? $saved[$key]->level_from : $levelfrom;
+
+				// level from freebie point spends saved
+				$levelfb = isset($pendingfb[$key]) ? $pendingfb[$key]->value : $levelfrom;
+				
+				// level from xp point spends
+				$current = isset($posted[$key]) ? $posted[$key] : 
+						(isset($pendingxp[$key]) ? $pendingxp[$key]->value : 0);
+
+				// Specialisation
+				if (isset($pendingxp[$key]) && $pendingxp[$key]->specialisation != '')
+					$specialisation = $pendingxp[$key]->specialisation;
+				elseif (isset($pendingfb[$key]) && $pendingfb[$key]->specialisation != '')
+					$specialisation = $pendingfb[$key]->specialisation;
+				elseif (isset($templatefreedata->SPECIALISATION)) 
+					$specialisation = $templatefreedata->SPECIALISATION;
+				else
+					$specialisation = '';
+				$specialisation = vtm_formatOutput($specialisation);
+
+				// echo "<li>$key: name: $name, from: $levelfrom, fb: $levelfb, xp: $current, spec: $specialisation, saved from: " .
+				// (isset($saved[$key]->level_from) ? $saved[$key]->level_from : "not-set") . ", pendingfb: " .
+				// (isset($pendingfb[$key]->value) ? $pendingfb[$key]->value : "not-set") . ", posted: " .
+				// (isset($posted[$key]) ? $posted[$key] : "not-set") . ", submitted: $submitted</li>\n";
+
+				// Merit stuff
+				$meritcost  = $postvariable == 'xp_merit' ? $xpcosts[$name][0][1] : 0;
+				$meritlevel = $postvariable == 'xp_merit' ? $fbcosts[$name][0][1] : 0;
+				// Ritual stuff
+				$ritualcost  = $postvariable == 'xp_ritual' ? $xpcosts[$name][0][1] : 0;
+				$rituallevel = $postvariable == 'xp_ritual' ? $item['LEVEL'] : 0;
+
+				// Work out if we are going to display this row
+				if ($postvariable == 'xp_merit' && $meritcost > 0 && $meritlevel !== 0)
+					$dodisplay = 1;
+				elseif ($postvariable == 'xp_ritual' && $ritualcost > 0)
+					$dodisplay = 1;
+				elseif ($postvariable != 'xp_merit' && $postvariable != 'xp_ritual' && ($levelfrom > 0 || $showzeros))
+					$dodisplay = 1;
+				else
+					$dodisplay = 0;
+				
+				if ($dodisplay) {
+					// start column / new column
+					if (isset($item['GROUPING'])) {
+						if ($grp != $item['GROUPING']) {
+							$colindex++;
+							$grp = $item['GROUPING'];
+							$colgroups[$colindex] = $item['GROUPING'];
+							$coloutput[$colindex] = "";
+						} 
+					}
+					
+					// Hidden fields
+					$coloutput[$colindex] .= "<tr style='display:none'><td colspan=$colspan>";
+					$coloutput[$colindex] .= "<input type='hidden' name='{$postvariable}_comment[$key]' value='$specialisation' />";
+					$coloutput[$colindex] .= "</td></tr>\n";
+					
+					$namehtml = vtm_formatName($item['ITEMNAME'], $item['DESCRIPTION'], $specialisation);
+					
+					if ($postvariable == 'xp_merit') {
+						$namehtml = vtm_formatName($item['ITEMNAME'] . " ($meritlevel) - {$meritcost}xp", $item['DESCRIPTION'], $specialisation);
+						$cbid = "cb_{$j}_{$key}";
+						$coloutput[$colindex] .= "<tr><td class='mfdotselect'>\n";
+						if ($issubmitted) {
+							if ($current) {
+								$coloutput[$colindex] .= "<img src='{$vtmglobal['dots']['dot2']}' alt='X' /> ";
+							} else {
+								$coloutput[$colindex] .= "<img src='{$vtmglobal['dots']['dot1empty']}' alt='O' /> ";
+							}
+							$coloutput[$colindex] .=  "<div><label>" . $namehtml . "</label></div>";
+						} else {
+							$coloutput[$colindex] .= "<input type='checkbox' name='{$postvariable}[" . $key . "]' id='$cbid' value='$meritlevel' ";
+							if ($current) {
+								$coloutput[$colindex] .= checked($current, $current, false);
+							}
+							$coloutput[$colindex] .= "/>\n";
+							$coloutput[$colindex] .= "<div><label for='$cbid'>" . $namehtml . "</label></div>\n";
+						}
+						$coloutput[$colindex] .= "</td></tr>\n";
+					}
+					elseif ($postvariable == 'xp_ritual') {
+						$namehtml = vtm_formatName($item['ITEMNAME']. " (level $rituallevel) - {$ritualcost}xp", $item['DESCRIPTION'], $specialisation);
+						$cbid = "cb_{$j}_{$key}";
+						$coloutput[$colindex] .= "<tr><td class='mfdotselect'>\n";
+						if ($issubmitted) {
+							if ($current) {
+								$coloutput[$colindex] .= "<img src='{$vtmglobal['dots']['dot2']}' alt='X' /> ";
+							} else {
+								$coloutput[$colindex] .= "<img src='{$vtmglobal['dots']['dot1empty']}' alt='O' /> ";
+							}
+							$coloutput[$colindex] .=  "<div><label>" . $namehtml . "</label></div>";
+						} 
+						elseif (isset($saved[$key]->level_from) && $saved[$key]->level_from > 0) {
+							$coloutput[$colindex] .= "<img src='{$vtmglobal['dots']['dot1full']}' alt='X' />\n";
+							$coloutput[$colindex] .= "<div><label>" . $namehtml . "</label></div>\n";
+						}
+						else {
+							$coloutput[$colindex] .= "<input type='checkbox' name='{$postvariable}[" . $key . "]' id='$cbid' value='$rituallevel' ";
+							if ($current) {
+								$coloutput[$colindex] .= checked($current, $current, false);
+							}
+							$coloutput[$colindex] .= "/>\n";
+							$coloutput[$colindex] .= "<div><label for='$cbid'>" . $namehtml . " (level $rituallevel) - {$ritualcost}xp</label></div>\n";
+						}
+						$coloutput[$colindex] .= "</td></tr>\n";
+						}
+					else {
+						//dots row
+						$coloutput[$colindex] .= "<tr><td class='vtmcol_key'>" . $namehtml . "</th><td class='vtmcol_dots vtmdot_" . ($max2display > 5 ? 10 : 5) . "'>\n";
+						$coloutput[$colindex] .= "<fieldset class='dotselect'>";
+						for ($i=$max2display;$i>=1;$i--) {
+							$radioid = "dot_{$key}_{$i}_{$j}";
+							if ($levelfrom >= $i)
+								$coloutput[$colindex] .= "<img src='{$vtmglobal['dots']['dot1full']}' alt='*' id='$radioid' />";
+							elseif (isset($pendingfb[$key]) && $levelfb >= $i)
+								$coloutput[$colindex] .= "<img src='{$vtmglobal['dots']['dot3']}' alt='*' id='$radioid' />";
+							elseif ($issubmitted) {
+								if ($current >= $i)
+									$coloutput[$colindex] .= "<img src='{$vtmglobal['dots']['dot2']}' alt='*' id='$radioid' />";
+								else
+									$coloutput[$colindex] .= "<img src='{$vtmglobal['dots']['dot1empty']}' alt='*' id='$radioid' />";
+							}
+							elseif (isset($xpcosts[$name][$levelfb][$i])) {
+								$cost = $xpcosts[$name][$levelfb][$i];
+								$coloutput[$colindex] .= "<input type='radio' id='$radioid' name='{$postvariable}[$key]' value='$i' ";
+								$coloutput[$colindex] .= checked($current, $i, false);
+								$coloutput[$colindex] .= " /><label for='$radioid' title='Level $i ($cost xp)'";
+								$coloutput[$colindex] .= ">&nbsp;</label>";
+							}
+							else {
+								$coloutput[$colindex] .= "<img src='{$vtmglobal['dots']['dot1empty']}' alt='X' id='$radioid' />\n";
+							}
+						}
+						if (!$issubmitted) {
+							$radioid = "dot_{$key}_{$j}_clear";
+							$coloutput[$colindex] .= "<input type='radio' id='$radioid' name='{$postvariable}[$key]' value='0' ";
+							$coloutput[$colindex] .= " /><label for='$radioid' title='Clear' class='cleardot'>&nbsp;</label>\n";
+						}
+						$coloutput[$colindex] .= "</fieldset></td></tr>\n";
+					}
+				}
+			}
+		}
+	}	
+	
+/*	
 		
-	$grp = "";
 	$grpcount = 0;
 	$col = 0;
 	foreach ($items as $item) {
@@ -861,97 +1085,13 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 			$key = (isset($item->multiple) && $item->multiple == 'Y') ? $name . "_" . $j : $name;
 
 			// Need extra loops if we have some free dots
-			if (isset($templatefree[$key]) && isset($item->multiple) && $item->multiple == 'Y')
-				$loop++; 
-
-			switch ($key) {
-				case 'willpower':   $max2display = 10; break;
-				case 'conscience':  $max2display = 5; break;
-				case 'conviction':  $max2display = 5; break;
-				case 'selfcontrol': $max2display = 5; break;
-				case 'courage':     $max2display = 5; break;
-				case 'instinct':    $max2display = 5; break;
-			}
-			$colspan = ($postvariable == 'xp_merit' || $postvariable == 'xp_ritual') ? 1 : 2;
-				
-			// Base level from free dots from template
-			if (isset($templatefree[$key]->LEVEL))
-				$levelfrom = $templatefree[$key]->LEVEL; 
-			elseif (isset($templatefree[$name]->LEVEL) && $j == 1)
-				// special case where there is only 1 free of a multiple skill so the key
-				// was guessed wrongly by vtm_get_free_levels()
-				$levelfrom = $templatefree[$name]->LEVEL; 
-			else
-				$levelfrom = 0;
-			
-			// Over-ridden by level from main table in database
-			$levelfrom = isset($saved[$key]->level_from) ? $saved[$key]->level_from : $levelfrom;
-
-			// level from freebie point spends saved
-			$levelfb = isset($pendingfb[$key]) ? $pendingfb[$key]->value : $levelfrom;
-
-			// level from xp point spends saved
-			$current = isset($posted[$key]) ? $posted[$key] : 
-						(isset($pendingxp[$key]) ? $pendingxp[$key]->value : 0);
-			
-			// Specialisation
-			if (isset($pendingxp[$key]) && $pendingxp[$key]->specialisation != '')
-				$specialisation = $pendingxp[$key]->specialisation;
-			elseif (isset($pendingfb[$key]) && $pendingfb[$key]->specialisation != '')
-				$specialisation = $pendingfb[$key]->specialisation;
-			elseif (isset($templatefree[$key]->SPECIALISATION)) 
-				$specialisation = $templatefree[$key]->SPECIALISATION;
-			else
-				$specialisation = '';
-			$specialisation = vtm_formatOutput($specialisation);
 
 			$namehtml = "<span title='" . htmlspecialchars(stripslashes($item->description . ($specialisation == '' ? '' : " ($specialisation)")), ENT_QUOTES) . "'>" . stripslashes($item->name) . "</span>";
 			
-			// Merit stuff
-			$meritcost  = $postvariable == 'xp_merit' ? $xpcosts[$name][0][1] : 0;
-			$meritlevel = $postvariable == 'xp_merit' ? $fbcosts[$name][0][1] : 0;
-			// Ritual stuff
-			$ritualcost  = $postvariable == 'xp_ritual' ? $xpcosts[$name][0][1] : 0;
-			$rituallevel = $postvariable == 'xp_ritual' ? $item->level : 0;
-			
-			//echo "<li>$key/$name - from: $levelfrom, fb: $levelfb, current: $current, spec: $specialisation</li>\n";
-			if ($postvariable == 'xp_merit' && $meritcost > 0 && $meritlevel !== 0)
-				$dodisplay = 1;
-			elseif ($postvariable == 'xp_ritual' && $ritualcost > 0)
-				$dodisplay = 1;
-			elseif ($postvariable != 'xp_merit' && $postvariable != 'xp_ritual' && ($levelfrom > 0 || $showzeros))
-				$dodisplay = 1;
-			else
-				$dodisplay = 0;
-			
+
 			//print "<li>$postvariable {$item->name} $key $j $dodisplay , cost: $meritcost, level: $meritlevel</li>";
 			if ($dodisplay) {
-				// start column / new column
-				if (isset($item->grp)) {
-					if ($grp != $item->grp) {
-						$grpcount++;
-						if (empty($grp)) {
-							$rowoutput .= "<tr><td class='vtmcg_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
-							$col++;
-						} 
-						elseif ($col == $columns) {
-							$rowoutput .= "</table>\n</td></tr>\n<tr><td class='vtmcg_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
-							$col = 1;
-						}
-						else {
-							$rowoutput .= "</table>\n</td><td class='vtmcg_col'>\n<table>\n<tr><th colspan=$colspan>{$item->grp}</th></tr>\n";
-							$col++;
-						}
-						$grp = $item->grp;
-					}
-				}
-				
-				// Hidden fields
-				//$comment = isset()
-				$rowoutput .= "<tr style='display:none'>
-					<td colspan=$colspan>\n
-					<input type='hidden' name='{$postvariable}_comment[$key]' value='$specialisation' />\n";
-				$rowoutput .= "</td></tr>\n";
+
 
 				if ($postvariable == 'xp_merit') {
 					$cbid = "cb_{$j}_{$key}";
@@ -999,39 +1139,6 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 					$rowoutput .= "</td></tr>\n";
 				}
 				else {
-					//dots row
-					$rowoutput .= "<tr><td class='vtmcol_key'>" . $namehtml . "</th><td class='vtmcol_dots vtmdot_" . ($max2display > 5 ? 10 : 5) . "'>\n";
-					$rowoutput .= "<fieldset class='dotselect'>";
-					for ($i=$max2display;$i>=1;$i--) {
-						$radioid = "dot_{$key}_{$i}_{$j}";
-						
-						if ($levelfrom >= $i)
-							$rowoutput .= "<img src='{$vtmglobal['dots']['dot1full']}' alt='*' id='$radioid' />";
-						elseif (isset($pendingfb[$key]) && $levelfb >= $i)
-							$rowoutput .= "<img src='{$vtmglobal['dots']['dot3']}' alt='*' id='$radioid' />";
-						elseif ($issubmitted) {
-							if ($current >= $i)
-								$rowoutput .= "<img src='{$vtmglobal['dots']['dot2']}' alt='*' id='$radioid' />";
-							else
-								$rowoutput .= "<img src='{$vtmglobal['dots']['dot1empty']}' alt='*' id='$radioid' />";
-						}
-						elseif (isset($xpcosts[$name][$levelfb][$i])) {
-							$cost = $xpcosts[$name][$levelfb][$i];
-							$rowoutput .= "<input type='radio' id='$radioid' name='{$postvariable}[$key]' value='$i' ";
-							$rowoutput .= checked($current, $i, false);
-							$rowoutput .= " /><label for='$radioid' title='Level $i ($cost xp)'";
-							$rowoutput .= ">&nbsp;</label>";
-						}
-						else {
-							$rowoutput .= "<img src='{$vtmglobal['dots']['dot1empty']}' alt='X' id='$radioid' />\n";
-						}
-					}
-					if (!$issubmitted) {
-						$radioid = "dot_{$key}_{$j}_clear";
-						$rowoutput .= "<input type='radio' id='$radioid' name='{$postvariable}[$key]' value='0' ";
-						$rowoutput .= " /><label for='$radioid' title='Clear' class='cleardot'>&nbsp;</label>\n";
-					}
-					$rowoutput .= "</fieldset></td></tr>\n";
 				}
 			}
 		}
@@ -1044,127 +1151,38 @@ function vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb,
 		}
 		$rowoutput .= "</tr>\n";
 	}
-	
+*/	
+	// Put each sub-table in the right column
+	for ($col = 1 ; $col <= count($coloutput) ; $col++) {
+		if ( $columns == 1 || ($col % $columns) == 1) { 
+			$rowoutput .= "<tr>";
+		}
+		$rowoutput .= "<td class='vtmcg_col'><table>";
+		$rowoutput .= "<th colspan=$colspan>" . vtm_formatOutput($colgroups[$col]) . "</th></tr>";
+		$rowoutput .= $coloutput[$col];
+		$rowoutput .= "</table></td>";
+		if ( $columns == 1 || ($col % $columns) == 0) 
+			$rowoutput .= "</tr>";
+		
+	}
+
 	return $rowoutput;
 
 }
 
-function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $freedot,
-	$items, $posted, $pendingfb, $pendingxp, $title, $postvariable, $submitted,
-	$maxdots = 5, $templatefree = array()) {
-		
-	global $vtmglobal;
 
-	$output = "";
 
-	$class = $postvariable == 'ritual_value' ? "ritrowselect mfdotselect" : "";
-	
-	// Make a guess from saved levels which is Primary/Secondary/Tertiary
-	if (count($saved) > 0 || count($posted) > 0) {
-		if ($isPST) {
-			$info = vtm_get_pst($saved, $posted, $items, $pdots, $sdots, $tdots,
-				$freedot, $templatefree);
-			//print_r($info);
-		}
-	} else {
-		$info['pst']     = array();
-		$info['totals']  = array();
-		$info['correct'] = array();
-	}
-
-	//print_r($maxdots);
-	
-	$group = "";
-	foreach ($items as $item) {
-	
-		if (is_array($maxdots)) {
-			if (isset($maxdots[$item->ID])) {
-				$maxdot = $maxdots[$item->ID]->LEVEL;
-			} else {
-				$maxdot = $maxdots['default'];
-			}
-		} else {
-			$maxdot = $maxdots;
-		}
-	
-		// Heading and Primary/Secondary/Tertiary pull-down
-		if (sanitize_key($item->grp) != $group) {
-			if ($group != "")
-				$output .= "</table>\n";
-			$group = sanitize_key($item->grp);
-			$output .= "<h4>{$item->grp}</h4><p>\n";
-			if ($isPST) {
-				$output .= vtm_render_pst_select($group, $info);
-			}
-			
-			$output .= "</p><input type='hidden' name='group[]' value='$group' />";
-			if ($postvariable == 'ritual_value')
-				$output .= "<table><tr><th>$title</th><th>Description</th></tr>\n";
-			else
-				$output .= "<table><tr><th class='vtmcol_key'>$title</th><th class='vtmcol_dots'>Rating</th><th>Description</th></tr>\n";
-		}
-				
-		// Display Data
-		$key   = sanitize_key($item->name);
-		$level = isset($posted[$key]) ? $posted[$key] : (isset($saved[$key]->level_from) ? $saved[$key]->level_from : 0);  // currently selected or saved level
-		if (isset($templatefree[$key]))
-			$tpfree = $templatefree[$key]->LEVEL;
-		else
-			$tpfree = $freedot;
-		
-		if ($postvariable == 'ritual_value') {
-			$id = "id$key";
-			$output .= "<tr><td class='$class'>";
-			if (isset($pendingxp[$key])) {
-				$output .= "<img src='{$vtmglobal['dots']['dot3']}' alt='*' />";
-			}
-			elseif ($submitted) {
-				if ($item->level == $level) {
-					$output .= "<img src='{$vtmglobal['dots']['dot1full']}' alt='*' />";
-				} else {
-					$output .= "<img src='{$vtmglobal['dots']['dot1empty']}' alt='O' />";
-				}
-			}
-			else
-				$output .= "<input id='$id' name='ritual_value[$key]' type='checkbox' " . checked( $item->level, $level, false) . " value='{$item->level}'>";
-			$output .= "<div><label for='$id'>Level {$item->level} - " . stripslashes($item->name) . "</label></div>";
-			//$output .= "</td>\n";
-		} else {
-			$output .= "<tr><td class='$class vtmcol_key'>" . vtm_formatOutput($item->name) . "</td>";
-			$output .= "<td class='$class vtmcol_dots vtmdot_" . (max($maxdot,$maxdots['default']) > 5 ? 10 : 5) . "'>";
-			
-			$pending = isset($pendingfb[$key]->value) ? $pendingfb[$key]->value : 0 ;         // level bought with freebies
-			$pending = isset($pendingxp[$key]->value) ? $pendingxp[$key]->value : $pending ;  // level bought with xp
-			
-			if ($postvariable == 'virtue_value' && $key == 'courage' 
-				&& (isset($pendingfb['willpower']) || isset($pendingxp['willpower'])))
-				$output .= vtm_render_dot_select($postvariable, $key, $level, $pending, $tpfree, $maxdot, 1);
-			else
-				$output .= vtm_render_dot_select($postvariable, $key, $level, $pending, $tpfree, $maxdot, $submitted);
-		}
-		
-		$output .= "</td><td class='$class'>\n";
-		$output .= vtm_formatOutput($item->description);
-		$output .= "</td></tr>\n";
-	
-	}
-	$output .= "</table>\n";
-
-	return $output;
-}
 
 function vtm_render_attributes($step, $submitted) {
-	global $wpdb;
 	global $vtmglobal;
-
-	$output = "";
-	$items      = vtm_get_chargen_attributes();
 	
-	$pendingfb  = vtm_get_pending_freebies('STAT');  
-	$pendingxp  = vtm_get_pending_chargen_xp('STAT');  
-	$geninfo = vtm_calculate_generation();
-
-	//print_r($pendingxp);
+	$output = "";
+	$items      = vtm_get_chargen_itemlist('STAT');
+	$pendingfb  = vtm_get_pending_freebies('STAT');
+	$pendingxp  = vtm_get_pending_chargen_xp('STAT');
+	$saved      = vtm_get_chargen_saved('STAT');
+	$posted     = isset($_POST['attribute_value']) ? $_POST['attribute_value'] : array();
+	$free       = array();
 	
 	$output .= "<h3>Step $step: Attributes</h3>\n";
 	
@@ -1174,28 +1192,30 @@ function vtm_render_attributes($step, $submitted) {
 	} else {
 		$output .= "<p>You have {$vtmglobal['settings']['attributes-points']} dots to spend on your attributes</p>\n";
 	}
+	echo "<p>items:";
+	print_r($items); echo "</p><p>fb:";
+	print_r($pendingfb); echo "</p><p>xp:";
+	print_r($pendingxp); echo "</p><p>saved:";
+	print_r($saved); echo "</p>";
+	
+	$output .= vtm_render_chargen_section(
+		$saved, 
+		($vtmglobal['settings']['attributes-method'] == "PST"), 
+		$vtmglobal['settings']['attributes-primary'], 
+		$vtmglobal['settings']['attributes-secondary'], 
+		$vtmglobal['settings']['attributes-tertiary'], 
+		1, 
+		$items, 
+		$posted, 
+		$pendingfb,
+		$pendingxp, 
+		'Attributes', 
+		'attribute_value', 
+		$submitted,
+		$vtmglobal['genInfo']['MaxDot'],
+		$free
+	);
 
-	// Get levels saved into database
-	$sql = "SELECT 
-				stats.NAME as name, cs.STAT_ID as itemid, cs.LEVEL as level_from, cs.COMMENT as comment
-			FROM 
-				" . VTM_TABLE_PREFIX . "CHARACTER_STAT cs,
-				" . VTM_TABLE_PREFIX . "STAT stats
-			WHERE 
-				cs.STAT_ID = stats.ID
-				AND CHARACTER_ID = %s";
-	$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
-	$saved = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K)); 
-	//print_r($saved);
-	
-	// Get Posted data
-	$stats = isset($_POST['attribute_value']) ? $_POST['attribute_value'] : array();
-	
-	$output .= vtm_render_chargen_section($saved, ($vtmglobal['settings']['attributes-method'] == "PST"), 
-		$vtmglobal['settings']['attributes-primary'], $vtmglobal['settings']['attributes-secondary'], $vtmglobal['settings']['attributes-tertiary'], 
-		1, $items, $stats, $pendingfb, $pendingxp, 'Attributes', 'attribute_value', 
-		$submitted,$geninfo['MaxDot']);
-	
 	return $output;
 }
 
@@ -1204,34 +1224,13 @@ function vtm_render_chargen_virtues($step, $submitted) {
 	global $vtmglobal;
 
 	$output = "";
-	$items     = vtm_get_chargen_virtues();
-	$pendingfb = vtm_get_pending_freebies('STAT');  // name => value
-	$pendingxp = vtm_get_pending_chargen_xp('STAT');  // name => value
 	
-	//print_r($items);
+	$pendingfb  = vtm_get_pending_freebies('STAT');
+	$pendingxp  = vtm_get_pending_chargen_xp('STAT');
+	$saved      = vtm_get_chargen_saved('STAT');
+	$posted     = isset($_POST['virtue_value']) ? $_POST['virtue_value'] : array();
 	
-	$pendingroad = vtm_get_pending_freebies('ROAD_OR_PATH');
-	
-	$output .= "<h3>Step $step: Virtues</h3>\n";
-	$output .= "<p>You have {$vtmglobal['settings']['virtues-points']} dots to spend on your virtues.</p>\n";
-	
-	// read initial values
-	$sql = "SELECT stats.NAME as name, cstat.STAT_ID as itemid, cstat.LEVEL as level_from
-			FROM 
-				" . VTM_TABLE_PREFIX . "CHARACTER_STAT cstat,
-				" . VTM_TABLE_PREFIX . "STAT stats
-			WHERE
-				cstat.STAT_ID = stats.ID
-				AND stats.GROUPING = 'Virtue'
-				AND CHARACTER_ID = %s ";
-	$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
-	$saved = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K));
-	
-	//print_r($saved);
-
-	$virtues = isset($_POST['virtue_value']) ? $_POST['virtue_value'] : array();
-	
-	// Display Path pull-down
+	// What path are we on
 	if (isset($_POST['path'])) {
 		$selectedpath = $_POST['path'];
 	}
@@ -1241,6 +1240,17 @@ function vtm_render_chargen_virtues($step, $submitted) {
 	else {
 		$selectedpath = $wpdb->get_var($wpdb->prepare("SELECT ROAD_OR_PATH_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $vtmglobal['characterID']));
 	}
+	
+	// Get the list of items to display
+	$pathitems = vtm_get_chargen_virtues($selectedpath);
+	//print_r($pathitems);
+	
+	$output .= "<h3>Step $step: Virtues</h3>\n";
+	$output .= "<p>You have {$vtmglobal['settings']['virtues-points']} dots to spend on your virtues.</p>\n";
+	
+	// Display Path pull-down
+	$pendingroad = vtm_get_pending_freebies('ROAD_OR_PATH');
+
 	$output .= "<p><label><strong>Path of Enlightenment:</strong></label> ";
 	if ($submitted) {
 		$pathname = $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $selectedpath));
@@ -1263,36 +1273,35 @@ function vtm_render_chargen_virtues($step, $submitted) {
 		$output .= "</select>\n";
 	}
 	$output .= "</p>\n";
-
-	$statkey1 = vtm_get_virtue_statkey(1, $selectedpath);
-	$statkey2 = vtm_get_virtue_statkey(2, $selectedpath);
-
-	$pathitems = array (
-		$statkey1 => $items[$statkey1],
-		$statkey2 => $items[$statkey2],
-		'courage' => $items['courage']
-	);
-	//print_r($pathitems);
 	
-	$freedot = vtm_has_virtue_free_dot($selectedpath);
-	
+	// Messages for player
 	if (count($pendingroad) > 0) {
 		$submitted = 1;
 		$output .= "<p>Please remove freebie point spends on your path if you want to alter your Virtues</p>";
 	}
 	if (isset($pendingfb['willpower']) || isset($pendingxp['willpower'])) {
 		$output .= "<p>Please remove freebie or experience spends on Willpower if you want to alter Courage.</p>";
-	}
-	
-	$output .= vtm_render_chargen_section($saved, false, 0, 0, 0, 
-		$freedot, $pathitems, $virtues, $pendingfb, $pendingxp, 'Virtues', 'virtue_value',
-		$submitted, 5);
-	
+	}	
+
+	$output .= vtm_render_chargen_section(
+		$saved, 
+		false, 0, 0, 0, 
+		vtm_has_virtue_free_dot($selectedpath), 
+		$pathitems, 
+		$posted, 
+		$pendingfb, 
+		$pendingxp, 
+		'Virtues', 
+		'virtue_value',
+		$submitted, 
+		5,
+		array()
+	);
+		
 	return $output;
 }
 
 function vtm_render_chargen_freebies($step, $submitted) {
-	global $wpdb;
 	global $vtmglobal;
 
 	$output = "";
@@ -1347,16 +1356,15 @@ function vtm_render_chargen_freebies($step, $submitted) {
 		} 
 		
 	}
-	
+
 	return $output;
 }
 
 function vtm_render_chargen_xp($step, $submitted) {
-	global $wpdb;
 	global $vtmglobal;
 
 	$output = "";
-	
+
 	// Work out how much points are currently available
 	$spent = vtm_get_chargen_xp_spent();
 	// points = total overall - all pending + just pending on this character
@@ -1383,7 +1391,7 @@ function vtm_render_chargen_xp($step, $submitted) {
 	$pendingSpends = array();
 	$sectioncontent['stat']   = vtm_render_chargen_xp_stats($submitted);
 	$sectioncontent['skill']  = vtm_render_chargen_xp_skills($submitted);
-	$sectioncontent['disc']   = vtm_render_xp_disciplines($submitted);
+	$sectioncontent['disc']   = vtm_render_chargen_xp_disciplines($submitted);
 	$sectioncontent['path']   = vtm_render_chargen_xp_paths($submitted);
 	$sectioncontent['merit']  = vtm_render_chargen_xp_merits($submitted);
 	$sectioncontent['ritual'] = vtm_render_chargen_xp_rituals($submitted);
@@ -1391,6 +1399,7 @@ function vtm_render_chargen_xp($step, $submitted) {
 	// DISPLAY TABLES 
 	//-------------------------------
 	$i = 0;
+	$jumpto = array();
 	foreach ($sectionorder as $section) {
 		if (isset($sectioncontent[$section]) && $sectiontitle[$section] && $sectioncontent[$section]) {
 			$jumpto[$i++] = "<a href='#gvid_xp_$section' class='gvxp_jump'>" . $sectiontitle[$section] . "</a>\n";
@@ -1407,7 +1416,7 @@ function vtm_render_chargen_xp($step, $submitted) {
 		} 
 		
 	}
-	
+
 	return $output;
 }
 
@@ -1416,7 +1425,7 @@ function vtm_render_finishing($step, $submitted) {
 	global $vtmglobal;
 
 	$output = "";
-	
+	/*
 	$output .= "<h3>Step $step: Finishing Touches</h3>\n";
 	$output .= "<p>Please fill in more information on your character.</p>\n";
 	
@@ -1607,13 +1616,13 @@ function vtm_render_finishing($step, $submitted) {
 		$output .= "<textarea name='noteforST' rows='5'>" . vtm_formatOutput($stnotes, 1) . "</textarea>\n"; // ADD COLUMN TO CHARACTER
 	$output .= "</td></tr>\n";
 	$output .= "</table>\n";
-	
+	*/
 	return $output;
 }
 function vtm_render_chargen_extbackgrounds($step, $submitted) {
 
 	$output = "";
-	
+	/*
 	$output .= "<h3>Step $step: History and Extended Backgrounds</h3>\n";
 	$output .= "<p>Please fill in more information on your character.</p>\n";
 	
@@ -1672,14 +1681,14 @@ function vtm_render_chargen_extbackgrounds($step, $submitted) {
 		else
 			$output .= "<p><textarea name='question[$id]' rows='4' cols='80'>" . vtm_formatOutput($text) . "</textarea></p>\n";
 	}
-	
+	*/
 	return $output;
 }
 function vtm_render_chargen_submit($step, $submitted) {
 	global $vtmglobal;
 
 	$output = "";
-	
+
 	$output .= "<h3>Step $step: Summary and Submit</h3>\n";
 	$output .= "<p>Below is a summary of the character generation status.</p>\n";
 	
@@ -1727,7 +1736,8 @@ function vtm_render_chargen_submit($step, $submitted) {
 	$link = vtm_get_stlink_url('printCharSheet');
 	$link = add_query_arg('characterID', $vtmglobal['characterID'], $link);
 	$output .= "<br /><p>Click to <a href='$link' title='Print Character'>Print your character</a></p>\n";
-	
+
+
 	return $output;
 }
 function vtm_render_abilities($step, $submitted) {
@@ -1735,11 +1745,22 @@ function vtm_render_abilities($step, $submitted) {
 	global $vtmglobal;
 
 	$output     = "";
-	$items      = vtm_get_chargen_abilities();
-	$pendingfb  = vtm_get_pending_freebies('SKILL'); 
+	$items      = vtm_get_chargen_itemlist('SKILL');
+	$pendingfb  = vtm_get_pending_freebies('SKILL');
 	$pendingxp  = vtm_get_pending_chargen_xp('SKILL');
-	$templatefree = vtm_get_free_levels('SKILL');
-		
+	$saved      = vtm_get_chargen_saved('SKILL');
+	$posted     = isset($_POST['ability_value']) ? $_POST['ability_value'] : array();
+	$free       = vtm_get_free_levels('SKILL');
+	
+	//echo "<p>items:";print_r($items); echo "</p>";
+	//echo "<p>pendingfb";
+	//print_r($pendingfb); echo "</p><p>pendingxp";
+	//print_r($pendingxp); echo "</p>";
+	//echo "<p>saved:";print_r($saved); echo "</p>";
+	//echo "<p>posted:";print_r($posted); echo "</p>";
+	//echo "<p>free";
+	//print_r($free); echo "</p>";
+	
 	$output .= "<h3>Step $step: Abilities</h3>\n";
 	$output .= "<p>You have {$vtmglobal['settings']['abilities-primary']} dots to spend on your Primary abilities, 
 		{$vtmglobal['settings']['abilities-secondary']} to spend on Secondary and {$vtmglobal['settings']['abilities-tertiary']} to 
@@ -1748,30 +1769,22 @@ function vtm_render_abilities($step, $submitted) {
 		$output .= " The maximum you can spend on any one Ability at this stage is {$vtmglobal['settings']['abilities-max']}.";
 	$output .= "</p>\n";
 	
-
-	// read/guess initial values
-	$sql = "SELECT 
-				skills.NAME as name, cs.SKILL_ID as itemid, cs.LEVEL as level_from, cs.COMMENT as comment
-			FROM 
-				" . VTM_TABLE_PREFIX . "CHARACTER_SKILL cs,
-				" . VTM_TABLE_PREFIX . "SKILL skills
-			WHERE 
-				skills.ID = cs.SKILL_ID
-				AND CHARACTER_ID = %s";
-	$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
-	$saved = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K)); 
-	//echo "<li>SQL: $sql</li>\n";
-	
-	$geninfo = vtm_calculate_generation();
-	//print_r($geninfo);
-	
-	// abilities Posted data
-	$abilities = isset($_POST['ability_value']) ? $_POST['ability_value'] : array();
-	
-	$output .= vtm_render_chargen_section($saved, true, 
-		$vtmglobal['settings']['abilities-primary'], $vtmglobal['settings']['abilities-secondary'], $vtmglobal['settings']['abilities-tertiary'], 
-		0, $items, $abilities, $pendingfb, $pendingxp, 'Abilities', 'ability_value', 
-		$submitted,$geninfo['MaxDot'], $templatefree);
+	$output .= vtm_render_chargen_section($saved, 
+		true, 
+		$vtmglobal['settings']['abilities-primary'], 
+		$vtmglobal['settings']['abilities-secondary'], 
+		$vtmglobal['settings']['abilities-tertiary'], 
+		0, 
+		$items, 
+		$posted, 
+		$pendingfb, 
+		$pendingxp, 
+		'Abilities', 
+		'ability_value', 
+		$submitted,
+		$vtmglobal['genInfo']['MaxDot'], 
+		$free
+	);
 
 	return $output;
 }
@@ -1781,31 +1794,32 @@ function vtm_render_chargen_disciplines($step, $submitted) {
 	global $vtmglobal;
 
 	$output = "";
-	$items      = vtm_get_chargen_disciplines();
-	$pendingfb  = vtm_get_pending_freebies('DISCIPLINE'); 
-	$pendingxp  = vtm_get_pending_chargen_xp('DISCIPLINE'); 
-	$geninfo    = vtm_calculate_generation();
-		
+	$items      = vtm_get_chargen_itemlist('DISCIPLINE');
+	//echo "<p>items:";print_r($items); echo "</p>";
+	$pendingfb  = vtm_get_pending_freebies('DISCIPLINE');
+	$pendingxp  = vtm_get_pending_chargen_xp('DISCIPLINE');
+	$saved      = vtm_get_chargen_saved('DISCIPLINE');
+	//echo "<p>saved:";print_r($saved); echo "</p>";
+	$posted     = isset($_POST['discipline_value']) ? $_POST['discipline_value'] : array();
+	$free       = array();
+	
 	$output .= "<h3>Step $step: Disciplines</h3>\n";
 	$output .= "<p>You have {$vtmglobal['settings']['disciplines-points']} dots to spend on your Disciplines</p>\n";
-
-	// read initial values
-	$sql = "SELECT 
-				disc.NAME as name, cd.DISCIPLINE_ID as itemid, cd.LEVEL as level_from
-			FROM 
-				" . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE cd,
-				" . VTM_TABLE_PREFIX . "DISCIPLINE disc
-			WHERE 
-				disc.ID = cd.DISCIPLINE_ID
-				AND CHARACTER_ID = %s";
-	$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
-	$saved = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K)); 
-
-	$disciplines = isset($_POST['discipline_value']) ? $_POST['discipline_value'] : array();
 	
-	$output .= vtm_render_chargen_section($saved, false, 0, 0, 0, 
-		0, $items, $disciplines, $pendingfb, $pendingxp, 'Disciplines', 
-		'discipline_value', $submitted,$geninfo['MaxDisc']);
+	$output .= vtm_render_chargen_section(
+		$saved, 
+		false, 0, 0, 0, 
+		0, 
+		$items, 
+		$posted, 
+		$pendingfb, 
+		$pendingxp, 
+		'Disciplines', 
+		'discipline_value', 
+		$submitted,
+		$vtmglobal['genInfo']['MaxDisc'],
+		$free
+	);
 
 
 	return $output;
@@ -1816,46 +1830,43 @@ function vtm_render_chargen_backgrounds($step,$submitted) {
 	global $vtmglobal;
 
 	$output = "";
-	$items    = vtm_get_chargen_backgrounds();
-	$pending  = vtm_get_pending_freebies('BACKGROUND');  // name => value
-	$templatefree = vtm_get_free_levels('BACKGROUND');
-	
+	$items      = vtm_get_chargen_itemlist('BACKGROUND');
+	$pendingfb  = vtm_get_pending_freebies('BACKGROUND');
+	$pendingxp  = vtm_get_pending_chargen_xp('BACKGROUND');
+	$saved      = vtm_get_chargen_saved('BACKGROUND');
+	$posted     = isset($_POST['background_value']) ? $_POST['background_value'] : array();
+	$free       = vtm_get_free_levels('BACKGROUND');
+
 	$output .= "<h3>Step $step: Backgrounds</h3>\n";
 	$output .= "<p>You have {$vtmglobal['settings']['backgrounds-points']} dots to spend on your Backgrounds</p>\n";
-	
-	// read initial values
-	$sql = "SELECT bg.NAME as name, cbg.BACKGROUND_ID as itemid, cbg.LEVEL as level_from
-			FROM 
-				" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND cbg,
-				" . VTM_TABLE_PREFIX . "BACKGROUND bg
-			WHERE 
-				bg.ID = cbg.BACKGROUND_ID
-				AND CHARACTER_ID = %s";
-	$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
-	$saved = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K));
-	
+
 	// Work out how many dots we need
 	$maxdots = $wpdb->get_var($wpdb->prepare("SELECT MAX_DISCIPLINE FROM " . VTM_TABLE_PREFIX . "GENERATION WHERE ID = %s", $vtmglobal['settings']['limit-generation-low']));
 	$maxbgs = $wpdb->get_results($wpdb->prepare("SELECT ITEMTABLE_ID, LEVEL 
 		FROM " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_MAXIMUM WHERE 
 		ITEMTABLE = 'BACKGROUND' AND TEMPLATE_ID = %s", $vtmglobal['templateID']), OBJECT_K);
-
-	//print_r($vtmglobal['settings']);
-	//echo "<li>limit: {$vtmglobal['settings']['limit-generation-low']} maxdots: $maxdots</li>";
-
 	if (count($maxbgs) > 0) {
 		$maximums = $maxbgs;
 		$maximums['default'] = $maxdots;
 	} else {
 		$maximums = $maxdots;
 	}
-
-	$backgrounds = isset($_POST['background_value']) ? $_POST['background_value'] : array();
-
-	$output .= vtm_render_chargen_section($saved, false, 0, 0, 0, 
-		0, $items, $backgrounds, $pending, array(), 'Backgrounds', 'background_value', 
-		$submitted, $maximums, $templatefree);
 	
+	$output .= vtm_render_chargen_section(
+		$saved, 
+		false, 0, 0, 0, 
+		0, 
+		$items, 
+		$posted, 
+		$pendingfb, 
+		$pendingxp, 
+		'Backgrounds', 
+		'background_value', 
+		$submitted,
+		$maximums, 
+		$free
+	);
+
 	return $output;
 } 
 
@@ -1866,6 +1877,7 @@ function vtm_render_chargen_rituals($step, $submitted) {
 	//print_r ($_POST);
 	
 	$output = "";
+	/*
 	$items    = vtm_get_chargen_rituals();
 	$points   = vtm_get_chargen_ritual_points($items);
 	$pendingxp  = vtm_get_pending_chargen_xp('RITUAL'); 
@@ -1892,7 +1904,7 @@ function vtm_render_chargen_rituals($step, $submitted) {
 
 	$output .= vtm_render_chargen_section($saved, false, 0, 0, 0, 
 	     0, $items, $rituals, array(), $pendingxp, 'Ritual', 'ritual_value', $submitted);
-	
+	*/
 	return $output;
 } 
 
@@ -1900,7 +1912,7 @@ function vtm_render_choose_template() {
 	global $wpdb;
 
 	$output = "";
-	
+	/*
 	$output .= "<h3>Choose a template</h3>\n";
 	
 	$sql = "SELECT ID, NAME, DESCRIPTION FROM " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE WHERE VISIBLE = 'Y' ORDER BY NAME";
@@ -1918,7 +1930,7 @@ function vtm_render_choose_template() {
 	
 	$output .= "<p>Or, update a character: 
 		<label>Reference:</label> <input type='text' name='chargen_reference' value='$ref' size=20 ></p>\n";
-	
+	*/
 	return $output;
 }
 
@@ -1936,10 +1948,7 @@ function vtm_validate_chargen($laststep) {
 		$errormessages = $status[1];
 	}
 	//echo "<p>Do Validate ($laststep, $vtmglobal['characterID'], $ok, $errormessages, {$flow[$laststep-1]['validate']})</p>";
-	
-	if (!$ok)
-		$errormessages .= "<li>Please correct the errors before continuing</li>\n";
-	
+		
 	if ($errormessages != "") {
 		echo "<div class='vtm_error'><ul>$errormessages</ul></div>\n";
 	}
@@ -1961,31 +1970,18 @@ function vtm_save_attributes() {
 	global $wpdb;
 	global $vtmglobal;
 	
-	// List of attributes
-	$attributes = vtm_get_chargen_attributes();
-	
-	// Get saved into database
-	$sql = "SELECT stats.NAME, cstat.STAT_ID, cstat.ID, cstat.COMMENT
-			FROM 
-				" . VTM_TABLE_PREFIX . "CHARACTER_STAT cstat,
-				" . VTM_TABLE_PREFIX . "STAT stats
-			WHERE 
-				stats.ID = cstat.STAT_ID
-				AND CHARACTER_ID = %s";
-	$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
-	$saved = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K));
+	$items  = vtm_get_chargen_itemlist('STAT');
+	$saved  = vtm_get_chargen_saved('STAT');
+	$posted = isset($_POST['attribute_value']) ? $_POST['attribute_value'] : array();
 
-	// Get levels to be saved
-	$new = isset($_POST['attribute_value']) ? $_POST['attribute_value'] : array();
-	
-	foreach ($attributes as $attribute) {
-		$key     = sanitize_key($attribute->name);
-		$value   = isset($new[$key]) ? $new[$key] : 0;
-		$comment = isset($saved[$key]->COMMENT) ? $saved[$key]->COMMENT : '';
-	
+	foreach ($items as $attribute) {
+		$key     = sanitize_key($attribute['ITEMNAME']);
+		$value   = isset($posted[$key]) ? $posted[$key] : 0;
+		$comment = isset($saved[$key]->comment) ? $saved[$key]->comment : '';
+
 		$data = array(
 			'CHARACTER_ID' => $vtmglobal['characterID'],
-			'STAT_ID'      => $attribute->ID,
+			'STAT_ID'      => $attribute['ITEMTABLE_ID'],
 			'LEVEL'        => $value,
 			'COMMENT'      => $comment
 		);
@@ -1994,7 +1990,7 @@ function vtm_save_attributes() {
 			$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_STAT",
 				$data,
 				array (
-					'ID' => $saved[$key]->ID
+					'ID' => $saved[$key]->chartableid
 				)
 			);
 		} else {
@@ -2004,15 +2000,16 @@ function vtm_save_attributes() {
 						array ('%d', '%d', '%d', '%s')
 					);
 		}
-	}
+	}		
 	
 	// Delete appearance, if it's no longer needed
-	if (isset($saved['appearance']) && !isset($new['appearance'])) {
+	if (isset($saved['appearance']) && !isset($posted['appearance'])) {
 		// Delete
 		$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "CHARACTER_STAT
 				WHERE CHARACTER_ID = %s AND STAT_ID = %s";
-		$wpdb->get_results($wpdb->prepare($sql,$vtmglobal['characterID'],$saved['appearance']->STAT_ID));
+		$wpdb->get_results($wpdb->prepare($sql,$vtmglobal['characterID'],$saved['appearance']->itemid));
 	}
+
 	return $vtmglobal['characterID'];
 
 }
@@ -2020,6 +2017,8 @@ function vtm_save_attributes() {
 function vtm_save_rituals() {
 	global $wpdb;
 	global $vtmglobal;
+	
+	/*
 	$rituals = vtm_get_chargen_rituals();
 	
 	// Get saved into database
@@ -2074,7 +2073,7 @@ function vtm_save_rituals() {
 			$wpdb->get_results($sql);
 		}
 	}
-	
+	*/
 	return $vtmglobal['characterID'];
 }
 
@@ -2088,23 +2087,23 @@ function vtm_save_freebies() {
 	$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
 	$result = $wpdb->get_results($sql);
 	
-	$freebiecosts['STAT']       = vtm_get_freebie_costs('STAT');
-	$freebiecosts['SKILL']      = vtm_get_freebie_costs('SKILL');
-	$freebiecosts['DISCIPLINE'] = vtm_get_freebie_costs('DISCIPLINE');
-	$freebiecosts['BACKGROUND'] = vtm_get_freebie_costs('BACKGROUND');
-	$freebiecosts['MERIT']      = vtm_get_freebie_costs('MERIT');
-	$freebiecosts['PATH']       = vtm_get_freebie_costs('PATH');
-	$freebiecosts['ROAD_OR_PATH'] = vtm_get_freebie_costs('ROAD_OR_PATH');
-	$freebiecosts['STAT'] = array_merge($freebiecosts['STAT'], vtm_get_freebie_costs('ROAD_OR_PATH'));
+	$freebiecosts['STAT']       = vtm_get_chargen_costs('STAT', 'FREEBIE_COST');
+	$freebiecosts['SKILL']      = vtm_get_chargen_costs('SKILL', 'FREEBIE_COST');
+	$freebiecosts['DISCIPLINE'] = vtm_get_chargen_costs('DISCIPLINE', 'FREEBIE_COST');
+	$freebiecosts['BACKGROUND'] = vtm_get_chargen_costs('BACKGROUND', 'FREEBIE_COST');
+	$freebiecosts['MERIT']      = vtm_get_chargen_costs('MERIT', 'FREEBIE_COST');
+	$freebiecosts['PATH']       = vtm_get_chargen_costs('PATH', 'FREEBIE_COST');
+	$freebiecosts['ROAD_OR_PATH'] = vtm_get_chargen_costs('ROAD_OR_PATH', 'FREEBIE_COST');
+	$freebiecosts['STAT'] = array_merge($freebiecosts['STAT'], vtm_get_chargen_costs('ROAD_OR_PATH', 'FREEBIE_COST'));
 
 	$templatefree['SKILL']      = vtm_get_free_levels('SKILL');
 	
-	$current['STAT']       = vtm_get_current_stats();
-	$current['SKILL']      = vtm_get_current_skills();
-	$current['DISCIPLINE'] = vtm_get_current_disciplines();
-	$current['BACKGROUND'] = vtm_get_current_backgrounds();
-	$current['MERIT']      = vtm_get_current_merits();
-	$current['PATH']       = vtm_get_current_paths();
+	$current['STAT']       = vtm_get_chargen_saved('STAT');
+	$current['SKILL']      = vtm_get_chargen_saved('SKILL');
+	$current['DISCIPLINE'] = vtm_get_chargen_saved('DISCIPLINE');
+	$current['BACKGROUND'] = vtm_get_chargen_saved('BACKGROUND');
+	$current['MERIT']      = vtm_get_chargen_saved('MERIT');
+	$current['PATH']       = vtm_get_chargen_saved('PATH');
 	$current['STAT'] = array_merge($current['STAT'], vtm_get_current_road());
 			
 	$bought['STAT']       = isset($_POST['freebie_stat']) ? $_POST['freebie_stat'] : array();
@@ -2113,6 +2112,13 @@ function vtm_save_freebies() {
 	$bought['BACKGROUND'] = isset($_POST['freebie_background']) ? $_POST['freebie_background'] : array();
 	$bought['MERIT']      = isset($_POST['freebie_merit']) ? $_POST['freebie_merit'] : array();
 	$bought['PATH']       = isset($_POST['freebie_path']) ? $_POST['freebie_path'] : array();
+
+	$itemids['STAT']       = isset($_POST['freebie_stat_itemid']) ? $_POST['freebie_stat_itemid'] : array();
+	$itemids['SKILL']      = isset($_POST['freebie_skill_itemid']) ? $_POST['freebie_skill_itemid'] : array();
+	$itemids['DISCIPLINE'] = isset($_POST['freebie_discipline_itemid']) ? $_POST['freebie_discipline_itemid'] : array();
+	$itemids['BACKGROUND'] = isset($_POST['freebie_background_itemid']) ? $_POST['freebie_background_itemid'] : array();
+	$itemids['MERIT']      = isset($_POST['freebie_merit_itemid']) ? $_POST['freebie_merit_itemid'] : array();
+	$itemids['PATH']       = isset($_POST['freebie_path_itemid']) ? $_POST['freebie_path_itemid'] : array();
 
 	$specialisation['STAT']       = isset($_POST['freebie_stat_spec']) ? $_POST['freebie_stat_spec'] : array();
 	$specialisation['SKILL']      = isset($_POST['freebie_skill_spec']) ? $_POST['freebie_skill_spec'] : array();
@@ -2132,12 +2138,12 @@ function vtm_save_freebies() {
 				if ($bought[$type][$key] < $row->LEVEL) {
 					if (!isset($current[$type][$key]) || (isset($current[$type][$key]) && $current[$type][$key]->level_from < $row->LEVEL)) {
 						$bought[$type][$key] = $row->LEVEL;
-						//echo "<li>New bought level for $type $key is {$bought[$type][$key]}</li>";
+						echo "<li>New bought level for $type $key is {$bought[$type][$key]}</li>";
 					}
 				} 
 			} 
 			elseif (!isset($current[$type][$key])) {
-				//echo "<li>Adding $type $key to level {$row->LEVEL}</li>";
+				echo "<li>Adding $type $key to level {$row->LEVEL}</li>";
 				$bought[$type][$key] = $row->LEVEL;
 			}
 		}
@@ -2145,75 +2151,68 @@ function vtm_save_freebies() {
 	
 	foreach ($bought as $type => $items) {
 		foreach ($items as $key => $levelto) {
-			$levelfrom   = isset($templatefree[$type][$key]->LEVEL)  ? $templatefree[$type][$key]->LEVEL  : 0;
-			$levelfrom   = isset($current[$type][$key]->level_from)  ? $current[$type][$key]->level_from  : $levelfrom;
-			$itemtable = $type;
+			if (isset($templatefree[$type][$key]->LEVEL))
+				$freelevel = $templatefreekey[$key]->LEVEL;
+			else
+				$freelevel = 0;
+			$currlevel  = isset($current[$type][$key]->level_from)  ? $current[$type][$key]->level_from  : 0;
+			$levelfrom  = max($currlevel, $freelevel);
+			$costkey    = preg_replace("/_\d+$/", "", $key);
 			
-			if ($levelto != 0) {
-				$itemname = $key;
-				if (isset($current[$type][$key]->name)) {
-					$name = $current[$type][$key]->name;
-				} else {
-					$key  = preg_replace("/_\d+$/", "", $key);
-					$name = $current[$type][$key]->name;
-				}
-							
-				$chartableid = isset($current[$type][$key]->chartableid) ? $current[$type][$key]->chartableid : 0;
-				
-				// no cost for free stuff
-				if ($type == 'MERIT')
-					$amount = isset($freebiecosts[$type][$key][0][1]) ? $freebiecosts[$type][$key][0][1] : 0;
-				elseif ($type == 'STAT' && $key == 'pathrating') {
-					$pathname = sanitize_key($current[$type][$key]->grp);
-					$itemtable = "ROAD_OR_PATH";
-					//echo "<li>pathname: $pathname, from: $levelfrom, to: $levelto</li>";
-					$amount = isset($freebiecosts[$type][$pathname][$levelfrom][$levelto]) ? $freebiecosts[$type][$pathname][$levelfrom][$levelto] : 0;
-				}
-				else
-					$amount = isset($freebiecosts[$type][$key][$levelfrom][$levelto]) ? $freebiecosts[$type][$key][$levelfrom][$levelto] : 0;
-				$itemid      = $current[$type][$key]->itemid;
-				$detail     = isset($pending_detail[$type][$itemname]) ? $pending_detail[$type][$itemname] : '';
-				if (isset($specialisation[$type][$itemname]) && $specialisation[$type][$itemname] != '')
-					$spec = $specialisation[$type][$itemname];
-				elseif (isset($current[$type][$key]->specialisation) && $current[$type][$key]->specialisation != '')
-					$spec =  $current[$type][$key]->specialisation;
-				elseif (isset($templatefree[$itemname]->SPECIALISATION)) 
-					$spec = $templatefree[$itemname]->SPECIALISATION;
-				else
-					$spec = '';
-					
-				//echo "<li>itemname: $itemname, key: $key, from level $levelfrom to $levelto, spec: $spec, cost: $amount</li>\n";
-				
-				if ($levelto > $levelfrom || $type == 'MERIT') {
-					$data = array (
-						'CHARACTER_ID'   => $vtmglobal['characterID'],
-						'CHARTABLE'      => 'CHARACTER_' . $type,
-						'CHARTABLE_ID'   => $chartableid,
-						'LEVEL_FROM'     => $levelfrom,
-						
-						'LEVEL_TO'       => $levelto,
-						'AMOUNT'         => $amount,
-						'ITEMTABLE'      => $itemtable,
-						'ITEMNAME'       => $itemname,
-						
-						'ITEMTABLE_ID'   => $itemid,
-						'SPECIALISATION' => $spec,
-						'PENDING_DETAIL' => $detail
-					);
-					$wpdb->insert(VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND",
-								$data,
-								array (
-									'%d', '%s', '%d', '%d',
-									'%d', '%d', '%s', '%s',
-									'%d', '%s', '%s'
-								)
-							);
-					if ($wpdb->insert_id == 0) {
-						echo "<p style='color:red'><b>Error:</b> $name could not be inserted</p>\n";
-					}		
-					//print_r($data);
-				}
+			if ($type == 'STAT' && $key == 'pathrating') {
+				$costkey = sanitize_key($current[$type][$key]->grp);
 			}
+			if ($type == 'MERIT') {
+				$levelfrom = 0;
+				$levelto = 1;
+			}
+			$amount      = isset($freebiecosts[$type][$costkey][$levelfrom][$levelto]) ? $freebiecosts[$type][$costkey][$levelfrom][$levelto] : 0;
+			$chartableid = isset($current[$type][$key]->chartableid) ? $current[$type][$key]->chartableid : 0;
+			$detail      = isset($pending_detail[$type][$key]) ? $pending_detail[$type][$key] : '';
+
+			if (isset($specialisation[$type][$key]) && $specialisation[$type][$key] != '')
+				$spec = $specialisation[$type][$key];
+			elseif (isset($current[$type][$key]->specialisation) && $current[$type][$key]->specialisation != '')
+				$spec =  $current[$type][$key]->specialisation;
+			elseif (isset($templatefree[$key][$key]->SPECIALISATION)) 
+				$spec = $templatefree[$key][$key]->SPECIALISATION;
+			else
+				$spec = '';
+			
+			//echo "<li>key: $key, from level $levelfrom to $levelto, spec: $spec, cost: $amount, chartableid: $chartableid, detail: $detail</li>\n";
+			
+			if ($levelto > $levelfrom) {
+				$itemid = $itemids[$type][$key];
+				
+				$data = array (
+					'CHARACTER_ID'   => $vtmglobal['characterID'],
+					'CHARTABLE'      => 'CHARACTER_' . $type,
+					'CHARTABLE_ID'   => $chartableid,
+					'LEVEL_FROM'     => $levelfrom,
+					
+					'LEVEL_TO'       => $levelto,
+					'AMOUNT'         => $amount,
+					'ITEMTABLE'      => $type,
+					'ITEMNAME'       => $key,
+					
+					'ITEMTABLE_ID'   => $itemid,
+					'SPECIALISATION' => $spec,
+					'PENDING_DETAIL' => $detail
+				);
+				$wpdb->insert(VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND",
+							$data,
+							array (
+								'%d', '%s', '%d', '%d',
+								'%d', '%d', '%s', '%s',
+								'%d', '%s', '%s'
+							)
+						);
+				if ($wpdb->insert_id == 0) {
+					echo "<p style='color:red'><b>Error:</b> $key could not be inserted</p>\n";
+				}		
+				
+				//print_r($data);
+			}	
 		}
 	}
 
@@ -2224,6 +2223,7 @@ function vtm_save_history() {
 	global $wpdb;
 	global $vtmglobal;
 
+	/*
 	$sql = "SELECT questions.ID as questID, cq.ID as id, cq.PENDING_DETAIL as detail
 			FROM 
 				" . VTM_TABLE_PREFIX . "EXTENDED_BACKGROUND questions,
@@ -2293,7 +2293,7 @@ function vtm_save_history() {
 			);
 		}
 	}
-
+	*/
 	return $vtmglobal['characterID'];
 }
 
@@ -2301,6 +2301,7 @@ function vtm_save_finish() {
 	global $wpdb;
 	global $vtmglobal;
 
+	/*
 	// Save CHARACTER information
 	$dob = $_POST['year_dob'] . '-' . $_POST['month_dob'] . '-' . $_POST['day_dob'];
 	$doe = $_POST['year_doe'] . '-' . $_POST['month_doe'] . '-' . $_POST['day_doe'];
@@ -2375,16 +2376,16 @@ function vtm_save_finish() {
 			);
 			$result = $wpdb->update(VTM_TABLE_PREFIX . $table, $data, array ('ID' => $id),array('%s'));		
 
-			/*if ($result) 			echo "<p style='color:green'>Updated $name speciality with $comment</p>\n";
-			else if ($result === 0) echo "<p style='color:orange'>No updates made to $name speciality</p>\n";
-			else {
-				$wpdb->show_errors();
-				$wpdb->print_error();
-				echo "<p style='color:red'>Could not update $name speciality</p>\n";
-			}*/
+			//if ($result) 			echo "<p style='color:green'>Updated $name speciality with $comment</p>\n";
+			//else if ($result === 0) echo "<p style='color:orange'>No updates made to $name speciality</p>\n";
+			//else {
+			//	$wpdb->show_errors();
+			//	$wpdb->print_error();
+			//	echo "<p style='color:red'>Could not update $name speciality</p>\n";
+			//}
 		}
 	}
-
+	*/
 	return $vtmglobal['characterID'];
 }
 
@@ -2392,6 +2393,7 @@ function vtm_save_xp() {
 	global $wpdb;
 	global $vtmglobal;
 
+	/*
 	$playerID = $wpdb->get_var($wpdb->prepare("SELECT PLAYER_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $vtmglobal['characterID']));
 	
 	// Delete current pending spends
@@ -2569,7 +2571,7 @@ function vtm_save_xp() {
 			}
 		}
 	}
-
+	*/
 	return $vtmglobal['characterID'];
 }
 
@@ -2577,64 +2579,68 @@ function vtm_save_abilities() {
 	global $wpdb;
 	global $vtmglobal;
 
-	$new       = isset($_POST['ability_value']) ? $_POST['ability_value'] : array();
-	$abilities = vtm_get_chargen_abilities();
-	
-	// Get saved into database
-	$sql = "SELECT skills.NAME, cskill.SKILL_ID, cskill.ID, cskill.LEVEL, cskill.COMMENT
-			FROM 
-				" . VTM_TABLE_PREFIX . "CHARACTER_SKILL cskill,
-				" . VTM_TABLE_PREFIX . "SKILL skills
-			WHERE 
-				cskill.SKILL_ID = skills.ID
-				AND cskill.CHARACTER_ID = %s";
-	$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
-	$saved = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K));
-
-	// Get free stuff from template to get specialities
+	$items  = vtm_get_chargen_itemlist('SKILL');
+	$saved  = vtm_get_chargen_saved('SKILL');
+	$posted = isset($_POST['ability_value']) ? $_POST['ability_value'] : array();
 	$templatefree = vtm_get_free_levels('SKILL');
-	
-	//print_r($new);
-	//print_r($current);
 
-	foreach ($abilities as $ability) {
-		$key     = sanitize_key($ability->name);
-		$value   = isset($new[$key]) ? $new[$key] : 0;
+	foreach ($items as $ability) {
+		$suffix = "";
+		$i      = 1;
+		if ($ability['MULTIPLE'] == 'Y') {
+			$suffix = "_$i";
+			$i++;
+		}		
+		$key    = sanitize_key($ability['ITEMNAME']) . $suffix;
 		
-		if ($value > 0) {
-			if (isset($saved[$key]->COMMENT) && $saved[$key]->COMMENT != '')
-				$comment = $saved[$key]->COMMENT ;
-			elseif (isset($templatefree[$key]->SPECIALISATION))
-				$comment = $templatefree[$key]->SPECIALISATION;
-			else
-				$comment = '';
-			
-			$data = array(
-				'CHARACTER_ID'  => $vtmglobal['characterID'],
-				'SKILL_ID'      => $ability->ID,
-				'LEVEL'         => $value,
-				'COMMENT'		=> $comment
-			);
-			if (isset($saved[$key])) {
-				if ($saved[$key]->LEVEL != $value) {
-					//echo "<li>Updated $key at $value</li>\n";
-					// update
-					$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_SKILL",
-						$data,
-						array (
-							'ID' => $saved[$key]->ID
-						)
-					);
-				} //else {
-					//echo "<li>No need to update $key</li>\n";
-				//}
-			} else {
-				//echo "<li>Added $key at $value</li>\n";
-				// insert
-				$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_SKILL",
+		while ((isset($posted[$key]) || isset($saved[$key]->level_from)) && $i != 0) {
+		
+			$value   = isset($posted[$key]) ? $posted[$key] : 0;
+			//echo "<li>Key: $key, Value: $value, i: $i, suffix: $suffix, multiple: {$ability['MULTIPLE']}</li>";
+			if ($value > 0) {
+				if (isset($saved[$key]->comment) && $saved[$key]->comment != '')
+					$comment = $saved[$key]->comment ;
+				elseif (isset($templatefree[$key]->SPECIALISATION))
+					$comment = $templatefree[$key]->SPECIALISATION;
+				else
+					$comment = '';
+				
+				$data = array(
+					'CHARACTER_ID'  => $vtmglobal['characterID'],
+					'SKILL_ID'      => $ability['ITEMTABLE_ID'],
+					'LEVEL'         => $value,
+					'COMMENT'		=> $comment
+				);
+				//print_r($data);
+				if (isset($saved[$key])) {
+					if ($saved[$key]->level_from != $value) {
+						//echo "<li>Updated $key at $value</li>\n";
+						// update
+						$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_SKILL",
 							$data,
-							array ('%d', '%d', '%d', '%s')
+							array (
+								'ID' => $saved[$key]->chartableid
+							)
 						);
+					} //else {
+					//	echo "<li>No need to update $key</li>\n";
+					//}
+				} else {
+					//echo "<li>Added $key at $value</li>\n";
+					// insert
+					$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_SKILL",
+								$data,
+								array ('%d', '%d', '%d', '%s')
+							);
+				}
+			}
+			if ($ability['MULTIPLE'] == 'Y') {
+				$suffix = "_$i";
+				$i++;
+				$key    = sanitize_key($ability['ITEMNAME']) . $suffix;
+				//echo "<li>loop? $suffix</li>";
+			} else {
+				$i = 0;
 			}
 		}
 	}
@@ -2642,11 +2648,11 @@ function vtm_save_abilities() {
 	// Delete anything no longer needed
 	foreach ($saved as $id => $value) {
 	
-		if (!isset($new[$id]) || $new[$id] <= 0) {
+		if (!isset($posted[$id]) || $posted[$id] <= 0) {
 			// Delete
 			$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "CHARACTER_SKILL
 					WHERE CHARACTER_ID = %s AND SKILL_ID = %s";
-			$sql = $wpdb->prepare($sql,$vtmglobal['characterID'],$saved[$id]->SKILL_ID);
+			$sql = $wpdb->prepare($sql,$vtmglobal['characterID'],$saved[$id]->itemid);
 			//echo "<li>Delete $id ($sql)</li>\n";
 			$wpdb->get_results($sql);
 		}
@@ -2659,41 +2665,27 @@ function vtm_save_disciplines() {
 	global $wpdb;
 	global $vtmglobal;
 
-	$new = $_POST['discipline_value'];
-	$disciplines = vtm_get_chargen_disciplines();
-	
-	$sql = "SELECT disc.NAME, cdisc.DISCIPLINE_ID, cdisc.ID, cdisc.LEVEL
-			FROM 
-				" . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE cdisc,
-				" . VTM_TABLE_PREFIX . "DISCIPLINE disc
-			WHERE 
-				cdisc.DISCIPLINE_ID = disc.ID
-				AND CHARACTER_ID = %s";
-	$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
-	$saved = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K));
+	$items  = vtm_get_chargen_itemlist('DISCIPLINE');
+	$saved  = vtm_get_chargen_saved('DISCIPLINE');
+	$posted = isset($_POST['discipline_value']) ? $_POST['discipline_value'] : array();
 
-	//echo "<li>SQL:$sql</li>\n";
-	//print_r($new);
-	//print_r($disciplines);
-	//print_r($saved);
-
-	foreach ($disciplines as $discipline) {
-		$key     = sanitize_key($discipline->name);
-		$value   = isset($new[$key]) ? $new[$key] : 0;
+	foreach ($items as $discipline) {
+		$key     = sanitize_key($discipline['ITEMNAME']);
+		$value   = isset($posted[$key]) ? $posted[$key] : 0;
 		if ($value > 0) {
 			$data = array(
 				'CHARACTER_ID'  => $vtmglobal['characterID'],
-				'DISCIPLINE_ID' => $discipline->ID,
+				'DISCIPLINE_ID' => $discipline['ITEMTABLE_ID'],
 				'LEVEL'         => $value
 			);
 			if (isset($saved[$key])) {
-				if ($saved[$key]->LEVEL != $value) {
+				if ($saved[$key]->level_from != $value) {
 					//echo "<li>Updated $key at $value</li>\n";
 					// update
 					$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE",
 						$data,
 						array (
-							'ID' => $saved[$key]->ID
+							'ID' => $saved[$key]->chartableid
 						)
 					);
 				} //else {
@@ -2712,7 +2704,7 @@ function vtm_save_disciplines() {
 		
 	// Delete anything no longer needed
 	foreach ($saved as $id => $row) {
-		if (!isset($new[$id]) || $new[$id] == 0) {
+		if (!isset($posted[$id]) || $posted[$id] == 0) {
 			// Delete any selected rituals associated with a deleted discipline
 			$sql = "SELECT crit.ID 
 					FROM 
@@ -2722,7 +2714,7 @@ function vtm_save_disciplines() {
 						crit.CHARACTER_ID = %s 
 						AND crit.RITUAL_ID = rit.ID
 						AND rit.DISCIPLINE_ID = %s";
-			$sql = $wpdb->prepare($sql,$vtmglobal['characterID'],$saved[$id]->DISCIPLINE_ID);
+			$sql = $wpdb->prepare($sql,$vtmglobal['characterID'],$saved[$id]->itemid);
 			//echo "<p>ritual SQL: $sql</p>";
 			$rituals = $wpdb->get_col($sql);
 			if (count($rituals) > 0) {
@@ -2738,12 +2730,12 @@ function vtm_save_disciplines() {
 			// Delete
 			$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE
 					WHERE CHARACTER_ID = %s AND DISCIPLINE_ID = %s";
-			$sql = $wpdb->prepare($sql,$vtmglobal['characterID'],$saved[$id]->DISCIPLINE_ID);
+			$sql = $wpdb->prepare($sql,$vtmglobal['characterID'],$saved[$id]->itemid);
 			//echo "<li>Delete $id ($sql)</li>\n";
 			$wpdb->get_results($sql);
 		}
 	}
-	
+
 	return $vtmglobal['characterID'];
 
 }
@@ -2752,32 +2744,18 @@ function vtm_save_backgrounds() {
 	global $wpdb;
 	global $vtmglobal;
 
-	$new = isset($_POST['background_value']) ? $_POST['background_value'] : array();
-	$backgrounds = vtm_get_chargen_backgrounds();
-	
-	$sql = "SELECT bg.NAME, cbg.BACKGROUND_ID, cbg.ID, cbg.COMMENT, cbg.LEVEL
-			FROM 
-				" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND cbg,
-				" . VTM_TABLE_PREFIX . "BACKGROUND bg
-			WHERE 
-				cbg.BACKGROUND_ID = bg.ID
-				AND cbg.CHARACTER_ID = %s";
-	$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
-	$saved = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K));
-
-	// Get free stuff from template to get specialities
+	$items  = vtm_get_chargen_itemlist('BACKGROUND');
+	$saved  = vtm_get_chargen_saved('BACKGROUND');
+	$posted = isset($_POST['background_value']) ? $_POST['background_value'] : array();
 	$templatefree = vtm_get_free_levels('BACKGROUND');
 
-	//print_r($new);
-	//print_r($current);
-
-	foreach ($backgrounds as $background) {
-		$key     = sanitize_key($background->name);
-		$value   = isset($new[$key]) ? $new[$key] : 0;
+	foreach ($items as $background) {
+		$key     = sanitize_key($background['ITEMNAME']);
+		$value   = isset($posted[$key]) ? $posted[$key] : 0;
 		
 		if ($value > 0) {
-			if (isset($saved[$key]->COMMENT) && $saved[$key]->COMMENT != '')
-				$comment = $saved[$key]->COMMENT ;
+			if (isset($saved[$key]->comment) && $saved[$key]->comment != '')
+				$comment = $saved[$key]->comment ;
 			elseif (isset($templatefree[$key]->SPECIALISATION))
 				$comment = $templatefree[$key]->SPECIALISATION;
 			else
@@ -2785,18 +2763,18 @@ function vtm_save_backgrounds() {
 			
 			$data = array(
 				'CHARACTER_ID'  => $vtmglobal['characterID'],
-				'BACKGROUND_ID' => $background->ID,
+				'BACKGROUND_ID' => $background['ITEMTABLE_ID'],
 				'LEVEL'         => $value,
 				'COMMENT'       => $comment
 			);
 			if (isset($saved[$key])) {
-				if ($saved[$key]->LEVEL != $value) {
+				if ($saved[$key]->level_from != $value) {
 					//echo "<li>Updated $key at $value</li>\n";
 					// update
 					$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND",
 						$data,
 						array (
-							'ID' => $saved[$key]->ID
+							'ID' => $saved[$key]->chartableid
 						)
 					);
 				} //else {
@@ -2816,12 +2794,12 @@ function vtm_save_backgrounds() {
 	// Delete anything no longer needed
 	foreach ($saved as $id => $value) {
 	
-		if (!isset($new[$id]) || $new[$id] == 0) {
+		if (!isset($posted[$id]) || $posted[$id] == 0) {
 			//echo "<li>Deleted $id</li>\n";
 			// Delete
 			$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND
 					WHERE CHARACTER_ID = %s AND BACKGROUND_ID = %s";
-			$wpdb->get_results($wpdb->prepare($sql,$vtmglobal['characterID'],$saved[$id]->BACKGROUND_ID));
+			$wpdb->get_results($wpdb->prepare($sql,$vtmglobal['characterID'],$saved[$id]->chartableid));
 		}
 	}
 
@@ -2833,14 +2811,15 @@ function vtm_save_virtues() {
 	global $wpdb;
 	global $vtmglobal;
 	
-	$new = isset($_POST['virtue_value']) ? $_POST['virtue_value'] : array();
+	$saved        = vtm_get_chargen_saved('STAT');
+	$posted       = isset($_POST['virtue_value']) ? $_POST['virtue_value'] : array();
 	$selectedpath = $_POST['path'];
-	
+	$virtues      = vtm_get_chargen_virtues($selectedpath);
+
 	// Update CHARACTER with road/path ID
 	$data = array (
 		'ROAD_OR_PATH_ID'     => $selectedpath
 	);
-	//print_r($data);
 	$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER",
 		array ('ROAD_OR_PATH_ID' => $selectedpath),
 		array ('ID' => $vtmglobal['characterID'])
@@ -2855,7 +2834,7 @@ function vtm_save_virtues() {
 	$data = array(
 		'CHARACTER_ID' => $vtmglobal['characterID'],
 		'STAT_ID'      => $wpid,
-		'LEVEL'        => isset($new['courage']) ? $new['courage'] : 0
+		'LEVEL'        => isset($posted['courage']) ? $posted['courage'] : 0
 	);
 	if (isset($wpcsid)) {
 		// update
@@ -2866,73 +2845,52 @@ function vtm_save_virtues() {
 	} 
 	else {
 		// insert
-		//print_r($data);
 		$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_STAT",
-					$data,
-					array ('%d', '%d', '%d')
-				);
+			$data,
+			array ('%d', '%d', '%d')
+		);
 	}
 	
-	// Update CHARACTER_STAT with virtue ratings
-	$virtues  = vtm_get_chargen_virtues();
-	$statkey1 = vtm_get_virtue_statkey(1, $selectedpath);
-	$statkey2 = vtm_get_virtue_statkey(2, $selectedpath);
-	
-	$statval1 = isset($new[$statkey1]) ? $new[$statkey1] : 0;
-	$statval2 = isset($new[$statkey2]) ? $new[$statkey2] : 0;
-	
-	$sql = "SELECT stats.NAME, cstat.STAT_ID, cstat.ID
-			FROM 
-				" . VTM_TABLE_PREFIX . "CHARACTER_STAT cstat,
-				" . VTM_TABLE_PREFIX . "STAT stats
-			WHERE 
-				stats.ID = cstat.STAT_ID
-				AND stats.GROUPING = 'Virtue'
-				AND CHARACTER_ID = %s";
-	$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
-	$saved = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K));
-	
+	// Update CHARACTER_STAT with virtue ratings	
 	foreach ($virtues as $attribute) {
-		$key     = sanitize_key($attribute->name);
-		$value   = isset($new[$key]) ? $new[$key] : 0;
+		$key   = sanitize_key($attribute['ITEMNAME']);
+		$value = isset($posted[$key]) ? $posted[$key] : 0;
 		
-		if ($key == $statkey1 || $key == $statkey2 || $key == 'courage') {
-			$data = array(
-				'CHARACTER_ID' => $vtmglobal['characterID'],
-				'STAT_ID'      => $attribute->ID,
-				'LEVEL'        => $value
+		$data = array(
+			'CHARACTER_ID' => $vtmglobal['characterID'],
+			'STAT_ID'      => $attribute['ITEMTABLE_ID'],
+			'LEVEL'        => $value
+		);
+		if (isset($saved[$key])) {
+			echo "<li>Updated $key at $value</li>\n";
+			// update
+			$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_STAT",
+				$data,
+				array (
+					'ID' => $saved[$key]->chartableid
+				)
 			);
-			if (isset($saved[$key])) {
-				//echo "<li>Updated $key at $value</li>\n";
-				// update
-				$wpdb->update(VTM_TABLE_PREFIX . "CHARACTER_STAT",
-					$data,
-					array (
-						'ID' => $saved[$key]->ID
-					)
-				);
-			} 
-			else {
-				//echo "<li>Added $key at $value</li>\n";
-				// insert
-				$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_STAT",
-							$data,
-							array ('%d', '%d', '%d')
-						);
-			}
+		} 
+		else {
+			echo "<li>Added $key at $value</li>\n";
+			// insert
+			$wpdb->insert(VTM_TABLE_PREFIX . "CHARACTER_STAT",
+				$data,
+				array ('%d', '%d', '%d')
+			);
 		}
 	}
 	
 
 	// Delete anything no longer needed
-	foreach ($saved as $id => $value) {
-	
-		if (!isset($new[$id])) {
+	foreach ($saved as $row) {
+		$key = sanitize_key($row->name);
+		if (!isset($posted[$key]) && $row->grp == 'Virtue') {
 			// Delete
 			$sql = "DELETE FROM " . VTM_TABLE_PREFIX . "CHARACTER_STAT
 					WHERE CHARACTER_ID = %s AND STAT_ID = %s";
-			$sql = $wpdb->prepare($sql,$vtmglobal['characterID'],$saved[$id]->STAT_ID);
-			//echo "<li>Delete $id ($sql)</li>\n";
+			$sql = $wpdb->prepare($sql,$vtmglobal['characterID'],$saved[$key]->itemid);
+			//echo "<li>Delete $key ($sql)</li>\n";
 			$wpdb->get_results($sql);
 		}
 	}
@@ -2944,7 +2902,8 @@ function vtm_save_basic_info() {
 	global $wpdb;
 	global $current_user;
 	global $vtmglobal;
-		
+	
+	/*
 	// New Player?
 	if (isset($_POST['newplayer']) && $_POST['newplayer'] == 'on') {
 	
@@ -3166,1030 +3125,61 @@ function vtm_save_basic_info() {
 		vtm_email_new_character($_POST['email'], $vtmglobal['characterID'], $playerid, 
 				$_POST['character'], $_POST['priv_clan'], $_POST['player'], $_POST['concept'], $template);
 	}
-	
+	*/
 	return $vtmglobal['characterID'];
 } 
 
-function vtm_get_chargen_characterID() {
+//------------------------------------------------------------
+// FUNCTIONS 
+//------------------------------------------------------------
+function vtm_get_current_road() {
 	global $wpdb;
-	global $current_user;
 	global $vtmglobal;
-	
-	// return -1: character reference is wrong
-	// return 0: new character
-	// return character ID
 
-	if (isset($_POST['chargen_reference']) && $_POST['chargen_reference'] != '') {
-		$charref = $_POST['chargen_reference'];
-		if (strpos($charref,'/') && strpos($charref,'/', strpos($charref,'/') + 1)) {
-			$ref = explode('/',$charref);
-			$id   = $ref[0] * 1;
-			$pid  = $ref[1] * 1;
-			$tid  = $ref[2] * 1;
-			$wpid = $ref[3] * 1;
-		
-			// Check player ID is valid based on character ID
-			$sql = "SELECT PLAYER_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s";
-			$result = $wpdb->get_row($wpdb->prepare($sql, $id));
-			if (count($result) == 0 || $result->PLAYER_ID != $pid)
-				$id = -1;
-		
-			// Check that wordpress ID is that of the user that created the character
-			//		Or that the current user is an ST 
-			//$mustbeloggedin = get_option('vtm_chargen_mustbeloggedin', '0');
-			$correctlogin = vtm_get_chargenlogin($id);
-			if (empty($correctlogin)) {
-				$correctid = 0;
-			} else {
-				$bloguser = get_users('search=' . $correctlogin . '&number=1');
-				$correctid = isset($bloguser[0]->ID) ? $bloguser[0]->ID : 0;
-			}
-			if (is_user_logged_in()) {
-				get_currentuserinfo();
-				$currentid = $current_user->ID;
-			} else {
-				$currentid = 0;
-			}
-			//echo "<li>CorrectLogin: $correctlogin, CorrectID: $correctid, current: $currentid, refid: $wpid</li>\n";
-			
-			if (!vtm_isST() && ($currentid != $wpid || $correctid != $currentid) )
-				$id = -1; 
-			
-			// ensure character gen is in progress (and not approved)
-			if ($id > 0) {
-				$sql = "SELECT cgstat.NAME
-						FROM
-							" . VTM_TABLE_PREFIX . "CHARACTER cha,
-							" . VTM_TABLE_PREFIX . "CHARGEN_STATUS cgstat
-						WHERE
-							cha.CHARGEN_STATUS_ID = cgstat.ID
-							AND cha.ID = %s";
-				$result = $wpdb->get_var($wpdb->prepare($sql, $id));
-				
-				if ($result == 'Approved')
-					$id = -1;
-			}
-		} else {
-			$id = -1;
-		}
-	}
-	elseif (isset($_POST['characterID']) && $_POST['characterID'] > 0) {
-		$id = $_POST['characterID'];
-		// if (is_user_logged_in()) {
-			// get_currentuserinfo();
-			// $wpid = $current_user->ID;
-		// } else {
-			// $wpid = 0;
-		// }
-		// $pid = vtm_get_player_id_from_characterID($id);
-		// echo "<p>REF: $id-$wpid-$pid</p>\n";
-	}
-	elseif (isset($_GET['characterID']) && $_GET['characterID'] > 0 && vtm_isST()) {
-		$id = $_GET['characterID'];
-	} 
-	else {
-		$id = 0;
-	}
-
-	//echo "<li>ID: $id</li>\n";
-	
-	return $id;
-}
-
-function vtm_get_player_from_login($login) {
-	global $wpdb;
-	
-	$sql = "SELECT players.ID, players.NAME 
+	$sql = "SELECT 
+				'Path Rating'				as name, 
+				stat1.LEVEL + stat2.LEVEL	as level_from,
+				0	 						as chartableid, 
+				'' 							as comment,
+				road.ID 					as itemid, 
+				road.name 	as grp
 			FROM 
-				" . VTM_TABLE_PREFIX . "CHARACTER characters,
-				" . VTM_TABLE_PREFIX . "PLAYER players
-			WHERE
-				characters.PLAYER_ID = players.ID
-				AND characters.wordpress_id = %s";
-	$sql = $wpdb->prepare($sql, $login);
-	$player = $wpdb->get_row($sql);
-	
-	return $player;
-}
-
-function vtm_get_player_id($playername, $guess = false) {
-	global $wpdb;
-	
-	if (empty($playername))
-		return;
-	
-	$playername = esc_sql($playername);
-	
-	if ($guess) {
-		$playername = "%$playername%";
-		$test = 'LIKE';
-	} else {
-		$test = '=';
-	}
-	
-	$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "PLAYER WHERE NAME $test %s";
-	$sql = $wpdb->prepare($sql, $playername);
-	//echo "<p>SQL: $sql</p>\n";
-	return $wpdb->get_var($sql);
-
-}
-
-function vtm_get_player_id_from_characterID() {
-	global $wpdb;
-	global $vtmglobal;
-		
-	if (isset($_REQUEST['page']) && isset($_REQUEST['character']) && $_REQUEST['page'] == 'vtmcharacter-chargen')
-		$characterID = $_REQUEST['character'];
-	else
-		$characterID = $vtmglobal['characterID'];
-	
-	$sql = "SELECT players.ID 
-		FROM 
-			" . VTM_TABLE_PREFIX . "PLAYER players,
-			" . VTM_TABLE_PREFIX . "CHARACTER charac
-		WHERE
-			players.ID = charac.PLAYER_ID
-			AND charac.ID = %s";
-	$sql = $wpdb->prepare($sql, $characterID);
-	return $wpdb->get_var($sql);
-
-}
-function vtm_get_template_from_templateID() {
-	global $wpdb;
-	global $vtmglobal;
-	
-	$sql = "SELECT NAME FROM " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE 
-		WHERE ID = %s";
-	$sql = $wpdb->prepare($sql, $vtmglobal['templateID']);
-	return $wpdb->get_var($sql);
-
-}
-function vtm_get_chargenlogin($id = false) {
-	global $wpdb;
-	global $vtmglobal;
-	
-	if ($id === false) {
-		$characterID = $vtmglobal['characterID'];
-	} else {
-		$characterID = $id;
-	}
-	
-	$sql = "SELECT WORDPRESS_ID 
-		FROM 
-			" . VTM_TABLE_PREFIX . "CHARACTER_GENERATION
-		WHERE
-			CHARACTER_ID = %s";
-	$sql = $wpdb->prepare($sql, $characterID);
-	return $wpdb->get_var($sql);
-
-}
-
-function vtm_get_templateid() {
-	global $wpdb;
-	global $vtmglobal;
-	
-	$sql = "SELECT TEMPLATE_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER_GENERATION
-		WHERE CHARACTER_ID = %s";
-	$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
-	
-	if (isset($_POST['chargen_template'])) {
-		if (isset($_POST['chargen_reference']) && $_POST['chargen_reference'] != "") {
-			// look up what template the character was generated with
-			$template = $wpdb->get_var($sql);
-			//echo "Looked up template ID from character : $template<br />\n";
-		} else {
-			$template = $_POST['chargen_template'];
-			//echo "Looked up template ID from Step 0 : $template<br />\n";
-		}
-	} 
-	elseif (isset($_POST['selected_template']) && $_POST['selected_template'] != "") {
-		$template = $_POST['selected_template'] ;
-		//echo "Looked up template ID from last step : $template<br />\n";
-	}
-	else {
-		$template = $wpdb->get_var($sql);
-		//echo "Looked up template ID from character : $template<br />\n";
-	}
-	
-	return $template;
-}
-
-function vtm_get_player_name($playerid) {
-	global $wpdb;
-		
-	$sql = "SELECT NAME FROM " . VTM_TABLE_PREFIX . "PLAYER WHERE ID = %s";
-	$sql = $wpdb->prepare($sql, $playerid);
-	return $wpdb->get_var($sql);
-
-}
-function vtm_get_clan_name($clanid) {
-	global $wpdb;
-		
-	$sql = "SELECT NAME FROM " . VTM_TABLE_PREFIX . "CLAN WHERE ID = %s";
-	$sql = $wpdb->prepare($sql, $clanid);
-	return $wpdb->get_var($sql);
-
-}
-
-function vtm_email_new_character($email, $playerid, $name, $clanid, $player, $concept) {
-	global $current_user;
-
-	/*if (is_user_logged_in()) {
-		get_currentuserinfo();
-		$userid       = $current_user->ID;
-	} else {
-		$userid = 0;
-	}
-	
-	$ref = $vtmglobal['characterID'] . '-' . $userid . '-' . $playerid; */
-	$ref = vtm_get_chargen_reference();
-	$clan = vtm_get_clan_name($clanid);
-	$name = stripslashes($name);
-	$url = add_query_arg('reference', $ref, vtm_get_stlink_url('viewCharGen', true));
-	$url = add_query_arg('confirm', true, $url);
-	$player = stripslashes($player);
-		
-	$userbody = "Hello $player,
-	
-Your new character has been created:
-	
-	* Reference: $ref
-	* Character Name: $name
-	* Clan: $clan
-	* Template: " . stripslashes(vtm_get_template_from_templateID()) . "
-	* Concept: 
-	
-" . stripslashes($concept) . "
-	
-Click this link to confirm your email address and to return to character generation: $url";
-	
-	//echo "<pre>$userbody</pre>\n";
-	
-	$result = vtm_send_email($email, "New Character Created: $name", $userbody);
-	
-	if (!$result)
-		echo "<p>Failed to send email. Character Ref: $ref</p>\n";
-	
-}
-
-function vtm_get_chargen_settings() {
-	global $wpdb;
-	global $vtmglobal;
-	
-	$sql = "SELECT NAME, VALUE FROM " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_OPTIONS WHERE TEMPLATE_ID = %s";
-	$sql = $wpdb->prepare($sql, $vtmglobal['templateID']);
-	//echo "<p>SQL: $sql</p>\n";
-	$result = $wpdb->get_results($sql);
-	$settings = vtm_default_chargen_settings();
-	
-	if (count($result) == 0)
-		return $settings;
-	
-	$keys = $wpdb->get_col($sql);
-	$vals = $wpdb->get_col($sql,1);
-	
-	//print_r($result);
-	//print_r($keys);
-	//print_r($vals);
-
-	$settings = array_merge($settings, array_combine($keys, $vals));
-	
-	return $settings;
-	
-}
-
-function vtm_get_chargen_attributes() {
-	global $wpdb;
-	global $vtmglobal;
-	
-	$sql = "SELECT clans.NAME
-			FROM
-				" . VTM_TABLE_PREFIX . "CHARACTER chara,
-				" . VTM_TABLE_PREFIX . "CLAN clans
-			WHERE
-				chara.PRIVATE_CLAN_ID = clans.ID
-				AND chara.ID = %s";
-	$clan = $wpdb->get_var($wpdb->prepare($sql, $vtmglobal['characterID']));
-	
-	$filter = "GROUPING = 'Physical' OR GROUPING = 'Social' OR GROUPING = 'Mental'";
-	
-	if (isset($clan) && ($clan == 'Nosferatu' || $clan == 'Samedi'))
-		$filter = "NAME != 'Appearance' AND ($filter)";
-	
-	//echo "<p>Clan: $clan</p>\n";
-	
-	$sql = "SELECT ID, NAME as name, DESCRIPTION as description, GROUPING as grp, SPECIALISATION_AT as specialisation_at
-			FROM " . VTM_TABLE_PREFIX . "STAT
-			WHERE
-				$filter
-			ORDER BY ORDERING";
-	//echo "<p>SQL: $sql</p>\n";
-	$results = $wpdb->get_results($sql);
-	
-	return $results;
-
-}
-
-function vtm_get_chargen_stats($output_type = OBJECT) {
-	global $wpdb;
-	global $vtmglobal;
-	
-	$sql = "SELECT clans.NAME
-			FROM
-				" . VTM_TABLE_PREFIX . "CHARACTER chara,
-				" . VTM_TABLE_PREFIX . "CLAN clans
-			WHERE
-				chara.PRIVATE_CLAN_ID = clans.ID
-				AND chara.ID = %s";
-	$clan = $wpdb->get_var($wpdb->prepare($sql, $vtmglobal['characterID']));
-	
-	$filter = "";
-	if (isset($clan) && ($clan == 'Nosferatu' || $clan == 'Samedi'))
-		$filter = "WHERE NAME != 'Appearance'";
-	
-	$sql = "SELECT NAME as name, ID, DESCRIPTION as description, 
-				GROUPING as grp, SPECIALISATION_AT as specialisation_at
-			FROM " . VTM_TABLE_PREFIX . "STAT
-			$filter
-			ORDER BY ORDERING";
-	//echo "<p>SQL: $sql</p>\n";
-	$results = $wpdb->get_results($sql, $output_type);
-	//print_r($results);
-	return $results;
-
-}
-
-function vtm_get_chargen_virtues() {
-	global $wpdb;
-			
-	$sql = "SELECT NAME as name, ID, DESCRIPTION as description, GROUPING as grp, 
-				SPECIALISATION_AT as specialisation_at
-			FROM " . VTM_TABLE_PREFIX . "STAT
-			WHERE
-				GROUPING = 'Virtue'
-			ORDER BY ORDERING";
-	//echo "<p>SQL: $sql</p>\n";
-	$results = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K));
-	
-	//print_r($results);
-	
-	return $results;
-
-}
-
-function vtm_get_virtue_statkey($statnum, $selectedpath) {
-	global $wpdb;
-	
-	$statsql = "SELECT stat.NAME, stat.ID 
-				FROM 
-					" . VTM_TABLE_PREFIX . "ROAD_OR_PATH rop,
-					" . VTM_TABLE_PREFIX . "STAT stat
-				WHERE rop.ID = %s AND rop.STAT{$statnum}_ID = stat.ID";
-
-	return sanitize_key($wpdb->get_var($wpdb->prepare($statsql, $selectedpath)));
-	
-}
-
-function vtm_get_chargen_disciplines($output_type = OBJECT) {
-	global $wpdb;
-	global $vtmglobal;
-	
-	$sql = "SELECT disc.NAME as name, disc.ID, disc.DESCRIPTION as description, 
-				IF(ISNULL(clandisc.DISCIPLINE_ID),'Non-Clan Discipline','Clan Discipline') as grp
-			FROM " . VTM_TABLE_PREFIX . "DISCIPLINE disc
-				LEFT JOIN (
-					SELECT DISCIPLINE_ID, CLAN_ID
-					FROM
-						" . VTM_TABLE_PREFIX . "CLAN clans,
-						" . VTM_TABLE_PREFIX . "CLAN_DISCIPLINE cd,
-						" . VTM_TABLE_PREFIX . "CHARACTER chars
-					WHERE
-						chars.ID = %s
-						AND chars.PRIVATE_CLAN_ID = clans.ID
-						AND cd.CLAN_ID = clans.ID
-				) as clandisc
-				ON 
-					clandisc.DISCIPLINE_ID = disc.id
-			WHERE
-				disc.VISIBLE = 'Y'
-				OR NOT(ISNULL(clandisc.DISCIPLINE_ID))
-			ORDER BY grp, name";
-	$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
-	//echo "<p>SQL: $sql</p>\n";
-	$results = $wpdb->get_results($sql, $output_type);
-	
-	
-	return $results;
-
-}
-
-function vtm_get_chargen_backgrounds($output_type = OBJECT) {
-	global $wpdb;
-		
-	$sql = "SELECT bg.NAME as name, bg.ID, bg.DESCRIPTION as description, bg.GROUPING as grp
-			FROM " . VTM_TABLE_PREFIX . "BACKGROUND bg
-			WHERE
-				bg.VISIBLE = 'Y'
-			ORDER BY grp, name";
-
-	$results = $wpdb->get_results($sql, $output_type);
-	
-	return $results;
-
-}
-
-function vtm_get_chargen_merits($output_type = OBJECT) {
-	global $wpdb;
-		
-	$sql = "SELECT item.NAME as name, item.ID, item.DESCRIPTION as description, item.GROUPING as grp, item.MULTIPLE as multiple
-			FROM " . VTM_TABLE_PREFIX . "MERIT item
-			WHERE
-				item.VISIBLE = 'Y'
-			ORDER BY GROUPING, VALUE DESC, NAME";
-	//$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
-	//echo "<p>SQL: $sql</p>\n";
-	$results = $wpdb->get_results($sql, $output_type);
-	
-	return $results;
-
-}
-function vtm_get_chargen_rituals($output_type = OBJECT, $returncount = false) {
-	global $wpdb;
-	global $vtmglobal;
-	
-	// get rituals for disciplines bought with discipline points (and possibly
-	// raised with freebie points and XP) and ones only bought with
-	// freebies and/or XP
-	
-	$sql = "(SELECT item.NAME as name, item.ID, item.DESCRIPTION as description, item.LEVEL as level, 
-					disc.NAME as grp, 
-					IFNULL(xp.CHARTABLE_LEVEL, IFNULL(fb.LEVEL_TO,cdisc.LEVEL)) as discipline_level
-			FROM 
-				" . VTM_TABLE_PREFIX . "RITUAL item,
-				" . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE cdisc
-				LEFT JOIN (
-					SELECT ID, CHARTABLE_ID, LEVEL_TO
-					FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
-					WHERE
-						CHARACTER_ID = %s 
-						AND CHARTABLE = 'CHARACTER_DISCIPLINE'
-				) fb
-				ON
-					fb.CHARTABLE_ID = cdisc.ID
-				LEFT JOIN (
-					SELECT ID, CHARTABLE_ID, CHARTABLE_LEVEL
-					FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
-					WHERE
-						CHARACTER_ID = %s 
-						AND CHARTABLE = 'CHARACTER_DISCIPLINE'
-				) xp
-				ON
-					xp.CHARTABLE_ID = cdisc.ID
+				" . VTM_TABLE_PREFIX . "CHARACTER cha
 				,
-				" . VTM_TABLE_PREFIX . "DISCIPLINE disc
-			WHERE
-				item.VISIBLE = 'Y'
-				AND item.DISCIPLINE_ID = cdisc.DISCIPLINE_ID
-				AND item.DISCIPLINE_ID = disc.ID
-				AND cdisc.CHARACTER_ID = %s
-				AND item.LEVEL <= IFNULL(xp.CHARTABLE_LEVEL, IFNULL(fb.LEVEL_TO,cdisc.LEVEL))
-			) UNION (
-			SELECT item.NAME as name, item.ID, item.DESCRIPTION as description, item.LEVEL as level, 
-					disc.NAME as grp, 
-					IFNULL(xp.CHARTABLE_LEVEL, fb.LEVEL_TO) as discipline_level
-			FROM 
-				" . VTM_TABLE_PREFIX . "RITUAL item,
-				" . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND fb
+				" . VTM_TABLE_PREFIX . "ROAD_OR_PATH road
 				LEFT JOIN (
-					SELECT ID, ITEMTABLE_ID, CHARTABLE_LEVEL
-					FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
-					WHERE
-						CHARACTER_ID = %s 
-						AND ITEMTABLE = 'DISCIPLINE'
-				) xp
-				ON
-					xp.ITEMTABLE_ID = fb.ITEMTABLE_ID
-				,
-				" . VTM_TABLE_PREFIX . "DISCIPLINE disc
-			WHERE
-				item.VISIBLE = 'Y'
-				AND item.DISCIPLINE_ID = disc.ID
-				AND fb.ITEMTABLE_ID = disc.ID
-				AND fb.ITEMTABLE = 'DISCIPLINE'
-				AND fb.CHARACTER_ID = %s 
-				AND item.LEVEL <= IFNULL(xp.CHARTABLE_LEVEL, fb.LEVEL_TO)
-			) UNION (
-			SELECT item.NAME as name, item.ID, item.DESCRIPTION as description, item.LEVEL as level, 
-					disc.NAME as grp, 
-					xp.CHARTABLE_LEVEL as discipline_level
-			FROM 
-				" . VTM_TABLE_PREFIX . "RITUAL item,
-				" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND xp,
-				" . VTM_TABLE_PREFIX . "DISCIPLINE disc
-			WHERE
-				item.VISIBLE = 'Y'
-				AND item.DISCIPLINE_ID = disc.ID
-				AND xp.ITEMTABLE_ID = disc.ID
-				AND xp.ITEMTABLE = 'DISCIPLINE'
-				AND xp.CHARACTER_ID = %s 
-				AND item.LEVEL <= xp.CHARTABLE_LEVEL
-			)
-			ORDER BY grp, LEVEL, NAME";
-			
-	$sql = $wpdb->prepare($sql, $vtmglobal['characterID'], $vtmglobal['characterID'], $vtmglobal['characterID'], $vtmglobal['characterID'], $vtmglobal['characterID'], $vtmglobal['characterID']);
-	//echo "<p>SQL: $sql</p>\n";
-	$results = vtm_sanitize_array($wpdb->get_results($sql, $output_type));
-	//print_r($results);
-	
-	return $returncount ? $wpdb->num_rows : $results;
-
-}
-
-function vtm_get_chargen_paths($output_type = OBJECT) {
-	global $wpdb;
-	global $vtmglobal;
-		
-	$sql = "SELECT path.NAME as name, path.ID, path.DESCRIPTION as description, disc.NAME as grp
-			FROM 
-				" . VTM_TABLE_PREFIX . "PATH path,
-				" . VTM_TABLE_PREFIX . "DISCIPLINE disc
-				LEFT JOIN (
-					SELECT ID, LEVEL, DISCIPLINE_ID
+					SELECT STAT_ID, LEVEL
 					FROM
-						" . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE
+						" . VTM_TABLE_PREFIX . "CHARACTER_STAT cstat
 					WHERE
 						CHARACTER_ID = %s
-				) as cp
-				ON
-					cp.DISCIPLINE_ID = disc.ID
-			WHERE
-				path.VISIBLE = 'Y'
-				AND path.DISCIPLINE_ID = disc.ID
-				AND NOT(ISNULL(cp.LEVEL))
-			ORDER BY grp, name";
-	$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
+				) stat1
+				ON 
+					stat1.STAT_ID = road.STAT1_ID
+				LEFT JOIN (
+					SELECT STAT_ID, LEVEL
+					FROM
+						" . VTM_TABLE_PREFIX . "CHARACTER_STAT cstat
+					WHERE
+						CHARACTER_ID = %s
+				) stat2
+				ON 
+					stat2.STAT_ID = road.STAT2_ID
+			WHERE 
+				cha.ROAD_OR_PATH_ID      = road.ID
+				AND cha.ID = %s";
+	$sql   = $wpdb->prepare($sql, $vtmglobal['characterID'], $vtmglobal['characterID'], $vtmglobal['characterID']);
 	//echo "<p>SQL: $sql</p>\n";
-	$results = $wpdb->get_results($sql, $output_type);
+	$items = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K));
 	
-	return $results;
+	return $items;
+}
+function vtm_formatName($name, $description, $specialisation) {
+	
+	return "<span title='" . vtm_formatOutput($description . ($specialisation == '' ? '' : " ($specialisation)")) . "'>" . vtm_formatOutput($name) . "</span>";
 
 }
-function vtm_get_chargen_road($output_type = OBJECT) {
-	global $wpdb;
-	global $vtmglobal;
-	
-	$sql = "SELECT 'Path Rating' as name, road.ID, road.DESCRIPTION as description, road.NAME as grp
-			FROM 
-				" . VTM_TABLE_PREFIX . "ROAD_OR_PATH road,
-				" . VTM_TABLE_PREFIX . "CHARACTER cha
-			WHERE
-				cha.ID = %s 
-				AND cha.ROAD_OR_PATH_ID = road.ID";
-	$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
-	$results = $wpdb->get_results($sql, $output_type);
-	//echo "<p>SQL: $sql</p>\n";
-	//print_r($results);
-	
-	return $results;
-
-}
-
-function vtm_get_chargen_abilities($showsecondary = 0, $output_type = OBJECT) {
-	global $wpdb;
-	
-	if ($showsecondary)
-		$filter = "";
-	else
-		$filter = "AND (skilltypes.PARENT_ID = 0)";
-	
-	$sql = "SELECT skills.NAME as name, skills.ID, skills.DESCRIPTION as description, skilltypes.NAME as grp, 
-				skills.SPECIALISATION_AT as specialisation_at, skills.MULTIPLE as multiple,
-				skilltypes.ORDERING, skills.MULTIPLE
-			FROM 
-				" . VTM_TABLE_PREFIX . "SKILL skills,
-				" . VTM_TABLE_PREFIX . "SKILL_TYPE skilltypes
-			WHERE
-				skills.VISIBLE = 'Y'
-				AND skills.SKILL_TYPE_ID = skilltypes.ID
-				$filter
-			ORDER BY skilltypes.ORDERING, skills.NAME";
-	//echo "<p>SQL: $sql</p>\n";
-	$results = $wpdb->get_results($sql, $output_type);
-	
-	//print_r($results);
-	
-	return $results;
-
-}
-
-function vtm_get_chargen_roads() {
-	global $wpdb;
-
-	$sql = "SELECT ID, NAME
-			FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH
-			WHERE VISIBLE = 'Y'
-			ORDER BY NAME";
-
-	$roadsOrPaths = $wpdb->get_results($sql);
-	return $roadsOrPaths;
-}
-
-function vtm_render_dot_select($type, $itemid, $current, $pending, $free, $max, $submitted) {
-	global $vtmglobal;
-
-	$output = "";
-	
-	if ($pending || $submitted) {
-		$output .= "<input type='hidden' name='" . $type . "[" . $itemid . "]' value='$current' />\n";
-	}
-	
-	$output .= "<fieldset class='dotselect'>\n";
-	
-	// Ensure that anything with a free dot is selected initially at that level or 
-	// it won't be saved to the database
-	if ($free > 0 && $current == 0)
-		$current = $free;
-	
-	for ($index = $max ; $index > 0 ; $index--) {
-		$radioid = "dot_{$type}_{$itemid}_{$index}";
-		//echo "<li>$radioid: current:$current / index:$index / free:$free (" . ($index - $free) . ")</li>\n";
-		if ($pending || $submitted) {
-			if ($index <= $free)
-				$output .= "<img src='{$vtmglobal['dots']['dot1full']}' alt='*' id='$radioid' />";
-			elseif ($index <= $current )
-				$output .= "<img src='{$vtmglobal['dots']['dot2']}' alt='*' id='$radioid' />";
-			elseif ($index <= $pending)
-				$output .= "<img src='{$vtmglobal['dots']['dot3']}' alt='*' id='$radioid' />";
-			else
-				$output .= "<img src='{$vtmglobal['dots']['dot1empty']}' alt='O' id='$radioid' />";
-		} else {
-			$output .= "<input type='radio' id='$radioid' name='" . $type . "[" . $itemid . "]' value='$index' ";
-			$output .= checked($current, $index, false);
-			$output .= " /><label for='$radioid' title='$index'";
-			
-			if ($index <= $free)
-				$output .= " class='freedot'";
-			
-			$output .= ">&nbsp;</label>";
-		}
-	}
-	
-	if ($free == 0 && $pending == 0 && !$submitted) {
-		$radioid = "dot_{$type}_{$itemid}_clear";
-		$output .= "<input type='radio' id='$radioid' name='" . $type . "[" . $itemid . "]' value='0' ";
-		$output .= checked($current, 0, false);
-		$output .= " /><label for='$radioid' title='Clear' class='cleardot'>&nbsp;</label>";
-	} else {
-		$output .= "<img src='{$vtmglobal['dots']['spacer']}' alt='' />";
-	}
-	
-	$output .= "</fieldset>\n";
-	
-	
-	return $output;
-
-}
-
-function vtm_render_pst_select($name, $info ) {
-
-	$selected = isset($info['pst'][$name])     ? $info['pst'][$name]     : 0;
-	$target   = isset($info['correct'][$name]) ? $info['correct'][$name] : 0;
-	$actual   = isset($info['totals'][$name])  ? $info['totals'][$name]  : 0;
-
-	$pst = "Primary/Secondary/Tertiary";
-	switch ($selected) {
-		case 1: 
-			$pst = "Primary"; 
-			break;
-		case 2: 
-			$pst = "Secondary"; 
-			break;
-		case 3: 
-			$pst = "Tertiary"; 
-			break;
-		default:
-			$selected = -1;
-	}
-	
-	$spent = array();
-	if ($selected > 0) {
-		if ($actual > 0 && $actual != $target) {
-			$pst .= " (spent $actual, target $target)";
-		}
-	} 
-	elseif ($actual > 0) {
-		$pst .= " (spent $actual)";
-	}
-	
-	//$output = "<strong>$pst</strong><input name='$name' type='hidden' value='$selected' />\n";
-	$output = "<strong>$pst</strong>\n";
-	
-	return $output;
-}
-
-function vtm_get_pst($saved, $posted, $items, $pdots, $sdots, $tdots, $freedot,
-	$templatefree = array()) {
-
-	$grouptotals = array();
-	//print_r($templatefree);
-	
-	// Get all the groups
-	// "physical" => 1
-	foreach  ($items as $item) {
-		$grouplist[sanitize_key($item->grp)] = 1;
-	}
-	//print_r($grouplist);
-	
-	// Work out how many dots have been spent in each group
-	foreach  ($items as $item) {
-		if (isset($item->multiple) && $item->multiple == 'Y')
-			$key = sanitize_key($item->name) . "_" . $item->chartableid;
-		else
-			$key = sanitize_key($item->name);
-		
-		$grp = sanitize_key($item->grp);
-		
-		if (isset($posted[$key]))
-			$level = $posted[$key];
-		elseif (isset($saved[$key]->level_from))
-			$level = $saved[$key]->level_from;
-		else
-			$level = 0;
-			
-		$freelevel = isset($templatefree[$key]->LEVEL) ? $templatefree[$key]->LEVEL : 0;
-			
-		//echo "<li>key: $key, grp: $grp, level: $level</li>";
-		if ($level > 0  && isset($grouplist[$grp])) {
-			if (isset($grouptotals[$grp]))
-				$grouptotals[$grp] += max(0,$level - $freedot - $freelevel);
-			elseif ($level > 0)
-				$grouptotals[$grp] = max(0,$level - $freedot - $freelevel);
-		}
-	}
-	//print_r($grouptotals);
-	
-	// Work out which groups are Primary, Secondary or Tertiary
-	$groupselected = array();
-	$matches = array(null,0,0,0);
-	foreach ($grouptotals as $grp => $total) {
-		switch($total) {
-			case $pdots: 
-				$groupselected[$grp] = 1;
-				$matches[1] = 1;
-				$grouplist[$grp] = 0;
-				break;
-			case $sdots: 
-				$groupselected[$grp] = 2;
-				$matches[2] = 1;
-				$grouplist[$grp] = 0;
-				break;
-			case $tdots: 
-				$groupselected[$grp] = 3;
-				$matches[3] = 1;
-				$grouplist[$grp] = 0;
-				break;
-			default: $groupselected[$grp] = 0;
-		}
-	}
-
-	// Work out the last group, if other 2 are found
-	if (array_sum($matches) == 2) {
-		for ($i = 1; $i <= 3 ; $i++) {
-			if ($matches[$i] == 0) {
-				foreach ($grouplist as $grp => $notfound) {
-					if ($notfound)
-						$groupselected[$grp] = $i;
-				}
-			}
-		}
-	}
-	
-	//print_r($groupselected);
-	$correct = array();
-	foreach ($groupselected as $grp => $pst) {
-		if ($pst == 1) $correct[$grp] = $pdots;
-		if ($pst == 2) $correct[$grp] = $sdots;
-		if ($pst == 3) $correct[$grp] = $tdots;
-	}
-	
-	$out['pst']     = $groupselected;
-	$out['totals']  = $grouptotals;
-	$out['correct'] = $correct;
-	
-	//return array($groupselected, $grouptotals, array_keys($grouplist));
-	return $out;
-}
-
-function vtm_render_freebie_stats($submitted) {
-	global $wpdb;
-	
-	$output      = "";
-	// COSTS OF STATS - if entry doesn't exist then you can't buy it
-	//	$cost['<statname>'] = array( '<from>' => array( '<to>' => <cost>))
-	$freebiecosts = vtm_get_freebie_costs('STAT');
-	$freebiecosts = array_merge($freebiecosts, vtm_get_freebie_costs('ROAD_OR_PATH'));
-
-	// display stats to buy
-	$items = vtm_get_chargen_stats();
-	$items = array_merge($items, vtm_get_chargen_road());
-	
-	// Current stats saved into db
-	$saved = vtm_get_current_stats();
-	$saved = array_merge($saved, vtm_get_current_road());
-	
-	// Current freebies saved into database
-	$pendingfb = vtm_get_pending_freebies('STAT');
-	$pendingfb = array_merge($pendingfb, vtm_get_pending_freebies('ROAD_OR_PATH'));
-
-	// Current bought with XP
-	$pendingxp  = vtm_get_pending_chargen_xp('STAT');  // name => value
-	
-	$geninfo = vtm_calculate_generation();
-	
-	$rowoutput = vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp,
-			$freebiecosts, 'freebie_stat', 0, $submitted, $geninfo['MaxDot']);
-	
-	//print_r($saved);
-	
-	if ($rowoutput != "")
-		$output .= "<table>$rowoutput</table>\n";
-
-	return $output;
-
-}
-
-function vtm_render_freebie_skills($submitted) {
-	global $wpdb;
-	
-	$output  = "";
-	$geninfo = vtm_calculate_generation();
-
-	// COSTS OF skills - if entry doesn't exist then you can't buy it
-	//	$cost['<statname>'] = array( '<from>' => array( '<to>' => <cost>))
-	$freebiecosts = vtm_get_freebie_costs('SKILL');
-
-	// display skills to buy
-	$items = vtm_get_chargen_abilities(1);
-
-	// Current skills saved into db
-	$saved = vtm_get_current_skills();
-	
-	// Current spent
-	$pendingfb = vtm_get_pending_freebies('SKILL');
-	
-	// Current bought with XP
-	$pendingxp  = vtm_get_pending_chargen_xp('SKILL');  // name => value
-
-	// Get free stuff from template to get specialities
-	$templatefree = vtm_get_free_levels('SKILL');
-	
-	//print_r($templatefree);
-
-	$rowoutput = vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp,
-			$freebiecosts, 'freebie_skill', 1, $submitted, $geninfo['MaxDot'],
-			$templatefree);
-	
-	if ($rowoutput != "")
-		$output .= "<table>$rowoutput</table>\n";
-
-	return $output;
-
-}
-
-function vtm_render_freebie_disciplines($submitted) {	
-	$output      = "";
-
-	$geninfo = vtm_calculate_generation();
-	
-	// COSTS OF STATS - if entry doesn't exist then you can't buy it
-	//	$cost['<statname>'] = array( '<from>' => array( '<to>' => <cost>))
-	$freebiecosts = vtm_get_freebie_costs('DISCIPLINE');
-
-	$items = vtm_get_chargen_disciplines();
-
-	// display stats to buy
-	//	hover over radiobutton to show the cost
-	$saved = vtm_get_current_disciplines();
-	
-	// Current spent
-	$pendingfb = vtm_get_pending_freebies('DISCIPLINE');
-	
-	// Current bought with XP
-	$pendingxp  = vtm_get_pending_chargen_xp('DISCIPLINE');  // name => value
-
-	$rowoutput = vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp,
-			$freebiecosts, 'freebie_discipline', 1, $submitted, $geninfo['MaxDisc']);
-	
-	if ($rowoutput != "")
-		$output .= "<table>$rowoutput</table>\n";
-
-	return $output;
-
-}
-
-function vtm_render_xp_disciplines($submitted) {
-	global $wpdb;
-	
-	$output  = "";
-
-	$xpcosts   = vtm_get_chargen_xp_costs('DISCIPLINE');
-	$items     = vtm_get_chargen_disciplines();
-	$saved     = vtm_get_current_disciplines();
-	$pendingfb = vtm_get_pending_freebies('DISCIPLINE');
-	$pendingxp = vtm_get_pending_chargen_xp('DISCIPLINE');
-	$geninfo   = vtm_calculate_generation();
-	
-	//print_r($xpcosts);
-	
-	$rowoutput = vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, 
-		$pendingxp, 'xp_discipline', 1, $submitted,array(), $geninfo['MaxDisc']);
-	
-	if ($rowoutput != "")
-		$output .= "<table>$rowoutput</table>\n";
-
-	return $output;
-
-}
-
-function vtm_render_freebie_paths($submitted) {
-	
-	$output      = "";
-
-	$freebiecosts = vtm_get_freebie_costs('PATH');
-	$items     = vtm_get_chargen_paths();
-	$saved     = vtm_get_current_paths();
-	$pendingfb = vtm_get_pending_freebies('PATH');
-	$pendingxp = vtm_get_pending_chargen_xp('PATH');
-
-	//print_r($currentpending);
-	
-	$rowoutput = vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp,
-			$freebiecosts, 'freebie_path', 1, $submitted, 5);
-
-	if ($rowoutput != "")
-		$output .= "<table>$rowoutput</table>\n";
-
-	return $output;
-
-} 
-
-function vtm_render_freebie_backgrounds($submitted) {
-	global $wpdb;
-	global $vtmglobal;
-	
-	$output      = "";
-	$columns     = 3;
-	$dotstobuy   = 0;
-	
-	$max2display = $wpdb->get_var($wpdb->prepare("SELECT MAX_DISCIPLINE FROM " . VTM_TABLE_PREFIX . "GENERATION WHERE ID = %s", $vtmglobal['settings']['limit-generation-low']));
-	$maxbgs = $wpdb->get_results($wpdb->prepare("SELECT ITEMTABLE_ID, LEVEL 
-		FROM " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_MAXIMUM WHERE 
-		ITEMTABLE = 'BACKGROUND' AND TEMPLATE_ID = %s", $vtmglobal['templateID']), OBJECT_K);
-
-	if (count($maxbgs) > 0) {
-		$maximums = $maxbgs;
-		$maximums['default'] = $max2display;
-	} else {
-		$maximums = $max2display;
-	}
-
-	$freebiecosts = vtm_get_freebie_costs('BACKGROUND');
-	$items = vtm_get_chargen_backgrounds();
-	$saved = vtm_get_current_backgrounds();
-	$pendingfb = vtm_get_pending_freebies('BACKGROUND');
-		
-	$rowoutput = vtm_render_freebie_section($items, $saved, $pendingfb, array(),
-			$freebiecosts, 'freebie_background', 1, $submitted, $maximums);
-
-	if ($rowoutput != "")
-		$output .= "<table>$rowoutput</table>\n";
-
-	return $output;
-
-}
-
-function vtm_render_freebie_merits($submitted) {
-	global $wpdb;
-	global $vtmglobal;
-	
-	$output      = "";
-
-	$freebiecosts = vtm_get_freebie_costs('MERIT');
-	$items     = vtm_get_chargen_merits();
-	$saved     = vtm_get_current_merits();
-	$pendingfb = vtm_get_pending_freebies('MERIT');
-
-	$rowoutput = vtm_render_freebie_section($items, $saved, $pendingfb, array(),
-			$freebiecosts, 'freebie_merit', 1, $submitted);
-	
-	if ($rowoutput != "")
-		$output .= "<table id='merit_freebie_table'>$rowoutput</table>\n";
-
-	return $output;
-
-}
-
-function vtm_get_freebie_costs($type) {
+function vtm_get_chargen_costs($type, $costtype) {
 	global $wpdb;
 	global $vtmglobal;
 
@@ -4230,7 +3220,7 @@ function vtm_get_freebie_costs($type) {
 
 		// Get clan and non-clan costs
 		$sql = "SELECT 
-					steps.CURRENT_VALUE, steps.NEXT_VALUE, steps.FREEBIE_COST
+					steps.CURRENT_VALUE, steps.NEXT_VALUE, steps.$costtype
 				FROM
 					" . VTM_TABLE_PREFIX . "COST_MODEL_STEP steps,
 					" . VTM_TABLE_PREFIX . "COST_MODEL models
@@ -4247,8 +3237,8 @@ function vtm_get_freebie_costs($type) {
 			$cost = 0;
 			
 			while ($from != $to && $to <= 10 && $to > 0) {
-				if ($data[$from]['FREEBIE_COST'] != 0) {
-					$cost += $data[$from]['FREEBIE_COST'];
+				if ($data[$from][$costtype] != 0) {
+					$cost += $data[$from][$costtype];
 					$clancost[$i][$to] = $cost;
 				}
 				$from = $to;
@@ -4265,8 +3255,8 @@ function vtm_get_freebie_costs($type) {
 			$cost = 0;
 			
 			while ($from != $to && $to <= 10 && $to > 0) {
-				if ($data[$from]['FREEBIE_COST'] != 0) {
-					$cost += $data[$from]['FREEBIE_COST'];
+				if ($data[$from][$costtype] != 0) {
+					$cost += $data[$from][$costtype];
 					$nonclancost[$i][$to] = $cost;
 				}
 				$from = $to;
@@ -4289,16 +3279,29 @@ function vtm_get_freebie_costs($type) {
 		}
 	} 
 	elseif ($type == "MERIT") {
+		
+		$costcol = $costtype == 'FREEBIE_COST' ? 'COST' : $costtype;
 
-		$sql = "SELECT ID, NAME, COST FROM " . VTM_TABLE_PREFIX . "MERIT ORDER BY ID";
+		$sql = "SELECT ID, NAME, $costcol FROM " . VTM_TABLE_PREFIX . "MERIT ORDER BY ID";
 		$items = $wpdb->get_results($sql);
 		
 		foreach ($items as $item) {
 			$key = sanitize_key($item->NAME);
-			$outdata[$key][0][1] = $item->COST;
+			$outdata[$key][0][1] = $item->$costcol;
 		
 		}
 
+	}
+	elseif ($type == "RITUAL") {
+		$costcol ='COST';
+
+		$sql = "SELECT ID, NAME, $costcol FROM " . VTM_TABLE_PREFIX . "RITUAL ORDER BY ID";
+		$items = $wpdb->get_results($sql);
+		
+		foreach ($items as $item) {
+			$key = sanitize_key($item->NAME);
+			$outdata[$key][0][1] = $item->$costcol;
+		}
 	}
 	else {
 	
@@ -4309,7 +3312,7 @@ function vtm_get_freebie_costs($type) {
 			$key = sanitize_key($item->NAME);
 		
 			$sql = "SELECT 
-						steps.CURRENT_VALUE, steps.NEXT_VALUE, steps.FREEBIE_COST
+						steps.CURRENT_VALUE, steps.NEXT_VALUE, steps.$costtype
 					FROM
 						" . VTM_TABLE_PREFIX . $type . " itemtable,
 						" . VTM_TABLE_PREFIX . "COST_MODEL_STEP steps,
@@ -4330,8 +3333,8 @@ function vtm_get_freebie_costs($type) {
 					$cost = 0;
 					
 					while ($from != $to && $to <= 10 && $to > 0) {
-						if ($data[$from]['FREEBIE_COST'] != 0) {
-							$cost += $data[$from]['FREEBIE_COST'];
+						if ($data[$from][$costtype] != 0) {
+							$cost += $data[$from][$costtype];
 							$outdata[$key][$i][$to] = $cost;
 						}
 						$from = $to;
@@ -4358,7 +3361,7 @@ function vtm_get_freebie_costs($type) {
 
 	return $outdata;
 }
-
+/*
 function vtm_get_chargen_xp_costs($type) {
 	global $wpdb;
 	global $vtmglobal;
@@ -4534,6 +3537,1909 @@ function vtm_get_chargen_xp_costs($type) {
 
 	return $outdata;
 }
+*/
+function vtm_get_freebies_spent() {
+	global $wpdb;
+	global $vtmglobal;
+
+	$spent = 0;
+		
+	if (isset($_POST['freebie_stat'])       || isset($_POST['freebie_skill']) ||
+		isset($_POST['freebie_discipline']) || isset($_POST['freebie_background']) ||
+		isset($_POST['freebie_merit'])      || isset($_POST['freebie_path'])) {
+			
+		$freebiecosts['STAT']       = vtm_get_chargen_costs('STAT', 'FREEBIE_COST');
+		$freebiecosts['SKILL']      = vtm_get_chargen_costs('SKILL', 'FREEBIE_COST');
+		$freebiecosts['DISCIPLINE'] = vtm_get_chargen_costs('DISCIPLINE', 'FREEBIE_COST');
+		$freebiecosts['BACKGROUND'] = vtm_get_chargen_costs('BACKGROUND', 'FREEBIE_COST');
+		$freebiecosts['MERIT']      = vtm_get_chargen_costs('MERIT', 'FREEBIE_COST');
+		$freebiecosts['PATH']       = vtm_get_chargen_costs('PATH', 'FREEBIE_COST');
+		$freebiecosts['STAT'] = array_merge($freebiecosts['STAT'], vtm_get_chargen_costs('ROAD_OR_PATH', 'FREEBIE_COST'));
+		
+		// $current['STAT']       = vtm_get_current_stats();
+		// $current['SKILL']      = vtm_get_current_skills();
+		// $current['DISCIPLINE'] = vtm_get_current_disciplines();
+		// $current['BACKGROUND'] = vtm_get_current_backgrounds();
+		// $current['MERIT']      = vtm_get_current_merits();
+		// $current['PATH']       = vtm_get_current_paths();
+		// $current['STAT'] = array_merge($current['STAT'], vtm_get_current_road());
+		$current['STAT']       = vtm_get_chargen_saved('STAT');
+		$current['SKILL']      = vtm_get_chargen_saved('SKILL');
+		$current['DISCIPLINE'] = vtm_get_chargen_saved('DISCIPLINE');
+		$current['BACKGROUND'] = vtm_get_chargen_saved('BACKGROUND');
+		$current['MERIT']      = vtm_get_chargen_saved('MERIT');
+		$current['PATH']       = vtm_get_chargen_saved('PATH');
+		$current['STAT'] = array_merge($current['STAT'], vtm_get_current_road());
+				
+		$bought['STAT']       = isset($_POST['freebie_stat']) ? $_POST['freebie_stat'] : array();
+		$bought['SKILL']      = isset($_POST['freebie_skill']) ? $_POST['freebie_skill'] : array();
+		$bought['DISCIPLINE'] = isset($_POST['freebie_discipline']) ? $_POST['freebie_discipline'] : array();
+		$bought['BACKGROUND'] = isset($_POST['freebie_background']) ? $_POST['freebie_background'] : array();
+		$bought['MERIT']      = isset($_POST['freebie_merit']) ? $_POST['freebie_merit'] : array();
+		$bought['PATH']       = isset($_POST['freebie_path']) ? $_POST['freebie_path'] : array();
+
+		$templatefree['SKILL']      = vtm_get_free_levels('SKILL');
+		
+		foreach ($bought as $type => $items) {
+			//print_r($current[$type]);
+			foreach ($items as $key => $levelto) {
+				if (isset($templatefree[$type][$key]->LEVEL))
+					$freelevel = $templatefree[$type][$key]->LEVEL;
+				else
+					$freelevel = 0;
+				$currlevel  = isset($current[$type][$key]->level_from)  ? $current[$type][$key]->level_from  : 0;
+				$levelfrom  = max($currlevel, $freelevel);
+				$costkey    = preg_replace("/_\d+$/", "", $key);
+				
+				if ($type == 'STAT' && $key == 'pathrating') {
+					$costkey = sanitize_key($current[$type][$key]->grp);
+				}
+				if ($type == 'MERIT') {
+					$levelfrom = 0;
+					$levelto = 1;
+				}
+				
+				// echo "<li>Key: $key, 	Cost key: $costkey,
+				// Saved level: $currlevel, Free: $freelevel
+				// Level to: $levelto</li>";
+
+				$cost = isset($freebiecosts[$type][$costkey][$levelfrom][$levelto]) ? $freebiecosts[$type][$costkey][$levelfrom][$levelto] : 0;
+				$spent += $cost;
+				//echo "<li>Running total is $spent. Bought $key to $levelto ($cost)</li>\n";
+				
+			}
+		
+		}
+		
+
+	} else {
+		$sql = "SELECT SUM(AMOUNT) FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
+				WHERE CHARACTER_ID = %s";
+		$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
+		$spent = $wpdb->get_var($sql) * 1;
+		
+	}
+
+	return $spent;
+}
+function vtm_get_chargen_virtues($selectedpath) {
+	global $wpdb;
+			
+	$items    = vtm_get_chargen_itemlist('STAT', "Virtues");
+	$statkey1 = vtm_get_virtue_statkey(1, $selectedpath);
+	$statkey2 = vtm_get_virtue_statkey(2, $selectedpath);
+
+	$results = array ();
+	foreach ($items as $stat) {
+		$name = sanitize_key($stat['ITEMNAME']);
+		if ($name == $statkey1 || $name == $statkey2 || $name == 'courage') {
+			$results[] = $stat;
+		}
+	}
+
+	return $results;
+
+}
+function vtm_has_virtue_free_dot($selectedpath) {
+	global $wpdb;
+	global $vtmglobal;
+
+	if ($vtmglobal['settings']['virtues-free-dots'] == 'yes')
+		$freedot = 1;
+	elseif ($vtmglobal['settings']['virtues-free-dots'] == 'no')
+		$freedot = 0;
+	else {
+		$humanityid = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE NAME = %s", 'Humanity'));
+		if ($humanityid == $selectedpath)
+			$freedot = 1;
+		else
+			$freedot = 0;
+	}
+
+	return $freedot;
+}
+
+function vtm_get_chargen_roads() {
+	global $wpdb;
+
+	$sql = "SELECT ID, NAME
+			FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH
+			WHERE VISIBLE = 'Y'
+			ORDER BY NAME";
+
+	$roadsOrPaths = $wpdb->get_results($sql);
+	return $roadsOrPaths;
+}
+function vtm_get_virtue_statkey($statnum, $selectedpath) {
+	global $wpdb;
+	
+	$statsql = "SELECT stat.NAME, stat.ID 
+				FROM 
+					" . VTM_TABLE_PREFIX . "ROAD_OR_PATH rop,
+					" . VTM_TABLE_PREFIX . "STAT stat
+				WHERE rop.ID = %s AND rop.STAT{$statnum}_ID = stat.ID";
+
+	return sanitize_key($wpdb->get_var($wpdb->prepare($statsql, $selectedpath)));
+	
+}
+function vtm_get_free_levels($table) {
+	global $wpdb;
+	global $vtmglobal;
+
+	$duplicates = array();
+	
+	$sql = "SELECT item.NAME, item.ID, ctd.SPECIALISATION, ctd.LEVEL,
+				ctd.ITEMTABLE, ctd.ITEMTABLE_ID,
+				IFNULL(sector.ID,0) as SECTOR_ID, 
+				IFNULL(sector.NAME,'') as SECTOR,
+				ctd.MULTIPLE
+			FROM 
+				" . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_DEFAULTS ctd
+				LEFT JOIN (
+					SELECT ID, NAME
+					FROM " . VTM_TABLE_PREFIX . "SECTOR
+				) sector
+				ON sector.ID = ctd.SECTOR_ID,
+				" . VTM_TABLE_PREFIX . $table . " item
+			WHERE 
+				ctd.TEMPLATE_ID = %s 
+				AND ctd.ITEMTABLE_ID = item.ID
+				AND ctd.ITEMTABLE = %s";
+	$sql = $wpdb->prepare($sql, $vtmglobal['templateID'], $table);
+	$results = $wpdb->get_results($sql);
+	
+	//print_r($results);
+	
+	$out = array();
+	$indexes = array();
+	foreach ($results as $row) {
+		$key = sanitize_key($row->NAME);
+		if ($row->MULTIPLE == 'Y') {
+			if (isset($indexes[$key])) {
+				$indexes[$key]++;
+			} else {
+				$indexes[$key] = 1;
+			}
+			$out[$key . "_" . $indexes[$key]] = $row;
+		} else {
+			$out[$key] = $row;
+		}
+		
+	}
+	
+	//print_r($out);
+	// $checkdups = array();
+	// foreach ($results as $row) {
+		// $key = sanitize_key($row->NAME);
+		// if (isset($duplicates[$key])) {
+			// $duplicates[$key]++;
+		// }
+		// elseif (isset($checkdups[$key])) {
+			// $duplicates[$key] = 1;
+		// }
+		
+		// $checkdups[$key] = 1;
+	// }
+	
+	// //print_r($checkdups);
+	
+	// // Final output - to have a unique key if multiple skills have been
+	// // added with the same name. Can't use the MULTIPLE field from the database
+	// // as BACKGROUNDs don't have that column
+	// $out = array();
+	// $indexes = array();
+	// foreach ($results as $row) {
+		// $key = sanitize_key($row->NAME);
+		// if (isset($duplicates[$key])) {
+			// if (isset($indexes[$key])) {
+				// $indexes[$key]++;
+			// } else {
+				// $indexes[$key] = 1;
+			// }
+			// $out[$key . "_" . $indexes[$key]] = $row;
+		// } else {
+			// $out[$key] = $row;
+		// }
+		
+	// }
+	
+	return $out;
+}
+function vtm_render_dot_select($type, $itemid, $current, $pending, $free, $max, $submitted) {
+	global $vtmglobal;
+
+	$output = "";
+	
+	if ($pending || $submitted) {
+		$output .= "<input type='hidden' name='" . $type . "[" . $itemid . "]' value='$current' />\n";
+	}
+	
+	$output .= "<fieldset class='dotselect'>\n";
+	
+	// Ensure that anything with a free dot is selected initially at that level or 
+	// it won't be saved to the database
+	if ($free > 0 && $current == 0)
+		$current = $free;
+	
+	for ($index = $max ; $index > 0 ; $index--) {
+		$radioid = "dot_{$type}_{$itemid}_{$index}";
+		//echo "<li>$radioid: current:$current / index:$index / free:$free (" . ($index - $free) . ")</li>\n";
+		if ($pending || $submitted) {
+			if ($index <= $free)
+				$output .= "<img src='{$vtmglobal['dots']['dot1full']}' alt='*' id='$radioid' />";
+			elseif ($index <= $current )
+				$output .= "<img src='{$vtmglobal['dots']['dot2']}' alt='*' id='$radioid' />";
+			elseif ($index <= $pending)
+				$output .= "<img src='{$vtmglobal['dots']['dot3']}' alt='*' id='$radioid' />";
+			else
+				$output .= "<img src='{$vtmglobal['dots']['dot1empty']}' alt='O' id='$radioid' />";
+		} else {
+			$output .= "<input type='radio' id='$radioid' name='" . $type . "[" . $itemid . "]' value='$index' ";
+			$output .= checked($current, $index, false);
+			$output .= " /><label for='$radioid' title='$index'";
+			
+			if ($index <= $free)
+				$output .= " class='freedot'";
+			
+			$output .= ">&nbsp;</label>";
+		}
+	}
+	
+	//if ($free == 0 && $pending == 0 && !$submitted) {
+	if ($pending == 0 && !$submitted) {
+		$radioid = "dot_{$type}_{$itemid}_clear";
+		$output .= "<input type='radio' id='$radioid' name='" . $type . "[" . $itemid . "]' value='0' ";
+		$output .= checked($current, 0, false);
+		$output .= " /><label for='$radioid' title='Clear' class='cleardot'>&nbsp;</label>";
+	} else {
+		$output .= "<img src='{$vtmglobal['dots']['spacer']}' alt='' />";
+	}
+	
+	$output .= "</fieldset>\n";
+	
+	
+	return $output;
+
+}
+
+function vtm_render_pst_select($name, $info ) {
+
+	$selected = isset($info['pst'][$name])     ? $info['pst'][$name]     : 0;
+	$target   = isset($info['correct'][$name]) ? $info['correct'][$name] : 0;
+	$actual   = isset($info['totals'][$name])  ? $info['totals'][$name]  : 0;
+
+	$pst = "Primary/Secondary/Tertiary";
+	switch ($selected) {
+		case 1: 
+			$pst = "Primary"; 
+			break;
+		case 2: 
+			$pst = "Secondary"; 
+			break;
+		case 3: 
+			$pst = "Tertiary"; 
+			break;
+		default:
+			$selected = -1;
+	}
+	
+	$spent = array();
+	if ($selected > 0) {
+		if ($actual > 0 && $actual != $target) {
+			$pst .= " (spent $actual, target $target)";
+		}
+	} 
+	elseif ($actual > 0) {
+		$pst .= " (spent $actual)";
+	}
+	
+	$output = "<strong>$pst</strong>\n";
+	
+	return $output;
+}
+function vtm_get_pst($saved, $posted, $items, $pdots, $sdots, $tdots, $freedot,
+	$templatefree) {
+
+	$grouptotals = array();
+	$groupselected = array();
+	$correct = array();
+	
+	// Get all the groups
+	// "physical" => 1
+	foreach ($items as $item) {
+		$grouplist[sanitize_key($item['GROUPING'])] = 1;
+	}
+	//print_r($grouplist);
+	
+	// Work out how many dots have been spent in each group
+	foreach ($items as $item) {
+		$suffix = "";
+		$i = 1;
+		if ($item['MULTIPLE'] == 'Y') {
+			$suffix = "_$i";
+			$i++;
+		}
+		$key = sanitize_key($item['ITEMNAME']) . $suffix;
+		
+		while ((isset($posted[$key]) || isset($saved[$key]->level_from)) && $i != 0) {
+			$grp = sanitize_key($item['GROUPING']);
+			
+			if (isset($posted[$key]))
+				$level = $posted[$key];
+			elseif (isset($saved[$key]->level_from))
+				$level = $saved[$key]->level_from;
+			else
+				$level = 0;
+				
+			$freelevel = isset($templatefree[$key]->LEVEL) ? $templatefree[$key]->LEVEL : 0;
+				
+			//echo "<li>key: $key, grp: $grp, level: $level</li>";
+			if ($level > 0  && isset($grouplist[$grp])) {
+				if (isset($grouptotals[$grp]))
+					$grouptotals[$grp] += max(0,$level - $freedot - $freelevel);
+				elseif ($level > 0)
+					$grouptotals[$grp] = max(0,$level - $freedot - $freelevel);
+			}
+			if ($item['MULTIPLE'] == 'Y') {
+				$suffix = "_$i";
+				$i++;
+				$key = sanitize_key($item['ITEMNAME']) . $suffix;
+			} else {
+				$i = 0;
+			}
+		}
+	}
+	//print_r($grouptotals);
+	
+	// Work out which groups are Primary, Secondary or Tertiary
+	$matches = array(null,0,0,0);
+	foreach ($grouptotals as $grp => $total) {
+		switch($total) {
+			case $pdots: 
+				$groupselected[$grp] = 1;
+				$matches[1] = 1;
+				$grouplist[$grp] = 0;
+				break;
+			case $sdots: 
+				$groupselected[$grp] = 2;
+				$matches[2] = 1;
+				$grouplist[$grp] = 0;
+				break;
+			case $tdots: 
+				$groupselected[$grp] = 3;
+				$matches[3] = 1;
+				$grouplist[$grp] = 0;
+				break;
+			default: $groupselected[$grp] = 0;
+		}
+	}
+
+	// Work out the last group, if other 2 are found
+	if (array_sum($matches) == 2) {
+		for ($i = 1; $i <= 3 ; $i++) {
+			if ($matches[$i] == 0) {
+				foreach ($grouplist as $grp => $notfound) {
+					if ($notfound)
+						$groupselected[$grp] = $i;
+				}
+			}
+		}
+	}
+	
+	//print_r($groupselected);
+	foreach ($groupselected as $grp => $pst) {
+		if ($pst == 1) $correct[$grp] = $pdots;
+		if ($pst == 2) $correct[$grp] = $sdots;
+		if ($pst == 3) $correct[$grp] = $tdots;
+	}
+	
+	$out['pst']     = $groupselected;
+	$out['totals']  = $grouptotals;
+	$out['correct'] = $correct;
+	
+	return $out;
+}
+
+function vtm_get_chargen_characterID() {
+	global $wpdb;
+	global $current_user;
+	global $vtmglobal;
+	
+	// return -1: character reference is wrong
+	// return 0: new character
+	// return character ID
+
+	if (isset($_POST['chargen_reference']) && $_POST['chargen_reference'] != '') {
+		$charref = $_POST['chargen_reference'];
+		if (strpos($charref,'/') && strpos($charref,'/', strpos($charref,'/') + 1)) {
+			$ref = explode('/',$charref);
+			$id   = $ref[0] * 1;
+			$pid  = $ref[1] * 1;
+			$tid  = $ref[2] * 1;
+			$wpid = $ref[3] * 1;
+		
+			// Check player ID is valid based on character ID
+			$sql = "SELECT PLAYER_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s";
+			$result = $wpdb->get_row($wpdb->prepare($sql, $id));
+			if (count($result) == 0 || $result->PLAYER_ID != $pid)
+				$id = -1;
+		
+			// Check that wordpress ID is that of the user that created the character
+			//		Or that the current user is an ST 
+			//$mustbeloggedin = get_option('vtm_chargen_mustbeloggedin', '0');
+			$correctlogin = vtm_get_chargenlogin($id);
+			if (empty($correctlogin)) {
+				$correctid = 0;
+			} else {
+				$bloguser = get_users('search=' . $correctlogin . '&number=1');
+				$correctid = isset($bloguser[0]->ID) ? $bloguser[0]->ID : 0;
+			}
+			if (is_user_logged_in()) {
+				get_currentuserinfo();
+				$currentid = $current_user->ID;
+			} else {
+				$currentid = 0;
+			}
+			//echo "<li>CorrectLogin: $correctlogin, CorrectID: $correctid, current: $currentid, refid: $wpid</li>\n";
+			
+			if (!vtm_isST() && ($currentid != $wpid || $correctid != $currentid) )
+				$id = -1; 
+			
+			// ensure character gen is in progress (and not approved)
+			if ($id > 0) {
+				$sql = "SELECT cgstat.NAME
+						FROM
+							" . VTM_TABLE_PREFIX . "CHARACTER cha,
+							" . VTM_TABLE_PREFIX . "CHARGEN_STATUS cgstat
+						WHERE
+							cha.CHARGEN_STATUS_ID = cgstat.ID
+							AND cha.ID = %s";
+				$result = $wpdb->get_var($wpdb->prepare($sql, $id));
+				
+				if ($result == 'Approved')
+					$id = -1;
+			}
+		} else {
+			$id = -1;
+		}
+	}
+	elseif (isset($_POST['characterID']) && $_POST['characterID'] > 0) {
+		$id = $_POST['characterID'];
+	}
+	elseif (isset($_GET['characterID']) && $_GET['characterID'] > 0 && vtm_isST()) {
+		$id = $_GET['characterID'];
+	} 
+	else {
+		$id = 0;
+	}
+
+	//echo "<li>ID: $id</li>\n";
+	
+	return $id;
+}
+function vtm_get_chargenlogin($id = false) {
+	global $wpdb;
+	global $vtmglobal;
+	
+	if ($id === false) {
+		$characterID = $vtmglobal['characterID'];
+	} else {
+		$characterID = $id;
+	}
+	
+	$sql = "SELECT WORDPRESS_ID 
+		FROM 
+			" . VTM_TABLE_PREFIX . "CHARACTER_GENERATION
+		WHERE
+			CHARACTER_ID = %s";
+	$sql = $wpdb->prepare($sql, $characterID);
+	return $wpdb->get_var($sql);
+
+}
+function vtm_get_templateid() {
+	global $wpdb;
+	global $vtmglobal;
+	
+	$sql = "SELECT TEMPLATE_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER_GENERATION
+		WHERE CHARACTER_ID = %s";
+	$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
+	
+	if (isset($_POST['chargen_template'])) {
+		if (isset($_POST['chargen_reference']) && $_POST['chargen_reference'] != "") {
+			// look up what template the character was generated with
+			$template = $wpdb->get_var($sql);
+			//echo "Looked up template ID from character : $template<br />\n";
+		} else {
+			$template = $_POST['chargen_template'];
+			//echo "Looked up template ID from Step 0 : $template<br />\n";
+		}
+	} 
+	elseif (isset($_POST['selected_template']) && $_POST['selected_template'] != "") {
+		$template = $_POST['selected_template'] ;
+		//echo "Looked up template ID from last step : $template<br />\n";
+	}
+	else {
+		$template = $wpdb->get_var($sql);
+		//echo "Looked up template ID from character : $template<br />\n";
+	}
+	
+	return $template;
+}
+function vtm_get_chargen_settings() {
+	global $wpdb;
+	global $vtmglobal;
+	
+	$sql = "SELECT NAME, VALUE FROM " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_OPTIONS WHERE TEMPLATE_ID = %s";
+	$sql = $wpdb->prepare($sql, $vtmglobal['templateID']);
+	//echo "<p>SQL: $sql</p>\n";
+	$result = $wpdb->get_results($sql);
+	$settings = vtm_default_chargen_settings();
+	
+	if (count($result) == 0)
+		return $settings;
+	
+	$keys = $wpdb->get_col($sql);
+	$vals = $wpdb->get_col($sql,1);
+
+	$settings = array_merge($settings, array_combine($keys, $vals));
+	
+	return $settings;
+}
+function vtm_get_chargen_reference() {
+	global $vtmglobal;
+
+	if (isset($vtmglobal['characterID'])) {
+		$characterID = $vtmglobal['characterID'];
+	}
+	elseif (isset($_REQUEST['characterID']) && $_REQUEST['characterID'] > 0) {
+		$characterID = $_REQUEST['characterID'];
+	}
+	elseif (isset($_REQUEST['chargen_reference'])) {
+		$split = explode("/",$_POST['chargen_reference']);
+		$characterID = $split[0];
+	}
+	$vtmglobal['characterID'] = $characterID;
+	$vtmglobal['templateID']  = vtm_get_templateid();
+	$vtmglobal['playerID']    = vtm_get_player_id_from_characterID();
+	$vtmglobal['genInfo']     = vtm_calculate_generation();
+
+	$cid = sprintf("%04d", $vtmglobal['characterID']);
+	$pid = sprintf("%04d", $vtmglobal['playerID']);
+	$tid = sprintf("%02d", $vtmglobal['templateID']);
+	
+	$login = vtm_get_chargenlogin();
+	if (isset($login)) {
+		//echo "<li>$login</li>\n";
+		$bloguser = get_users('search=' . $login . '&number=1');
+		//print_r($bloguser);
+		$wpid = isset($bloguser[0]->ID) ? sprintf("%04d", $bloguser[0]->ID) : '0000';
+	} else {
+		$wpid = '0000';
+	}
+	
+	$ref = "$cid/$pid/$tid/$wpid";
+	//echo "<li>Reference: $ref</li>\n";
+	return $ref;
+
+}
+function vtm_get_player_id_from_characterID() {
+	global $wpdb;
+	global $vtmglobal;
+		
+	if (isset($_REQUEST['page']) && isset($_REQUEST['character']) && $_REQUEST['page'] == 'vtmcharacter-chargen')
+		$characterID = $_REQUEST['character'];
+	else
+		$characterID = $vtmglobal['characterID'];
+	
+	$sql = "SELECT players.ID 
+		FROM 
+			" . VTM_TABLE_PREFIX . "PLAYER players,
+			" . VTM_TABLE_PREFIX . "CHARACTER charac
+		WHERE
+			players.ID = charac.PLAYER_ID
+			AND charac.ID = %s";
+	$sql = $wpdb->prepare($sql, $characterID);
+	return $wpdb->get_var($sql);
+
+}
+function vtm_calculate_generation() {
+	global $wpdb;
+	global $vtmglobal;
+			
+	$defaultgen = $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "GENERATION WHERE ID = %s", $vtmglobal['config']->DEFAULT_GENERATION_ID));
+	$sql = "SELECT charbg.LEVEL 
+			FROM 
+				" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND charbg,
+				" . VTM_TABLE_PREFIX . "BACKGROUND bg
+			WHERE
+				charbg.CHARACTER_ID = %s
+				AND charbg.BACKGROUND_ID = bg.ID
+				AND bg.NAME = 'Generation'";
+	$genfromgb  = $wpdb->get_var($wpdb->prepare($sql, $vtmglobal['characterID']));
+	$sql = "SELECT LEVEL_TO 
+			FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
+			WHERE 
+				ITEMTABLE = 'BACKGROUND'
+				AND ITEMNAME = 'generation'
+				AND CHARACTER_ID = %s";
+	$genfromfreebie = $wpdb->get_var($wpdb->prepare($sql, $vtmglobal['characterID']));
+	$generation     = $defaultgen - (isset($genfromfreebie) ? $genfromfreebie : $genfromgb);
+
+	$results   = $wpdb->get_row($wpdb->prepare("SELECT ID, MAX_RATING, MAX_DISCIPLINE FROM " . VTM_TABLE_PREFIX . "GENERATION WHERE NAME = %s", $generation));
+
+	$data = array(
+		'ID' => $results->ID,
+		'Gen' => $generation,
+		'MaxDot' => $results->MAX_RATING,
+		'MaxDisc' => $results->MAX_DISCIPLINE
+	);
+	
+	//print "<li>Dot limit for {$generation}th generation is {$results->MAX_RATING}/{$results->MAX_DISCIPLINE}</li>";
+	
+	return $data;
+	
+}
+
+function vtm_sanitize_array($array) {
+
+	if (count($array) == 0) {
+		return array();
+	} else {
+		$keys = array_keys($array);
+		$values = array_values($array);
+		
+		return array_combine(array_map("vtm_sanitize_keys",$keys), $values);
+	} 
+}
+
+function vtm_sanitize_keys($a) {
+	return sanitize_key($a);
+}
+
+//------------------------------------
+// RENDER SUB-SECTIONS
+//------------------------------------
+function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $freedot,
+	$items, $posted, $pendingfb, $pendingxp, $title, $postvariable, $submitted,
+	$maxdots, $templatefree) {
+		
+	global $vtmglobal;
+
+	$output = "";
+	$class = $postvariable == 'ritual_value' ? "ritrowselect mfdotselect" : "";
+	
+	// Make a guess from saved levels which is Primary/Secondary/Tertiary
+	$info['pst']     = array();
+	$info['totals']  = array();
+	$info['correct'] = array();
+	if (count($saved) > 0 || count($posted) > 0) {
+		if ($isPST) {
+			$info = vtm_get_pst($saved, $posted, $items, $pdots, $sdots, $tdots,
+				$freedot, $templatefree);
+			//print_r($info);
+		}
+	} 
+
+	// Go through each item
+	$group = "";
+	foreach ($items as $item) {
+		// How many dots to display
+		if (is_array($maxdots)) {
+			if (isset($maxdots[$item['ITEMTABLE_ID']])) {
+				$maxdot = $maxdots[$item['ITEMTABLE_ID']]->LEVEL;
+			} else {
+				$maxdot = $maxdots['default'];
+			}
+		} else {
+			$maxdot = $maxdots;
+		}
+		
+		$loop = $item['MULTIPLE'] == 'Y' ? 4 : 1;
+		
+		for ($j = 1 ; $j <= $loop ; $j++) {
+			$name = sanitize_key($item['ITEMNAME']);
+			if ($item['MULTIPLE'] == 'Y') {
+				$key = $name . "_" . $j;
+				if (isset($templatefree[$key])) {
+					$loop++;
+				}
+			} else {
+				$key = $name;
+			}
+	
+			// Heading and Primary/Secondary/Tertiary pull-down
+			if (sanitize_key($item['GROUPING']) != $group) {
+				if ($group != "")
+					$output .= "</table>\n";
+				$group = sanitize_key($item['GROUPING']);
+				$output .= "<h4>{$item['GROUPING']}</h4><p>\n";
+				if ($isPST) {
+					$output .= vtm_render_pst_select($group, $info);
+				}
+				
+				$output .= "</p><input type='hidden' name='group[]' value='$group' />";
+				/*if ($postvariable == 'ritual_value')
+					$output .= "<table><tr><th>$title</th><th>Description</th></tr>\n";
+				else */
+					$output .= "<table><tr><th class='vtmcol_key'>$title</th><th class='vtmcol_dots'>Rating</th><th>Description</th></tr>\n";
+			}
+			
+			// Display Data
+			$level = isset($posted[$key]) ? $posted[$key] : (isset($saved[$key]->level_from) ? $saved[$key]->level_from : 0);  // currently selected or saved level
+			if (isset($templatefree[$key]))
+				$tpfree = $templatefree[$key]->LEVEL;
+			else
+				$tpfree = $freedot;
+			
+			/*
+			if ($postvariable == 'ritual_value') {
+				$id = "id$key";
+				$output .= "<tr><td class='$class'>";
+				if (isset($pendingxp[$key])) {
+					$output .= "<img src='{$vtmglobal['dots']['dot3']}' alt='*' />";
+				}
+				elseif ($submitted) {
+					if ($item->level == $level) {
+						$output .= "<img src='{$vtmglobal['dots']['dot1full']}' alt='*' />";
+					} else {
+						$output .= "<img src='{$vtmglobal['dots']['dot1empty']}' alt='O' />";
+					}
+				}
+				else
+					$output .= "<input id='$id' name='ritual_value[$key]' type='checkbox' " . checked( $item->level, $level, false) . " value='{$item->level}'>";
+				$output .= "<div><label for='$id'>Level {$item->level} - " . stripslashes($item->name) . "</label></div>";
+				//$output .= "</td>\n";
+			} else {
+				*/
+				$itemname = $item['ITEMNAME'];
+				if (isset($saved[$key]->comment) && $saved[$key]->comment != "") {
+					$itemname .= " (" . $saved[$key]->comment . ")";
+				}
+				elseif (isset($templatefree[$key]->SPECIALISATION) && $templatefree[$key]->SPECIALISATION != "") {
+					$itemname .= " (" . $templatefree[$key]->SPECIALISATION . ")";
+				}
+				
+				$output .= "<tr><td class='$class vtmcol_key'>" . vtm_formatOutput($itemname) . "</td>";
+				$output .= "<td class='$class vtmcol_dots vtmdot_" . (max($maxdot,$maxdots['default']) > 5 ? 10 : 5) . "'>";
+				
+				$pending = isset($pendingfb[$key]->value) ? $pendingfb[$key]->value : 0 ;         // level bought with freebies
+				$pending = isset($pendingxp[$key]->value) ? $pendingxp[$key]->value : $pending ;  // level bought with xp
+				
+				/*if ($postvariable == 'virtue_value' && $key == 'courage' 
+					&& (isset($pendingfb['willpower']) || isset($pendingxp['willpower'])))
+					$output .= vtm_render_dot_select($postvariable, $key, $level, $pending, $tpfree, $maxdot, 1);
+				else */
+					$output .= vtm_render_dot_select($postvariable, $key, $level, $pending, $tpfree, $maxdot, $submitted);
+			/*
+			}
+			*/
+			$output .= "</td><td class='$class'>\n";
+			$output .= vtm_formatOutput($item['DESCRIPTION']);
+			$output .= "</td></tr>\n";
+		}
+	}
+	$output .= "</table>\n";
+
+	return $output;
+}
+
+//-------------------------------------------
+function vtm_get_chargen_itemlist($table, $args = "") {
+	global $wpdb;
+	global $vtmglobal;
+	
+	$wpdbprepare = 0;
+	$arguments = array($vtmglobal['characterID']);
+	
+	// Define if/how this data table returns MULTIPLE, GROUPING, SPECIALISATION_AT, etc
+	$multiple = "t.MULTIPLE";
+	$grouping = "t.GROUPING";
+	$specat   = "t.SPECIALISATION_AT";
+	$name     = "t.NAME";
+	switch($table) {
+		case 'STAT':
+			$multiple = "'N'";
+			break;
+		case 'SKILL':
+			if ($args == "subgroup")
+				$grouping = "type.NAME";
+			else
+				$grouping = "IFNULL(parent.NAME, type.NAME)";
+			break;	
+		case 'DISCIPLINE':
+			$multiple = "'N'";
+			$specat   = "0";
+			$grouping = "IF(ISNULL(clandisc.DISCIPLINE_ID),'Non-Clan Discipline','Clan Discipline')";
+			break;	
+		case 'BACKGROUND':
+			$multiple = "'N'";
+			$specat   = "0";
+			break;
+		case 'ROAD_OR_PATH':
+			$multiple = "'N'";
+			$specat   = "0";
+			$grouping = "t.NAME";
+			$name     = "'Path Rating'";
+			break;
+		case 'PATH':
+			$multiple = "'N'";
+			$specat   = "0";
+			$grouping = "disc.NAME";
+		case 'MERIT':
+			$specat   = "0";
+			break;
+	}
+	
+	// Define tables to query
+	$tables = VTM_TABLE_PREFIX . $table . " as t";
+	switch($table) {
+		case 'SKILL':
+			$tables .= ", ". VTM_TABLE_PREFIX . "SKILL_TYPE type
+				LEFT JOIN ". VTM_TABLE_PREFIX . "SKILL_TYPE parent
+				ON type.PARENT_ID = parent.ID";
+			break;	
+		case 'DISCIPLINE':
+			$wpdbprepare = 1;
+			$tables .= "
+				LEFT JOIN (
+					SELECT DISCIPLINE_ID, CLAN_ID
+					FROM
+						" . VTM_TABLE_PREFIX . "CLAN clans,
+						" . VTM_TABLE_PREFIX . "CLAN_DISCIPLINE cd,
+						" . VTM_TABLE_PREFIX . "CHARACTER chars
+					WHERE
+						chars.ID = %s
+						AND chars.PRIVATE_CLAN_ID = clans.ID
+						AND cd.CLAN_ID = clans.ID
+				) as clandisc
+				ON 
+					clandisc.DISCIPLINE_ID = t.id";
+			break;	
+		case 'ROAD_OR_PATH':
+			$wpdbprepare = 1;
+			$tables .= ", ". VTM_TABLE_PREFIX . "CHARACTER cha";
+			break;	
+		case 'PATH':
+			$wpdbprepare = 1;
+			$tables .= ",
+				" . VTM_TABLE_PREFIX . "DISCIPLINE disc
+				LEFT JOIN (
+					SELECT ID, LEVEL, DISCIPLINE_ID
+					FROM
+						" . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE
+					WHERE
+						CHARACTER_ID = %s
+				) as cp
+				ON
+					cp.DISCIPLINE_ID = disc.ID
+				LEFT JOIN (
+					SELECT ID, LEVEL_TO, ITEMTABLE_ID
+					FROM
+						" . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
+					WHERE
+						CHARACTER_ID = %s
+						AND ITEMTABLE = 'DISCIPLINE'
+				) as fp
+				ON
+					fp.ITEMTABLE_ID = disc.ID";
+			array_push($arguments, $vtmglobal['characterID'], $vtmglobal['characterID']);
+			break;	
+	}
+	
+	
+	// Define any filtering
+	$filter = "t.VISIBLE = 'Y'";
+	switch($table) {
+		case 'STAT':
+			if ($args == 'Virtues') {
+				$filter = "GROUPING = 'Virtue'";
+			}
+			else {
+				if ($args == 'all') {
+					$filter = "1";
+				} 
+				else {
+					$filter = "GROUPING = 'Physical' OR GROUPING = 'Social' OR GROUPING = 'Mental'";
+				}
+				$sql = "SELECT clans.NAME
+						FROM
+							" . VTM_TABLE_PREFIX . "CHARACTER chara,
+							" . VTM_TABLE_PREFIX . "CLAN clans
+						WHERE
+							chara.PRIVATE_CLAN_ID = clans.ID
+							AND chara.ID = %s";
+				$clan   = $wpdb->get_var($wpdb->prepare($sql, $vtmglobal['characterID']));
+				if (isset($clan) && ($clan == 'Nosferatu' || $clan == 'Samedi'))
+					$filter = "NAME != 'Appearance' AND ($filter)";
+			}
+			break;
+		case 'SKILL':
+			$filter .= " AND t.SKILL_TYPE_ID = type.ID";
+			break;
+		case 'DISCIPLINE':
+			$filter .= " OR NOT(ISNULL(clandisc.DISCIPLINE_ID))";
+			break;
+		case 'ROAD_OR_PATH':
+			$filter = "cha.ID = %s AND cha.ROAD_OR_PATH_ID = t.ID";
+			break;
+		case 'PATH':
+			$filter .= "AND t.DISCIPLINE_ID = disc.ID AND (
+				NOT(ISNULL(cp.LEVEL)) OR NOT(ISNULL(fp.LEVEL_TO))
+				)";
+			break;
+	}
+	
+	// Define ordering
+	$ordering = "t.ORDERING";
+	switch($table) {
+		case 'SKILL':
+			if ($args == "subgroup")
+				$ordering = "type.ORDERING, t.NAME";
+			else
+				$ordering = "parent.ORDERING, type.ORDERING, t.NAME";
+			break;	
+		case 'DISCIPLINE':
+			$ordering = "GROUPING, t.NAME";
+			break;	
+		case 'BACKGROUND':
+			$ordering = "t.GROUPING, t.NAME";
+			break;	
+		case 'ROAD_OR_PATH':
+			$ordering = "t.NAME";
+			break;	
+		case 'PATH':
+			$ordering = "GROUPING, t.NAME";
+			break;	
+		case 'MERIT':
+			$ordering = "t.GROUPING, t.VALUE DESC, t.NAME";
+			break;	
+	}
+	
+	// Main DB query
+	$sql = "SELECT t.ID, $name as NAME, t.DESCRIPTION, $grouping as GROUPING, 
+				$specat as SPECIALISATION_AT, $multiple as MULTIPLE
+			FROM $tables
+			WHERE
+				$filter
+			ORDER BY $ordering";
+	if ($wpdbprepare)
+		$sql = $wpdb->prepare($sql, $arguments);
+	
+	//if ($table == 'STAT')
+	//	echo "<p>$table itemlist SQL ($args): $sql</p>\n";
+		
+	$results = $wpdb->get_results($sql);
+	
+	// Prepare return array
+	$out = array();
+	$uniq = array();
+	foreach($results as $row) {
+
+		$data = array(
+			'CHARTABLE'         => 'CHARACTER_' . $table,
+			'ITEMTABLE'         => $table,
+			'ITEMTABLE_ID'      => $row->ID,
+			'SPECIALISATION_AT' => $row->SPECIALISATION_AT,
+			'GROUPING'          => $row->GROUPING,
+			'ITEMNAME'          => $row->NAME,
+			'DESCRIPTION'       => $row->DESCRIPTION
+		);
+		$data['MULTIPLE'] = isset($row->MULTIPLE) ? $row->MULTIPLE : 'N';
+		
+		$out[] = $data;
+	}
+	
+	//print_r($out);
+	return $out;
+}
+function vtm_get_pending_freebies($table) {
+	global $wpdb;
+	global $vtmglobal;
+
+	$sql = "SELECT freebie.ITEMNAME as name, freebie.LEVEL_TO as value,
+			freebie.SPECIALISATION as specialisation, freebie.ID as id,
+			freebie.PENDING_DETAIL as pending_detail
+		FROM
+			" . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND freebie
+		WHERE
+			freebie.CHARACTER_ID = %s
+			AND freebie.ITEMTABLE = '$table'";
+	$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
+	//echo "SQL: $sql</p>\n";
+	
+	$pending = $wpdb->get_results($sql, OBJECT_K);
+	$pending = vtm_sanitize_array($pending);
+
+	return $pending;
+}
+function vtm_get_pending_chargen_xp($table) {
+	global $wpdb;
+	global $vtmglobal;
+	
+	$sql = "SELECT ITEMNAME as name, CHARTABLE_LEVEL as value, 
+			SPECIALISATION as specialisation
+		FROM
+			" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
+		WHERE
+			CHARACTER_ID = %s
+			AND ITEMTABLE = '$table'";
+	$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
+	//echo "SQL: $sql</p>\n";
+	
+	$pending = $wpdb->get_results($sql, OBJECT_K);
+	$pending = vtm_sanitize_array($pending);
+	
+	return $pending;
+}
+function vtm_get_chargen_saved($table) {
+	global $wpdb;
+	global $vtmglobal;
+	
+	$name        = "items.NAME";
+	$level       = "ci.LEVEL";
+	$multiple    = "items.MULTIPLE";
+	$grouping    = "items.GROUPING";
+	$comment     = "ci.COMMENT";
+	$extratables = "";
+	$filter      = "ci.{$table}_ID = items.ID AND ci.CHARACTER_ID = %s";
+	$ordering    = "items.NAME, ci.ID";
+	$arguments   = array($vtmglobal['characterID']);
+	switch($table) {
+		case 'STAT':
+			$multiple = "'N'";
+			$ordering = "items.ORDERING";
+			break;
+		case 'SKILL':
+			$grouping = "types.NAME";
+			$extratables = ", " . VTM_TABLE_PREFIX . "SKILL_TYPE types";
+			$filter   .= "AND types.ID = items.SKILL_TYPE_ID";
+			$ordering = "types.ORDERING, items.NAME, ci.ID";
+			break;
+		case 'PATH':
+			$multiple = "'N'";
+			$grouping = "disc.NAME";
+			$comment  = "''";
+			$extratables = ",
+				" . VTM_TABLE_PREFIX . "DISCIPLINE disc
+				LEFT JOIN (
+					SELECT ID, LEVEL, DISCIPLINE_ID
+					FROM
+						" . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE
+					WHERE
+						CHARACTER_ID = %s
+				) as cp
+				ON
+					cp.DISCIPLINE_ID = disc.ID";
+			$filter   .= " AND NOT(ISNULL(cp.LEVEL))";
+			$ordering = "disc.NAME, items.NAME";
+			array_push($arguments, $vtmglobal['characterID']);
+			break;
+		case 'DISCIPLINE':
+			$multiple = "'N'";
+			$grouping = "'DISCIPLINE'";
+			break;
+		case 'BACKGROUND':
+			$multiple = "'N'";
+			break;
+		case 'RITUAL':
+			//$level = "0";
+			$multiple = "'N'";
+			$grouping = "disc.NAME";
+			$comment  = "''";
+			$extratables = ", " . VTM_TABLE_PREFIX . "DISCIPLINE disc";
+			$filter .= "AND items.DISCIPLINE_ID = disc.ID";
+			$ordering = "disc.NAME, items.LEVEL, items.name";
+			break;
+	}
+	
+	$sql = "SELECT 
+				$name      as name, 
+				ci.ID      as chartableid,
+				items.ID   as itemid, 
+				$level     as level_from, 
+				$comment   as comment,
+				$grouping  as grp,
+				$multiple  as multiple
+			FROM 
+				" . VTM_TABLE_PREFIX . "CHARACTER_{$table} ci,
+				" . VTM_TABLE_PREFIX . $table . " items
+				$extratables
+			WHERE 
+				$filter 
+			ORDER BY
+				$ordering";
+				
+	$sql = $wpdb->prepare($sql, $arguments);
+	//echo "<p>$table saved SQL: $sql</p>";
+	$results = $wpdb->get_results($sql); 
+	
+	// prepare output
+	$saved = array();
+	$counts = array();
+	foreach ($results as $row) {
+		
+		if (isset($counts[$row->name])) {
+			$counts[$row->name]++;
+		} else {
+			$counts[$row->name] = 1;
+		}
+		
+		if ($row->multiple == 'Y') {
+			$key = sanitize_key($row->name) . "_" . $counts[$row->name];
+		} else {
+			$key = sanitize_key($row->name);
+		}
+		
+		//echo "<li>Save $key:";
+		//print_r($row);
+		//echo "</li>";
+		$saved[$key] = $row;
+	}
+	
+	return $saved;
+}
+/*
+function vtm_get_player_from_login($login) {
+	global $wpdb;
+	
+	$sql = "SELECT players.ID, players.NAME 
+			FROM 
+				" . VTM_TABLE_PREFIX . "CHARACTER characters,
+				" . VTM_TABLE_PREFIX . "PLAYER players
+			WHERE
+				characters.PLAYER_ID = players.ID
+				AND characters.wordpress_id = %s";
+	$sql = $wpdb->prepare($sql, $login);
+	$player = $wpdb->get_row($sql);
+	
+	return $player;
+}
+
+function vtm_get_player_id($playername, $guess = false) {
+	global $wpdb;
+	
+	if (empty($playername))
+		return;
+	
+	$playername = esc_sql($playername);
+	
+	if ($guess) {
+		$playername = "%$playername%";
+		$test = 'LIKE';
+	} else {
+		$test = '=';
+	}
+	
+	$sql = "SELECT ID FROM " . VTM_TABLE_PREFIX . "PLAYER WHERE NAME $test %s";
+	$sql = $wpdb->prepare($sql, $playername);
+	//echo "<p>SQL: $sql</p>\n";
+	return $wpdb->get_var($sql);
+
+}
+
+
+function vtm_get_template_from_templateID() {
+	global $wpdb;
+	global $vtmglobal;
+	
+	$sql = "SELECT NAME FROM " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE 
+		WHERE ID = %s";
+	$sql = $wpdb->prepare($sql, $vtmglobal['templateID']);
+	return $wpdb->get_var($sql);
+
+}
+
+
+
+
+function vtm_get_player_name($playerid) {
+	global $wpdb;
+		
+	$sql = "SELECT NAME FROM " . VTM_TABLE_PREFIX . "PLAYER WHERE ID = %s";
+	$sql = $wpdb->prepare($sql, $playerid);
+	return $wpdb->get_var($sql);
+
+}
+function vtm_get_clan_name($clanid) {
+	global $wpdb;
+		
+	$sql = "SELECT NAME FROM " . VTM_TABLE_PREFIX . "CLAN WHERE ID = %s";
+	$sql = $wpdb->prepare($sql, $clanid);
+	return $wpdb->get_var($sql);
+
+}
+
+function vtm_email_new_character($email, $playerid, $name, $clanid, $player, $concept) {
+	global $current_user;
+
+	$ref = vtm_get_chargen_reference();
+	$clan = vtm_get_clan_name($clanid);
+	$name = stripslashes($name);
+	$url = add_query_arg('reference', $ref, vtm_get_stlink_url('viewCharGen', true));
+	$url = add_query_arg('confirm', true, $url);
+	$player = stripslashes($player);
+		
+	$userbody = "Hello $player,
+	
+Your new character has been created:
+	
+	* Reference: $ref
+	* Character Name: $name
+	* Clan: $clan
+	* Template: " . stripslashes(vtm_get_template_from_templateID()) . "
+	* Concept: 
+	
+" . stripslashes($concept) . "
+	
+Click this link to confirm your email address and to return to character generation: $url";
+	
+	//echo "<pre>$userbody</pre>\n";
+	
+	$result = vtm_send_email($email, "New Character Created: $name", $userbody);
+	
+	if (!$result)
+		echo "<p>Failed to send email. Character Ref: $ref</p>\n";
+	
+}
+
+
+function vtm_get_chargen_attributes() {
+	global $wpdb;
+	global $vtmglobal;
+	
+	$sql = "SELECT clans.NAME
+			FROM
+				" . VTM_TABLE_PREFIX . "CHARACTER chara,
+				" . VTM_TABLE_PREFIX . "CLAN clans
+			WHERE
+				chara.PRIVATE_CLAN_ID = clans.ID
+				AND chara.ID = %s";
+	$clan = $wpdb->get_var($wpdb->prepare($sql, $vtmglobal['characterID']));
+	
+	$filter = "GROUPING = 'Physical' OR GROUPING = 'Social' OR GROUPING = 'Mental'";
+	
+	if (isset($clan) && ($clan == 'Nosferatu' || $clan == 'Samedi'))
+		$filter = "NAME != 'Appearance' AND ($filter)";
+	
+	//echo "<p>Clan: $clan</p>\n";
+	
+	$sql = "SELECT ID, NAME as name, DESCRIPTION as description, GROUPING as grp, SPECIALISATION_AT as specialisation_at
+			FROM " . VTM_TABLE_PREFIX . "STAT
+			WHERE
+				$filter
+			ORDER BY ORDERING";
+	//echo "<p>SQL: $sql</p>\n";
+	$results = $wpdb->get_results($sql);
+	
+	return $results;
+
+}
+
+function vtm_get_chargen_stats($output_type = OBJECT) {
+	global $wpdb;
+	global $vtmglobal;
+	
+	$sql = "SELECT clans.NAME
+			FROM
+				" . VTM_TABLE_PREFIX . "CHARACTER chara,
+				" . VTM_TABLE_PREFIX . "CLAN clans
+			WHERE
+				chara.PRIVATE_CLAN_ID = clans.ID
+				AND chara.ID = %s";
+	$clan = $wpdb->get_var($wpdb->prepare($sql, $vtmglobal['characterID']));
+	
+	$filter = "";
+	if (isset($clan) && ($clan == 'Nosferatu' || $clan == 'Samedi'))
+		$filter = "WHERE NAME != 'Appearance'";
+	
+	$sql = "SELECT NAME as name, ID, DESCRIPTION as description, 
+				GROUPING as grp, SPECIALISATION_AT as specialisation_at
+			FROM " . VTM_TABLE_PREFIX . "STAT
+			$filter
+			ORDER BY ORDERING";
+	//echo "<p>SQL: $sql</p>\n";
+	$results = $wpdb->get_results($sql, $output_type);
+	//print_r($results);
+	return $results;
+
+}
+
+
+
+
+
+function vtm_get_chargen_disciplines($output_type = OBJECT) {
+	global $wpdb;
+	global $vtmglobal;
+	
+	$sql = "SELECT disc.NAME as name, disc.ID, disc.DESCRIPTION as description, 
+				IF(ISNULL(clandisc.DISCIPLINE_ID),'Non-Clan Discipline','Clan Discipline') as grp
+			FROM " . VTM_TABLE_PREFIX . "DISCIPLINE disc
+				LEFT JOIN (
+					SELECT DISCIPLINE_ID, CLAN_ID
+					FROM
+						" . VTM_TABLE_PREFIX . "CLAN clans,
+						" . VTM_TABLE_PREFIX . "CLAN_DISCIPLINE cd,
+						" . VTM_TABLE_PREFIX . "CHARACTER chars
+					WHERE
+						chars.ID = %s
+						AND chars.PRIVATE_CLAN_ID = clans.ID
+						AND cd.CLAN_ID = clans.ID
+				) as clandisc
+				ON 
+					clandisc.DISCIPLINE_ID = disc.id
+			WHERE
+				disc.VISIBLE = 'Y'
+				OR NOT(ISNULL(clandisc.DISCIPLINE_ID))
+			ORDER BY grp, name";
+	$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
+	//echo "<p>SQL: $sql</p>\n";
+	$results = $wpdb->get_results($sql, $output_type);
+	
+	
+	return $results;
+
+}
+
+function vtm_get_chargen_backgrounds($output_type = OBJECT) {
+	global $wpdb;
+		
+	$sql = "SELECT bg.NAME as name, bg.ID, bg.DESCRIPTION as description, bg.GROUPING as grp
+			FROM " . VTM_TABLE_PREFIX . "BACKGROUND bg
+			WHERE
+				bg.VISIBLE = 'Y'
+			ORDER BY grp, name";
+
+	$results = $wpdb->get_results($sql, $output_type);
+	
+	return $results;
+
+}
+
+function vtm_get_chargen_merits($output_type = OBJECT) {
+	global $wpdb;
+		
+	$sql = "SELECT item.NAME as name, item.ID, item.DESCRIPTION as description, item.GROUPING as grp, item.MULTIPLE as multiple
+			FROM " . VTM_TABLE_PREFIX . "MERIT item
+			WHERE
+				item.VISIBLE = 'Y'
+			ORDER BY GROUPING, VALUE DESC, NAME";
+	//$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
+	//echo "<p>SQL: $sql</p>\n";
+	$results = $wpdb->get_results($sql, $output_type);
+	
+	return $results;
+
+}
+*/
+function vtm_get_chargen_rituals() {
+	global $wpdb;
+	global $vtmglobal;
+	
+	// get rituals for disciplines bought with discipline points (and possibly
+	// raised with freebie points and XP) and ones only bought with
+	// freebies and/or XP
+	
+	$sql = "(SELECT item.NAME as name, item.ID, item.DESCRIPTION as description, item.LEVEL as level, 
+					disc.NAME as grp, 
+					IFNULL(xp.CHARTABLE_LEVEL, IFNULL(fb.LEVEL_TO,cdisc.LEVEL)) as discipline_level
+			FROM 
+				" . VTM_TABLE_PREFIX . "RITUAL item,
+				" . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE cdisc
+				LEFT JOIN (
+					SELECT ID, CHARTABLE_ID, LEVEL_TO
+					FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
+					WHERE
+						CHARACTER_ID = %s 
+						AND CHARTABLE = 'CHARACTER_DISCIPLINE'
+				) fb
+				ON
+					fb.CHARTABLE_ID = cdisc.ID
+				LEFT JOIN (
+					SELECT ID, CHARTABLE_ID, CHARTABLE_LEVEL
+					FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
+					WHERE
+						CHARACTER_ID = %s 
+						AND CHARTABLE = 'CHARACTER_DISCIPLINE'
+				) xp
+				ON
+					xp.CHARTABLE_ID = cdisc.ID
+				,
+				" . VTM_TABLE_PREFIX . "DISCIPLINE disc
+			WHERE
+				item.VISIBLE = 'Y'
+				AND item.DISCIPLINE_ID = cdisc.DISCIPLINE_ID
+				AND item.DISCIPLINE_ID = disc.ID
+				AND cdisc.CHARACTER_ID = %s
+				AND item.LEVEL <= IFNULL(xp.CHARTABLE_LEVEL, IFNULL(fb.LEVEL_TO,cdisc.LEVEL))
+			) UNION (
+			SELECT item.NAME as name, item.ID, item.DESCRIPTION as description, item.LEVEL as level, 
+					disc.NAME as grp, 
+					IFNULL(xp.CHARTABLE_LEVEL, fb.LEVEL_TO) as discipline_level
+			FROM 
+				" . VTM_TABLE_PREFIX . "RITUAL item,
+				" . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND fb
+				LEFT JOIN (
+					SELECT ID, ITEMTABLE_ID, CHARTABLE_LEVEL
+					FROM " . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
+					WHERE
+						CHARACTER_ID = %s 
+						AND ITEMTABLE = 'DISCIPLINE'
+				) xp
+				ON
+					xp.ITEMTABLE_ID = fb.ITEMTABLE_ID
+				,
+				" . VTM_TABLE_PREFIX . "DISCIPLINE disc
+			WHERE
+				item.VISIBLE = 'Y'
+				AND item.DISCIPLINE_ID = disc.ID
+				AND fb.ITEMTABLE_ID = disc.ID
+				AND fb.ITEMTABLE = 'DISCIPLINE'
+				AND fb.CHARACTER_ID = %s 
+				AND item.LEVEL <= IFNULL(xp.CHARTABLE_LEVEL, fb.LEVEL_TO)
+			) UNION (
+			SELECT item.NAME as name, item.ID, item.DESCRIPTION as description, item.LEVEL as level, 
+					disc.NAME as grp, 
+					xp.CHARTABLE_LEVEL as discipline_level
+			FROM 
+				" . VTM_TABLE_PREFIX . "RITUAL item,
+				" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND xp,
+				" . VTM_TABLE_PREFIX . "DISCIPLINE disc
+			WHERE
+				item.VISIBLE = 'Y'
+				AND item.DISCIPLINE_ID = disc.ID
+				AND xp.ITEMTABLE_ID = disc.ID
+				AND xp.ITEMTABLE = 'DISCIPLINE'
+				AND xp.CHARACTER_ID = %s 
+				AND item.LEVEL <= xp.CHARTABLE_LEVEL
+			)
+			ORDER BY grp, LEVEL, NAME";
+			
+	$sql = $wpdb->prepare($sql, $vtmglobal['characterID'], $vtmglobal['characterID'], $vtmglobal['characterID'], $vtmglobal['characterID'], $vtmglobal['characterID'], $vtmglobal['characterID']);
+	$results = vtm_sanitize_array($wpdb->get_results($sql));
+	//echo "<p>SQL: $sql</p>\n";
+	//print_r($results);
+	
+	// Prepare return array
+	$out = array();
+	$uniq = array();
+	foreach($results as $row) {
+
+		$data = array(
+			'CHARTABLE'         => 'CHARACTER_RITUAL',
+			'ITEMTABLE'         => 'RITUAL',
+			'ITEMTABLE_ID'      => $row->ID,
+			'SPECIALISATION_AT' => 0,
+			'GROUPING'          => $row->grp,
+			'ITEMNAME'          => $row->name,
+			'DESCRIPTION'       => $row->description,
+			'MULTIPLE'			=> 'N',
+			'LEVEL'			    => $row->level
+		);
+		
+		$out[] = $data;
+	}
+	
+	return $out;
+}
+/*
+function vtm_get_chargen_paths($output_type = OBJECT) {
+	global $wpdb;
+	global $vtmglobal;
+		
+	$sql = "SELECT path.NAME as name, path.ID, path.DESCRIPTION as description, disc.NAME as grp
+			FROM 
+				" . VTM_TABLE_PREFIX . "PATH path,
+				" . VTM_TABLE_PREFIX . "DISCIPLINE disc
+				LEFT JOIN (
+					SELECT ID, LEVEL, DISCIPLINE_ID
+					FROM
+						" . VTM_TABLE_PREFIX . "CHARACTER_DISCIPLINE
+					WHERE
+						CHARACTER_ID = %s
+				) as cp
+				ON
+					cp.DISCIPLINE_ID = disc.ID
+			WHERE
+				path.VISIBLE = 'Y'
+				AND path.DISCIPLINE_ID = disc.ID
+				AND NOT(ISNULL(cp.LEVEL))
+			ORDER BY grp, name";
+	$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
+	//echo "<p>SQL: $sql</p>\n";
+	$results = $wpdb->get_results($sql, $output_type);
+	
+	return $results;
+
+}
+function vtm_get_chargen_road($output_type = OBJECT) {
+	global $wpdb;
+	global $vtmglobal;
+	
+	$sql = "SELECT 'Path Rating' as name, road.ID, road.DESCRIPTION as description, road.NAME as grp
+			FROM 
+				" . VTM_TABLE_PREFIX . "ROAD_OR_PATH road,
+				" . VTM_TABLE_PREFIX . "CHARACTER cha
+			WHERE
+				cha.ID = %s 
+				AND cha.ROAD_OR_PATH_ID = road.ID";
+	$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
+	$results = $wpdb->get_results($sql, $output_type);
+	//echo "<p>SQL: $sql</p>\n";
+	//print_r($results);
+	
+	return $results;
+
+}
+
+function vtm_get_chargen_abilities($output_type = OBJECT) {
+	global $wpdb;
+	
+	$sql = "SELECT skills.NAME as name, skills.ID, skills.DESCRIPTION as description, skilltypes.NAME as grp, 
+				skills.SPECIALISATION_AT as specialisation_at, skills.MULTIPLE as multiple,
+				skilltypes.ORDERING, skills.MULTIPLE
+			FROM 
+				" . VTM_TABLE_PREFIX . "SKILL skills,
+				" . VTM_TABLE_PREFIX . "SKILL_TYPE skilltypes
+			WHERE
+				skills.VISIBLE = 'Y'
+				AND skills.SKILL_TYPE_ID = skilltypes.ID
+			ORDER BY skilltypes.ORDERING, skills.NAME";
+	//echo "<p>SQL: $sql</p>\n";
+	$results = $wpdb->get_results($sql, $output_type);
+	
+	//print_r($results);
+	
+	return $results;
+
+}
+function vtm_get_abilities_pst($output_type = OBJECT) {
+	global $wpdb;
+	
+	$sql = "SELECT skills.NAME as name, skills.ID, skills.DESCRIPTION as description, skilltypes.NAME as grp, 
+				skills.SPECIALISATION_AT as specialisation_at, skills.MULTIPLE as multiple,
+				skilltypes.ORDERING, skills.MULTIPLE
+			FROM 
+				" . VTM_TABLE_PREFIX . "SKILL skills,
+				" . VTM_TABLE_PREFIX . "SKILL_TYPE skilltypes
+			WHERE
+				skills.VISIBLE = 'Y'
+				AND skills.SKILL_TYPE_ID = skilltypes.ID
+			ORDER BY skilltypes.ORDERING, skills.NAME";
+	//echo "<p>SQL: $sql</p>\n";
+	$results = $wpdb->get_results($sql, $output_type);
+	
+	//print_r($results);
+	
+	return $results;
+
+}
+
+*/
+
+function vtm_render_freebie_stats($submitted) {
+	global $vtmglobal;
+	
+	$output      = "";
+
+	// COSTS OF STATS - if entry doesn't exist then you can't buy it
+	//	$cost['<statname>'] = array( '<from>' => array( '<to>' => <cost>))
+	$freebiecosts = vtm_get_chargen_costs('STAT', 'FREEBIE_COST');
+	$freebiecosts = array_merge($freebiecosts, vtm_get_chargen_costs('ROAD_OR_PATH', 'FREEBIE_COST'));
+
+	// display stats to buy
+	//$items = vtm_get_chargen_stats();
+	$items = vtm_get_chargen_itemlist('STAT', "all");
+	//$items = array_merge($items, vtm_get_chargen_road());
+	$roads = vtm_get_chargen_itemlist('ROAD_OR_PATH');
+	$items = array_merge($items, $roads);
+	
+	// Current stats saved into db
+	$saved = vtm_get_chargen_saved('STAT');
+	//$saved = array_merge($saved, vtm_get_current_road());
+	$sroads = vtm_get_current_road();
+	$saved = array_merge($saved, $sroads);
+	
+	// Current freebies saved into database
+	$pendingfb = vtm_get_pending_freebies('STAT');
+	$pendingfb = array_merge($pendingfb, vtm_get_pending_freebies('ROAD_OR_PATH'));
+
+	// Current bought with XP
+	$pendingxp  = vtm_get_pending_chargen_xp('STAT');  // name => value
+	
+	//echo "<p>items:";print_r($items); echo "</p>";
+	//echo "<p>saved:";print_r($saved); echo "</p>";
+	//echo "<p>pendingfb:";print_r($pendingfb); echo "</p>";
+	//echo "<p>pendingxp:";print_r($pendingxp); echo "</p>";
+	//echo "<p>roads:";print_r($roads); echo "</p>";
+	//echo "<p>sroads:";print_r($sroads); echo "</p>";
+
+	$rowoutput = vtm_render_freebie_section(
+		$items, 
+		$saved, 
+		$pendingfb, 
+		$pendingxp,
+		$freebiecosts, 
+		'freebie_stat', 
+		0, 
+		$submitted, 
+		$vtmglobal['genInfo']['MaxDot'],
+		array()
+	);
+	
+	if ($rowoutput != "")
+		$output .= "<table>$rowoutput</table>\n";
+
+	return $output;
+
+}
+
+function vtm_render_freebie_skills($submitted) {
+	global $vtmglobal;
+	
+	$output  = "";
+	
+	// COSTS OF skills - if entry doesn't exist then you can't buy it
+	//	$cost['<statname>'] = array( '<from>' => array( '<to>' => <cost>))
+	$freebiecosts = vtm_get_chargen_costs('SKILL', 'FREEBIE_COST');
+
+	// display skills to buy
+	//$items = vtm_get_chargen_abilities();
+	$items = vtm_get_chargen_itemlist('SKILL', "subgroup");
+
+	// Current skills saved into db
+	//$saved = vtm_get_current_skills();
+	$saved = vtm_get_chargen_saved('SKILL');
+	
+	// Current spent
+	$pendingfb = vtm_get_pending_freebies('SKILL');
+	
+	// Current bought with XP
+	$pendingxp  = vtm_get_pending_chargen_xp('SKILL');  // name => value
+
+	// Get free stuff from template to get specialities
+	$templatefree = vtm_get_free_levels('SKILL');
+
+	$rowoutput = vtm_render_freebie_section(
+		$items, 
+		$saved, 
+		$pendingfb, 
+		$pendingxp,
+		$freebiecosts, 
+		'freebie_skill', 
+		1, 
+		$submitted, 
+		$vtmglobal['genInfo']['MaxDot'],
+		$templatefree
+	);
+	
+	if ($rowoutput != "")
+		$output .= "<table>$rowoutput</table>\n";
+
+	return $output;
+
+}
+
+function vtm_render_freebie_disciplines($submitted) {	
+	global $vtmglobal;
+	
+	$output      = "";
+	
+	// COSTS OF STATS - if entry doesn't exist then you can't buy it
+	//	$cost['<statname>'] = array( '<from>' => array( '<to>' => <cost>))
+	$freebiecosts = vtm_get_chargen_costs('DISCIPLINE', 'FREEBIE_COST');
+
+	//$items = vtm_get_chargen_disciplines();
+	$items = vtm_get_chargen_itemlist('DISCIPLINE');
+
+	// display stats to buy
+	//	hover over radiobutton to show the cost
+	//$saved = vtm_get_current_disciplines();
+	$saved = vtm_get_chargen_saved('DISCIPLINE');
+	
+	// Current spent
+	$pendingfb = vtm_get_pending_freebies('DISCIPLINE');
+	
+	// Current bought with XP
+	$pendingxp  = vtm_get_pending_chargen_xp('DISCIPLINE');  // name => value
+
+	$rowoutput = vtm_render_freebie_section(
+		$items,
+		$saved, 
+		$pendingfb, 
+		$pendingxp,
+		$freebiecosts, 
+		'freebie_discipline', 
+		1, 
+		$submitted, 
+		$vtmglobal['genInfo']['MaxDisc'],
+		array()
+	);
+	
+	if ($rowoutput != "")
+		$output .= "<table>$rowoutput</table>\n";
+
+	return $output;
+
+}
+
+function vtm_render_chargen_xp_disciplines($submitted) {
+	global $vtmglobal;
+	
+	$output  = "";
+
+	$xpcosts   = vtm_get_chargen_costs('DISCIPLINE', 'XP_COST');
+	$items     = vtm_get_chargen_itemlist('DISCIPLINE');
+	$saved     = vtm_get_chargen_saved('DISCIPLINE');
+	$pendingfb = vtm_get_pending_freebies('DISCIPLINE');
+	$pendingxp = vtm_get_pending_chargen_xp('DISCIPLINE');
+	
+	//print_r($xpcosts);
+	
+	$rowoutput = vtm_render_xp_section(
+		$items, 
+		$saved, 
+		$xpcosts, 
+		$pendingfb, 
+		$pendingxp, 
+		'xp_discipline', 
+		1, 
+		$submitted,
+		array(), 
+		$vtmglobal['genInfo']['MaxDisc'],
+		array()
+	);
+	
+	if ($rowoutput != "")
+		$output .= "<table>$rowoutput</table>\n";
+
+	return $output;
+
+}
+
+function vtm_render_freebie_paths($submitted) {
+	
+	$output      = "";
+
+	$freebiecosts = vtm_get_chargen_costs('PATH', 'FREEBIE_COST');
+	
+	//$items     = vtm_get_chargen_paths();
+	//$saved     = vtm_get_current_paths();
+	$items = vtm_get_chargen_itemlist('PATH');
+	$saved = vtm_get_chargen_saved('PATH');
+	$pendingfb = vtm_get_pending_freebies('PATH');
+	$pendingxp = vtm_get_pending_chargen_xp('PATH');
+
+	print_r($saved);
+	
+	$rowoutput = vtm_render_freebie_section(
+		$items, 
+		$saved, 
+		$pendingfb, 
+		$pendingxp,
+		$freebiecosts, 
+		'freebie_path', 
+		1, 
+		$submitted, 
+		5,
+		array()
+	);
+
+	if ($rowoutput != "")
+		$output .= "CHECK SAVED<table>$rowoutput</table>\n";
+
+	return $output;
+
+} 
+
+function vtm_render_freebie_backgrounds($submitted) {
+	global $wpdb;
+	global $vtmglobal;
+	
+	$output      = "";
+	
+	$freebiecosts = vtm_get_chargen_costs('BACKGROUND', 'FREEBIE_COST');
+	//$items = vtm_get_chargen_backgrounds();
+	//$saved = vtm_get_current_backgrounds();
+	$items = vtm_get_chargen_itemlist('BACKGROUND');
+	$saved = vtm_get_chargen_saved('BACKGROUND');
+	$pendingfb = vtm_get_pending_freebies('BACKGROUND');
+	$pendingxp  = vtm_get_pending_chargen_xp('DISCIPLINE');  // name => value
+	$free       = vtm_get_free_levels('BACKGROUND');
+	
+	$columns     = 3;
+	$dotstobuy   = 0;
+	
+	$max2display = $wpdb->get_var($wpdb->prepare("SELECT MAX_DISCIPLINE FROM " . VTM_TABLE_PREFIX . "GENERATION WHERE ID = %s", $vtmglobal['settings']['limit-generation-low']));
+	$maxbgs = $wpdb->get_results($wpdb->prepare("SELECT ITEMTABLE_ID, LEVEL 
+		FROM " . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_MAXIMUM WHERE 
+		ITEMTABLE = 'BACKGROUND' AND TEMPLATE_ID = %s", $vtmglobal['templateID']), OBJECT_K);
+	if (count($maxbgs) > 0) {
+		$maximums = $maxbgs;
+		$maximums['default'] = $max2display;
+	} else {
+		$maximums = $max2display;
+	}
+
+		
+	$rowoutput = vtm_render_freebie_section(
+		$items, 
+		$saved, 
+		$pendingfb, 
+		$pendingxp,
+		$freebiecosts, 
+		'freebie_background', 
+		1, 
+		$submitted, 
+		$maximums,
+		$free
+	);
+
+	if ($rowoutput != "")
+		$output .= "<table>$rowoutput</table>\n";
+
+
+	return $output;
+
+}
+
+function vtm_render_freebie_merits($submitted) {
+	global $wpdb;
+	global $vtmglobal;
+	
+	$output      = "";
+
+	$freebiecosts = vtm_get_chargen_costs('MERIT', 'FREEBIE_COST');
+	//$items     = vtm_get_chargen_merits();
+	//$saved     = vtm_get_current_merits();
+	$items = vtm_get_chargen_itemlist('MERIT');
+	$saved = vtm_get_chargen_saved('MERIT');
+	$pendingfb = vtm_get_pending_freebies('MERIT');
+	$pendingxp  = vtm_get_pending_chargen_xp('MERIT');  // name => value
+
+	//print_r($saved);
+	
+	$rowoutput = vtm_render_freebie_section(
+		$items, 
+		$saved, 
+		$pendingfb, 
+		$pendingxp,
+		$freebiecosts, 
+		'freebie_merit', 
+		1, 
+		$submitted,
+		1,
+		array()
+	);
+	
+	if ($rowoutput != "")
+		$output .= "<table id='merit_freebie_table'>$rowoutput</table>\n";
+
+	return $output;
+
+}
+
+/*
 
 function vtm_get_current_stats() {
 	global $wpdb;
@@ -4561,48 +5467,7 @@ function vtm_get_current_stats() {
 	
 	return $items;
 }
-function vtm_get_current_road() {
-	global $wpdb;
-	global $vtmglobal;
 
-	$sql = "SELECT 
-				'Path Rating'				as name, 
-				stat1.LEVEL + stat2.LEVEL	as level_from,
-				0	 						as chartableid, 
-				'' 							as comment,
-				road.ID 					as itemid, 
-				road.name 	as grp
-			FROM 
-				" . VTM_TABLE_PREFIX . "CHARACTER cha
-				,
-				" . VTM_TABLE_PREFIX . "ROAD_OR_PATH road
-				LEFT JOIN (
-					SELECT STAT_ID, LEVEL
-					FROM
-						" . VTM_TABLE_PREFIX . "CHARACTER_STAT cstat
-					WHERE
-						CHARACTER_ID = %s
-				) stat1
-				ON 
-					stat1.STAT_ID = road.STAT1_ID
-				LEFT JOIN (
-					SELECT STAT_ID, LEVEL
-					FROM
-						" . VTM_TABLE_PREFIX . "CHARACTER_STAT cstat
-					WHERE
-						CHARACTER_ID = %s
-				) stat2
-				ON 
-					stat2.STAT_ID = road.STAT2_ID
-			WHERE 
-				cha.ROAD_OR_PATH_ID      = road.ID
-				AND cha.ID = %s";
-	$sql   = $wpdb->prepare($sql, $vtmglobal['characterID'], $vtmglobal['characterID'], $vtmglobal['characterID']);
-	//echo "<p>SQL: $sql</p>\n";
-	$items = vtm_sanitize_array($wpdb->get_results($sql, OBJECT_K));
-	
-	return $items;
-}
 
 function vtm_get_current_skills() {
 	global $wpdb;
@@ -4824,104 +5689,14 @@ function vtm_get_current_paths() {
 	return $items;
 }
 
-function vtm_get_freebies_spent() {
-	global $wpdb;
-	global $vtmglobal;
 
-	$spent = 0;
-		
-	if (isset($_POST['freebie_stat'])       || isset($_POST['freebie_skill']) ||
-		isset($_POST['freebie_discipline']) || isset($_POST['freebie_background']) ||
-		isset($_POST['freebie_merit'])      || isset($_POST['freebie_path'])) {
-			
-		$freebiecosts['STAT']       = vtm_get_freebie_costs('STAT');
-		$freebiecosts['SKILL']      = vtm_get_freebie_costs('SKILL');
-		$freebiecosts['DISCIPLINE'] = vtm_get_freebie_costs('DISCIPLINE');
-		$freebiecosts['BACKGROUND'] = vtm_get_freebie_costs('BACKGROUND');
-		$freebiecosts['MERIT']      = vtm_get_freebie_costs('MERIT');
-		$freebiecosts['PATH']       = vtm_get_freebie_costs('PATH');
-		$freebiecosts['STAT'] = array_merge($freebiecosts['STAT'], vtm_get_freebie_costs('ROAD_OR_PATH'));
-		
-		$current['STAT']       = vtm_get_current_stats();
-		$current['SKILL']      = vtm_get_current_skills();
-		$current['DISCIPLINE'] = vtm_get_current_disciplines();
-		$current['BACKGROUND'] = vtm_get_current_backgrounds();
-		$current['MERIT']      = vtm_get_current_merits();
-		$current['PATH']       = vtm_get_current_paths();
-		$current['STAT'] = array_merge($current['STAT'], vtm_get_current_road());
-				
-		$bought['STAT']       = isset($_POST['freebie_stat']) ? $_POST['freebie_stat'] : array();
-		$bought['SKILL']      = isset($_POST['freebie_skill']) ? $_POST['freebie_skill'] : array();
-		$bought['DISCIPLINE'] = isset($_POST['freebie_discipline']) ? $_POST['freebie_discipline'] : array();
-		$bought['BACKGROUND'] = isset($_POST['freebie_background']) ? $_POST['freebie_background'] : array();
-		$bought['MERIT']      = isset($_POST['freebie_merit']) ? $_POST['freebie_merit'] : array();
-		$bought['PATH']       = isset($_POST['freebie_path']) ? $_POST['freebie_path'] : array();
-
-		$templatefree['SKILL']      = vtm_get_free_levels('SKILL');
-		
-		foreach ($bought as $type => $items) {
-			foreach ($items as $key => $levelto) {
-				if (isset($templatefree[$type][$key]->LEVEL))
-					$freelevel = $templatefree[$type][$key]->LEVEL;
-				else
-					$freelevel = 0;
-				$currlevel   = isset($current[$type][$key]->level_from)  ? $current[$type][$key]->level_from  : 0;
-				$levelfrom   = max($currlevel, $freelevel);
-				$actualkey = preg_replace("/_\d+$/", "", $key);
-			
-				//echo "<li>Cost of $key ($actualkey) in $type from $levelfrom to $levelto </li>\n";
-
-				if ($type == 'MERIT') {
-					if (!isset($current[$type][$key])) {
-						if (isset($current[$type][$actualkey]->multiple) && $current[$type][$actualkey]->multiple == 'Y') {
-							$spent += isset($freebiecosts[$type][$actualkey][0][1]) ? $freebiecosts[$type][$actualkey][0][1] : 0;
-							//echo "<li>Running total is $spent. Bought $actualkey ({$freebiecosts[$type][$actualkey][0][1]})</li>\n";
-						}
-					} else {
-						$spent += isset($freebiecosts[$type][$key][0][1]) ? $freebiecosts[$type][$key][0][1] : 0;
-						//echo "<li>Running total is $spent. Bought $key ({$freebiecosts[$type][$key][0][1]})</li>\n";
-					}
-				}
-				elseif (!isset($current[$type][$key])) {
-					//echo "$key becomes $actualkey<br />\n";
-					if (isset($current[$type][$actualkey]->multiple) && $current[$type][$actualkey]->multiple == 'Y') {
-						$levelfrom   = max($current[$type][$actualkey]->level_from, $freelevel);
-						//echo "$actualkey - from: {$current[$actualkey]->level_from}, to: {$levelto}, cost: {$freebiecosts[$actualkey][$current[$actualkey]->level_from][$level_to]}<br />\n";
-						$spent += isset($freebiecosts[$type][$actualkey][$levelfrom][$levelto]) ? $freebiecosts[$type][$actualkey][$levelfrom][$levelto] : 0;
-						//echo "<li>Running total is $spent. Bought $actualkey from $levelfrom to $levelto ({$freebiecosts[$type][$actualkey][$levelfrom][$levelto]})</li>\n";
-					}
-				} 
-				elseif ($type == 'STAT' && $key == 'pathrating') {
-					$pathname = sanitize_key($current[$type][$key]->grp);
-					//echo "$key becomes $pathname for Path of Enlightenment<br />\n";
-					$spent += isset($freebiecosts[$type][$pathname][$levelfrom][$levelto]) ? $freebiecosts[$type][$pathname][$levelfrom][$levelto] : 0;
-					//echo "<li>Running total is $spent. Bought $pathname to $levelto ({$freebiecosts[$type][$pathname][$levelfrom][$levelto]})</li>\n";
-				}
-				else {
-					$spent += isset($freebiecosts[$type][$key][$levelfrom][$levelto]) ? $freebiecosts[$type][$key][$levelfrom][$levelto] : 0;
-					//echo "<li>Running total is $spent. Bought $key to $levelto ({$freebiecosts[$type][$key][$levelfrom][$levelto]})</li>\n";
-				}
-			}
-		
-		}
-		
-
-	} else {
-		$sql = "SELECT SUM(AMOUNT) FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
-				WHERE CHARACTER_ID = %s";
-		$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
-		$spent = $wpdb->get_var($sql) * 1;
-		
-	}
-
-	return $spent;
-}
-
+*/
 function vtm_get_chargen_xp_spent() {
 	global $wpdb;
 	global $vtmglobal;
 
 	$spent = 0;
+	/*
 	if (isset($_POST['xp_stat'])       || isset($_POST['xp_skill']) ||
 		isset($_POST['xp_discipline']) || isset($_POST['xp_background']) ||
 		isset($_POST['xp_merit'])      || isset($_POST['xp_path'])) {
@@ -4992,131 +5767,106 @@ function vtm_get_chargen_xp_spent() {
 	
 	}
 	
+	*/
 	//echo "<li>spent on $table, $postvariable: $spent</li>\n";
 	return $spent;
 } 
-function vtm_get_pending_freebies($table) {
-	global $wpdb;
-	global $vtmglobal;
-
-	$sql = "SELECT freebie.ITEMNAME as name, freebie.LEVEL_TO as value,
-			freebie.SPECIALISATION as specialisation, freebie.ID as id,
-			freebie.PENDING_DETAIL as pending_detail
-		FROM
-			" . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND freebie
-		WHERE
-			freebie.CHARACTER_ID = %s
-			AND freebie.ITEMTABLE = '$table'";
-	$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
-	//echo "SQL: $sql</p>\n";
-	
-	$pending = $wpdb->get_results($sql, OBJECT_K);
-	$pending = vtm_sanitize_array($pending);
-
-	return $pending;
-}
-
-function vtm_get_pending_chargen_xp($table) {
-	global $wpdb;
-	global $vtmglobal;
-	
-	$sql = "SELECT ITEMNAME as name, CHARTABLE_LEVEL as value, 
-			SPECIALISATION as specialisation
-		FROM
-			" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
-		WHERE
-			CHARACTER_ID = %s
-			AND ITEMTABLE = '$table'";
-	$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
-	//echo "SQL: $sql</p>\n";
-	
-	$pending = $wpdb->get_results($sql, OBJECT_K);
-	$pending = vtm_sanitize_array($pending);
-	
-	return $pending;
-}
-
-function vtm_sanitize_array($array) {
-
-	if (count($array) == 0) {
-		return array();
-	} else {
-		$keys = array_keys($array);
-		$values = array_values($array);
-		
-		return array_combine(array_map("vtm_sanitize_keys",$keys), $values);
-	} 
-}
-
-function vtm_sanitize_keys($a) {
-	return sanitize_key($a);
-}
 
 function vtm_render_chargen_xp_stats($submitted) {
-	$output = "";
+	global $vtmglobal;
 
+	$output = "";
 	$geninfo   = vtm_calculate_generation();
 
 	// Get costs
-	$xpcosts = vtm_get_chargen_xp_costs('STAT');
-
+	$xpcosts = vtm_get_chargen_costs('STAT', 'XP_COST');
 	// display stats to buy
-	$items = vtm_get_chargen_stats();
-
+	$items = vtm_get_chargen_itemlist('STAT', "all");
 	// Get current stats in database
-	$saved = vtm_get_current_stats();
-	
+	$saved = vtm_get_chargen_saved('STAT');
 	// Get Freebie points spent on stats
 	$pendingfb = vtm_get_pending_freebies('STAT');
-	//print_r($pendingfb);
-	
 	// Currently bought with XP
 	$pendingxp  = vtm_get_pending_chargen_xp('STAT');  // name => value
 	
-	$rowoutput = vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, 
-		$pendingxp, 'xp_stat', 0, $submitted,array(),$geninfo['MaxDot']);
+	$rowoutput = vtm_render_xp_section(
+		$items, 
+		$saved, 
+		$xpcosts, 
+		$pendingfb, 
+		$pendingxp, 
+		'xp_stat', 
+		0, 
+		$submitted,
+		array(),
+		$vtmglobal['genInfo']['MaxDot'],
+		array()
+	);
 
 	if ($rowoutput != "")
 		$output .= "<table>$rowoutput</table>\n";
-	
+
 	return $output;
 }
 
 function vtm_render_chargen_xp_paths($submitted) {
+	global $vtmglobal;
+
 	$output = "";
 
-	$xpcosts   = vtm_get_chargen_xp_costs('PATH');
-	$items     = vtm_get_chargen_paths();
-	$saved     = vtm_get_current_paths();
+	$xpcosts   = vtm_get_chargen_costs('PATH', 'XP_COST');
+	$items = vtm_get_chargen_itemlist('PATH');
+	$saved = vtm_get_chargen_saved('PATH');
 	$pendingfb = vtm_get_pending_freebies('PATH');
 	$pendingxp = vtm_get_pending_chargen_xp('PATH');
 	//print_r($current_path);
 	
-	$rowoutput = vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, 
-		$pendingxp, 'xp_path', 1, $submitted,array(),5);
+	$rowoutput = vtm_render_xp_section(
+		$items, 
+		$saved, 
+		$xpcosts, 
+		$pendingfb, 
+		$pendingxp, 
+		'xp_path', 
+		1, 
+		$submitted,
+		array(),
+		5,
+		array()
+	);
 	
 	if ($rowoutput != "")
 		$output .= "<table>$rowoutput</table>\n";
-	
+
 	return $output;
 }
 
 function vtm_render_chargen_xp_skills($submitted) {
-	global $wpdb;
+	global $vtmglobal;
 	
 	$output = "";
 
 	// Get costs
-	$xpcosts   = vtm_get_chargen_xp_costs('SKILL');
-	$items     = vtm_get_chargen_abilities(1);
-	$saved     = vtm_get_current_skills();
-	$pendingfb = vtm_get_pending_freebies('SKILL');
-	$pendingxp = vtm_get_pending_chargen_xp('SKILL');
-	$geninfo   = vtm_calculate_generation();
+	$xpcosts      = vtm_get_chargen_costs('SKILL', 'XP_COST');
+	$items        = vtm_get_chargen_itemlist('SKILL', "subgroup");
+	$saved        = vtm_get_chargen_saved('SKILL');
+	$pendingfb    = vtm_get_pending_freebies('SKILL');
+	$pendingxp    = vtm_get_pending_chargen_xp('SKILL');
 	$templatefree = vtm_get_free_levels('SKILL');
 	
-	$rowoutput = vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, 
-	$pendingxp, 'xp_skill', 1, $submitted,array(), $geninfo['MaxDot'], $templatefree);
+	$rowoutput = vtm_render_xp_section(
+		$items, 
+		$saved, 
+		$xpcosts, 
+		$pendingfb,
+		$pendingxp, 
+		'xp_skill', 
+		1, 
+		$submitted,
+		array(), 
+		$vtmglobal['genInfo']['MaxDot'], 
+		$templatefree
+	);
 	
 	if ($rowoutput != "")
 		$output .= "<table>$rowoutput</table>\n";
@@ -5131,15 +5881,26 @@ function vtm_render_chargen_xp_merits($submitted) {
 	$output = "";
 
 	// Get costs
-	$xpcosts   = vtm_get_chargen_xp_costs('MERIT');
-	$fbcosts   = vtm_get_freebie_costs('MERIT');
-	$items     = vtm_get_chargen_merits();
-	$saved     = vtm_get_current_merits();
+	$xpcosts   = vtm_get_chargen_costs('MERIT', 'XP_COST');
+	$items = vtm_get_chargen_itemlist('MERIT');
+	$saved = vtm_get_chargen_saved('MERIT');
+	$fbcosts   = vtm_get_chargen_costs('MERIT', 'FREEBIE_COST');
 	$pendingfb = vtm_get_pending_freebies('MERIT');
 	$pendingxp = vtm_get_pending_chargen_xp('MERIT');
 
-	$rowoutput = vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, 
-		$pendingxp, 'xp_merit', 1, $submitted, $fbcosts);
+	$rowoutput = vtm_render_xp_section(
+		$items, 
+		$saved, 
+		$xpcosts, 
+		$pendingfb, 
+		$pendingxp, 
+		'xp_merit', 
+		1, 
+		$submitted, 
+		$fbcosts,
+		1,
+		array()
+	);
 	
 	if ($rowoutput != "")
 		$output .= "<table id='merit_xp_table'>$rowoutput</table>\n";
@@ -5148,22 +5909,31 @@ function vtm_render_chargen_xp_merits($submitted) {
 
 }
 function vtm_render_chargen_xp_rituals($submitted) {
-	global $wpdb;
 	
 	$output = "";
 
 	// Get costs
-	$xpcosts   = vtm_get_chargen_xp_costs('RITUAL');
-	$fbcosts   = array();
-	$items     = vtm_get_chargen_rituals(OBJECT_K);
-	$saved     = vtm_get_current_rituals();
-	$pendingfb = array();
+	$xpcosts   = vtm_get_chargen_costs('RITUAL', 'XP_COST');
+	$items     = vtm_get_chargen_rituals();
+	//$saved     = vtm_get_current_rituals();
+	$saved     = vtm_get_chargen_saved('RITUAL');
 	$pendingxp = vtm_get_pending_chargen_xp('RITUAL');
 	
-	//print_r($items);
+	print_r($saved);
 	
-	$rowoutput = vtm_render_chargen_xp_section($items, $saved, $xpcosts, $pendingfb, 
-		$pendingxp, 'xp_ritual', 1, $submitted, $fbcosts);
+	$rowoutput = vtm_render_xp_section(
+		$items, 
+		$saved, 
+		$xpcosts, 
+		array(), 
+		$pendingxp, 
+		'xp_ritual', 
+		1, 
+		$submitted, 
+		array(),
+		1,
+		array()
+	);
 	
 	if ($rowoutput != "")
 		$output .= "<table id='ritual_xp_table'>$rowoutput</table>\n";
@@ -5172,6 +5942,9 @@ function vtm_render_chargen_xp_rituals($submitted) {
 
 }
 
+//--------------------------------------------------------------
+// VALIDATE
+//--------------------------------------------------------------
 function vtm_validate_basic_info($usepost = 1) {
 	global $current_user;
 	global $wpdb;
@@ -5180,7 +5953,7 @@ function vtm_validate_basic_info($usepost = 1) {
 	$ok = 1;
 	$errormessages = "";
 	$complete = 1;
-	
+	/*
 	$wpdb->show_errors();
 
 	// VALIDATE BASIC INFO
@@ -5340,7 +6113,7 @@ function vtm_validate_basic_info($usepost = 1) {
 		$errormessages .= "<li>WARNING: You must confirm your email address by clicking the link that was emailed to you before
 							your character can be submitted</li>";
 	}
-						
+	*/			
 	return array($ok, $errormessages, $complete);
 }
 
@@ -5352,14 +6125,14 @@ function vtm_validate_abilities($usepost = 1) {
 	$complete = 1;
 	
 	$templatefree = vtm_get_free_levels('SKILL');
-	
+		
 	// VALIDATE ABILITIES
 	// P/S/T
 	//		- WARN/ERROR: correct number of points spent in each group
 	// 		- ERROR: check that nothing is over the max
 	
 	if (!$usepost) {
-		$saved = vtm_get_current_skills();
+		$saved = vtm_get_chargen_saved('SKILL');
 		foreach($saved as $row) {
 			$dbvalues[sanitize_key($row->name)] = $row->level_from;
 		}
@@ -5388,6 +6161,22 @@ function vtm_validate_abilities($usepost = 1) {
 			$errormessages .= "<li>WARNING: You haven't spent enough points</li>\n";
 			$complete = 0;
 		}
+		
+		
+		$info = vtm_get_pst(array(), 
+			$postvalues,
+			vtm_get_chargen_itemlist('SKILL'),
+			$vtmglobal['settings']['abilities-primary'], 
+			$vtmglobal['settings']['abilities-secondary'], 
+			$vtmglobal['settings']['abilities-tertiary'], 
+			0, $templatefree
+		);
+		foreach ($info['totals'] as $group => $count) {
+			if (!isset($info['correct'][$group]) || $count != $info['correct'][$group]) {
+				$errormessages .= "<li>WARNING: Wrong number of dots spent in $group section</li>\n";
+				$complete = 0;
+			}
+		}
 			
 	} else {
 		$errormessages .= "<li>WARNING: You have not spent any dots</li>\n";
@@ -5403,12 +6192,12 @@ function vtm_validate_attributes($usepost = 1) {
 	$ok = 1;
 	$errormessages = "";
 	$complete = 1;
-		
+
 	if (!$usepost) {
-		$saved = vtm_get_current_stats();
+		$saved = vtm_get_chargen_saved('STAT');
 		$dbvalues = array();
 		//print_r($saved);
-		foreach($saved as $row) {
+		foreach($saved as $key => $row) {
 			if ($row->grp == 'Physical' || $row->grp == 'Mental' || $row->grp == 'Social')
 				$dbvalues[sanitize_key($row->name)] = $row->level_from;
 		}
@@ -5449,7 +6238,6 @@ function vtm_validate_attributes($usepost = 1) {
 		$complete = 0;
 	}
 	
-
 	return array($ok, $errormessages, $complete);
 }
 
@@ -5461,7 +6249,7 @@ function vtm_validate_disciplines($usepost = 1) {
 	$complete = 1;
 
 	if (!$usepost) {
-		$disciplines = vtm_get_current_disciplines();
+		$disciplines = vtm_get_chargen_saved('DISCIPLINES');
 		$dbvalues = array();
 		foreach ($disciplines as $disc) {
 			$dbvalues[sanitize_key($disc->name)] = $disc->level_from;
@@ -5497,7 +6285,6 @@ function vtm_validate_disciplines($usepost = 1) {
 		$complete = 0;
 	}
 
-	
 	return array($ok, $errormessages, $complete);
 }
 
@@ -5508,27 +6295,14 @@ function vtm_validate_backgrounds($usepost = 1) {
 	$ok = 1;
 	$errormessages = "";
 	$complete = 1;
-	
+
 	$templatefree = vtm_get_free_levels('BACKGROUND');
 	
 	if (!$usepost) {
-		$sql = "SELECT bg.NAME, cbg.LEVEL 
-				FROM 
-					" . VTM_TABLE_PREFIX . "BACKGROUND bg,
-					" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND cbg
-				WHERE
-					bg.ID = cbg.BACKGROUND_ID
-					AND cbg.CHARACTER_ID = %s";
-		$sql = $wpdb->prepare($sql, $vtmglobal['characterID']);
-		$keys = $wpdb->get_col($sql, 0);
-		$vals = $wpdb->get_col($sql, 1);
-	
-		if (count($keys) > 0)
-			$dbvalues = vtm_sanitize_array(array_combine($keys, $vals));
-		else
-			$dbvalues = array();
-		//echo "<p>SQL: $sql</p>\n";
-		//print_r($dbvalues);
+		$saved = vtm_get_chargen_saved('BACKGROUND');
+		foreach($saved as $row) {
+			$dbvalues[sanitize_key($row->name)] = $row->level_from;
+		}
 	}
 	
 	$postvalues = $usepost ? 
@@ -5571,9 +6345,11 @@ function vtm_validate_virtues($usepost = 1) {
 	$ok = 1;
 	$errormessages = "";
 	$complete = 1;
-	
+	$pendingfb  = vtm_get_pending_freebies('STAT');
+	$pendingxp  = vtm_get_pending_chargen_xp('STAT');
+
 	if (!$usepost) {
-		$stats = vtm_get_current_stats();
+		$stats = vtm_get_chargen_saved('STAT');
 		$dbvalues = array();
 		foreach ($stats as $stat) {
 			if ($stat->grp == 'Virtue')
@@ -5611,7 +6387,8 @@ function vtm_validate_virtues($usepost = 1) {
 			if ($key != $statkey1 && $key != $statkey2 && $key != 'courage') {
 				$statfail = 1;
 			} 
-			elseif ($level == 0) {
+			elseif ($level == 0 && !isset($pendingfb[$key]) 
+				&& !isset($pendingxp[$key]) && vtm_has_virtue_free_dot($selectedpath) == 0) {
 				$errormessages .= "<li>WARNING: Virtues must each have at least 1 dot</li>\n";
 				$complete = 0;
 			}
@@ -5644,12 +6421,11 @@ function vtm_validate_virtues($usepost = 1) {
 
 function vtm_validate_freebies($usepost = 1) {
 	global $vtmglobal;
-	global $vtmglobal;
 	
 	$ok = 1;
 	$errormessages = "";
 	$complete = 1;
-	
+
 	if (!$usepost) {
 		$dbmerit = array();
 		$dbpath = array();
@@ -5706,9 +6482,7 @@ function vtm_validate_freebies($usepost = 1) {
 	
 	$points = $vtmglobal['settings']['freebies-points'];
 	
-	$spent = 0;
-	
-	$spent += vtm_get_freebies_spent();
+	$spent = vtm_get_freebies_spent();
 	
 	if ($spent == 0) {
 		$errormessages .= "<li>WARNING: You have not spent any dots</li>\n";
@@ -5725,14 +6499,30 @@ function vtm_validate_freebies($usepost = 1) {
 	}
 	
 	if (count($postpath) > 0) {
-		$pathinfo = vtm_get_current_paths();
+		$results = vtm_get_chargen_itemlist('PATH');
+		$pathinfo = array();
+		foreach ($results as $path) {
+			$pathinfo[sanitize_key($path['ITEMNAME'])] = $path;
+		}
+		$discinfo = vtm_get_chargen_saved('DISCIPLINE');
+		//print_r($discinfo);
+		
 		$bought = $postpath;
 		foreach ($bought as $path => $level) {
-			$disciplinekey = sanitize_key($pathinfo[$path]->grp);
-			$max = isset($postdisc[$disciplinekey]) ? $postdisc[$disciplinekey] : $pathinfo[$path]->maximum;
+			$disciplinekey = sanitize_key($pathinfo[$path]['GROUPING']);
+			
+			// MAX level you can buy is the level of the discipline
+			// which you might have also bought up with freebie points
+
+			if (isset($discinfo[$disciplinekey]->level_from))
+				$max = $discinfo[$disciplinekey]->level_from;
+			else
+				$max = 0;
+			if (isset($postdisc[$disciplinekey]) && $postdisc[$disciplinekey] > $max)
+				$max = $postdisc[$disciplinekey];
 		
 			if ($level > $max) {
-				$errormessages .= "<li>ERROR: The level in " . vtm_formatOutput($pathinfo[$path]->name) . " cannot be greater than the {$pathinfo[$path]->grp} rating</li>\n";
+				$errormessages .= "<li>ERROR: The level in " . vtm_formatOutput($pathinfo[$path]['ITEMNAME']) . " ($level) cannot be greater than the {$pathinfo[$path]['GROUPING']} rating ($max)</li>\n";
 				$ok = 0;
 				$complete = 0;
 			}
@@ -5748,7 +6538,7 @@ function vtm_validate_rituals($usepost = 1) {
 	$ok = 1;
 	$errormessages = "";
 	$complete = 1;
-	
+	/*
 	$target = vtm_get_chargen_ritual_points(vtm_get_chargen_rituals());
 	//print_r($target);
 	
@@ -5825,7 +6615,7 @@ function vtm_validate_rituals($usepost = 1) {
 		$errormessages .= "<li>WARNING: You have not spent any points of rituals</li>\n";
 		$complete = 0;
 	}
-
+	*/
 	return array($ok, $errormessages, $complete);
 }
 
@@ -5837,6 +6627,7 @@ function vtm_validate_finishing($usepost = 1) {
 	$errormessages = "";
 	$complete = 1;
 	
+	/*
 	if (!$usepost) {
 		$dbvalues = array();
 		$dbcomments = array();
@@ -5929,7 +6720,7 @@ function vtm_validate_finishing($usepost = 1) {
 		$complete = 0;
 	}
 	
-
+	*/
 	return array($ok, $errormessages, $complete);
 }
 
@@ -5941,6 +6732,7 @@ function vtm_validate_history($usepost = 1) {
 	$errormessages = "";
 	$complete = 1;
 	
+	/*
 	if (!$usepost) {
 		$dbvalues = array();
 		$dbtitles = array();
@@ -6030,6 +6822,7 @@ function vtm_validate_history($usepost = 1) {
 		$errormessages .= "<li>WARNING: Please fill in the Background questions.</li>\n";
 		$complete = 0;
 	}
+	*/
 	return array($ok, $errormessages, $complete);
 }
 
@@ -6040,6 +6833,7 @@ function vtm_validate_xp($usepost = 1) {
 	$errormessages = "";
 	$complete = 1;
 	
+	/*
 	if (!$usepost) {
 		$dbpath = array();
 		$dbdisc = array();
@@ -6094,9 +6888,11 @@ function vtm_validate_xp($usepost = 1) {
 		}
 	}
 
+	*/
 	return array($ok, $errormessages, $complete);
 }
 
+/*
 function vtm_render_date_entry($fieldname, $day, $month, $year, $submitted) {
 
 	if ($submitted) {
@@ -6518,11 +7314,11 @@ function vtm_get_chargen_specialties() {
 	//echo "</pre>\n";
 	return $specialities;
 } 
-
+*/
 function vtm_get_chargen_questions($returncount = false) {
 	global $wpdb;
 	global $vtmglobal;
-	
+	/*
 	$sql = "SELECT questions.TITLE, questions.ORDERING, questions.GROUPING, questions.BACKGROUND_QUESTION, 
 				tempcharmisc.APPROVED_DETAIL, tempcharmisc.PENDING_DETAIL, tempcharmisc.DENIED_DETAIL, 
 				tempcharmisc.ID AS miscID, questions.ID as questID
@@ -6541,14 +7337,16 @@ function vtm_get_chargen_questions($returncount = false) {
 				AND questions.REQD_AT_CHARGEN = 'Y'
 			ORDER BY questions.ORDERING ASC";
 			
-	/* $content = "<p>SQL: $sql</p>\n"; */
+	//$content = "<p>SQL: $sql</p>\n";
 	
 	$questions = $wpdb->get_results($wpdb->prepare($sql, $vtmglobal['characterID'], $vtmglobal['characterID']));
 	
 	return $returncount ? $wpdb->num_rows : $questions;
+	*/
+	return 0;
 
 }
-
+/*
 function vtm_get_chargen_merit_questions() {
 	global $wpdb;
 	global $vtmglobal;
@@ -6614,6 +7412,7 @@ function vtm_get_chargen_background_questions() {
 	
 	return $questions;
 }
+*/
 function vtm_validate_submit($usepost = 1) {
 
 	if (isset($_POST['chargen-submit'])) {
@@ -6630,7 +7429,7 @@ function vtm_save_submit() {
 	global $wpdb;
 	global $current_user;
 	global $vtmglobal;
-	
+	/*
 	$wpdb->show_errors();
 	
 	// Exit if we aren't actually submitting the character
@@ -6702,7 +7501,7 @@ You can view this character by following this link: $url";
 			echo "<p>Failed to send email. Character Ref: $ref</p>\n";
 
 	}
-
+	*/
 	return $vtmglobal['characterID'];
 }
 function vtm_validate_dummy($usepost = 1) {
@@ -6713,42 +7512,8 @@ function vtm_save_dummy() {
 	global $vtmglobal;
 	return $vtmglobal['characterID'];
 }
+/*
 
-function vtm_get_chargen_reference() {
-	global $vtmglobal;
-
-	if (isset($vtmglobal['characterID'])) {
-		$characterID = $vtmglobal['characterID'];
-	}
-	elseif (isset($_REQUEST['characterID']) && $_REQUEST['characterID'] > 0) {
-		$characterID = $_REQUEST['characterID'];
-	}
-	elseif (isset($_REQUEST['chargen_reference'])) {
-		$split = explode("/",$_POST['chargen_reference']);
-		$characterID = $split[0];
-	}
-	$vtmglobal['characterID'] = $characterID;
-	$vtmglobal['templateID'] = vtm_get_templateid();
-
-	$cid = sprintf("%04d", $vtmglobal['characterID']);
-	$pid = sprintf("%04d", vtm_get_player_id_from_characterID());
-	$tid = sprintf("%02d", $vtmglobal['templateID']);
-	
-	$login = vtm_get_chargenlogin();
-	if (isset($login)) {
-		//echo "<li>$login</li>\n";
-		$bloguser = get_users('search=' . $login . '&number=1');
-		//print_r($bloguser);
-		$wpid = isset($bloguser[0]->ID) ? sprintf("%04d", $bloguser[0]->ID) : '0000';
-	} else {
-		$wpid = '0000';
-	}
-	
-	$ref = "$cid/$pid/$tid/$wpid";
-	//echo "<li>Reference: $ref</li>\n";
-	return $ref;
-
-}
 
 function vtm_get_chargen_ritual_points($items) {
 	global $wpdb;
@@ -6780,145 +7545,9 @@ function vtm_get_chargen_ritual_points($items) {
 	return $points;
 }
 
-function vtm_has_virtue_free_dot($selectedpath) {
-	global $wpdb;
-	global $vtmglobal;
 
-	if ($vtmglobal['settings']['virtues-free-dots'] == 'yes')
-		$freedot = 1;
-	elseif ($vtmglobal['settings']['virtues-free-dots'] == 'no')
-		$freedot = 0;
-	else {
-		$humanityid = $wpdb->get_var($wpdb->prepare("SELECT ID FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE NAME = %s", 'Humanity'));
-		if ($humanityid == $selectedpath)
-			$freedot = 1;
-		else
-			$freedot = 0;
-	}
 
-	return $freedot;
-}
 
-function vtm_calculate_generation() {
-	global $wpdb;
-	global $vtmglobal;
-			
-	$defaultgen = $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "GENERATION WHERE ID = %s", $vtmglobal['config']->DEFAULT_GENERATION_ID));
-	$sql = "SELECT charbg.LEVEL 
-			FROM 
-				" . VTM_TABLE_PREFIX . "CHARACTER_BACKGROUND charbg,
-				" . VTM_TABLE_PREFIX . "BACKGROUND bg
-			WHERE
-				charbg.CHARACTER_ID = %s
-				AND charbg.BACKGROUND_ID = bg.ID
-				AND bg.NAME = 'Generation'";
-	$genfromgb  = $wpdb->get_var($wpdb->prepare($sql, $vtmglobal['characterID']));
-	$sql = "SELECT LEVEL_TO 
-			FROM " . VTM_TABLE_PREFIX . "PENDING_FREEBIE_SPEND
-			WHERE 
-				ITEMTABLE = 'BACKGROUND'
-				AND ITEMNAME = 'generation'
-				AND CHARACTER_ID = %s";
-	$genfromfreebie = $wpdb->get_var($wpdb->prepare($sql, $vtmglobal['characterID']));
-	$generation     = $defaultgen - (isset($genfromfreebie) ? $genfromfreebie : $genfromgb);
 
-	$results   = $wpdb->get_row($wpdb->prepare("SELECT ID, MAX_RATING, MAX_DISCIPLINE FROM " . VTM_TABLE_PREFIX . "GENERATION WHERE NAME = %s", $generation));
-
-	$data = array(
-		'ID' => $results->ID,
-		'Gen' => $generation,
-		'MaxDot' => $results->MAX_RATING,
-		'MaxDisc' => $results->MAX_DISCIPLINE
-	);
-	
-	//print "<li>Dot limit for {$generation}th generation is {$results->MAX_RATING}/{$results->MAX_DISCIPLINE}</li>";
-	
-	return $data;
-	
-}
-
-function vtm_get_free_levels($table) {
-	global $wpdb;
-	global $vtmglobal;
-
-	$duplicates = array();
-	
-	$sql = "SELECT item.NAME, item.ID, ctd.SPECIALISATION, ctd.LEVEL,
-				ctd.ITEMTABLE, ctd.ITEMTABLE_ID,
-				IFNULL(sector.ID,0) as SECTOR_ID, 
-				IFNULL(sector.NAME,'') as SECTOR,
-				ctd.MULTIPLE
-			FROM 
-				" . VTM_TABLE_PREFIX . "CHARGEN_TEMPLATE_DEFAULTS ctd
-				LEFT JOIN (
-					SELECT ID, NAME
-					FROM " . VTM_TABLE_PREFIX . "SECTOR
-				) sector
-				ON sector.ID = ctd.SECTOR_ID,
-				" . VTM_TABLE_PREFIX . $table . " item
-			WHERE 
-				ctd.TEMPLATE_ID = %s 
-				AND ctd.ITEMTABLE_ID = item.ID
-				AND ctd.ITEMTABLE = %s";
-	$sql = $wpdb->prepare($sql, $vtmglobal['templateID'], $table);
-	$results = $wpdb->get_results($sql);
-	
-	//print_r($results);
-	
-	$out = array();
-	$indexes = array();
-	foreach ($results as $row) {
-		$key = sanitize_key($row->NAME);
-		if ($row->MULTIPLE == 'Y') {
-			if (isset($indexes[$key])) {
-				$indexes[$key]++;
-			} else {
-				$indexes[$key] = 1;
-			}
-			$out[$key . "_" . $indexes[$key]] = $row;
-		} else {
-			$out[$key] = $row;
-		}
-		
-	}
-	
-	//print_r($out);
-	// $checkdups = array();
-	// foreach ($results as $row) {
-		// $key = sanitize_key($row->NAME);
-		// if (isset($duplicates[$key])) {
-			// $duplicates[$key]++;
-		// }
-		// elseif (isset($checkdups[$key])) {
-			// $duplicates[$key] = 1;
-		// }
-		
-		// $checkdups[$key] = 1;
-	// }
-	
-	// //print_r($checkdups);
-	
-	// // Final output - to have a unique key if multiple skills have been
-	// // added with the same name. Can't use the MULTIPLE field from the database
-	// // as BACKGROUNDs don't have that column
-	// $out = array();
-	// $indexes = array();
-	// foreach ($results as $row) {
-		// $key = sanitize_key($row->NAME);
-		// if (isset($duplicates[$key])) {
-			// if (isset($indexes[$key])) {
-				// $indexes[$key]++;
-			// } else {
-				// $indexes[$key] = 1;
-			// }
-			// $out[$key . "_" . $indexes[$key]] = $row;
-		// } else {
-			// $out[$key] = $row;
-		// }
-		
-	// }
-	
-	return $out;
-}
-
+*/
 ?>
