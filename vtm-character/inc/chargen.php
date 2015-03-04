@@ -1365,14 +1365,12 @@ function vtm_render_chargen_xp($step, $submitted) {
 
 	$output = "";
 
-	// Work out how much points are currently available
-	$spent = vtm_get_chargen_xp_spent();
-	// points = total overall - all pending + just pending on this character
-	$total     = vtm_get_total_xp(0, $vtmglobal['characterID']);
-	$pending   = vtm_get_pending_xp(0, $vtmglobal['characterID']);
-	$points    = $total - $pending + $spent;
-	$remaining = $total - $pending;
-
+	$spent   = vtm_get_chargen_xp_spent();
+	$points  = vtm_get_available_xp($vtmglobal['playerID'], $vtmglobal['characterID']); 
+	//$pending = vtm_get_pending_xp($vtmglobal['playerID'], $vtmglobal['characterID']);
+	
+	$remaining = $points - $spent;
+	
 	$output .= "<h3>Step $step: Experience Points</h3>\n";
 	$output .= "<p>\n";
 	$output .= "You have $points points available to spend on your character. $spent have been spent leaving 
@@ -5696,22 +5694,22 @@ function vtm_get_chargen_xp_spent() {
 	global $vtmglobal;
 
 	$spent = 0;
-	/*
+
 	if (isset($_POST['xp_stat'])       || isset($_POST['xp_skill']) ||
 		isset($_POST['xp_discipline']) || isset($_POST['xp_background']) ||
 		isset($_POST['xp_merit'])      || isset($_POST['xp_path'])) {
 	
-		$xpcosts['STAT']       = vtm_get_chargen_xp_costs('STAT');
-		$xpcosts['SKILL']      = vtm_get_chargen_xp_costs('SKILL');
-		$xpcosts['DISCIPLINE'] = vtm_get_chargen_xp_costs('DISCIPLINE');
-		$xpcosts['MERIT']      = vtm_get_chargen_xp_costs('MERIT');
-		$xpcosts['PATH']       = vtm_get_chargen_xp_costs('PATH');
+		$xpcosts['STAT']       = vtm_get_chargen_costs('STAT', 'XP_COST');
+		$xpcosts['SKILL']      = vtm_get_chargen_costs('SKILL', 'XP_COST');
+		$xpcosts['DISCIPLINE'] = vtm_get_chargen_costs('DISCIPLINE', 'XP_COST');
+		$xpcosts['MERIT']      = vtm_get_chargen_costs('MERIT', 'XP_COST');
+		$xpcosts['PATH']       = vtm_get_chargen_costs('PATH', 'XP_COST');
 		
-		$current['STAT']       = vtm_get_current_stats();
-		$current['SKILL']      = vtm_get_current_skills();
-		$current['DISCIPLINE'] = vtm_get_current_disciplines();
-		$current['MERIT']      = vtm_get_current_merits();
-		$current['PATH']       = vtm_get_current_paths();
+		$current['STAT']       = vtm_get_chargen_saved('STAT');
+		$current['SKILL']      = vtm_get_chargen_saved('SKILL');
+		$current['DISCIPLINE'] = vtm_get_chargen_saved('DISCIPLINE');
+		$current['MERIT']      = vtm_get_chargen_saved('MERIT');
+		$current['PATH']       = vtm_get_chargen_saved('PATH');
 
 		$pendingfb['STAT']       = vtm_get_pending_freebies('STAT');
 		$pendingfb['SKILL']      = vtm_get_pending_freebies('SKILL');
@@ -5728,34 +5726,44 @@ function vtm_get_chargen_xp_spent() {
 		$templatefree['SKILL']      = vtm_get_free_levels('SKILL');
 
 		foreach ($bought as $type => $items) {
-			foreach ($items as $key => $level_to) {
+			foreach ($items as $key => $levelto) {
 			
 				if (isset($templatefree[$type][$key]->LEVEL))
 					$freelevel = $templatefree[$type][$key]->LEVEL;
 				else
 					$freelevel = 0;
-				$currlevel   = isset($current[$type][$key]->level_from)  ? $current[$type][$key]->level_from  : 0;
-				$levelfrom   = max($currlevel, $freelevel);
+				$currlevel = isset($current[$type][$key]->level_from)  ? $current[$type][$key]->level_from  : 0;
+				$levelfrom = max($currlevel, $freelevel);
 				$levelfrom = isset($pendingfb[$type][$key]->value) ? $pendingfb[$type][$key]->value : $levelfrom;
+				$costkey   = preg_replace("/_\d+$/", "", $key);
 				
-				if ($level_to != 0) {
-					$actualkey = preg_replace("/_\d+$/", "", $key);
-					
-					if ($type == 'MERIT') {
-						if (!isset($current[$type][$key])) {
-							if (isset($current[$type][$actualkey]->multiple) && $current[$type][$actualkey]->multiple == 'Y') {
-								$spent += isset($xpcosts[$type][$actualkey][0][1]) ? $xpcosts[$type][$actualkey][0][1] : 0;
-								//echo "<li>$key / $actualkey, cost: {$xpcosts[$type][$actualkey][0][1]}</li>\n";
-							}
-						} else {
-							//echo "<li>$key - from:$levelfrom, to:$level_to, cost: {$xpcosts[$type][$key][0][1]}</li>\n";
-							$spent += isset($xpcosts[$type][$key][0][1]) ? $xpcosts[$type][$key][0][1] : 0;
-						}
-					} else {
-						$spent += isset($xpcosts[$type][$actualkey][$levelfrom][$level_to]) ? $xpcosts[$type][$actualkey][$levelfrom][$level_to] : 0;
-						//echo "<li>$key - $type, from $levelfrom to $level_to, cost: {$xpcosts[$type][$actualkey][$levelfrom][$level_to]}, running total: $spent</li>\n";
-					}
+				if ($type == 'MERIT') {
+					$levelfrom = 0;
+					$levelto = 1;
 				}
+				
+				$cost = isset($xpcosts[$type][$costkey][$levelfrom][$levelto]) ? $xpcosts[$type][$costkey][$levelfrom][$levelto] : 0;
+				$spent += $cost;
+				//echo "<li>Running total is $spent. Bought $key to $levelto ($cost)</li>\n";
+				
+				// if ($level_to != 0) {
+					// $actualkey = preg_replace("/_\d+$/", "", $key);
+					
+					// if ($type == 'MERIT') {
+						// if (!isset($current[$type][$key])) {
+							// if (isset($current[$type][$actualkey]->multiple) && $current[$type][$actualkey]->multiple == 'Y') {
+								// $spent += isset($xpcosts[$type][$actualkey][0][1]) ? $xpcosts[$type][$actualkey][0][1] : 0;
+								// //echo "<li>$key / $actualkey, cost: {$xpcosts[$type][$actualkey][0][1]}</li>\n";
+							// }
+						// } else {
+							// //echo "<li>$key - from:$levelfrom, to:$level_to, cost: {$xpcosts[$type][$key][0][1]}</li>\n";
+							// $spent += isset($xpcosts[$type][$key][0][1]) ? $xpcosts[$type][$key][0][1] : 0;
+						// }
+					// } else {
+						// $spent += isset($xpcosts[$type][$actualkey][$levelfrom][$level_to]) ? $xpcosts[$type][$actualkey][$levelfrom][$level_to] : 0;
+						// //echo "<li>$key - $type, from $levelfrom to $level_to, cost: {$xpcosts[$type][$actualkey][$levelfrom][$level_to]}, running total: $spent</li>\n";
+					// }
+				// }
 			}
 		}
 	} else {
@@ -5767,8 +5775,6 @@ function vtm_get_chargen_xp_spent() {
 	
 	}
 	
-	*/
-	//echo "<li>spent on $table, $postvariable: $spent</li>\n";
 	return $spent;
 } 
 
@@ -5919,7 +5925,7 @@ function vtm_render_chargen_xp_rituals($submitted) {
 	$saved     = vtm_get_chargen_saved('RITUAL');
 	$pendingxp = vtm_get_pending_chargen_xp('RITUAL');
 	
-	print_r($saved);
+	//print_r($saved);
 	
 	$rowoutput = vtm_render_xp_section(
 		$items, 
@@ -6833,7 +6839,6 @@ function vtm_validate_xp($usepost = 1) {
 	$errormessages = "";
 	$complete = 1;
 	
-	/*
 	if (!$usepost) {
 		$dbpath = array();
 		$dbdisc = array();
@@ -6857,38 +6862,47 @@ function vtm_validate_xp($usepost = 1) {
 	// VALIDATE XP POINTS
 	//		Not too many points spent
 	//		Level of paths bought do not exceed level of discipline
-	$points = vtm_get_total_xp(0, $vtmglobal['characterID']) - vtm_get_pending_xp(0, $vtmglobal['characterID']);
-	//$spent = 0;
-	//$spent += vtm_get_chargen_xp_spent();
+	$spent   = vtm_get_chargen_xp_spent();
+	$points  = vtm_get_available_xp($vtmglobal['playerID'], $vtmglobal['characterID']); 
+	$remaining = $points - $spent;
 	
-	if ($points < 0) {
+	if ($remaining < 0) {
 		$errormessages .= "<li>ERROR: You have spent too many dots</li>\n";
 		$ok = 0;
 		$complete = 0;
 	}
 
 	if (count($postpath) > 0) {
-		$pathinfo = vtm_get_current_paths();
-		$freebies = vtm_get_pending_freebies("DISCIPLINE");
+		$results = vtm_get_chargen_itemlist('PATH');
+		$pathinfo = array();
+		foreach ($results as $path) {
+			$pathinfo[sanitize_key($path['ITEMNAME'])] = $path;
+		}
+		$discinfo = vtm_get_chargen_saved('DISCIPLINE');
+		$pendingfb = vtm_get_pending_freebies('DISCIPLINE');
+		
 		$bought = $postpath;
 		foreach ($bought as $path => $level) {
-			$disciplinekey = sanitize_key($pathinfo[$path]->grp);
+			$disciplinekey = sanitize_key($pathinfo[$path]['GROUPING']);
 			
-			$max = 	isset($postdisc[$disciplinekey]) && $postdisc[$disciplinekey] != 0 ? 
-					$postdisc[$disciplinekey] : 
-						(isset($freebies[$disciplinekey]) ?
-						$freebies[$disciplinekey] :
-						$pathinfo[$path]->maximum);
+			// MAX level you can buy is the level of the discipline
+			// which you might have also bought up with xp or  points
+
+			$max = 0;
+			if (isset($discinfo[$disciplinekey]->level_from))
+				$max = $discinfo[$disciplinekey]->level_from;
+			if (isset($pendingfb[$disciplinekey]->value) && $pendingfb[$disciplinekey]->value > $max)
+				$max = $pendingfb[$disciplinekey]->value;
+			if (isset($postdisc[$disciplinekey]) && $postdisc[$disciplinekey] > $max)
+				$max = $postdisc[$disciplinekey];
 		
 			if ($level > $max) {
-				$errormessages .= "<li>ERROR: The level $level in " . vtm_formatOutput($pathinfo[$path]->name) . " cannot be greater than the {$pathinfo[$path]->grp} rating of $max</li>\n";
+				$errormessages .= "<li>ERROR: The level in " . vtm_formatOutput($pathinfo[$path]['ITEMNAME']) . " ($level) cannot be greater than the {$pathinfo[$path]['GROUPING']} rating ($max)</li>\n";
 				$ok = 0;
 				$complete = 0;
 			}
 		}
 	}
-
-	*/
 	return array($ok, $errormessages, $complete);
 }
 
@@ -7545,9 +7559,30 @@ function vtm_get_chargen_ritual_points($items) {
 	return $points;
 }
 
-
-
-
-
 */
+
+function vtm_get_available_xp($playerID, $characterID) {
+	global $wpdb;
+	global $vtmglobal;
+		
+	// total from PLAYER_XP table
+	$total = vtm_get_total_xp($vtmglobal['playerID'], $characterID);
+	
+	// Pending on all other characters
+	if ($vtmglobal['config']->ASSIGN_XP_BY_PLAYER == 'Y') {
+		$sql = "SELECT SUM(AMOUNT)
+			FROM
+				" . VTM_TABLE_PREFIX . "PENDING_XP_SPEND
+			WHERE
+				CHARACTER_ID != %s
+				AND PLAYER_ID = %s";
+		$sql = $wpdb->prepare($sql, $characterID, $playerID);
+		$pending = $wpdb->get_var($sql) * -1;
+	
+	} else {
+		$pending = 0;
+	}
+	return $total - $pending;
+}
+
 ?>
