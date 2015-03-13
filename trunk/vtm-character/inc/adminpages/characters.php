@@ -492,7 +492,7 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 		$output .= $jumpto;
 		$output .= "<table id='gvid_uctu'>\n";
 		
-		$output .= "<tr><td>Character Name*</td><td><input type='text' maxlength=60 name='charName' value='" . $characterName . "'></td><tr>\n";
+		$output .= "<tr><td>Character Name*</td><td><input type='text' maxlength=60 name='charName' value='" . $characterName . "'></td></tr>\n";
 		$output .= "<tr><td>Player Name</td><td><select name='charPlayer'>\n";
 		foreach ($players as $player) {
 			$output .= "<option value='" . $player->ID . "' ";
@@ -512,7 +512,7 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 			}
 			$output .= ">" . vtm_formatOutput($clan->name) . "</option>";
 		}
-		$output .= "</select></td></tr>";	
+		$output .= "</select></td></tr>\n";	
 		$output .= "<tr><td>Private Clan</td><td><select name='charPrivClan'>";
 		foreach ($clans as $clan) {
 			$output .= "<option value='" . $clan->ID . "' ";
@@ -521,8 +521,8 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 			}
 			$output .= ">" . vtm_formatOutput($clan->name) . "</option>";
 		}
-		$output .= "</select></td></tr>";
-		$output .= "<tr><td>Generation</td><td colspan=2><select name='charGen'>";
+		$output .= "</select></td></tr>\n";
+		$output .= "<tr><td>Generation</td><td><select name='charGen'>";
 		foreach ($generations as $generation) {
 			$output .= "<option value='" . $generation->ID . "' ";
 			if ($generation->ID == $characterGenerationId) {
@@ -530,8 +530,8 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 			}
 			$output .= ">" . vtm_formatOutput($generation->name) . "th</option>";
 		}
-		$output .= "</select></td></tr>";	
-		$output .= "<tr><td>Character Type</td><td colspan=2><select name='charType'>";
+		$output .= "</select></td></tr>\n";	
+		$output .= "<tr><td>Character Type</td><td><select name='charType'>";
 		foreach ($characterTypes as $characterType) {
 			$output .= "<option value='" . $characterType->ID . "' ";
 			if ($characterType->ID == $characterTypeId || ($characterID == 0 && $characterType->name == 'PC')) {
@@ -539,7 +539,7 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 			}
 			$output .= ">" . vtm_formatOutput($characterType->name) . "</option>";
 		}
-		$output .= "</select></td></tr>";	
+		$output .= "</select></td></tr>\n";	
 		$output .= "<tr><td>Character Status</td><td><select name='charStatus'>";
 		foreach ($characterStatuses as $characterStatus) {
 			$output .= "<option value='" . $characterStatus->ID . "' ";
@@ -548,9 +548,9 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 			}
 			$output .= ">" . vtm_formatOutput($characterStatus->name) . "</option>";
 		}
-		$output .= "</select></td></tr>";
-		$output .= "<tr><td>Character Status Comment</td><td><input type='text' maxlength=30 name='charStatusComment' value='" . $characterStatusComment . "' /></td></tr>";
-		$output .= "<tr><td>Visible</td><td colspan=2><select name='charVisible'><option value='Y' ";
+		$output .= "</select></td></tr>\n";
+		$output .= "<tr><td>Character Status Comment</td><td><input type='text' maxlength=30 name='charStatusComment' value='" . $characterStatusComment . "' /></td></tr>\n";
+		$output .= "<tr><td>Visible</td><td><select name='charVisible'><option value='Y' ";
 		if ($characterVisible == "Y" ) $output .= "SELECTED";
 		$output .= ">Yes</option><option value='N' ";
 		if ($characterVisible != "Y") $output .= "SELECTED";
@@ -565,7 +565,7 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 			$output .= ">" . vtm_formatOutput($roadOrPath->name) . "</option>";
 		}
 		$output .= "</select>";
-		$output .= "</td></tr>";
+		$output .= "</td></tr>\n";
 		
 		$output .= "<tr><td>Road or Path Rating</td><td>";
 		$sql = "SELECT SUM(AMOUNT) FROM " . VTM_TABLE_PREFIX . "CHARACTER_ROAD_OR_PATH WHERE CHARACTER_ID = %d";
@@ -580,7 +580,7 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 			$output .= "<input type='text' maxlength=3 name='charRoadOrPathRating' value='" . $characterRoadOrPathRating . "' />";
 		}
 		
-		$output .= "</td></tr>";		
+		$output .= "</td></tr>\n";		
 		if ($vtmglobal['config']->USE_NATURE_DEMEANOUR == 'Y') {
 			$output .= "<tr><td>Nature</td><td>";
 			$output .= "<select name = 'charNature'>";
@@ -602,9 +602,9 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 				}
 				$output .= ">" . vtm_formatOutput($nature->NAME) . "</option>";
 			}
-			$output .= "</select></td></tr>";
+			$output .= "</select></td></tr>\n";
 		}
-		$output .= "<tr><td>Sect</td><td>\n";
+		$output .= "<tr><td>Sect</td><td>";
 		$output .= "<select name = 'charSect'>";
 		foreach ($sects as $sect) {
 			$output .= "<option value='" . $sect->ID . "' ";
@@ -757,8 +757,7 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 			$i++;
 			$skillCount++;
 		}
-		$output .= "<input type='HIDDEN' name='maxNewSkillCount' value='" . $skillCount . "' />";
-		$output .= "</table><hr />$jumpto";
+		$output .= "</table><input type='HIDDEN' name='maxNewSkillCount' value='" . $skillCount . "' /><hr />$jumpto";
 
 		/*******************************************************************************************/
 		/*******************************************************************************************/
@@ -1051,7 +1050,7 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 
 		$characterRituals = $wpdb->get_results($wpdb->prepare($sql, $characterID));
 
-		$output .= "<table id='gvid_uctri'>$head</tr>";
+		$output .= "<table id='gvid_uctri'>$head";
 
 		$ritualCount = 0;
 		$arr = array();
@@ -1124,7 +1123,7 @@ function vtm_displayUpdateCharacter($characterID, $submitted) {
 			$officeCount++;
 		}
 
-		$output .= "<tr style='display:none'><td colspan=4><input type='HIDDEN' name='maxOldOfficeCount' value='" . $officeCount . "' /></td></tr>";
+		$output .= "<tr style='display:none'><td colspan=5><input type='HIDDEN' name='maxOldOfficeCount' value='" . $officeCount . "' /></td></tr>";
 
 		$officeBlock = "";
 		$offices = vtm_listOffices("Y");

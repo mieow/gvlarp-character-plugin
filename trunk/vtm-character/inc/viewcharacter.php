@@ -271,10 +271,10 @@ function vtm_get_viewcharacter_content() {
 	$merits = $mycharacter->meritsandflaws;
 	$virtues = $mycharacter->getAttributes("Virtue");
 
-	$c_tableleft = "<table><tr><td colspan=4><h4>Merits and Flaws</h4></td></tr>";
+	$c_tableleft = "<table><tr><td><h4>Merits and Flaws</h4></td></tr>";
 	$c_tableleft .= "<tr>";
 	if (count($merits) > 0) {
-		$c_tableleft .= "<td colspan=4><table>";
+		$c_tableleft .= "<td><table>";
 		foreach ($merits as $merit) {
 			if ($merit->pending == 0) {
 				$c_tableleft .= "<tr><td class='vtmcol_key'>" . vtm_formatOutput($merit->name) . "</td>";
@@ -284,7 +284,7 @@ function vtm_get_viewcharacter_content() {
 		}
 		$c_tableleft .= "</table></td>";
 	} else {
-		$c_tableleft .= "<td colspan=4>&nbsp;</td>";
+		$c_tableleft .= "<td>&nbsp;</td>";
 	}
 	$c_tableleft .= "</tr></table>";
 	$c_tableright = "<table><tr><td colspan=3><h4>Virtues</h4></td></tr>";
@@ -327,10 +327,10 @@ function vtm_get_viewcharacter_content() {
 	$rituals = $mycharacter->rituals;
 	$majikpaths  = $mycharacter->paths;
 
-	$c_tableleft = "<table><tr><td colspan=4><h4>Rituals</h4></td></tr>";
+	$c_tableleft = "<table><tr><td><h4>Rituals</h4></td></tr>";
 	$c_tableleft .= "<tr>";
 	if (count($rituals) > 0) {
-		$c_tableleft .= "<td colspan=4><table>";
+		$c_tableleft .= "<td><table>";
 		foreach ($rituals as $majikdiscipline => $rituallist) {
 			$c_tableleft .= "<tr><td colspan=2><strong>" . vtm_formatOutput($majikdiscipline) . " Rituals</strong></td></tr>\n";
 			foreach ($rituallist as $ritual) {
@@ -340,13 +340,13 @@ function vtm_get_viewcharacter_content() {
 		}
 		$c_tableleft .= "</table></td>";
 	} else {
-		$c_tableleft .= "<td colspan=4>&nbsp;</td>";
+		$c_tableleft .= "<td>&nbsp;</td>";
 	}
 	$c_tableleft .= "</tr></table>";
-	$c_tableright = "<table><tr><td colspan=3><h4>Paths</h4></td></tr>";
+	$c_tableright = "<table><tr><td><h4>Paths</h4></td></tr>";
 	$c_tableright .= "<tr>";
 	if (count($majikpaths) > 0) {
-		$c_tableright .= "<table>\n";
+		$c_tableright .= "<td><table>\n";
 		foreach ($majikpaths as $discipline => $paths) {
 			$c_tableright .= "<tr><td colspan=2><strong>" . vtm_formatOutput($discipline) . "</strong></td></tr>\n";
 			foreach ($paths as $path => $info) {
@@ -354,7 +354,7 @@ function vtm_get_viewcharacter_content() {
 					$c_tableright .= "<tr><td class='vtmcol_key_wide'>" . vtm_formatOutput($path) . "</td><td class='vtmdot_5'>" . vtm_numberToDots(5, $info[0]) . "</td></tr>";
 			}
 		}
-		$c_tableright .= "</table>\n";
+		$c_tableright .= "</table></td>";
 	} else {
 		$c_tableright .= "&nbsp;";
 	}

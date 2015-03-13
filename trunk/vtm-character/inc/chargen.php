@@ -475,7 +475,7 @@ function vtm_render_basic_info($step, $submitted) {
 	$output .= "<input type='hidden' name='playerID' value='$playerid'>\n";
 	$output .= "<table>
 		<tr>
-			<td class='vtmcol_key'>Character Name*:</th>
+			<td class='vtmcol_key'>Character Name*:</td>
 			<td>\n";
 	if ($submitted)
 		$output .= $character;
@@ -484,7 +484,7 @@ function vtm_render_basic_info($step, $submitted) {
 	$output .= " (ID: {$vtmglobal['characterID']})</td>
 		</tr>
 		<tr>
-			<td class='vtmcol_key'>Player Name*:</th>\n";
+			<td class='vtmcol_key'>Player Name*:</td>\n";
 	if ($playerset) {
 		$output .= "<td>$playername<input type='hidden' name='player' value='$playername'>\n";
 	
@@ -496,7 +496,7 @@ function vtm_render_basic_info($step, $submitted) {
 	$output .= "</td>
 		</tr>
 		<tr>
-			<td class='vtmcol_key'>Actual Clan*:</th>
+			<td class='vtmcol_key'>Actual Clan*:</td>
 			<td>\n";
 	if ($submitted) {
 		$output .= $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "CLAN WHERE ID = %s", $priv_clan));
@@ -510,7 +510,7 @@ function vtm_render_basic_info($step, $submitted) {
 	$output .= "</td>
 		</tr>
 		<tr>
-			<td class='vtmcol_key'>Public Clan:</th>
+			<td class='vtmcol_key'>Public Clan:</td>
 			<td>\n";
 	if ($submitted) {
 		$output .= $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "CLAN WHERE ID = %s", $pub_clan));
@@ -522,7 +522,7 @@ function vtm_render_basic_info($step, $submitted) {
 		$output .= "</select>\n";
 	}
 	$output .= "</td></tr><tr>
-			<td class='vtmcol_key'>Sect:</th>
+			<td class='vtmcol_key'>Sect:</td>
 			<td>\n";
 	if ($submitted) {
 		$output .= $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "SECT WHERE ID = %s", $sectid));
@@ -543,9 +543,9 @@ function vtm_render_basic_info($step, $submitted) {
 	$output .= "</td></tr>\n";
 	
 	if ($vtmglobal['config']->USE_NATURE_DEMEANOUR == 'Y') {
-		$output .= "<tr><td class='vtmcol_key'>Nature*:</th><td>\n";
+		$output .= "<tr><td class='vtmcol_key'>Nature*:</td><td>";
 		if ($submitted) {
-			$output .= $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "NATURE WHERE ID = %s", $natureid));
+			$output .= vtm_formatOutput($wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "NATURE WHERE ID = %s", $natureid)));
 		} else {
 			$output .= "<select name='nature'>\n";
 			foreach ($natures as $nature) {
@@ -554,7 +554,7 @@ function vtm_render_basic_info($step, $submitted) {
 			$output .= "</select>\n";
 		}
 		$output .= "</td></tr>
-		<tr><td class='vtmcol_key'>Demeanour*:</th><td>\n";
+		<tr><td class='vtmcol_key'>Demeanour*:</td><td>\n";
 		if ($submitted) {
 			$output .= $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "NATURE WHERE ID = %s", $demeanourid));
 		} else {
@@ -567,7 +567,7 @@ function vtm_render_basic_info($step, $submitted) {
 		$output .= "</td></tr>\n";
 	}	
 	$output .= "<tr>
-			<td class='vtmcol_key'>Login name*:</th>
+			<td class='vtmcol_key'>Login name*:</td>
 			<td>\n";
 	if ($submitted)
 		$output .= $login;
@@ -576,7 +576,7 @@ function vtm_render_basic_info($step, $submitted) {
 	$output .= "</td>
 		</tr>
 		<tr>
-			<td class='vtmcol_key'>Email Address*:</th>
+			<td class='vtmcol_key'>Email Address*:</td>
 			<td>\n";
 	if ($submitted)
 		$output .= $email;
@@ -590,7 +590,7 @@ function vtm_render_basic_info($step, $submitted) {
 	}
 	$output .= "</td></tr>
 		<tr>
-			<td class='vtmcol_key'>Concept*:</th>
+			<td class='vtmcol_key'>Concept*:</td>
 			<td>\n";
 	if ($submitted)
 		$output .= $concept;
