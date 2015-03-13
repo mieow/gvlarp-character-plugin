@@ -11,7 +11,7 @@ For managing Vampire:the Masquerade character sheets for LARPs and on-line Vampi
 
 == Description ==
 
-/description/
+This WordPress plugin is intended to manage Vampire:the Masquerade character sheets for LARPs and online Vampire games.
 
 Features are:
 * On-line character generation
@@ -25,6 +25,7 @@ Features are:
 * Automatically list active characters and what their Status is
 * Get reports (CSV and PDF) such as character activity
 * Pre-loaded with data for V20 edition
+* Send a character newsletter with XP totals and Storyteller message
 
 == Installation ==
 
@@ -75,6 +76,36 @@ You can try out character generation on the plugin website.
 4. Spend Experience
 
 == Changelog ==
+
+= 2.0 =
+
+* Updated for inclusion in wordpress.org
+* Email sent to Storytellers when players submit XP spends
+* Deleted characters can be purged from database
+* Added support for sending emails via SMTP
+* Maximum levels for backgrounds during character generation can be set in the template
+* Select Ability group from a pull-down list instead of typing into a box in Data Tables
+* Cannot save character gen template if the name is blank
+* Can buy secondary abilities in Ability step in Character gen
+* Now supports narrow, wide and medium width themes with the configuration setting
+* CSS improvements, e.g. button/step formatting in character gen, dot colours
+* Added ability to send newsletter with XP totals, etc
+* Fixed issue in Data Tables when filtering by Discipline for rituals
+* Player can now specify background specialities
+* Storyteller can now specify when background specialities are needed
+* Changed how plugin pages are referred to so that if another plugin modifies a page
+then the page still works
+* Speed increase when on main site, as admin functions aren't loaded unless on admin pages
+* String formatting fixed lots of places, including on PDF character sheet (removing slashes)
+* Character gen template selection is now radio buttons with template description
+* Can filter on PC/NPC/all for merit and background shortcodes
+* renamed plugin to vtmcharacter from gvlarp-character
+* Added ability to disable features that aren't being used (e.g.maps, Stat changes)
+* Expanded config options into multiple tabs
+* Display which character gen template was selected when ST is viewing list of non-approved characters
+* Added Sect to background and merit shortcode filters
+* When ST is editing characters, cannot now set skills or disciplines to level 0 (thereby confusing XP spends)
+
 
 = 1.11.0 =
 * Characters can now be added if there is an apostrophe in the Player name.
