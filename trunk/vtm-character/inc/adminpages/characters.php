@@ -2444,6 +2444,9 @@ function vtm_purge_character($characterID, $name) {
 		'CHARACTER_EXTENDED_BACKGROUND',
 		'CHARACTER_GENERATION',
 		'PLAYER_XP',
+		'MAIL_QUEUE',
+		'PENDING_XP_SPEND',
+		'PENDING_FREEBIE_SPEND',
 		'CHARACTER',
 	);
 	
@@ -2461,7 +2464,7 @@ function vtm_purge_character($characterID, $name) {
 	}
 	
 	if ($ok)
-		$result = "<li>Deleted $name, ID: $characterID</li>";
+		$result = "<li>Deleted " . vtm_formatOutput($name) . ", ID: $characterID</li>";
 	else
 		$result = "<li style='color:red;'>Failed to delete " . vtm_formatOutput($name) . ", ID: $characterID</li>";
 		
@@ -2485,6 +2488,8 @@ function vtm_purge_table($characterID, $table, $column) {
 		elseif ($result === 0) {
 			echo "<li>Delete failed (0) for $table for ID $characterID</li>";
 			$ok = 0;
+			$wpdb->show_errors();
+			$wpdb->print_error();
 		}
 		else {
 			echo "<li>Delete failed for $table for ID $characterID</li>";
