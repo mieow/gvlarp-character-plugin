@@ -429,8 +429,12 @@ function vtm_render_config_chargen() {
 
 		<table>
 		<tr>
-			<td><label>User must be logged in: </label></td>
 			<td><input type="checkbox" name="vtm_chargen_mustbeloggedin" value="1" <?php checked( '1', get_option( 'vtm_chargen_mustbeloggedin', '0' ) ); ?> /></td>
+			<td><label>User must be logged in</label></td>
+		</tr>
+		<tr>
+			<td><input type="checkbox" name="vtm_chargen_showsecondaries" value="1" <?php checked( '1', get_option( 'vtm_chargen_showsecondaries', '0' ) ); ?> /></td>
+			<td><label>Show secondary Abilities in Abilities Character Generation Step</label></td>
 		</tr>
 		</table>
 		<?php submit_button("Save Character Generation Options", "primary", "save_chargen_button"); ?>
