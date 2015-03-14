@@ -769,7 +769,7 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 					} else {
 						//dots row
 						$flag = 0;
-						$coloutput[$colindex] .= "<tr><td class='vtmcol_key'>" . $namehtml . "</th><td class='vtmcol_dots vtmdot_" . ($max2display > 5 ? 10 : 5) . "'>\n";
+						$coloutput[$colindex] .= "<tr><td class='vtmcol_key'>" . $namehtml . "</td><td class='vtmcol_dots vtmdot_" . ($max2display > 5 ? 10 : 5) . "'>\n";
 						$coloutput[$colindex] .= "<fieldset class='dotselect'>\n";
 						for ($i=$max2display;$i>=1;$i--) {
 							$radioid = "dot_{$key}_{$i}_{$j}";
@@ -838,7 +838,7 @@ function vtm_render_freebie_section($items, $saved, $pendingfb, $pendingxp, $fre
 		if ( $columns == 1 || ($col % $columns) == 1) { 
 			$rowoutput .= "<tr>";
 		}
-		$rowoutput .= "<td class='vtmcg_col'><table>";
+		$rowoutput .= "<td class='vtmcg_col'><table><tr>";
 		$rowoutput .= "<th colspan=$colspan>" . vtm_formatOutput($colgroups[$col]) . "</th></tr>";
 		$rowoutput .= $coloutput[$col];
 		$rowoutput .= "</table></td>";
@@ -984,7 +984,7 @@ function vtm_render_xp_section($items, $saved, $xpcosts, $pendingfb,
 					$coloutput[$colindex] .= "<tr style='display:none'><td colspan=$colspan>";
 					$coloutput[$colindex] .= "<input type='hidden' name='{$postvariable}_comment[$key]' value='$specialisation' />";
 					$coloutput[$colindex] .= "<input type='hidden' name='{$postvariable}_itemid[$key]' value='{$item['ITEMTABLE_ID']}' />\n";
-					$coloutput[$colindex] .= "<input type='hidden' name='{$postvariable}_name[$key]' value='{$item['ITEMNAME']}' />\n";
+					$coloutput[$colindex] .= "<input type='hidden' name='{$postvariable}_name[$key]' value='" . vtm_formatOutput($item['ITEMNAME']) . "' />\n";
 					$coloutput[$colindex] .= "</td></tr>\n";
 					
 					$namehtml = vtm_formatName($item['ITEMNAME'], $item['DESCRIPTION'], $specialisation);
@@ -1038,7 +1038,7 @@ function vtm_render_xp_section($items, $saved, $xpcosts, $pendingfb,
 						}
 					else {
 						//dots row
-						$coloutput[$colindex] .= "<tr><td class='vtmcol_key'>" . $namehtml . "</th><td class='vtmcol_dots vtmdot_" . ($max2display > 5 ? 10 : 5) . "'>\n";
+						$coloutput[$colindex] .= "<tr><td class='vtmcol_key'>" . $namehtml . "</td><td class='vtmcol_dots vtmdot_" . ($max2display > 5 ? 10 : 5) . "'>\n";
 						$coloutput[$colindex] .= "<fieldset class='dotselect'>";
 						for ($i=$max2display;$i>=1;$i--) {
 							$radioid = "dot_{$key}_{$i}_{$j}";
@@ -1080,7 +1080,7 @@ function vtm_render_xp_section($items, $saved, $xpcosts, $pendingfb,
 		if ( $columns == 1 || ($col % $columns) == 1) { 
 			$rowoutput .= "<tr>";
 		}
-		$rowoutput .= "<td class='vtmcg_col'><table>";
+		$rowoutput .= "<td class='vtmcg_col'><table><tr>";
 		$rowoutput .= "<th colspan=$colspan>" . vtm_formatOutput($colgroups[$col]) . "</th></tr>";
 		$rowoutput .= $coloutput[$col];
 		$rowoutput .= "</table></td>";
@@ -1522,7 +1522,7 @@ function vtm_render_chargen_extbackgrounds($step, $submitted) {
 
 		if (!empty($question->COMMENT)) $title .= " (" . $question->COMMENT . ")";		
 		
-		$output .= "<h4>$title</h4><p class='gvext_ques'>{$question->BACKGROUND_QUESTION}</p>\n";
+		$output .= "<h4>" . vtm_formatOutput($title) . "</h4><p class='gvext_ques'>" . vtm_formatOutput($question->BACKGROUND_QUESTION) . "</p>\n";
 		$output .= "<input type='hidden' name='bgquestion_title[$id]' value='" . htmlspecialchars($title, ENT_QUOTES) . "' />\n";
 		$output .= "<input type='hidden' name='bgquestion_source[$id]' value='" . htmlspecialchars($question->source, ENT_QUOTES) . "' />\n";
 		if ($submitted)
@@ -3946,7 +3946,7 @@ function vtm_render_chargen_section($saved, $isPST, $pdots, $sdots, $tdots, $fre
 				}
 				else
 					$output .= "<input id='$id' name='ritual_value[$key]' type='checkbox' " . checked( $item['LEVEL'], $level, false) . " value='{$item['LEVEL']}'>";
-				$output .= "<div><label for='$id'>Level {$item['LEVEL']} - " . vtm_formatOutput($itemname) . "</label></div>";
+				$output .= "<div><label " . ($submitted ? '' : "for='$id'") . ">Level {$item['LEVEL']} - " . vtm_formatOutput($itemname) . "</label></div>";
 				//$output .= "</td>\n";
 			} else {
 				if (isset($saved[$key]->comment) && $saved[$key]->comment != "") {
@@ -6940,7 +6940,7 @@ function vtm_save_submit() {
 	global $wpdb;
 	global $current_user;
 	global $vtmglobal;
-	/*
+
 	$wpdb->show_errors();
 	
 	// Exit if we aren't actually submitting the character
@@ -7012,7 +7012,7 @@ You can view this character by following this link: $url";
 			echo "<p>Failed to send email. Character Ref: $ref</p>\n";
 
 	}
-	*/
+
 	return $vtmglobal['characterID'];
 }
 function vtm_validate_dummy($usepost = 1) {
