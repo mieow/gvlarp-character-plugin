@@ -124,7 +124,7 @@ function vtm_chargen_flow_steps() {
 				'validate'   => 'vtm_validate_xp',
 				'save'       => 'vtm_save_xp'));
 	}
-	if ($vtmglobal['settings']['rituals-method'] != 'none' && $rituals > 0) {
+	if ($vtmglobal['settings']['rituals-method'] != 'none' && count($rituals) > 0) {
 		array_push($buttons,array(	'title' => "Rituals", 
 				'function'   => 'vtm_render_chargen_rituals',
 				'validate'   => 'vtm_validate_rituals',
@@ -2956,7 +2956,7 @@ function vtm_save_basic_info() {
 						)
 					);
 			
-			vtm_email_new_character($_POST['email'], $vtmglobal['characterID'], $playerid, 
+			vtm_email_new_character($_POST['email'], $playerid, 
 				$_POST['character'], $_POST['priv_clan'], $_POST['player'], $_POST['concept']);
 		}
 	}
@@ -7028,6 +7028,8 @@ function vtm_save_dummy() {
 function vtm_get_chargen_ritual_points($items) {
 	global $wpdb;
 	global $vtmglobal;
+	
+	$points = array();
 	
 	foreach ($items as $ritual) {
 	
