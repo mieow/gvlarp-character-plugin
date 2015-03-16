@@ -6,7 +6,7 @@ register_activation_hook( __FILE__, 'vtm_character_install_data' );
 global $vtm_character_version;
 global $vtm_character_db_version;
 $vtm_character_version = "2.0"; 
-$vtm_character_db_version = "48"; 
+$vtm_character_db_version = "49"; 
 
 function vtm_update_db_check() {
     global $vtm_character_version;
