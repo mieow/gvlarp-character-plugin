@@ -4990,7 +4990,7 @@ function vtm_render_freebie_paths($submitted) {
 	);
 
 	if ($rowoutput != "")
-		$output .= "CHECK SAVED<table>$rowoutput</table>\n";
+		$output .= "<table>$rowoutput</table>\n";
 
 	return $output;
 
@@ -5786,6 +5786,7 @@ function vtm_validate_abilities($usepost = 1) {
 	
 	if (!$usepost) {
 		$saved = vtm_get_chargen_saved('SKILL');
+		$dbvalues = array();
 		foreach($saved as $key => $row) {
 			$dbvalues[$key] = $row->level_from;
 		}
@@ -5971,6 +5972,7 @@ function vtm_validate_backgrounds($usepost = 1) {
 	
 	if (!$usepost) {
 		$saved = vtm_get_chargen_saved('BACKGROUND');
+		$dbvalues = array();
 		foreach($saved as $row) {
 			$dbvalues[sanitize_key($row->name)] = $row->level_from;
 		}
