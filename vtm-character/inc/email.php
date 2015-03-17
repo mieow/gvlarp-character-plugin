@@ -57,13 +57,14 @@ function vtm_send_email($email, $subject, $body) {
 	$fromname = get_option( 'vtm_replyto_name', "Website");
 	$replyto  = get_option( 'vtm_replyto_address', get_option( 'vtm_chargen_email_from_address', get_bloginfo('admin_email') ) );
 
-	$subject  = "$tag $subject";
+	$subject  = stripslashes("$tag $subject");
 	
 	$method   = get_option( 'vtm_method', 'mail' );
 	if ($method == 'mail')
 		$headers[] = "From: \"$fromname\" <$replyto>\n";
 	$headers[] = "Reply-To: \"$fromname\" <$replyto>";
 	
+	$body  = stripslashes($body);
 	$body .= "\n---\nView your character: " . vtm_get_stlink_url('viewCharSheet');
 	$body .= "\nSpend Experience: " . vtm_get_stlink_url('viewXPSpend');
 	

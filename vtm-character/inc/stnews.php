@@ -295,7 +295,7 @@ if (get_option( 'vtm_feature_news', '0' ) == '1') {
 			: $mycharacter->email;
 			
 		$postinfo = get_post($postid);
-		$subject = $postinfo->post_title;
+		$subject = stripslashes($postinfo->post_title);
 		
 		$body = "Hello $name,\n\n";
 		$body .= "You have {$mycharacter->current_experience} experience available to spend. ";
@@ -309,12 +309,12 @@ if (get_option( 'vtm_feature_news', '0' ) == '1') {
 		$xpdata = vtm_get_xp_table($mycharacter->player_id, $characterID, 5);
 		if (count($xpdata) > 0) {
 			foreach ($xpdata as $row) {
-				$body .= "{$row->awarded} {$row->char_name} : {$row->reason_name} {$row->comment} : {$row->amount} experience\n";
+				$body .= "{$row->awarded} " . stripslashes($row->char_name) . " : " . stripslashes($row->reason_name) . " " . stripslashes($row->comment) . " : {$row->amount} experience\n";
 			}
 			$body .= "\n";
 		}
 			
-		$body .= $postinfo->post_content;
+		$body .= stripslashes($postinfo->post_content);
 		$body .= "\n\nBest regards,\n$replyname";
 		
 		$result = vtm_send_email($email, $subject, $body);
