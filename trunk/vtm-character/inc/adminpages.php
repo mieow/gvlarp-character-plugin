@@ -128,7 +128,7 @@ add_action( 'admin_menu', 'vtm_register_character_settings' );
 ----------------------------------------------------------------- */
 
 function vtm_register_character_menu() {
-	add_menu_page( "Character Plugin Options", "Characters", "manage_options", "character-plugin", "vtm_character_options");
+	add_menu_page( "Character Plugin Options", "V:tM Characters", "manage_options", "character-plugin", "vtm_character_options");
 	add_submenu_page( "character-plugin", "Character Admin",     "Character Admin",     "manage_options", "character-plugin",    "vtm_character_options" );  
 	add_submenu_page( "character-plugin", "Character Approval",  "Character Approval",  "manage_options", "vtmcharacter-chargen","vtm_character_chargen_approval" );  
 	add_submenu_page( "character-plugin", "Player Admin",        "Player Admin",        "manage_options", "vtmcharacter-player", "vtm_character_players" );  

@@ -64,17 +64,26 @@ function vtm_render_template_data(){
 							array('%s', '%s', '%d')
 						);
 					}
-					
+
 					// save template defaults
 					$tables    = $_REQUEST['table'];
 					$items     = $_REQUEST['item'];
 					$sectors   = $_REQUEST['item_sector'];
 					$comments  = $_REQUEST['item_spec'];
 					$levels    = $_REQUEST['item_level'];
-					$multiples = $_REQUEST['multiple'];
+					$multiples = isset($_REQUEST['multiple']) ? $_REQUEST['multiple'] : array();
 					for ($i = 0 ; $i < count($items) ; $i++) {
 						if ($levels[$i] > 0 && $items[$i] != 0) {
 						
+							if (!isset($multiples[$i])) {
+								if ($tables[$i] != 'BACKGROUND') {
+									$sql = "SELECT MULTIPLE FROM " . VTM_TABLE_PREFIX . $tables[$i] . " WHERE ID = %s";
+									$multiples[$i] = $wpdb->get_var($wpdb->prepare($sql, $items[$i]));
+								} else {
+									$multiples[$i] = 'N';
+								}
+							}
+							
 							$data = array(
 									'TEMPLATE_ID'  => $id,
 									'CHARTABLE'    => 'CHARACTER_' . $tables[$i],
@@ -220,7 +229,7 @@ function vtm_render_template_data(){
 				$sectors   = $_REQUEST['item_sector'];
 				$comments  = $_REQUEST['item_spec'];
 				$levels    = $_REQUEST['item_level'];
-				$multiples = $_REQUEST['multiple'];
+				$multiples = isset($_REQUEST['multiple']) ? $_REQUEST['multiple'] : array();
 				$delete    = $_REQUEST['item_delete'];
 				//print_r($_REQUEST);
 				for ($i = 0 ; $i < count($items) ; $i++) {
@@ -354,7 +363,7 @@ function vtm_render_template_data(){
 	<h4>Character Generation Template Information</h4>
 	
 	<input type="hidden" name="tab" value="<?php print $type; ?>" />
-	<input type="hidden" name="template" value="<?php print $_REQUEST['template']; ?>" />
+	<input type="hidden" name="template" value="<?php print $id; ?>" />
 	<input type="hidden" name="action" value="save" />
 	<div class="datatables_info">
 	<p>Template Name:

@@ -2384,8 +2384,8 @@ function vtm_email_chargen_approved($characterID, $wpid, $password) {
 				AND ch.ID = %s";
 	$results = $wpdb->get_row($wpdb->prepare($sql, $characterID));
 
-	$name     = vtm_formatOutput($results->name);
-	$player   = vtm_formatOutput($results->player);
+	$name     = $results->name;
+	$player   = $results->player;
 	$email    = $results->email;
 	$username = $results->username;
 	$website  = site_url();

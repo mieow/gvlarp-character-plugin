@@ -2977,7 +2977,7 @@ function vtm_save_basic_info() {
 		$wpdb->get_results($wpdb->prepare($sql,$vtmglobal['characterID']));
 		
 	}
-	
+
 	// Resend the character confirmation email if the button was pressed
 	if (isset($_POST['chargen-resend-email'])) {
 		vtm_email_new_character($_POST['email'], $playerid, 
@@ -4418,10 +4418,8 @@ function vtm_email_new_character($email, $playerid, $name, $clanid, $player, $co
 
 	$ref = vtm_get_chargen_reference();
 	$clan = vtm_get_clan_name($clanid);
-	$name = stripslashes($name);
 	$url = add_query_arg('reference', $ref, vtm_get_stlink_url('viewCharGen', true));
 	$url = add_query_arg('confirm', true, $url);
-	$player = stripslashes($player);
 		
 	$userbody = "Hello $player,
 	
@@ -4430,7 +4428,7 @@ Your new character has been created:
 	* Reference: $ref
 	* Character Name: $name
 	* Clan: $clan
-	* Template: " . stripslashes(vtm_get_template_from_templateID()) . "
+	* Template: " . vtm_get_template_from_templateID() . "
 	* Concept: 
 	
 " . stripslashes($concept) . "
@@ -5820,6 +5818,12 @@ function vtm_validate_abilities($usepost = 1) {
 				if (isset($postvalues[$key])) {
 					$free = isset($templatefree[$key]->LEVEL) ? $templatefree[$key]->LEVEL : 0;
 					$total += max(0,$postvalues[$key] - $free);
+					
+					if ($postvalues[$key] > $vtmglobal['settings']['abilities-max']) {
+						$ok = 0;
+						$complete = 0;
+						$errormessages .= "<li>ERROR: Ability '$name' is greater than the maximum of {$vtmglobal['settings']['abilities-max']}</li>\n";
+					}
 				}
 			}
 		}
@@ -6714,7 +6718,7 @@ function vtm_get_chargen_specialties() {
 					$specialities[$key]['spec']      = $saved[$key]->comment;
 					$specialities[$key]['level']     = $saved[$key]->level_from;
 				}
-				elseif (isset($free[$key])) {
+				elseif (isset($free[$key]) && $item['SPECIALISATION_AT'] != 0) {
 					$specialities[$key] = $init;
 					$specialities[$key]['tablename'] = $free[$key]->ITEMTABLE;
 					$specialities[$key]['tableid']   = $free[$key]->ITEMTABLE_ID;
@@ -6722,7 +6726,7 @@ function vtm_get_chargen_specialties() {
 					$specialities[$key]['level']     = $free[$key]->LEVEL;
 				}
 
-				if (isset($free[$key]->SPECIALISATION) && $free[$key]->SPECIALISATION != '') {
+				if (isset($specialities[$key]) && isset($free[$key]->SPECIALISATION) && $free[$key]->SPECIALISATION != '') {
 					$specialities[$key]['spec']      = $free[$key]->SPECIALISATION;
 					$specialities[$key]['hasinput']  = 'N';
 				}
@@ -6747,21 +6751,21 @@ function vtm_get_chargen_specialties() {
 					'hasinput'  => 'Y'
 			);
 			
-			if (isset($pendingfb[$key])) {
+			if (isset($pendingfb[$key]) && $item['SPECIALISATION_AT'] == 'Y') {
 				$specialities[$key] = $init;
 				$specialities[$key]['tablename'] = 'PENDING_FREEBIE_SPEND';
 				$specialities[$key]['tableid']   = $pendingfb[$key]->id;
 				$specialities[$key]['spec']      = $pendingfb[$key]->specialisation;
 				$specialities[$key]['level']     = $pendingfb[$key]->value;
 			}
-			elseif (isset($saved[$key])) {
+			elseif (isset($saved[$key]) && $item['SPECIALISATION_AT'] == 'Y') {
 				$specialities[$key] = $init;
 				$specialities[$key]['tablename'] = 'CHARACTER_BACKGROUND';
 				$specialities[$key]['tableid']   = $saved[$key]->chartableid;
 				$specialities[$key]['spec']      = $saved[$key]->comment;
 				$specialities[$key]['level']     = $saved[$key]->level_from;
 			}
-			elseif (isset($free[$key])) {
+			elseif (isset($free[$key]) && $item['SPECIALISATION_AT'] == 'Y') {
 				$specialities[$key] = $init;
 				$specialities[$key]['tablename'] = $free[$key]->ITEMTABLE;
 				$specialities[$key]['tableid']   = $free[$key]->ITEMTABLE_ID;
@@ -6769,7 +6773,7 @@ function vtm_get_chargen_specialties() {
 				$specialities[$key]['level']     = $free[$key]->LEVEL;
 			}
 
-			if (isset($free[$key]->SPECIALISATION) && $free[$key]->SPECIALISATION != '') {
+			if (isset($specialities[$key]) && isset($free[$key]->SPECIALISATION) && $free[$key]->SPECIALISATION != '') {
 				$specialities[$key]['spec']      = $free[$key]->SPECIALISATION;
 				$specialities[$key]['hasinput']  = 'N';
 			}
