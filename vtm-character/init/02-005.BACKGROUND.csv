@@ -3,7 +3,7 @@ Status,Status in the Camarilla,Background,4,N,N,Y,
 Resources,How much money your character has access to,Background,4,N,N,Y,
 Fame,How well known your character is and what his fame lets him ,Background,4,N,N,Y,
 Contacts,How many major contacts your character has,Background,4,N,N,Y,
-Clan Prestige,Your esteem with member of a certain clan,Background,4,N,Y,Y,Enter the name of the clan you have prestige with as a specialisation
+Clan Prestige,Your esteem with member of a certain clan,Background,4,N,Y,Y,Describe how you gained your prestige in the clan. (Note that the clan name should be entered as if it was a speciality)
 Retainers,People exclusively working for you,Background,4,N,N,Y,
 Mentor,Some important kindred which mentors you,Background,4,N,N,Y,
 Herd,Save vessels to feed from,Background,4,N,N,Y,
