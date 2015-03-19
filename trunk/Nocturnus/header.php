@@ -1,10 +1,6 @@
 <!DOCTYPE html><html <?php language_attributes(); ?>>
 <head>
 <meta charset="<?php bloginfo( 'charset' ); ?>" />
-<title><?php
-	wp_title( '|', true, 'right' );
-	bloginfo( 'name' );
-?></title>
 <link rel="stylesheet" type="text/css" media="all" href="<?php bloginfo( 'stylesheet_url' ); ?>" />
 <link rel="profile" href="http://gmpg.org/xfn/11" />
 <?php if ( is_singular() ) wp_enqueue_script( 'comment-reply' );	$default = array('colours' => 'red', 'gradient' => 'gradient', 'corners' => 'round',					'sidebar' => 'right');	$options  = get_option('nocturnus_options', $default);	$theme    = $options['colours'];	$gradient = $options['gradient'];	$corners  = $options['corners'];	$sidebar  = $options['sidebar'];wp_head();?></head>

@@ -71,7 +71,6 @@ function nocturnus_admin_function() {
 
 	?>
 	<div class="wrap">
-	<?php screen_icon(); ?>
 	<h2><?php _e('Nocturnus Options', 'nocturnus'); ?></h2>
 	
 	<form method="post" action="options.php">
@@ -112,24 +111,28 @@ function nocturnus_customize_register($wp_customize) {
 		'priority'       => 35,
 	) );
 	$wp_customize->add_setting( 'nocturnus_options[colours]', array(
-    'default'        => 'red',
-    'type'           => 'option',
-    'capability'     => 'edit_theme_options',
+		'default'        => 'red',
+		'type'           => 'option',
+		'capability'     => 'edit_theme_options',
+		'sanitize_callback' => 'sanitize_hex_color',
 	) );
 	$wp_customize->add_setting( 'nocturnus_options[gradient]', array(
-    'default'        => 'sidebar',
-    'type'           => 'option',
-    'capability'     => 'edit_theme_options',
+		'default'        => 'sidebar',
+		'type'           => 'option',
+		'capability'     => 'edit_theme_options',
+		'sanitize_callback' => 'sanitize_key',
 	) );
 	$wp_customize->add_setting( 'nocturnus_options[corners]', array(
-    'default'        => 'round',
-    'type'           => 'option',
-    'capability'     => 'edit_theme_options',
+		'default'        => 'round',
+		'type'           => 'option',
+		'capability'     => 'edit_theme_options',
+		'sanitize_callback' => 'sanitize_key',
 	) );
 	$wp_customize->add_setting( 'nocturnus_options[sidebar]', array(
-    'default'        => 'right',
-    'type'           => 'option',
-    'capability'     => 'edit_theme_options',
+		'default'        => 'right',
+		'type'           => 'option',
+		'capability'     => 'edit_theme_options',
+		'sanitize_callback' => 'sanitize_key',
 	) );
 
 	$wp_customize->add_control( 'nocturnus_options[colours]', array(
