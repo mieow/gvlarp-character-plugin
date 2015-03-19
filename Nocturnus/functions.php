@@ -3,13 +3,26 @@ include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 require_once( get_template_directory() . '/theme-options.php' );
 ?>
 <?php 
-if ( function_exists('register_sidebar') )
-	register_sidebar(array('name' => 'Nocturnus Sidebar'));
 if ( function_exists('register_nav_menu') )
 	register_nav_menu( 'primary', 'Primary Menu' );
-
 if ( ! isset( $content_width ) ) $content_width = 750;
 	
+
+/* Sidebar
+------------------------------------------------ */
+add_action( 'widgets_init', 'nocturnus_widgets_init' );
+function nocturnus_widgets_init() {
+    register_sidebar( array(
+        'name' => __( 'Nocturnus Sidebar', 'nocturnus' ),
+        'id' => 'sidebar-1',
+        'description' => __( 'Widgets in this area will be shown on all posts and pages.', 'nocturnus' ),
+        'before_widget' => '<li id="%1$s" class="widget %2$s">',
+		'after_widget'  => '</li>',
+		'before_title'  => '<h2 class="widgettitle">',
+		'after_title'   => '</h2>',
+    ) );
+}
+
 /* Custom Header
 ------------------------------------------------ */
 $defaults = array(
@@ -49,6 +62,10 @@ add_theme_support( 'custom-background', $themedefaults );
 /* Theme Support - HTML5
 ------------------------------------------------ */
 add_theme_support( 'html5', array( 'comment-list', 'comment-form', 'search-form' ) );
+
+/* Theme Support - Title
+------------------------------------------------ */
+add_theme_support('title-tag');
 
 /* Internationalisation / Localisation
 ------------------------------------------------ */
@@ -94,5 +111,6 @@ function nocturnus_stylesheet() {
 	 wp_enqueue_style('custom_wp_admin_css', get_template_directory_uri() . '/css/style-login.css', false, null);
 }
 add_action( 'login_enqueue_scripts', 'nocturnus_stylesheet' );
+
 
 ?>
