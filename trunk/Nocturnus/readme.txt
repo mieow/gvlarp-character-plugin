@@ -30,9 +30,8 @@ As standard
 == Changelog ==
 
 = 2.4 =
-* TODO: Update for latest WP version
-* TODO: Check for where red CSS showing through for other colour choices
-* TODO: Fix things reported by Theme Check
+* Update for latest WP version
+* Fix things reported by Theme Check
 
 = 2.3 = 
 * Internationalization added
