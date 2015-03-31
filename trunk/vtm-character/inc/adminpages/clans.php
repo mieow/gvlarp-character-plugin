@@ -47,7 +47,7 @@ function vtm_render_clan_add_form($addaction) {
 	//echo "<p>Creating clan form based on action $addaction</p>";
 
 	if ('fix-' . $type == $addaction) {
-		$id = $_REQUEST['clan'];
+		$id = isset($_REQUEST['clan']) ? $_REQUEST['clan'] : '';
 		$name = $_REQUEST[$type . '_name'];
 
 		$description = $_REQUEST[$type . '_description'];

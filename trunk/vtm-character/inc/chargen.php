@@ -1153,15 +1153,20 @@ function vtm_render_chargen_virtues($step, $submitted) {
 	$saved      = vtm_get_chargen_saved('STAT');
 	$posted     = isset($_POST['virtue_value']) ? $_POST['virtue_value'] : array();
 	
+	// Saved Path
+	if ($vtmglobal['settings']['limit-road-method'] == 'only') {
+		$savedpath = $vtmglobal['settings']['limit-road-id'];
+	}
+	else {
+		$savedpath = $wpdb->get_var($wpdb->prepare("SELECT ROAD_OR_PATH_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $vtmglobal['characterID']));
+	}
+	
 	// What path are we on
 	if (isset($_POST['path'])) {
 		$selectedpath = $_POST['path'];
 	}
-	elseif ($vtmglobal['settings']['limit-road-method'] == 'only') {
-		$selectedpath = $vtmglobal['settings']['limit-road-id'];
-	}
 	else {
-		$selectedpath = $wpdb->get_var($wpdb->prepare("SELECT ROAD_OR_PATH_ID FROM " . VTM_TABLE_PREFIX . "CHARACTER WHERE ID = %s", $vtmglobal['characterID']));
+		$selectedpath = $savedpath;
 	}
 	
 	// Get the list of items to display
@@ -1175,6 +1180,8 @@ function vtm_render_chargen_virtues($step, $submitted) {
 	$pendingroad = vtm_get_pending_freebies('ROAD_OR_PATH');
 
 	$output .= "<p><label><strong>Path of Enlightenment:</strong></label> ";
+	$output .= "<input type='hidden' name='savedpath' value='$selectedpath' />";
+	//$output .= "<input type='hidden' name='lastpath' value='" . (isset($_REQUEST['savedpath']) ? $_REQUEST['savedpath'] : $savedpath) . "' />";
 	if ($submitted) {
 		$pathname = $wpdb->get_var($wpdb->prepare("SELECT NAME FROM " . VTM_TABLE_PREFIX . "ROAD_OR_PATH WHERE ID = %s", $selectedpath));
 		$output .= "<span>$pathname</span>\n";
@@ -4188,10 +4195,10 @@ function vtm_get_chargen_itemlist($table, $args = "") {
 		);
 		$data['MULTIPLE'] = isset($row->MULTIPLE) ? $row->MULTIPLE : 'N';
 		
-		$out[] = $data;
+		//$out[] = $data;
 	}
 	
-	//print_r($out);
+	print_r($out);
 	return $out;
 }
 function vtm_get_pending_freebies($table) {
@@ -6042,13 +6049,19 @@ function vtm_validate_virtues($usepost = 1) {
 	$postpath = $usepost ? 
 				(isset($_POST['path']) ? $_POST['path'] : 0) :
 				$dbpath;
+	$lastpath = isset($_POST['savedpath']) ? $_POST['savedpath'] : $postpath;
 	
 	//print_r($postvalues);
 	
 	// VALIDATE VIRTUES
 	//		- all points spent
 	//		- point spent on the correct virtues
-	if (count($postvalues) > 0) {
+	if ($lastpath != $postpath) {
+		$ok = 0;
+		$complete = 0;
+		$errormessages .= "<li>WARNING: Path has changed. Please check/update Virtue dot spends.</li>\n";
+	}
+	elseif (count($postvalues) > 0) {
 		$values = $postvalues;
 		
 		$selectedpath = $postpath;

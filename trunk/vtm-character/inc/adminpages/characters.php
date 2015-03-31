@@ -2057,7 +2057,7 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 		// Approve Pending Detail for extended backgrounds
 		//		Questions, Backgrounds, Merits and Flaws
 		$tables = array("CHARACTER_EXTENDED_BACKGROUND", "CHARACTER_BACKGROUND", "CHARACTER_MERIT");
-			foreach ($tables as $table) {
+		foreach ($tables as $table) {
 			$sql = "SELECT ID, PENDING_DETAIL FROM " . VTM_TABLE_PREFIX . $table .
 					" WHERE CHARACTER_ID = %s AND PENDING_DETAIL != ''";
 			$results = $wpdb->get_results($wpdb->prepare($sql, $characterID));
@@ -2074,7 +2074,8 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
 		$willpower = $wpdb->get_var($wpdb->prepare("SELECT LEVEL FROM 
 				" . VTM_TABLE_PREFIX . "CHARACTER_STAT cs,
 				" . VTM_TABLE_PREFIX . "STAT stat
-				WHERE stat.ID = cs.STAT_ID AND CHARACTER_ID = %s", $characterID));
+				WHERE stat.ID = cs.STAT_ID AND CHARACTER_ID = %s
+					AND stat.NAME = 'Willpower'", $characterID));
 		vtm_setupInitialCharTables($characterID, $playerID, $RoadOrPathRating,
 			array ('Blood' => 10, 'Willpower' => $willpower));
 		
