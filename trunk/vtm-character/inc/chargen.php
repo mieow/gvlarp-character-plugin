@@ -3675,11 +3675,14 @@ function vtm_get_chargen_characterID() {
 	elseif (isset($_GET['characterID']) && $_GET['characterID'] > 0 && vtm_isST()) {
 		$id = $_GET['characterID'];
 	} 
+	elseif (isset($vtmglobal['characterID']) && $vtmglobal['characterID'] > 0) {
+		$id = $vtmglobal['characterID'];
+	}
 	else {
 		$id = 0;
 	}
 
-	//echo "<li>ID: $id</li>\n";
+	//echo "<li>ID: $id ({$vtmglobal['characterID']})</li>\n";
 	
 	return $id;
 }
@@ -4173,7 +4176,7 @@ function vtm_get_chargen_itemlist($table, $args = "") {
 	if ($wpdbprepare)
 		$sql = $wpdb->prepare($sql, $arguments);
 	
-	//if ($table == 'SKILL')
+	//if ($table == 'STAT')
 	//	echo "<p>$table itemlist SQL ($args): $sql</p>\n";
 		
 	$results = $wpdb->get_results($sql);
@@ -4195,10 +4198,10 @@ function vtm_get_chargen_itemlist($table, $args = "") {
 		);
 		$data['MULTIPLE'] = isset($row->MULTIPLE) ? $row->MULTIPLE : 'N';
 		
-		//$out[] = $data;
+		$out[] = $data;
 	}
 	
-	print_r($out);
+	//print_r($out);
 	return $out;
 }
 function vtm_get_pending_freebies($table) {
