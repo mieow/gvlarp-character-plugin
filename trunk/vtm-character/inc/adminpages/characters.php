@@ -2243,8 +2243,8 @@ class vtmclass_admin_charapproval_table extends vtmclass_MultiPage_ListTable {
     function column_name($item){
         
         $actions = array(
-            'view'      => sprintf('<a href="%s?characterID=%s">View</a>',$this->stlinks['viewCharGen']->WP_PAGE_ID,$item->ID),
-            'print'     => sprintf('<a href="%s?characterID=%s">Print</a>',$this->stlinks['printCharSheet']->WP_PAGE_ID,$item->ID),
+            'view'      => sprintf('<a href="%s?characterID=%s">View</a>',get_page_link($this->stlinks['viewCharGen']->WP_PAGE_ID),$item->ID),
+            'print'     => sprintf('<a href="%s?characterID=%s">Print</a>',get_page_link($this->stlinks['printCharSheet']->WP_PAGE_ID),$item->ID),
             'approveit' => sprintf('<a href="?page=%s&amp;action=%s&amp;character=%s">Approve</a>',$_REQUEST['page'],'approveit',$item->ID),
             'denyit'    => sprintf('<a href="?page=%s&amp;action=%s&amp;character=%s">Deny</a>',$_REQUEST['page'],'denyit',$item->ID),
         );
