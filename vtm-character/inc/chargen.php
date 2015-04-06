@@ -570,7 +570,7 @@ function vtm_render_basic_info($step, $submitted) {
 			<td class='vtmcol_key'>Login name*:</td>
 			<td>\n";
 	if ($submitted)
-		$output .= $login;
+		$output .= vtm_formatOutput($login);
 	else
 		$output .= "<input type='text' name='wordpress_id' value='$login'>\n";
 	$output .= "</td>
@@ -5710,7 +5710,7 @@ function vtm_validate_basic_info($usepost = 1) {
 		elseif (!validate_username( $login )) {
 			$ok = 0;
 			$complete = 0;
-			$errormessages .= "<li>ERROR: Login name '$login' is invalid. Please choose another.</li>\n";
+			$errormessages .= "<li>ERROR: Login name '" . vtm_formatOutput($login) . "' is invalid. Please choose another.</li>\n";
 		}
 		else {
 			if ($vtmglobal['characterID'] > 0) {
@@ -5724,7 +5724,7 @@ function vtm_validate_basic_info($usepost = 1) {
 			if (count($names) > 0) {
 				$ok = 0;
 				$complete = 0;
-				$errormessages .= "<li>ERROR: Login name '$login' has already been chosen for another character.</li>\n";
+				$errormessages .= "<li>ERROR: Login name '" . vtm_formatOutput($login) . "' has already been chosen for another character.</li>\n";
 			}
 		}
 	}

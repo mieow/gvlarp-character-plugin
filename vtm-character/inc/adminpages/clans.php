@@ -809,7 +809,7 @@ class vtmclass_admin_disciplines_table extends vtmclass_MultiPage_ListTable {
 			/* Check if discipline id in use in a clan discipline */
 			$sql = "select clans.NAME 
 				from " . VTM_TABLE_PREFIX . "CLAN_DISCIPLINE clandisc, 
-					 " . VTM_TABLE_PREFIX . "CLAN clans,
+					 " . VTM_TABLE_PREFIX . "CLAN clans
 				where 
 					clans.ID = clandisc.CLAN_ID
 					and clandisc.DISCIPLINE_ID = %d;";
