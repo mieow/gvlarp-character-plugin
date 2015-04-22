@@ -1,0 +1,1 @@
+This Wordpress plugin is for managing characters for Vampire:the Masquerade games
