@@ -77,6 +77,12 @@ You can try out character generation on the plugin website.
 
 == Changelog ==
 
+= 2.1 =
+
+* updated newline encoding for FPDF lib files so that they didn't get corrupted when WP
+unzipped them and put in double-newlines thereby breaking the PHP
+* Wordpress 4.2 WP_List_Tables class has changed and broke the plugin. Made custom class using old version of the WP code.
+
 = 2.0 =
 
 * Updated for inclusion in wordpress.org
